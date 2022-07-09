@@ -1,2 +1,3 @@
-# xrplwinanalyzer
+# XRPLWinAnalyzer
+
 XRP Ledger Analyzer
