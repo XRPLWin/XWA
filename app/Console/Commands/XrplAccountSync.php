@@ -21,6 +21,7 @@ class XrplAccountSync extends Command
      *
      * @var string
      */
+    //todo rename namespace to xw
     protected $signature = 'xrpl:accountsync
                             {address : XRP account address}
                             {--recursiveaccountqueue : Enable to create additional queues for other accounts}';
@@ -72,7 +73,7 @@ class XrplAccountSync extends Command
       if(!$account)
         $account = StaticAccount::GetOrCreate($address,$this->ledger_current);
 
-      
+
 
       $ledger_index_max = $this->ledger_current; //from current ledger
 
