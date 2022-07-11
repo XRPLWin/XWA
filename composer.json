@@ -2,7 +2,7 @@
     "name": "xrplwin/xrplwinanalyzer",
     "version": "0.0.1",
     "type": "project",
-    "description": "XRPLWin Analyzer",
+    "description": "XRP Ledger Analyzer",
     "keywords": ["xrpl", "xrpl", "xrp-ledger", "analyzer", "php", "dynamodb", "aws"],
     "license": "MIT",
     "readmeFilename": "README.md",
