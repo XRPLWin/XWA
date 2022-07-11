@@ -1,9 +1,14 @@
 {
-    "name": "laravel/laravel",
+    "name": "xrplwin/xrplwinanalyzer",
+    "version": "0.0.1",
     "type": "project",
-    "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
+    "description": "XRPLWin Analyzer",
+    "keywords": ["xrpl", "xrpl", "xrp-ledger", "analyzer", "php", "dynamodb", "aws"],
     "license": "MIT",
+    "readmeFilename": "README.md",
+    "bugs" : {
+      "url" : "https://github.com/XRPLWin/xrplwinanalyzer/issues"
+    },
     "require": {
         "php": "^8.0.2",
         "baopham/dynamodb": "^6.1",
