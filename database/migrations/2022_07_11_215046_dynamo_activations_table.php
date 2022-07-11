@@ -1,16 +1,7 @@
 <?php
-//Docs:
-//https://github.com/baopham/laravel-dynamodb/issues/90#issuecomment-330301215
-//https://igliop.medium.com/building-a-serverless-application-with-laravel-react-and-aws-lambda-d1f978a69fde
-//https://github.com/aws/aws-sdk-php-laravel
-//https://bitbucket.org/teamhelium/com.helium.laravel-dynamodb/src/master/
-//https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-sort-keys.html
-//https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/Welcome.html
-
-
 use Illuminate\Database\Migrations\Migration;
 use BaoPham\DynamoDb\Facades\DynamoDb;
-
+//https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-modeling-nosql-B.html
 return new class extends Migration
 {
   private $client;
@@ -28,7 +19,7 @@ return new class extends Migration
   public function up()
   {
     $schema = [
-      'TableName' => 'accounts',
+      'TableName' => 'activations',
       'AttributeDefinitions' => [
         [
           'AttributeName' => 'account',
@@ -66,7 +57,7 @@ return new class extends Migration
   public function down()
   {
     $this->client->deleteTable([
-      'TableName' => 'accounts',
+      'TableName' => 'activations',
     ]);
   }
 };
