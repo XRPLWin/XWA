@@ -35,7 +35,7 @@ return [
 
     'connections' => [
 
-          'dynamodb' => [
+          /*'dynamodb' => [
             'driver' => 'dynamodb',
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
@@ -43,12 +43,13 @@ return [
             'token' => env('AWS_SESSION_TOKEN', null),
             'endpoint' => env('DYNAMODB_ENDPOINT', null),
             'prefix' => '', // table prefix
-        ],
+        ],*/
 
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DATABASE_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            //'database' => env('DB_DATABASE', database_path('storage/localdb/db.sqlite')),
+            'database' => env('DB_DATABASE', 'storage/localdb/db.sqlite'),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],

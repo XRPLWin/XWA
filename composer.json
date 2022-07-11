@@ -6,8 +6,8 @@
     "license": "MIT",
     "require": {
         "php": "^8.0.2",
+        "baopham/dynamodb": "^6.1",
         "guzzlehttp/guzzle": "^7.2",
-        "kitar/laravel-dynamodb": "^1.0",
         "laravel/framework": "^9.19"
     },
     "require-dev": {
@@ -36,7 +36,8 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
+            "@php artisan package:discover --ansi",
+            "@php artisan system:initlocaldb"
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
