@@ -28,16 +28,16 @@ return new class extends Migration
   public function up()
   {
     $schema = [
-      'TableName' => 'accounts',
+      'TableName' => 'transactions',
       'AttributeDefinitions' => [
         [
-          'AttributeName' => 'account',
+          'AttributeName' => 'a', //account
           'AttributeType' => 'S'
         ]
       ],
       'KeySchema' => [
         [
-          'AttributeName' => 'account',
+          'AttributeName' => 'a', //account
           'KeyType' => 'HASH',
         ]
       ],
@@ -66,7 +66,7 @@ return new class extends Migration
   public function down()
   {
     $this->client->deleteTable([
-      'TableName' => 'accounts',
+      'TableName' => 'transactions',
     ]);
   }
 };

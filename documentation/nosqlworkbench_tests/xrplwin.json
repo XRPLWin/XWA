@@ -1,0 +1,143 @@
+{
+  "ModelName": "xrplwin",
+  "ModelMetadata": {
+    "Author": "ZGrguric",
+    "DateCreated": "Jul 11, 2022, 08:17 PM",
+    "DateLastModified": "Jul 12, 2022, 11:19 PM",
+    "Description": "test",
+    "AWSService": "Amazon DynamoDB",
+    "Version": "3.0"
+  },
+  "DataModel": [
+    {
+      "TableName": "Accounts",
+      "KeyAttributes": {
+        "PartitionKey": {
+          "AttributeName": "A",
+          "AttributeType": "S"
+        }
+      },
+      "NonKeyAttributes": [
+        {
+          "AttributeName": "FI",
+          "AttributeType": "N"
+        },
+        {
+          "AttributeName": "LI",
+          "AttributeType": "N"
+        },
+        {
+          "AttributeName": "Syd",
+          "AttributeType": "BOOL"
+        }
+      ],
+      "DataAccess": {
+        "MySql": {}
+      },
+      "BillingMode": "PROVISIONED",
+      "ProvisionedCapacitySettings": {
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        },
+        "AutoScalingRead": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        },
+        "AutoScalingWrite": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        }
+      }
+    },
+    {
+      "TableName": "Transactions",
+      "KeyAttributes": {
+        "PartitionKey": {
+          "AttributeName": "ATH",
+          "AttributeType": "S"
+        },
+        "SortKey": {
+          "AttributeName": "A",
+          "AttributeType": "S"
+        }
+      },
+      "NonKeyAttributes": [
+        {
+          "AttributeName": "TH",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "State",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "Fee",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "IA",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "Curr",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "Amt",
+          "AttributeType": "N"
+        },
+        {
+          "AttributeName": "Time",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "TType",
+          "AttributeType": "N"
+        }
+      ],
+      "DataAccess": {
+        "MySql": {}
+      },
+      "BillingMode": "PROVISIONED",
+      "ProvisionedCapacitySettings": {
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        },
+        "AutoScalingRead": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        },
+        "AutoScalingWrite": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        }
+      }
+    }
+  ]
+}
