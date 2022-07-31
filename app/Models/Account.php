@@ -8,8 +8,8 @@ use BaoPham\DynamoDb\DynamoDbModel as Model;
 
 class Account extends Model
 {
-  protected $table = 'accounts';
-  protected $primaryKey = 'id';
-  protected $fillable = ['id', 'account', 'title'];
+  protected $table = 'transactions';
+  protected $primaryKey = 'PK';
+  #protected $fillable = ['id', 'account', 'title'];
   //protected $sortKey = 'Subject';
 }

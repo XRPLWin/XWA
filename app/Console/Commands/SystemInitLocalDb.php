@@ -28,6 +28,8 @@ class SystemInitLocalDb extends Command
      */
     public function handle()
     {
+      //Not used
+      /*
       $disk = Storage::build([
           'driver' => 'local',
           'root' => base_path(),
@@ -40,6 +42,7 @@ class SystemInitLocalDb extends Command
       }
       else
         $this->info('Local SQLite database file exists, nothing to do ('.config('database.connections.sqlite.database').')');
+      */
       return 0;
     }
 }

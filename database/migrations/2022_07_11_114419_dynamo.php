@@ -31,21 +31,57 @@ return new class extends Migration
       'TableName' => 'transactions',
       'AttributeDefinitions' => [
         [
-          'AttributeName' => 'a', //account
+          'AttributeName' => 'PK', //rAccount
           'AttributeType' => 'S'
-        ]
+        ],
+        [
+          'AttributeName' => 'SK', //ledger index
+          'AttributeType' => 'N'
+        ],
+        /*[
+          'AttributeName' => 'TType', //1,2,3...
+          'AttributeType' => 'N'
+        ],*/
       ],
       'KeySchema' => [
         [
-          'AttributeName' => 'a', //account
+          'AttributeName' => 'PK', //rAccount
           'KeyType' => 'HASH',
+        ],
+        [
+          'AttributeName' => 'SK', //ledger index
+          'KeyType' => 'RANGE',
         ]
       ],
 
       # Optional:
 
       //'BillingMode' => 'PROVISIONED',
-      //'GlobalSecondaryIndexes' => [],
+      /*'GlobalSecondaryIndexes' => [
+        [
+          'IndexName' => 'TxByType',
+          'KeySchema' => [
+            [
+              'AttributeName' => 'PK', //rAccount
+              'KeyType' => 'HASH',
+            ],
+            [
+              'AttributeName' => 'TType', //Transaction Type - example
+              'KeyType' => 'RANGE',
+            ]
+          ],
+          'Projection' => [
+            'ProjectionType' => 'INCLUDE',
+            'NonKeyAttributes' => ['TH']
+          ],
+          'ProvisionedThroughput' => [
+            'ReadCapacityUnits' => 1,  //TODO test ProvisionedThroughputExceededException's
+            'WriteCapacityUnits' => 1, //TODO test ProvisionedThroughputExceededException's
+          ],
+
+        ]
+
+      ],*/
       //'LocalSecondaryIndexes' => [],
       'ProvisionedThroughput' => [
         'ReadCapacityUnits' => 1,  //TODO test ProvisionedThroughputExceededException's
