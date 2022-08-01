@@ -10,8 +10,8 @@ class MainController extends Controller
     public function front()
     {
 
-      return \XRPLWin\XRPL\XRPL::aa();
-
+      $client = new \XRPLWin\XRPL\Client;
+      dd($client);
       return '';
       $test = Account::all();
 

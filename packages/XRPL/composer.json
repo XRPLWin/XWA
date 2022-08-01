@@ -1,0 +1,33 @@
+{
+    "name": "xrplwin/xrpl",
+    "description": "A PHP package for communication with the XRP Ledger.",
+    "keywords": ["xrpl", "composer", "package", "ripple", "rippled", "xrp"],
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Zvjezdan Grgurić",
+            "email": "zgrguric@xrplwin.com"
+        }
+    ],
+    "homepage": "https://github.com/XRPLWin",
+    "autoload": {
+        "psr-4": {
+            "XRPLWin\\XRPL\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "XRPLWin\\XRPL\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.1.0",
+        "guzzlehttp/guzzle": "^7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    }
+}

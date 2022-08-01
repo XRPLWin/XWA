@@ -21,7 +21,6 @@ class XwaAccountSync extends Command
      *
      * @var string
      */
-    //todo rename namespace to xw
     protected $signature = 'xwa:accountsync
                             {address : XRP account address}
                             {--recursiveaccountqueue : Enable to create additional queues for other accounts}';
