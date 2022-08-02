@@ -11,7 +11,7 @@ abstract class AbstractMethod
   protected string $method;
   protected string $endpoint;
   protected string $endpoint_config_key = 'endpoint_reporting_uri';
-  protected array $
+  protected array $result = [];
 
   public function __construct(Client $client)
   {
@@ -61,9 +61,8 @@ abstract class AbstractMethod
         ],
       ]);
 
-    $r = \json_decode((string)$response->getBody(),true);
-    dd($r);
-
-    return $ret['result']['ledger_current_index'];
+    $this->result = \json_decode((string)$response->getBody(),true);
+return $this;
+    return $this->result['result']['ledger_current_index'];
   }
 }
