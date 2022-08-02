@@ -10,8 +10,9 @@ class MainController extends Controller
     public function front()
     {
 
-      $client = new \XRPLWin\XRPL\Client;
-      dd($client);
+      $client = new \XRPLWin\XRPL\Client([]);
+      $ledger_current = $client->api('ledger_current')->execute();
+      dd($client,  $ledger_current );
       return '';
       $test = Account::all();
 

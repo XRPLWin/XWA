@@ -13,6 +13,8 @@ use App\Models\TransactionTrustset;
 use App\Models\TransactionAccountset;
 use App\Models\TransactionOffer;
 
+use XRPLWin\XRPL\Client;
+
 
 class XwaAccountSync extends Command
 {
