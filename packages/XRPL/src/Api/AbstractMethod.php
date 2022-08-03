@@ -42,6 +42,10 @@ abstract class AbstractMethod
     return $this;
   }
 
+  /**
+  * Executes request against Ledger node / enpoint uri.
+  * @return self
+  */
   public function execute()
   {
     $p = [];
@@ -54,15 +58,16 @@ abstract class AbstractMethod
     $response = $this->client
       ->getHttpClient()
       ->request('POST', $this->endpoint, [
-        'body' => json_encode( $p ),
-        'headers' => [
-          //'Accept' => 'application/json',
-          'Content-Type' => 'application/json',
-        ],
+        'body' => json_encode($p),
+        'headers' => $this->client->getHeaders()
       ]);
 
     $this->result = \json_decode((string)$response->getBody(),true);
-return $this;
-    return $this->result['result']['ledger_current_index'];
+    return $this;
+  }
+
+  public function isSuccess()
+  {
+
   }
 }

@@ -52,6 +52,13 @@ class Client
     return $this->config;
   }
 
+  private function getHeaders(): array
+  {
+    return [
+      'Content-Type' => 'application/json'
+    ];
+  }
+
   public static function snakeToCase(string $str): string
   {
     return \str_replace('_', '', ucwords($str, '_'));
