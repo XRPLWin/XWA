@@ -6,9 +6,9 @@ use XRPLWin\XRPL\Api\AbstractMethod;
 use XRPLWin\XRPL\Exceptions\NotSentException;
 use XRPLWin\XRPL\Exceptions\XRPL\NotSuccessException;
 
-class LedgerCurrent extends AbstractMethod
+class AccountTx extends AbstractMethod
 {
-  protected string $method = 'ledger_current';
+  protected string $method = 'account_tx';
   protected string $endpoint_config_key = 'endpoint_reporting_uri';
 
   /**

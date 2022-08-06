@@ -23,13 +23,13 @@ class Client
   {
     $this->httpClient = new \GuzzleHttp\Client();
 
-    $config = array_merge($config,$this->config_default);
+    $config = array_merge($this->config_default,$config);
 
     //Check config
     //TODO
 
     $this->config = $config;
-
+    
     $this->endpointReportingUri = $this->config['endpoint_reporting_uri'];
     $this->endpointFullhistoryUri = $this->config['endpoint_fullhistory_uri'];
   }
@@ -47,12 +47,16 @@ class Client
     return $this->httpClient;
   }
 
+  /**
+   * Get configuration
+   * @return array
+   */
   public function getConfig(): array
   {
     return $this->config;
   }
 
-  private function getHeaders(): array
+  public function getHeaders(): array
   {
     return [
       'Content-Type' => 'application/json'
