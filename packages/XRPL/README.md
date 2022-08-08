@@ -58,6 +58,11 @@ Class method `send()` executes request against XRPLedger and response is stored 
 
 ### Paginating result
 ```PHP
+
+# Check if there is next page
+//$has_next_page = $account_tx->hasNextPage(); //bool
+
+# Fetch next page of transactions if there is next page (next() does not return null)
 if($next_account_tx = $account_tx->next()) {
     $next_result = $next_account_tx->send()->finalResult();
     // ...
