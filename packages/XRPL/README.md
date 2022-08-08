@@ -71,8 +71,7 @@ See [samples](samples/paginating.php) for more information.
 ## Request workflow
 
 1. Prepare instance by setting params
-2. Use send() to execute request.
-3. Handle any errors using try catch. Request will be re-tried x amount of times if rate-limit is detected.
+2. Use send() to execute request and handle errors by using try catch. (Request will be re-tried x amount of times if rate-limit is detected)
 4. XRPLedger response is stored in memory and it is available to read.
 
 ## Methods
