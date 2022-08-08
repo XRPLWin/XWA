@@ -45,6 +45,9 @@ try {
     throw $e;
 }
 
+if(!$account_tx->isSuccess()) {
+    //XRPL response is returned but field result.status did not return 'success'
+}
 
 # Get fetched response as array
 $response       = $account_tx->resultArray(); //array response from ledger
