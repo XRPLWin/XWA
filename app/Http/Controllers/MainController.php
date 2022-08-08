@@ -28,18 +28,13 @@ class MainController extends Controller
         ])
         ->send();
 
-      if($account_tx->hasNextPage())
+      if($nextRequest = $account_tx->next())
       {
-        $account_tx2 = $client->api('account_tx')
-        ->params([
-          'account' => 'rLvpVgX2tkB1FooMz5uQQJ6tCUKJX3Cwdq',
-          'limit' => 2,
-          //todo set marker
-        ])
-        ->send();
+        $account_tx2 = $nextRequest->send()->result();
+        dd($account_tx->result(),$account_tx2);
       }
 
-        dd($account_tx->result());
+        dd('end',$account_tx->result());
 
 
 

@@ -144,20 +144,23 @@ abstract class AbstractMethod
           throw new BadRequestException('HTTP request failed - unknown exception');
       }
     }
-    
-    //if(!$this->isSuccess())
-    //  return $this;
-
-    /*if(isset($this->result->result->marker))
-    {
-      //add/modify marker params
-      $params = $this->params;
-      $params['marker'] = (array)$this->result->result->marker;
-      $this->send()
-    }
-    dd($this->result()->marker);*/
-
     return $this;
+  }
+
+  /**
+   * If marker is present in current result, this will return new method with marker applied to params.
+   * If no marker is present thi will return null.
+   * @return ?AbstractMethod
+   */
+  public function next(): ?AbstractMethod
+  {
+    if(!$this->hasNextPage())
+      return null;
+    $params = $this->params;
+    $params['marker'] = (array)$this->result->result->marker;
+    $nextMethod = $this->client->api($this->method)->params($params);
+
+    return $nextMethod;
   }
 
   /**
@@ -227,5 +230,11 @@ abstract class AbstractMethod
 
     //override per method
     return null;
+  }
+
+  public function setCooldownSeconds(int $seconds): self
+  {
+    $this->cooldown_seconds = $seconds;
+    return $this;
   }
 }
