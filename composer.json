@@ -31,7 +31,7 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "XRPLWin\\XRPL\\": "packages/XRPL/src/"
+            "XRPLWin\\XRPL\\": "packages/xrpl/src/"
         }
     },
     "autoload-dev": {
@@ -42,8 +42,7 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi",
-            "@php artisan system:initlocaldb"
+            "@php artisan package:discover --ansi"
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"

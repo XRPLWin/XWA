@@ -9,7 +9,6 @@ class MainController extends Controller
 {
     public function front()
     {
-
       $client = new \XRPLWin\XRPL\Client([
         //'endpoint_reporting_uri' => 'https://test.com'
       ]);

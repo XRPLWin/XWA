@@ -20,7 +20,7 @@ class XwaAccountSync extends Command
 {
     /**
      * The name and signature of the console command.
-     * @sample php artisan xwa:accountsync rAcct
+     * @sample php artisan xwa:accountsync rAcct...
      * @var string
      */
     protected $signature = 'xwa:accountsync
