@@ -15,7 +15,7 @@ composer require TODO
 
 In sample below we will be using account_tx method.
 
-### Init Client:
+### Init Client
 ```PHP
 $client = new \XRPLWin\XRPL\Client([
     # Following values are defined by default, uncomment to override
@@ -24,18 +24,18 @@ $client = new \XRPLWin\XRPL\Client([
 ]);
 ```
 
-### Creating first request:
+### Creating first request
 ```PHP
 # Create new 'account_tx' method instance
 $account_tx = $client->api('account_tx')->params([
-        'account' => 'rAccount...',
-        'limit' => 10
-    ]);
+    'account' => 'rAccount...',
+    'limit' => 10
+]);
 ```
 
 This will return an instance of `XRPLWin\XRPL\Api\Methods\AccountTx`.
 
-### Fetching response:
+### Fetching response
 ```PHP
 # Send request to Ledger
 try {
@@ -56,7 +56,7 @@ $transactions   = $account_tx->finalResult(); //array of transactions
 
 Class method `send()` executes request against XRPLedger and response is stored into instance object. After that you can use one of provided class methods to retrieve result.
 
-### Paginating result:
+### Paginating result
 ```PHP
 if($next_account_tx = $account_tx->next()) {
     $next_result = $next_account_tx->send()->finalResult();
@@ -77,13 +77,13 @@ See [samples](samples/paginating.php) for more information.
 
 ## Methods
 
-### account_tx:
+### account_tx
 
 ```PHP
 $account_tx = $client->api('account_tx')->params([
-        'account' => 'rAccount...',
-        'limit' => 10
-    ]);
+    'account' => 'rAccount...',
+    'limit' => 10
+]);
 ```
 
 
