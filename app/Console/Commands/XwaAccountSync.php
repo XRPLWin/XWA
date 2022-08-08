@@ -20,7 +20,7 @@ class XwaAccountSync extends Command
 {
     /**
      * The name and signature of the console command.
-     *
+     * @sample php artisan xwa:accountsync rAcct
      * @var string
      */
     protected $signature = 'xwa:accountsync
@@ -36,6 +36,8 @@ class XwaAccountSync extends Command
 
     protected $recursiveaccountqueue = false;
 
+    protected Client $XRPLClient;
+
     /**
      * Create a new command instance.
      *
@@ -44,6 +46,8 @@ class XwaAccountSync extends Command
     public function __construct()
     {
         parent::__construct();
+        $this->XRPLClient = new Client([]);
+
     }
 
     private $ledger_current = -1;
@@ -55,11 +59,16 @@ class XwaAccountSync extends Command
     public function handle()
     {
       $address = $this->argument('address');
-      $this->recursiveaccountqueue = $this->option('recursiveaccountqueue'); //boolean
+      $this->recursiveaccountqueue = $this->option('recursiveaccountqueue'); //bool
 
-      $this->ledger_current = XRPL::ledger_current();
+      //dd($this->XRPLClient->api('ledger_current')->send()->finalResult());
+
+      $this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
       //$this->ledger_current = 67363975;
+      
+      $account = Account::find(['PK' => $address, 'SK' => 0]);
 
+      dd($account);
       //validate $account format
       $account = Account::select([
           'id',

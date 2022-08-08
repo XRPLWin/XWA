@@ -95,7 +95,7 @@ abstract class AbstractMethod
       ->getHttpClient()
       ->request('POST', $this->endpoint, [
         'http_errors' => false,
-        'body' => json_encode($p),
+        'body' => \json_encode($p),
         'headers' => $this->client->getHeaders()
       ]);
       $status_code = $response->getStatusCode();
@@ -139,7 +139,7 @@ abstract class AbstractMethod
       else
       {
         if($this->lastException)
-          throw new BadRequestException('HTTP request failed with message: '.$this->lastException->getMessage(), 0, $this->lastException->getMessage());
+          throw new BadRequestException('HTTP request failed with message: '.$this->lastException->getMessage());
         else
           throw new BadRequestException('HTTP request failed - unknown exception');
       }

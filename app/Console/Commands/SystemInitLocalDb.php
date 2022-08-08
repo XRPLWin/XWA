@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
+//DEPRECHATED, to be deleted
 class SystemInitLocalDb extends Command
 {
     /**
