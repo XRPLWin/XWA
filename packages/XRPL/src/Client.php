@@ -34,9 +34,13 @@ class Client
     $this->endpointFullhistoryUri = $this->config['endpoint_fullhistory_uri'];
   }
 
+  /**
+   * Returns instance of AbstractMethod
+   * @return \XRPLWin\XRPL\Api\AbstractMethod
+   */
   public function api(string $method): mixed
   {
-    $class = '\\XRPLWin\\XRPL\\Api\Methods\\'.self::snakeToCase($method);
+    $class = '\\XRPLWin\\XRPL\\Api\\Methods\\'.self::snakeToCase($method);
     $method = new $class($this);
     return $method;
   }

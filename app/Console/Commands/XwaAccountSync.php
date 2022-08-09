@@ -3,7 +3,13 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-#use Illuminate\Support\Facades\Artisan;
+
+use XRPLWin\XRPL\Client;
+use App\Utilities\AccountLoader;
+use App\Models\DTransaction;
+
+
+//old below - todo delete
 use App\Statics\XRPL;
 use App\Statics\Account as StaticAccount;
 use App\Models\Account;
@@ -12,9 +18,6 @@ use App\Models\TransactionPayment;
 use App\Models\TransactionTrustset;
 use App\Models\TransactionAccountset;
 use App\Models\TransactionOffer;
-
-use XRPLWin\XRPL\Client;
-
 
 class XwaAccountSync extends Command
 {
@@ -34,9 +37,26 @@ class XwaAccountSync extends Command
      */
     protected $description = 'Do a full sync of account';
 
-    protected $recursiveaccountqueue = false;
+    /**
+     * Flag if this scan will generate new queues.
+     *
+     * @var bool
+     */
+    protected bool $recursiveaccountqueue = false;
 
-    protected Client $XRPLClient;
+    /**
+     * Current ledger being scanned.
+     *
+     * @var bool
+     */
+    private int $ledger_current = -1;
+
+    /**
+     * XRPL API Client instance
+     *
+     * @var \XRPLWin\XRPL\Client
+     */
+    protected readonly Client $XRPLClient;
 
     /**
      * Create a new command instance.
@@ -46,11 +66,10 @@ class XwaAccountSync extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->XRPLClient = new Client([]);
-
+        $this->XRPLClient = app(Client::class);
     }
 
-    private $ledger_current = -1;
+    
     /**
      * Execute the console command.
      *
@@ -58,17 +77,83 @@ class XwaAccountSync extends Command
      */
     public function handle()
     {
+      //dd('test',config_static('xrpl.address_ignore.rBKPS4oLSaV2KVVuHH8EpQqMGgGefGFQs72'));
       $address = $this->argument('address');
       $this->recursiveaccountqueue = $this->option('recursiveaccountqueue'); //bool
-
-      //dd($this->XRPLClient->api('ledger_current')->send()->finalResult());
-
       $this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
-      //$this->ledger_current = 67363975;
-      
-      $account = Account::find(['PK' => $address, 'SK' => 0]);
 
-      dd($account);
+      //$this->ledger_current = 67363975;
+      //dd($this->ledger_current);
+
+      $account = AccountLoader::getOrCreate($address);
+      
+      if( config_static('xrpl.address_ignore.'.$account->address) !== null ) {
+        $this->info('History sync skipped (ignored)');
+        //modify $account todo
+        return 0;
+      }
+
+      $account_tx = $this->XRPLClient->api('account_tx')
+          ->params([
+            'account' => $account->address,
+            'ledger_index' => 'current',
+            'ledger_index_min' => (int)$account->l, //Ledger index this account is scanned to.
+            'ledger_index_max' => $this->ledger_current,
+            'binary' => false,
+            'forward' => true,
+            'limit' => 400, //400
+          ]);
+
+      $do = true;
+      while($do) {
+        
+        try {
+            $account_tx->send();
+        } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
+            // Handle errors
+            throw $e;
+        }
+        $txs = $account_tx->finalResult();
+        $this->info('FOUND '.count($txs).' txs');
+
+
+        //Do the logic here
+        foreach($txs as $tx)
+        {
+          $this->processTransaction($account,$tx);
+          $this->info($txs['result']['ledger_index_max'].' - '.$tx['tx']['ledger_index'].' ('.count($txs['result']['transactions']).')');
+          if($account->ledger_first_index > $tx['tx']['ledger_index'])
+            $account->ledger_first_index = $tx['tx']['ledger_index'];
+        }
+
+        if($account_tx = $account_tx->next()) {
+          //continuing to next page
+          $this->info('Next page...');
+        }
+        else
+          $do = false;
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      exit;
+      //OLD BELOW:
+
       //validate $account format
       $account = Account::select([
           'id',
@@ -168,24 +253,31 @@ class XwaAccountSync extends Command
     }
 
 
-    private function processTransaction(Account $account, array $tx)
+    /**
+     * Calls appropriate method.
+     * @return Callable
+     */
+    private function processTransaction(DTransaction $account, \stdClass $tx)
     {
-      $type = $tx['tx']['TransactionType'];
+      $type = $tx->tx->TransactionType;
       $method = 'processTransaction_'.$type;
-      if($tx['meta']['TransactionResult'] != 'tesSUCCESS')
+
+      if($tx->meta->TransactionResult != 'tesSUCCESS')
       {
         //$this->info($tx['meta']['TransactionResult'].': '.\json_encode($tx));
         return null; //do not log failed transactions
       }
-      //dd($tx['meta']['TransactionResult']);
-      return $this->{$method}($account, $tx['tx'], $tx['meta']);
+
+      //this is faster than call_user_func()
+      return $this->{$method}($account, $tx->tx, $tx->meta);
     }
 
     /**
     * Executed offer
     */
-    private function processTransaction_OfferCreate(Account $account, array $tx, array $meta)
+    private function processTransaction_OfferCreate(DTransaction $account, \stdClass $tx, \stdClass $meta)
     {
+      return null; //TODO
       $txhash = $tx['hash'];
 
       $TransactionOfferCheck = TransactionTrustset::where('txhash',$txhash)->count();
@@ -236,11 +328,21 @@ class XwaAccountSync extends Command
 
     /**
     * Payment to or from in any currency.
+    * @return null
     */
-    private function processTransaction_Payment(Account $account, array $tx, array $meta)
+    private function processTransaction_Payment(DTransaction $account, \stdClass $tx, \stdClass $meta)
     {
-      $txhash = $tx['hash'];
+      $txhash = $tx->hash;
+      
+      
 
+
+
+
+
+
+
+      #################### FUN BEGINS ##################### OLD BELOW
       // Check existing tx
       $TransactionPaymentCheck = TransactionPayment::where('txhash',$txhash)->count();
       if($TransactionPaymentCheck)
@@ -404,12 +506,12 @@ class XwaAccountSync extends Command
 
 
 
-    private function processTransaction_OfferCancel(Account $account, array $tx, array $meta)
+    private function processTransaction_OfferCancel(DTransaction $account, array $tx, array $meta)
     {
       return null;
     }
 
-    private function processTransaction_TrustSet(Account $account, array $tx, array $meta)
+    private function processTransaction_TrustSet(DTransaction $account, array $tx, array $meta)
     {
       $txhash = $tx['hash'];
 
@@ -442,7 +544,7 @@ class XwaAccountSync extends Command
       return null;
     }
 
-    private function processTransaction_AccountSet(Account $account, array $tx, array $meta)
+    private function processTransaction_AccountSet(DTransaction $account, array $tx, array $meta)
     {
       return null; //not used yet
 
@@ -471,52 +573,52 @@ class XwaAccountSync extends Command
       return null;
     }
 
-    private function processTransaction_AccountDelete(Account $account, array $tx, array $meta)
+    private function processTransaction_AccountDelete(DTransaction $account, array $tx, array $meta)
     {
       return null;
     }
 
-    private function processTransaction_SetRegularKey(Account $account, array $tx, array $meta)
+    private function processTransaction_SetRegularKey(DTransaction $account, array $tx, array $meta)
     {
       return null;
     }
 
-    private function processTransaction_SignerListSet(Account $account, array $tx, array $meta)
+    private function processTransaction_SignerListSet(DTransaction $account, array $tx, array $meta)
     {
       return null;
     }
 
-    private function processTransaction_EscrowCreate(Account $account, array $tx, array $meta)
+    private function processTransaction_EscrowCreate(DTransaction $account, array $tx, array $meta)
     {
       return null;
     }
 
-    private function processTransaction_EscrowFinish(Account $account, array $tx, array $meta)
+    private function processTransaction_EscrowFinish(DTransaction $account, array $tx, array $meta)
     {
       return null;
     }
 
-    private function processTransaction_EscrowCancel(Account $account, array $tx, array $meta)
+    private function processTransaction_EscrowCancel(DTransaction $account, array $tx, array $meta)
     {
       return null;
     }
 
-    private function processTransaction_PaymentChannelCreate(Account $account, array $tx, array $meta)
+    private function processTransaction_PaymentChannelCreate(DTransaction $account, array $tx, array $meta)
     {
       return null;
     }
 
-    private function processTransaction_PaymentChannelFund(Account $account, array $tx, array $meta)
+    private function processTransaction_PaymentChannelFund(DTransaction $account, array $tx, array $meta)
     {
       return null;
     }
 
-    private function processTransaction_PaymentChannelClaim(Account $account, array $tx, array $meta)
+    private function processTransaction_PaymentChannelClaim(DTransaction $account, array $tx, array $meta)
     {
       return null;
     }
 
-    private function processTransaction_DepositPreauth(Account $account, array $tx, array $meta)
+    private function processTransaction_DepositPreauth(DTransaction $account, array $tx, array $meta)
     {
       return null;
     }

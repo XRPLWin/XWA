@@ -226,7 +226,7 @@ abstract class AbstractMethod
       throw new NotSentException('Please send request first');
 
     if(!$this->isSuccess())
-      throw new NotSuccessException('Request did not return success result');
+      throw new NotSuccessException('Request did not return success result: '.\json_encode($this->result));
 
     //override per method
     return null;

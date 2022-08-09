@@ -9,6 +9,7 @@ use App\Models\Account as AccountModel;
 use App\Models\Topaccount; //?
 use App\Models\AggregatDailyPayment;
 
+//DEPRECHATED - to be deleted
 class Account
 {
 

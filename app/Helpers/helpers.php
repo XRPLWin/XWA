@@ -2,11 +2,16 @@
 
 if (!function_exists('config_static')) {
   /**
-  * For claim this site domain verification and other
+  * Config on demand, Laravel way.
+  * @param string $namespace - dot seperated namespace where first param is config_static/FILE.php
+  * @return mixed
   */
-  function config_static($namespace) : array
+  function config_static(string $namespace)
   {
-    return include base_path().'/config_static/'.$namespace.'.php';
+    $ex = \explode('.',$namespace);
+    $data = include base_path().'/config_static/'.$ex[0].'.php';
+    array_shift($ex);
+    return data_get($data,$ex);
   }
 }
 
@@ -47,7 +52,7 @@ if (!function_exists('wallet_to_short')) {
 
 if (!function_exists('drops_to_xrp')) {
   /**
-  * Shortify wallet address to xxxx....xxxx
+  * Converts drops to XRP.
   */
   function drops_to_xrp(int $num)
   {
@@ -110,18 +115,18 @@ if (!function_exists('format_with_suffix')) {
   }
 }
 
-if (!function_exists('getbaseurlfromlink')) {
+if (!function_exists('getbaseurlfromurl')) {
   /**
   * For claim this site domain verification and other
   */
-  function getbaseurlfromlink(string $url)
+  function getbaseurlfromurl(string $url)
   {
     $url_info = parse_url($url);
     return $url_info['scheme'] . '://' . $url_info['host'];
   }
 }
 
-if (!function_exists('getbasedomainfromlink')) {
+if (!function_exists('getbasedomainfromurl')) {
   /**
   * For claim this site domain verification and other
   * https://xrpl.win -> xrpl.win
@@ -129,7 +134,7 @@ if (!function_exists('getbasedomainfromlink')) {
   * beta.xrpl.win -> beta.xrpl.win
   * xrpl.win -> xrpl.win
   */
-  function getbasedomainfromlink(string $url)
+  function getbasedomainfromurl(string $url)
   {
     $url_info = parse_url($url);
     return $url_info['host'];

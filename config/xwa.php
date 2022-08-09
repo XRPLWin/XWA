@@ -17,6 +17,6 @@ return [
   | How granular will data be stored to XWA database.
   |
   */
-  'moment' => 500,
+  //'moment' => 500,
 
 ];
