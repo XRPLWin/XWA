@@ -4,12 +4,19 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Account;
+use \XRPLWin\XRPL\Client;
 
 class MainController extends Controller
 {
     public function front()
     {
-      $client = new \XRPLWin\XRPL\Client([
+
+      $client = app(Client::class);
+      $client2 = app(Client::class);
+      dd($client,$client2);
+
+
+      $client2 = new \XRPLWin\XRPL\Client([
         //'endpoint_reporting_uri' => 'https://test.com'
       ]);
       /*$ledgerCurrentPayload = $client->api('ledger_current')->send();
