@@ -104,6 +104,7 @@ class XwaAccountSync extends Command
             'limit' => 400, //400
           ]);
 
+      
       $do = true;
       while($do) {
         
@@ -114,21 +115,25 @@ class XwaAccountSync extends Command
             throw $e;
         }
         $txs = $account_tx->finalResult();
-        $this->info('FOUND '.count($txs).' txs');
-
+        $this->info('Starting batch of '.count($txs).' transactions');
+        $bar = $this->output->createProgressBar(count($txs));
+        $bar->start();
 
         //Do the logic here
         foreach($txs as $tx)
         {
+          //$this->info($tx->tx->ledger_index);
           $this->processTransaction($account,$tx);
-          $this->info($txs['result']['ledger_index_max'].' - '.$tx['tx']['ledger_index'].' ('.count($txs['result']['transactions']).')');
-          if($account->ledger_first_index > $tx['tx']['ledger_index'])
-            $account->ledger_first_index = $tx['tx']['ledger_index'];
+          //dd($tx->tx->ledger_index);
+          
+          //if($account->ledger_first_index > $tx['tx']['ledger_index'])
+          //  $account->ledger_first_index = $tx['tx']['ledger_index'];
+          $bar->advance();
         }
+        $bar->finish();
 
         if($account_tx = $account_tx->next()) {
           //continuing to next page
-          $this->info('Next page...');
         }
         else
           $do = false;
@@ -335,10 +340,48 @@ class XwaAccountSync extends Command
       $txhash = $tx->hash;
       
       
+      
+
+      $is_partialPayment = false;
+      if(isset($tx->Flags) && xrpl_has_flag($tx->Flags,131072)) {
+        $is_partialPayment = true;
+      }
+      $destination_tag = isset($tx->DestinationTag) ? $tx->DestinationTag:null;
+      $source_tag = isset($tx->SourceTag) ? $tx->SourceTag:null;
+
+      # Is this transaction IN or OUT
+      $in = ($account->address != $tx->Account) ? true:false;
+
+      $model = new DTransaction();
+      $model->PK = $account->address.'-'.DTransaction::TX_PAYMENT;
+      $model->SK = $tx->ledger_index;
+      $model->destination_tag = $destination_tag;
+      $model->source_tag = $source_tag;
+      $model->fee = $tx->Fee; //in drops
+      $model->time_at = ripple_epoch_to_carbon($tx->date);
+
+      if(is_array($tx->Amount))
+      {
+        //it is payment in currency
+        //if( !$is_partialPayment )
+        //  $amount = $tx['Amount']['value'];
+        //else {
+          $amount = $meta->delivered_amount->value;
+          //$this->info('[T] '.$meta['delivered_amount']['value'].' - '.$tx['Amount']['value'].' HSH: '.$txhash);
+        //}
+        //if($meta['delivered_amount']['currency'] != $tx['Amount']['currency']) dd($meta['delivered_amount']);
+
+        $model->amount = $amount; //base-10 auto-converted to double in DB
+        $model->issuer = $tx->Amount->issuer;
+        $model->currency = $meta->delivered_amount->currency;
+      }
 
 
+      $model->save();
+      return;
 
 
+      //$model = AccountLoader::getOrCreatePayment($account->address, $tx->ledger_index);
 
 
 
@@ -511,8 +554,9 @@ class XwaAccountSync extends Command
       return null;
     }
 
-    private function processTransaction_TrustSet(DTransaction $account, array $tx, array $meta)
+    private function processTransaction_TrustSet(DTransaction $account, \stdClass $tx, \stdClass $meta)
     {
+      return null;
       $txhash = $tx['hash'];
 
       $TransactionTrustsetCheck = TransactionTrustset::where('txhash',$txhash)->count();

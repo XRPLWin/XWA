@@ -39,10 +39,9 @@ class AccountLoader
     if(!$model)
     {
       $model = new DTransaction();
-      $model->PK = $address;
-      $model->SK = 0;
-      $model->l = 0; // Ledger index this account is scanned to.
-      //$Account->customval = 'test123';
+      $model->PK = $address.'-'.DTransaction::TX_PAYMENT;
+      $model->SK = $ledger_index;
+      $model->customval = 'test123';
       $model->save();
     }
     return $model;
