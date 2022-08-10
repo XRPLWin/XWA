@@ -4,7 +4,7 @@ namespace App\Models;
 
 #use Illuminate\Database\Eloquent\Model;
 #use Kitar\Dynamodb\Model\Model;
-use BaoPham\DynamoDb\DynamoDbModel as Model;
+use BaoPham\DynamoDb\DynamoDbModel;
 
 /**
  * DynamoDB Transaction model.
@@ -13,16 +13,14 @@ use BaoPham\DynamoDb\DynamoDbModel as Model;
  * For payment       PK: rAcct-1   SK: <INT>
  * For trustset      PK: rAcct-2   SK: <INT> ...
  */
-class DTransaction extends Model
+class DTransaction extends DynamoDbModel
 {
-  //const .. object types todo
-  
   protected $table = 'transactions';
   protected $primaryKey = 'PK';
   protected $compositeKey = ['PK', 'SK'];
   public $timestamps = false;
 
-  const TX_PAYMENT = 1;
+  
 
   //protected $fillable = ['id', 'account', 'title'];
   //protected $sortKey = 'Subject';
@@ -38,8 +36,4 @@ class DTransaction extends Model
     return $this->PK;
   }
 
-  public function type()
-  {
-    //TODO return transaction type which is contained in PK
-  }
 }
