@@ -8,7 +8,16 @@ New Cmd job to detect changes betweeen MAIN an TESTNET or other. Save connection
 Show assets and xrp seperated by destination tag (total balance)
 
 
+
+
+
+###
+
 Check this:
 https://xrpscan.com/tx/36668A489A7EF037F15F3B949A643B28D6B0AF279A4607EA0F6657AC1D1961F7
 https://xrpscan.com/account/rsAbXB4zViSBq7WHBPzRVcLNih3D24JhTc
   - To is XRPL - investigate
+
+
+Sequence index test: https://xrpscan.com/tx/83B4894D5649D6057AEFDB99F86F0708DDA3B84BCD7F68CD77DC207600526198
+check Iripplepay (1) on this ledger: https://xrpscan.com/ledger/73618219

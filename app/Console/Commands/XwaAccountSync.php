@@ -86,12 +86,13 @@ class XwaAccountSync extends Command
       $address = $this->argument('address');
       $this->recursiveaccountqueue = $this->option('recursiveaccountqueue'); //bool
       $this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
-
+      
       $account = AccountLoader::getOrCreate($address);
 
       //Test only start
-      $account->l = 1;
-      $account->save();
+      //$this->ledger_current = 73618219; //# this (comment)
+      //$account->l = 1; //1
+      //$account->save();
       //Test only end
       
       if( config_static('xrpl.address_ignore.'.$account->address) !== null ) {
@@ -110,7 +111,6 @@ class XwaAccountSync extends Command
             'forward' => true,
             'limit' => 400, //400
           ]);
-
           
       $do = true;
       while($do) {
@@ -163,10 +163,7 @@ class XwaAccountSync extends Command
       $method = 'processTransaction_'.$type;
 
       if($tx->meta->TransactionResult != 'tesSUCCESS')
-      {
-        //$this->info($tx['meta']['TransactionResult'].': '.\json_encode($tx));
         return null; //do not log failed transactions
-      }
 
       //this is faster than call_user_func()
       $this->{$method}($account, $tx);
@@ -238,11 +235,12 @@ class XwaAccountSync extends Command
 
       $model = new DTransactionPayment();
       $model->PK = $account->address.'-'.DTransactionPayment::TYPE;
-      $model->SK = $tx->tx->ledger_index;
+      $model->SK = $parser->SK();
       foreach($parsedData as $key => $value) {
         $model->{$key} = $value;
       }
       $model->save();
+      
       
       # Activations by payment:
       $parser->detectActivations();
@@ -288,55 +286,11 @@ class XwaAccountSync extends Command
 
       $model = new DTransactionTrustset();
       $model->PK = $account->address.'-'.DTransactionTrustset::TYPE;
-      $model->SK = $tx->tx->ledger_index;
+      $model->SK = $parser->SK();
       foreach($parsedData as $key => $value) {
         $model->{$key} = $value;
       }
       $model->save();
-
-
-
-
-      return;
-      $meta = $tx->meta;
-      $tx = $tx->tx;
-      $txhash = $tx->hash;
-
-    
-      # Is this transaction IN or OUT
-      $in = ($account->address != $tx->Account) ? true:false;
-      //dd($tx);
-      # Counterparty
-      //$cp = (!$in) ? $tx->Account:null;
-
-      
-
-      $model = new DTransactionTrustset();
-      $model->PK = $account->address.'-'.DTransactionTrustset::TYPE;
-      $model->SK = $tx->ledger_index;
-      $model->in = $in;
-      //if($cp) $model->r = $cp;
-      $model->fe = $tx->Fee; //in drops
-      $model->t = $tx->date; //ripple_epoch_to_carbon($tx->date)->toIso8601String(); //todo sa
-
-
-      if($tx->LimitAmount->value == 0)
-        $model->s = false; //state deleted
-      else
-        $model->s = true; //state created
-      
-
-      if($tx->LimitAmount->value == 0)
-        $model->state = 0; //deleted
-      else
-        $model->state = 1; //created
-      
-      $model->c = $tx->LimitAmount->currency;
-      $model->a = $tx->LimitAmount->value;
-      $model->cp = $tx->LimitAmount->issuer;
-
-      $model->save();
-      return;
     }
 
     private function processTransaction_AccountSet(DAccount $account, \stdClass $tx)

@@ -56,6 +56,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
    */
   protected function parseCommonFields(): void
   {
+    
     # Fee (int)
     if(!\is_numeric($this->tx->tx->Fee))
       throw new \Exception('Fee not a number for transaction hash: '.$this->tx->tx->hash);
@@ -66,6 +67,30 @@ abstract class XRPLParserBase implements XRPLParserInterface
     # Compare reference address to check if this is incoming or outgoing transaction
     $this->data['In'] = $this->reference_address != $this->tx->tx->Account;
 
+    # TransactionIndex (int)
+    if(!is_int($this->tx->meta->TransactionIndex))
+    throw new \Exception('TransactionIndex not integer for transaction hash: '.$this->tx->tx->hash);
+    $this->data['TransactionIndex'] = $this->tx->meta->TransactionIndex;
+
+  }
+
+  /**
+   * Getter for TransactionIndex
+   * @return int
+   */
+  public function getTransactionIndex(): int
+  {
+    return (int)$this->data['TransactionIndex'];
+  }
+
+  /**
+   * Returns SK (Sort Key), <ledger_indes>.<transaction_index> float number.
+   * This is used as Sort key in DynamoDB table.
+   * @return float
+   */
+  public function SK(): float
+  {
+    return (float)($this->tx->tx->ledger_index.'.'.$this->getTransactionIndex());
   }
 
   /**
