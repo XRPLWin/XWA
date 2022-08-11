@@ -9,6 +9,9 @@ use App\Utilities\AccountLoader;
 use App\Models\DAccount;
 use App\Models\DTransactionPayment;
 use App\Models\DTransactionActivation;
+use App\Models\DTransactionTrustset;
+
+use App\XRPLParsers\Types\Payment as PaymentParser;
 
 
 //old below - todo delete
@@ -85,10 +88,12 @@ class XwaAccountSync extends Command
       $this->recursiveaccountqueue = $this->option('recursiveaccountqueue'); //bool
       $this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
 
-      //$this->ledger_current = 67363975;
-      //dd($this->ledger_current);
-
       $account = AccountLoader::getOrCreate($address);
+
+      //Test only start
+      $account->l = 1;
+      $account->save();
+      //Test only end
       
       if( config_static('xrpl.address_ignore.'.$account->address) !== null ) {
         $this->info('History sync skipped (ignored)');
@@ -110,14 +115,15 @@ class XwaAccountSync extends Command
           
       $do = true;
       while($do) {
-        
         try {
             $account_tx->send();
         } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
             // Handle errors
+            $do = false;
             throw $e;
         }
         $txs = $account_tx->finalResult();
+        $this->info('');
         $this->info('Starting batch of '.count($txs).' transactions');
         $bar = $this->output->createProgressBar(count($txs));
         $bar->start();
@@ -125,12 +131,7 @@ class XwaAccountSync extends Command
         //Do the logic here
         foreach($txs as $tx)
         {
-          //$this->info($tx->tx->ledger_index);
           $this->processTransaction($account,$tx);
-          //dd($tx->tx->ledger_index);
-          
-          //if($account->ledger_first_index > $tx['tx']['ledger_index'])
-          //  $account->ledger_first_index = $tx['tx']['ledger_index'];
           $bar->advance();
         }
         $bar->finish();
@@ -169,13 +170,13 @@ class XwaAccountSync extends Command
       }
 
       //this is faster than call_user_func()
-      $this->{$method}($account, $tx->tx, $tx->meta);
+      $this->{$method}($account, $tx);
     }
 
     /**
     * Executed offer
     */
-    private function processTransaction_OfferCreate(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_OfferCreate(DAccount $account, \stdClass $tx)
     {
       return null; //TODO
       $txhash = $tx['hash'];
@@ -229,8 +230,15 @@ class XwaAccountSync extends Command
     * @modifies DTransaction $account
     * @return void
     */
-    private function processTransaction_Payment(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_Payment(DAccount $account, \stdClass $tx)
     {
+      $parser = new PaymentParser($tx);
+      $parsedData = $parser->toStandardizedArray();
+      dd($parsedData,$parser);
+      //dd($parser->tx);
+      $meta = $tx->meta;
+      $tx = $tx->tx;
+     
       $txhash = $tx->hash;
 
       //TODO do something with this?
@@ -257,7 +265,7 @@ class XwaAccountSync extends Command
       if(is_int($source_tag))       $model->st = $source_tag;
 
       $model->fe = $tx->Fee; //in drops
-      $model->t = ripple_epoch_to_carbon($tx->date)->toIso8601String();
+      $model->t = $tx->date; //ripple_epoch_to_carbon($tx->date)->toIso8601String();
 
      
       if(is_object($tx->Amount)) //it is payment currency
@@ -298,6 +306,7 @@ class XwaAccountSync extends Command
           if(isset($AffectedNode->CreatedNode)) {
             if(isset($AffectedNode->CreatedNode->LedgerEntryType) && $AffectedNode->CreatedNode->LedgerEntryType ==  'AccountRoot')
             {
+              $this->info('');
               if($in) {
                 # This address is activated by $cp address
                 $this->info('Activation: Activated by '.$cp);
@@ -503,15 +512,65 @@ class XwaAccountSync extends Command
 
 
 
-    private function processTransaction_OfferCancel(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_OfferCancel(DAccount $account, \stdClass $tx)
     {
       return;
     }
 
-    private function processTransaction_TrustSet(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_TrustSet(DAccount $account, \stdClass $tx)
     {
+      
+      $meta = $tx->meta;
+      $tx = $tx->tx;
+      $txhash = $tx->hash;
+
+    
+      # Is this transaction IN or OUT
+      $in = ($account->address != $tx->Account) ? true:false;
+      //dd($tx);
+      # Counterparty
+      //$cp = (!$in) ? $tx->Account:null;
+
+      
+
+      $model = new DTransactionTrustset();
+      $model->PK = $account->address.'-'.DTransactionTrustset::TYPE;
+      $model->SK = $tx->ledger_index;
+      $model->in = $in;
+      //if($cp) $model->r = $cp;
+      $model->fe = $tx->Fee; //in drops
+      $model->t = $tx->date; //ripple_epoch_to_carbon($tx->date)->toIso8601String(); //todo sa
+
+
+      if($tx->LimitAmount->value == 0)
+        $model->s = false; //state deleted
+      else
+        $model->s = true; //state created
+      
+
+      if($tx->LimitAmount->value == 0)
+        $model->state = 0; //deleted
+      else
+        $model->state = 1; //created
+      
+      $model->c = $tx->LimitAmount->currency;
+      $model->a = $tx->LimitAmount->value;
+      $model->cp = $tx->LimitAmount->issuer;
+
+      $model->save();
       return;
-      $txhash = $tx['hash'];
+
+      $TransactionTrustset->issuer_account_id = StaticAccount::GetOrCreate($tx['LimitAmount']['issuer'],$this->ledger_current)->id;
+      $TransactionTrustset->currency = $tx['LimitAmount']['currency'];
+      $TransactionTrustset->amount = $tx['LimitAmount']['value'];
+      $TransactionTrustset->time_at = ripple_epoch_to_carbon($tx['date']);
+
+      $TransactionTrustset->save();
+
+
+
+      dd($txhash);
+      return;
 
       $TransactionTrustsetCheck = TransactionTrustset::where('txhash',$txhash)->count();
       if($TransactionTrustsetCheck)
@@ -542,7 +601,7 @@ class XwaAccountSync extends Command
       return null;
     }
 
-    private function processTransaction_AccountSet(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_AccountSet(DAccount $account, \stdClass $tx)
     {
       return; //not used yet
 
@@ -571,52 +630,52 @@ class XwaAccountSync extends Command
       return;
     }
 
-    private function processTransaction_AccountDelete(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_AccountDelete(DAccount $account, \stdClass $tx)
     {
       return;
     }
 
-    private function processTransaction_SetRegularKey(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_SetRegularKey(DAccount $account, \stdClass $tx)
     {
       return;
     }
 
-    private function processTransaction_SignerListSet(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_SignerListSet(DAccount $account, \stdClass $tx)
     {
       return;
     }
 
-    private function processTransaction_EscrowCreate(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_EscrowCreate(DAccount $account, \stdClass $tx)
     {
       return;
     }
 
-    private function processTransaction_EscrowFinish(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_EscrowFinish(DAccount $account, \stdClass $tx)
     {
       return;
     }
 
-    private function processTransaction_EscrowCancel(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_EscrowCancel(DAccount $account, \stdClass $tx)
     {
       return;
     }
 
-    private function processTransaction_PaymentChannelCreate(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_PaymentChannelCreate(DAccount $account, \stdClass $tx)
     {
       return;
     }
 
-    private function processTransaction_PaymentChannelFund(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_PaymentChannelFund(DAccount $account, \stdClass $tx)
     {
       return;
     }
 
-    private function processTransaction_PaymentChannelClaim(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_PaymentChannelClaim(DAccount $account, \stdClass $tx)
     {
       return;
     }
 
-    private function processTransaction_DepositPreauth(DAccount $account, \stdClass $tx, \stdClass $meta)
+    private function processTransaction_DepositPreauth(DAccount $account, \stdClass $tx)
     {
       return;
     }

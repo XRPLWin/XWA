@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * DynamoDB Transaction Account information.
  */
-class DAccount extends DTransaction
+final class DAccount extends DTransaction
 {
   //No TYPE
 
