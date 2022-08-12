@@ -13,7 +13,7 @@ class XRPLParsersTest extends TestCase
     {
         $tx_payment_json = file_get_contents(__DIR__.'/../stubs/api/transaction_methods/tx/payment1.json');
         $tx_payment = \json_decode($tx_payment_json);
-        //dd($tx_payment);
+        
         $parser = Parser::get($tx_payment->result,$tx_payment->result->meta,'rfqhRdNGy8NFedhbHi64bC3Tcb74XTEowA');
 
         #check interface
@@ -57,7 +57,6 @@ class XRPLParsersTest extends TestCase
         $this->assertEquals('rfqhRdNGy8NFedhbHi64bC3Tcb74XTEowA',$parser3->getActivated());
 
         return $parser;
-        
     }
 
     /**
@@ -65,9 +64,11 @@ class XRPLParsersTest extends TestCase
      * 
      * @depends test_parser_init_tx_correctly
      */
-    public function test_parser_sk_is_correct(Payment $parser): void
+    public function test_parser_sk_is_correct(Payment $parser): Payment
     {
         $this->assertEquals($parser->SK(), $parser->getTx()->ledger_index.'.'.$parser->getTransactionIndex());
+
+        return $parser;
     }
 
 }

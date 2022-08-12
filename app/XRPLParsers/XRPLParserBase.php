@@ -159,4 +159,9 @@ abstract class XRPLParserBase implements XRPLParserInterface
   {
     return $this->meta;
   }
+
+  public function getData()
+  {
+    return $this->data;
+  }
 }
