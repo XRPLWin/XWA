@@ -16,8 +16,6 @@ use BaoPham\DynamoDb\DynamoDbModel;
  */
 class DTransaction extends DynamoDbModel
 {
-  
-  protected $table = 'transactions'; //dynamodb.prefix is applied
   protected $primaryKey = 'PK';
   protected $compositeKey = ['PK', 'SK'];
   public $timestamps = false;
@@ -29,7 +27,7 @@ class DTransaction extends DynamoDbModel
    */
   public function getTable()
   {
-    return config('dynamodb.prefix').$this->table;
+    return config('dynamodb.prefix').'transactions';
   }
 
   //protected $fillable = ['id', 'account', 'title'];

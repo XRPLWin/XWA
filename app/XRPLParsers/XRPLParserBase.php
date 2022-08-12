@@ -8,6 +8,7 @@ namespace App\XRPLParsers;
 abstract class XRPLParserBase implements XRPLParserInterface
 {
   protected readonly \stdClass $tx;
+  protected readonly \stdClass $meta;
   protected array $data = [];
   protected readonly string $reference_address;
   protected array $activations = [
@@ -20,9 +21,10 @@ abstract class XRPLParserBase implements XRPLParserInterface
    * @param \stdClass $tx
    * @param string $reference_address
    */
-  public function __construct(\stdClass $tx, string $reference_address)
+  public function __construct(\stdClass $tx, \stdClass $meta, string $reference_address)
   {
     $this->tx = $tx;
+    $this->meta = $meta;
     $this->reference_address = $reference_address;
     $this->parseCommonFields();
     $this->parseTypeFields();
@@ -58,19 +60,19 @@ abstract class XRPLParserBase implements XRPLParserInterface
   {
     
     # Fee (int)
-    if(!\is_numeric($this->tx->tx->Fee))
-      throw new \Exception('Fee not a number for transaction hash: '.$this->tx->tx->hash);
+    if(!\is_numeric($this->tx->Fee))
+      throw new \Exception('Fee not a number for transaction hash: '.$this->tx->hash);
 
-    $this->data['Fee'] = (int)$this->tx->tx->Fee;
+    $this->data['Fee'] = (int)$this->tx->Fee;
 
     # In (bool)
     # Compare reference address to check if this is incoming or outgoing transaction
-    $this->data['In'] = $this->reference_address != $this->tx->tx->Account;
+    $this->data['In'] = $this->reference_address != $this->tx->Account;
 
     # TransactionIndex (int)
-    if(!is_int($this->tx->meta->TransactionIndex))
-    throw new \Exception('TransactionIndex not integer for transaction hash: '.$this->tx->tx->hash);
-    $this->data['TransactionIndex'] = $this->tx->meta->TransactionIndex;
+    if(!is_int($this->meta->TransactionIndex))
+    throw new \Exception('TransactionIndex not integer for transaction hash: '.$this->tx->hash);
+    $this->data['TransactionIndex'] = $this->meta->TransactionIndex;
 
   }
 
@@ -90,7 +92,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
    */
   public function SK(): float
   {
-    return (float)($this->tx->tx->ledger_index.'.'.$this->getTransactionIndex());
+    return (float)($this->tx->ledger_index.'.'.$this->getTransactionIndex());
   }
 
   /**
@@ -103,29 +105,29 @@ abstract class XRPLParserBase implements XRPLParserInterface
   public function detectActivations(): self
   {
     $i = $i2 = 0;
-    if(isset($this->tx->meta->AffectedNodes)) {
-      foreach($this->tx->meta->AffectedNodes as $AffectedNode) {
+    if(isset($this->meta->AffectedNodes)) {
+      foreach($this->meta->AffectedNodes as $AffectedNode) {
         if(isset($AffectedNode->CreatedNode)) {
           if(isset($AffectedNode->CreatedNode->LedgerEntryType) && $AffectedNode->CreatedNode->LedgerEntryType == 'AccountRoot') {
             if($this->data['In']) {
 
               //Sanity check:
               if($i > 0)
-                throw new \Exception('More than one activated by detected for transaction hash: '.$this->tx->tx->hash);
+                throw new \Exception('More than one activated by detected for transaction hash: '.$this->tx->hash);
               
               # Reference address is activated by Counterpary address
               $this->activations['reference_activated_by'] = $this->data['Counterparty'];
 
               //Check consistancy:
               if($this->activations['reference_activated_by'] == $AffectedNode->CreatedNode->NewFields->Account) {
-                throw new \Exception('Equal data in detectActivations (Counterparty and NewFields Account match for transaction hash: '.$this->tx->tx->hash);
+                throw new \Exception('Equal data in detectActivations (Counterparty and NewFields Account match for transaction hash: '.$this->tx->hash);
               }
               $i++;
             } else {
 
               //Sanity check:
               if($i2 > 0)
-                throw new \Exception('More than one activations detected for transaction hash: '.$this->tx->tx->hash);
+                throw new \Exception('More than one activations detected for transaction hash: '.$this->tx->hash);
 
               $this->activations['reference_activated'] = $AffectedNode->CreatedNode->NewFields->Account;
 
@@ -148,4 +150,13 @@ abstract class XRPLParserBase implements XRPLParserInterface
     return $this->activations['reference_activated'];
   }
   
+  public function getTx()
+  {
+    return $this->tx;
+  }
+
+  public function getMeta()
+  {
+    return $this->meta;
+  }
 }

@@ -35,8 +35,9 @@ if (!function_exists('ripple_epoch_to_carbon')) {
 
 if (!function_exists('xrpl_has_flag')) {
   /**
-  * Check if $check is included in $flags using bitwise-and operator.
-  */
+   * Check if $check is included in $flags using bitwise-and operator.
+   * @return bool
+   */
   function xrpl_has_flag(int $flags, int $check): bool
   {
   	return ($flags & $check) ? true : false;
@@ -45,11 +46,12 @@ if (!function_exists('xrpl_has_flag')) {
 
 if (!function_exists('wallet_to_short')) {
   /**
-  * Shortify wallet address to xxxx....xxxx
-  */
-  function wallet_to_short(string $wallet): string
+   * Shortify wallet address to xxxx....xxxx
+   * @return string
+   */
+  function wallet_to_short(string $wallet, string $seperator = '....'): string
   {
-    return substr($wallet,0,4).'....'.substr($wallet,-4,4);
+    return substr($wallet,0,4).$seperator.substr($wallet,-4,4);
   }
 }
 

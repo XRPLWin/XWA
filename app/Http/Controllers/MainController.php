@@ -11,6 +11,28 @@ class MainController extends Controller
     public function front()
     {
 
+
+      $account_tx = app(Client::class)->api('account_tx')
+      ->params([
+        'account' => 'rLvpVgX2tkB1FooMz5uQQJ6tCUKJX3Cwdq',
+        'ledger_index' => 'current',
+        'ledger_index_min' => 69492973, //Ledger index this account is scanned to.
+        'ledger_index_max' => 69492985,
+        'binary' => false,
+        'forward' => true,
+        'limit' => 10, //400
+      ]);
+
+      $account_tx->send();
+      dd($account_tx, $account_tx->finalResult());
+      $txs = $account_tx;
+
+
+
+
+
+
+
       $client = app(Client::class);
       $client2 = app(Client::class);
       dd($client,$client2);

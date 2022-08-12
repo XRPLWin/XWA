@@ -12,11 +12,7 @@ class HelpersTest extends TestCase
         parent::setUp();
         $this->createApplication();
     }
-    /**
-     * config_static()
-     *
-     * @return void
-     */
+  
     public function test_config_static_function_loads_correctly()
     {
         $data = config_static('xrpl');
@@ -59,9 +55,9 @@ class HelpersTest extends TestCase
 
     public function test_wallet_to_short()
     {
-        $wallet = 'rsAbXB4zViSBq7WHBPzRVcLNih3D24JhTc';
-        $short = wallet_to_short($wallet);
-        $this->assertEquals('rsAb....JhTc',$short);
+        $wallet = 'rsAbXB4zabcdesAdeffgh3D24ABdD';
+        $this->assertEquals('rsAb....ABdD',wallet_to_short($wallet));
+        $this->assertEquals('rsAb---ABdD',wallet_to_short($wallet,'---'));
 
         $this->expectException(\TypeError::class);
         wallet_to_short(null);
@@ -79,6 +75,9 @@ class HelpersTest extends TestCase
     {
         $this->assertEquals('ShibaNFT',xrp_currency_to_symbol('53686962614E4654000000000000000000000000'));
         $this->assertEquals('CSC',xrp_currency_to_symbol('CSC'));
+        $this->assertEquals('XRP',xrp_currency_to_symbol('XRP'));
+        $this->assertEquals('SOMELONGERSTRING',xrp_currency_to_symbol('SOMELONGERSTRING'));
+
         //todo add nft example
     }
 

@@ -16,24 +16,24 @@ final class Payment extends XRPLParserBase
    */
   protected function parseTypeFields(): void
   {
-    $this->data['hash'] = $this->tx->tx->hash;
+    $this->data['hash'] = $this->tx->hash;
     //if($this->data['hash'] == '3F69DB35ED5D17F809F967DC0248C67BE673D6D916646ED20BFAD8A51F564999')
     //  dd($this->tx);
 
-    $this->data['Counterparty'] = $this->data['In'] ? $this->tx->tx->Account:$this->tx->tx->Destination;
-    $this->data['DestinationTag'] = isset($this->tx->tx->DestinationTag) ? $this->tx->tx->DestinationTag:null;
-    $this->data['SourceTag'] = isset($this->tx->tx->SourceTag) ? $this->tx->tx->SourceTag:null;
+    $this->data['Counterparty'] = $this->data['In'] ? $this->tx->Account:$this->tx->Destination;
+    $this->data['DestinationTag'] = isset($this->tx->DestinationTag) ? $this->tx->DestinationTag:null;
+    $this->data['SourceTag'] = isset($this->tx->SourceTag) ? $this->tx->SourceTag:null;
 
     $this->data['Issuer'] = $this->data['Currency'] = null;
 
 
-    if(is_object($this->tx->tx->Amount)) { //it is payment specific currency (token)
-      $this->data['Amount'] = $this->tx->meta->delivered_amount->value; //base-10 representation of double number
-      $this->data['Issuer'] = $this->tx->tx->Amount->issuer;
-      $this->data['Currency'] = $this->tx->meta->delivered_amount->currency;
+    if(is_object($this->tx->Amount)) { //it is payment specific currency (token)
+      $this->data['Amount'] = $this->meta->delivered_amount->value; //base-10 representation of double number
+      $this->data['Issuer'] = $this->tx->Amount->issuer;
+      $this->data['Currency'] = $this->meta->delivered_amount->currency;
     }
     else
-      $this->data['Amount'] = drops_to_xrp((int)$this->tx->meta->delivered_amount);
+      $this->data['Amount'] = drops_to_xrp((int)$this->meta->delivered_amount);
   }
 
 

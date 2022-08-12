@@ -88,11 +88,12 @@ class XwaAccountSync extends Command
       $this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
       
       $account = AccountLoader::getOrCreate($address);
-
+      
       //Test only start
       //$this->ledger_current = 73618219; //# this (comment)
-      //$account->l = 1; //1
-      //$account->save();
+      $account->l = 1; //1
+      $account->save();
+      
       //Test only end
       
       if( config_static('xrpl.address_ignore.'.$account->address) !== null ) {
@@ -112,6 +113,7 @@ class XwaAccountSync extends Command
             'limit' => 400, //400
           ]);
           
+          
       $do = true;
       while($do) {
         try {
@@ -121,6 +123,7 @@ class XwaAccountSync extends Command
             $do = false;
             throw $e;
         }
+        //dd($account_tx);
         $txs = $account_tx->finalResult();
         $this->info('');
         $this->info('Starting batch of '.count($txs).' transactions');
@@ -157,22 +160,22 @@ class XwaAccountSync extends Command
      * Calls appropriate method.
      * @return Callable
      */
-    private function processTransaction(DAccount $account, \stdClass $tx)
+    private function processTransaction(DAccount $account, \stdClass $transaction)
     {
-      $type = $tx->tx->TransactionType;
+      $type = $transaction->tx->TransactionType;
       $method = 'processTransaction_'.$type;
 
-      if($tx->meta->TransactionResult != 'tesSUCCESS')
+      if($transaction->meta->TransactionResult != 'tesSUCCESS')
         return null; //do not log failed transactions
 
       //this is faster than call_user_func()
-      $this->{$method}($account, $tx);
+      $this->{$method}($account, $transaction);
     }
 
     /**
     * Executed offer
     */
-    private function processTransaction_OfferCreate(DAccount $account, \stdClass $tx)
+    private function processTransaction_OfferCreate(DAccount $account, \stdClass $transaction)
     {
       return null; //TODO
       $txhash = $tx['hash'];
@@ -226,10 +229,10 @@ class XwaAccountSync extends Command
     * @modifies DTransaction $account
     * @return void
     */
-    private function processTransaction_Payment(DAccount $account, \stdClass $tx)
+    private function processTransaction_Payment(DAccount $account, \stdClass $transaction)
     {
       /** @var \App\XRPLParsers\Types\Payment */
-      $parser = Parser::get($tx, $account->address);
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
 
       $parsedData = $parser->toDArray();
 
@@ -247,24 +250,24 @@ class XwaAccountSync extends Command
 
       if($activatedAddress = $parser->getActivated()) {
         $this->info('');
-        $this->info('Activation: '.$activatedAddress. 'on index '.$tx->tx->ledger_index);
+        $this->info('Activation: '.$activatedAddress. 'on index '.$parser->SK());
         $Activation = new DTransactionActivation;
         $Activation->PK = $account->address.'-'.DTransactionActivation::TYPE;
-        $Activation->SK = $tx->tx->ledger_index;
+        $Activation->SK = $parser->SK();
         $Activation->r = $activatedAddress;
         $Activation->save();
       }
 
       if($activatedByAddress = $parser->getActivatedBy()) {
         $this->info('');
-        $this->info('Activation: Activated by '.$activatedByAddress. 'on index '.$tx->tx->ledger_index);
+        $this->info('Activation: Activated by '.$activatedByAddress. 'on index '.$parser->SK());
         $account->by = $activatedByAddress;
         $account->save();
 
         if($this->recursiveaccountqueue)
         {
           //parent created this account, queue parent
-          $this->info('Queued account: '.$activatedByAddress. 'on index '.$tx->tx->ledger_index);
+          $this->info('Queued account: '.$activatedByAddress. 'on index '.$parser->SK());
           //$source_account->sync(true);
           $newAccount = AccountLoader::getOrCreate($activatedByAddress);
           $newAccount->sync(true);
@@ -272,15 +275,15 @@ class XwaAccountSync extends Command
       }
     }
 
-    private function processTransaction_OfferCancel(DAccount $account, \stdClass $tx)
+    private function processTransaction_OfferCancel(DAccount $account, \stdClass $transaction)
     {
       return;
     }
 
-    private function processTransaction_TrustSet(DAccount $account, \stdClass $tx)
+    private function processTransaction_TrustSet(DAccount $account, \stdClass $transaction)
     {
       /** @var \App\XRPLParsers\Types\TrustSet */
-      $parser = Parser::get($tx, $account->address);
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
 
       $parsedData = $parser->toDArray();
 
@@ -293,7 +296,7 @@ class XwaAccountSync extends Command
       $model->save();
     }
 
-    private function processTransaction_AccountSet(DAccount $account, \stdClass $tx)
+    private function processTransaction_AccountSet(DAccount $account, \stdClass $transaction)
     {
       return; //not used yet
 
@@ -322,52 +325,52 @@ class XwaAccountSync extends Command
       return;
     }
 
-    private function processTransaction_AccountDelete(DAccount $account, \stdClass $tx)
+    private function processTransaction_AccountDelete(DAccount $account, \stdClass $transaction)
     {
       return;
     }
 
-    private function processTransaction_SetRegularKey(DAccount $account, \stdClass $tx)
+    private function processTransaction_SetRegularKey(DAccount $account, \stdClass $transaction)
     {
       return;
     }
 
-    private function processTransaction_SignerListSet(DAccount $account, \stdClass $tx)
+    private function processTransaction_SignerListSet(DAccount $account, \stdClass $transaction)
     {
       return;
     }
 
-    private function processTransaction_EscrowCreate(DAccount $account, \stdClass $tx)
+    private function processTransaction_EscrowCreate(DAccount $account, \stdClass $transaction)
     {
       return;
     }
 
-    private function processTransaction_EscrowFinish(DAccount $account, \stdClass $tx)
+    private function processTransaction_EscrowFinish(DAccount $account, \stdClass $transaction)
     {
       return;
     }
 
-    private function processTransaction_EscrowCancel(DAccount $account, \stdClass $tx)
+    private function processTransaction_EscrowCancel(DAccount $account, \stdClass $transaction)
     {
       return;
     }
 
-    private function processTransaction_PaymentChannelCreate(DAccount $account, \stdClass $tx)
+    private function processTransaction_PaymentChannelCreate(DAccount $account, \stdClass $transaction)
     {
       return;
     }
 
-    private function processTransaction_PaymentChannelFund(DAccount $account, \stdClass $tx)
+    private function processTransaction_PaymentChannelFund(DAccount $account, \stdClass $transaction)
     {
       return;
     }
 
-    private function processTransaction_PaymentChannelClaim(DAccount $account, \stdClass $tx)
+    private function processTransaction_PaymentChannelClaim(DAccount $account, \stdClass $transaction)
     {
       return;
     }
 
-    private function processTransaction_DepositPreauth(DAccount $account, \stdClass $tx)
+    private function processTransaction_DepositPreauth(DAccount $account, \stdClass $transaction)
     {
       return;
     }

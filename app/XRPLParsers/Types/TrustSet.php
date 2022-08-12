@@ -13,13 +13,13 @@ final class TrustSet extends XRPLParserBase
    */
   protected function parseTypeFields(): void
   {
-    $this->data['hash'] = $this->tx->tx->hash;
+    $this->data['hash'] = $this->tx->hash;
     # StateCreated - true if trustline created, false if deleted
-    $this->data['StateCreated'] = !($this->tx->tx->LimitAmount->value == 0);
+    $this->data['StateCreated'] = !($this->tx->LimitAmount->value == 0);
 
-    $this->data['Currency'] = $this->tx->tx->LimitAmount->currency;
-    $this->data['Amount'] = $this->tx->tx->LimitAmount->value;
-    $this->data['Issuer'] = $this->tx->tx->LimitAmount->issuer;
+    $this->data['Currency'] = $this->tx->LimitAmount->currency;
+    $this->data['Amount'] = $this->tx->LimitAmount->value;
+    $this->data['Issuer'] = $this->tx->LimitAmount->issuer;
   }
 
   /**
