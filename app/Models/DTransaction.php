@@ -6,6 +6,7 @@ namespace App\Models;
 #use Kitar\Dynamodb\Model\Model;
 use BaoPham\DynamoDb\DynamoDbModel;
 
+
 /**
  * DynamoDB Transaction model.
  * PK: rAcct-<INT> SK: <INT> (Ledger index)
@@ -15,12 +16,21 @@ use BaoPham\DynamoDb\DynamoDbModel;
  */
 class DTransaction extends DynamoDbModel
 {
-  protected $table = 'transactions';
+  
+  protected $table = 'transactions'; //dynamodb.prefix is applied
   protected $primaryKey = 'PK';
   protected $compositeKey = ['PK', 'SK'];
   public $timestamps = false;
 
-  
+  /**
+   * Get the table associated with the model.
+   *
+   * @return string
+   */
+  public function getTable()
+  {
+    return config('dynamodb.prefix').$this->table;
+  }
 
   //protected $fillable = ['id', 'account', 'title'];
   //protected $sortKey = 'Subject';

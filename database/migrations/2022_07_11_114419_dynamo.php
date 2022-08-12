@@ -28,7 +28,7 @@ return new class extends Migration
   public function up()
   {
     $schema = [
-      'TableName' => 'transactions',
+      'TableName' => config('dynamodb.prefix').'transactions',
       'AttributeDefinitions' => [
         [
           'AttributeName' => 'PK', //rAccount
@@ -102,7 +102,7 @@ return new class extends Migration
   public function down()
   {
     $this->client->deleteTable([
-      'TableName' => 'transactions',
+      'TableName' => config('dynamodb.prefix').'transactions',
     ]);
   }
 };

@@ -9,7 +9,10 @@ if (!function_exists('config_static')) {
   function config_static(string $namespace)
   {
     $ex = \explode('.',$namespace);
-    $data = include base_path().'/config_static/'.$ex[0].'.php';
+    $path = base_path().'/config_static/'.$ex[0].'.php';
+    if(!is_file($path))
+      return null;
+    $data = include $path;
     array_shift($ex);
     return data_get($data,$ex);
   }
@@ -34,7 +37,7 @@ if (!function_exists('xrpl_has_flag')) {
   /**
   * Check if $check is included in $flags using bitwise-and operator.
   */
-  function xrpl_has_flag(int $flags, int $check)
+  function xrpl_has_flag(int $flags, int $check): bool
   {
   	return ($flags & $check) ? true : false;
   }
@@ -44,7 +47,7 @@ if (!function_exists('wallet_to_short')) {
   /**
   * Shortify wallet address to xxxx....xxxx
   */
-  function wallet_to_short($wallet)
+  function wallet_to_short(string $wallet): string
   {
     return substr($wallet,0,4).'....'.substr($wallet,-4,4);
   }
@@ -94,8 +97,9 @@ if (!function_exists('format_with_suffix')) {
   /**
   * For claim this site domain verification and other
   */
-  function format_with_suffix(int $number)
+  function format_with_suffix(mixed $number)
   {
+    $number_orig = $number;
     $suffixes = array('', 'k', 'm', 'B', 'T', ' quad', ' quint', ' sext', ' sept');
     $suffixIndex = 0;
 
@@ -104,6 +108,9 @@ if (!function_exists('format_with_suffix')) {
         $suffixIndex++;
         $number /= 1000;
     }
+
+    if(!isset($suffixes[$suffixIndex]))
+      return $number_orig;
 
     return (
         $number > 0
