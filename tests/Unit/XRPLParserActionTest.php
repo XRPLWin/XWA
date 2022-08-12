@@ -7,7 +7,7 @@ use App\XRPLParsers\Parser;
 use App\XRPLParsers\XRPLParserInterface;
 use App\XRPLParsers\Types\Payment;
 
-class XRPLParsersTest extends TestCase
+class XRPLParserActionTest extends TestCase
 {
     public function test_parser_init_tx_correctly(): XRPLParserInterface
     {
