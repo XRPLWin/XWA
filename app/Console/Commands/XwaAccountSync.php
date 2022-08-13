@@ -250,7 +250,7 @@ class XwaAccountSync extends Command
 
       if($activatedAddress = $parser->getActivated()) {
         $this->info('');
-        $this->info('Activation: '.$activatedAddress. 'on index '.$parser->SK());
+        $this->info('Activation: '.$activatedAddress. ' on index '.$parser->SK());
         $Activation = new DTransactionActivation;
         $Activation->PK = $account->address.'-'.DTransactionActivation::TYPE;
         $Activation->SK = $parser->SK();
@@ -260,14 +260,14 @@ class XwaAccountSync extends Command
 
       if($activatedByAddress = $parser->getActivatedBy()) {
         $this->info('');
-        $this->info('Activation: Activated by '.$activatedByAddress. 'on index '.$parser->SK());
+        $this->info('Activation: Activated by '.$activatedByAddress. ' on index '.$parser->SK());
         $account->by = $activatedByAddress;
         $account->save();
 
         if($this->recursiveaccountqueue)
         {
           //parent created this account, queue parent
-          $this->info('Queued account: '.$activatedByAddress. 'on index '.$parser->SK());
+          $this->info('Queued account: '.$activatedByAddress. ' on index '.$parser->SK());
           //$source_account->sync(true);
           $newAccount = AccountLoader::getOrCreate($activatedByAddress);
           $newAccount->sync(true);

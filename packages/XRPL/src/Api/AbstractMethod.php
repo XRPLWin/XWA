@@ -81,6 +81,7 @@ abstract class AbstractMethod
   */
   protected function sendOnce(bool $silent = false)
   {
+    
     $p = [];
     $p['method'] = $this->method;
     if(!empty($this->params)) {
@@ -111,8 +112,23 @@ abstract class AbstractMethod
         $this->lastException = $e;
     }
 
-    if(!$this->executedWithError)
-      $this->result = \json_decode((string)$response->getBody(),false);
+    if(!$this->executedWithError) {
+      $res = \json_decode((string)$response->getBody(),false);
+      if($res === null) {
+        if(!$silent)
+          throw new BadRequestException('HTTP request failed response is: '.(string)$response->getBody(), 0);
+        else {
+          $this->executedWithError = true;
+          $this->executedWithErrorCode = $status_code;
+          $this->lastException = new BadRequestException('HTTP request failed response is: '.(string)$response->getBody(), 0);
+        }
+          
+      }
+      else
+        $this->result = $res;
+    }
+      
+      
     
     $this->executed = true;
     return $this;

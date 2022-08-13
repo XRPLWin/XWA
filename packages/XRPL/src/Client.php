@@ -5,6 +5,8 @@ namespace XRPLWin\XRPL;
 
 class Client
 {
+  const VERSION = '0.0.1';
+  
   private readonly \GuzzleHttp\Client $httpClient;
   private readonly string $endpointReportingUri;
   private readonly string $endpointFullhistoryUri;

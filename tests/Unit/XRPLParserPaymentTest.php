@@ -56,5 +56,21 @@ class XRPLParserPaymentTest extends TestCase
         
         return $parser;
     }
+    
+    /**
+     * @depends test_payment_specific_fields_are_preset
+     */
+    public function test_payment_darray_is_correct(Payment $parser): Payment
+    {
+        $darray = $parser->toDArray();
+
+        $this->assertEquals(4,count($darray));
+        $this->assertArrayHasKey('fe',$darray);
+        $this->assertArrayHasKey('r',$darray);
+        $this->assertArrayHasKey('in',$darray);
+        $this->assertArrayHasKey('a',$darray);
+
+        return $parser;
+    }
 
 }

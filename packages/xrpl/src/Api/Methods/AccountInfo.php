@@ -6,17 +6,17 @@ use XRPLWin\XRPL\Api\AbstractMethod;
 use XRPLWin\XRPL\Exceptions\NotSentException;
 use XRPLWin\XRPL\Exceptions\XRPL\NotSuccessException;
 
-class AccountTx extends AbstractMethod
+class AccountInfo extends AbstractMethod
 {
-  protected string $method = 'account_tx';
-  protected string $endpoint_config_key = 'endpoint_fullhistory_uri';
+  protected string $method = 'account_info';
+  protected string $endpoint_config_key = 'endpoint_reporting_uri';
 
   /**
    * Returns current ledger index.
-   * @return array
+   * @return stdClass
    * @throws NotExecutedException
    */
-  public function finalResult(): array
+  public function finalResult(): \stdClass
   {
     if(!$this->executed)
       throw new NotSentException('Please send request first');
@@ -24,6 +24,7 @@ class AccountTx extends AbstractMethod
     if(!$this->isSuccess())
       throw new NotSuccessException('Request did not return success result: '.\json_encode($this->result));
 
-    return $this->result()->result->transactions;
+    //dd('todo');
+    return $this->result()->result->account_data;
   }
 }

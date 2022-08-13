@@ -149,6 +149,18 @@ abstract class XRPLParserBase implements XRPLParserInterface
   {
     return $this->activations['reference_activated'];
   }
+
+  /**
+   * Get balance changes. This is used to build aggregated value over time.
+   * This funciton returns array of balance changes, XRP +-Value
+   * Also returns token currency +-Value
+   * -Fee
+   * @return array ['Fee' => NUM, 'Value' => NUM, Currency => string 'XRP' or array [issuer, currency]]
+   */
+  public function balanceChanges(): array
+  {
+    throw new \Exception('balanceChanges Not implemented in final class');
+  }
   
   public function getTx()
   {

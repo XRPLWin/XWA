@@ -14,4 +14,4 @@ use Illuminate\Support\Facades\Route;
 */
 
 
-Route::get('/', [App\Http\Controllers\MainController::class, 'front'])->name('front');
+//Route::get('/', [App\Http\Controllers\MainController::class, 'front'])->name('front');
