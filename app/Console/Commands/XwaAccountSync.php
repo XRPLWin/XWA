@@ -88,12 +88,18 @@ class XwaAccountSync extends Command
       $this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
       
       $account = AccountLoader::getOrCreate($address);
+
+      //If this account is issuer (by checking obligations) set t field to 1.
+      if($account->checkIsIssuer())
+        $account->t = 1;
+      else
+        unset($account->t);
+
+      //dd($account);
       
-      //Test only start
-      //$this->ledger_current = 73618219; //# this (comment)
+      //Test only start (comment this)
       $account->l = 1; //1
       $account->save();
-      
       //Test only end
       
       if( config_static('xrpl.address_ignore.'.$account->address) !== null ) {
@@ -131,14 +137,16 @@ class XwaAccountSync extends Command
         $bar->start();
 
         //Do the logic here
-        foreach($txs as $tx)
-        {
+        foreach($txs as $tx) {
           $this->processTransaction($account,$tx);
           $bar->advance();
         }
         $bar->finish();
 
         if($account_tx = $account_tx->next()) {
+          //update last synced ledger index to account metadata
+          $account->l = $tx->tx->ledger_index;
+          $account->save();
           //continuing to next page
         }
         else

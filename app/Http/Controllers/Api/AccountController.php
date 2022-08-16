@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Utilities\AccountLoader;
 use XRPLWin\XRPL\Client as XRPLWinApiClient;
+use Illuminate\Http\JsonResponse;
 #use Illuminate\Http\Request;
 #use App\Statics\XRPL;
 #use App\Statics\Account as StaticAccount;
@@ -35,22 +36,24 @@ class AccountController extends Controller
 
   ###############
 
-  public function info(string $address)
+  public function info(string $address): JsonResponse
   {
     $r = [
-      'synced' => false,   // true|false
+      'synced' => false,   // bool
+      'sync_queued' => false, //bool
       'type' => 'normal', // normal|issuer|exchange
     ];
 
     $acct = AccountLoader::get($address);
-    if($acct && $acct->isSynced())
+   
+    if($acct && !$acct->isSynced())
     {
       $acct->sync(false);
+      $r['sync_queued'] = true;
       $r['synced'] = false;
     }
 
-    $account_data = app(XRPLWinApiClient::class)
-        ->api('account_info')
+    $account_data = app(XRPLWinApiClient::class)->api('account_info')
         ->params([
             'account' => $address,
             'strict' => true
@@ -68,45 +71,69 @@ class AccountController extends Controller
       $r['EmailHash'] = $account_data->EmailHash;
 
     //get if this account is issuer or not by checking obligations
-    //$gateway_balances = XRPL::gateway_balances($account);
-    $gateway_balances = app(XRPLWinApiClient::class)
-        ->api('gateway_balances')
-        ->params([
-            'account' => $address,
-            'strict' => true,
-            'ledger_index' => 'validated',
-        ])
-        ->send()
-        ->finalResult();
-
-    if(isset($gateway_balances->obligations) && !empty($gateway_balances->obligations))
+    if($acct->t === 1)
       $r['type'] = 'issuer';
-      
+    
     return response()->json($r);
   }
 
-  public function trustlines(string $account)
+  /**
+   * Returns JSON respose of all trustlines for $address
+   TODO rewrite this, this must go with pagination (for issuers atleast)
+   optionally pull trustline this account has reverse IOU, so if its issuer it can show trustlines to other tokens, this might be better fit.
+   * @return JsonResponse
+   */
+  public function trustlines(string $address): JsonResponse
   {
-    $txs = XRPL::account_lines($account);
-    $lines = $txs['result']['lines'];
+
+    $account_lines = app(XRPLWinApiClient::class)->api('account_lines')
+    ->params([
+        'account' => $address,
+        'limit' => 5
+    ]);
+
+    $lines = [];
+
+    $do = true;
+    while($do) {
+      try {
+        $account_lines->send();
+      } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
+        // Handle errors
+        $do = false;
+        throw $e;
+      }
+    
+      $txs = $account_lines->finalResult();
+      foreach($txs as $tx) {
+        $lines[] = $tx;
+      }
+
+      if($account_lines = $account_lines->next()) {
+        //continuing to next page
+      }
+      else
+        $do = false;
+    }
 
     $trustlines = [];
 
     foreach($lines as $line) {
       $trustlines[] = [
-        'account' => $line['account'],
-        'currency' => $line['currency'],
-        'symbol' => xrp_currency_to_symbol($line['currency']),
-        'balance' => $line['balance'],
-        'limit' => $line['limit']
+        'account' => $line->account,
+        'currency' => $line->currency,
+        'symbol' => xrp_currency_to_symbol($line->currency),
+        'balance' => $line->balance,
+        'limit' => $line->limit
       ];
     }
-
+    //dd($trustlines);
     return response()->json($trustlines);
   }
 
   /**
   * Chart data spending in XRP for account
+  todo
   */
   public function chart_spending(string $account)
   {
@@ -163,7 +190,7 @@ class AccountController extends Controller
   }
 
 
-  public function dev_analyze(string $account)
+  /*public function dev_analyze(string $account)
   {
     $acct = new AccountLoader($account,false);
     if(!$acct->exists)
@@ -173,6 +200,6 @@ class AccountController extends Controller
 
     StaticAccount::analyzeData($acct->account);
     dd($acct);
-  }
+  }*/
 
 }

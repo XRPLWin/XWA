@@ -6,6 +6,7 @@ use App\Jobs\QueueArtisanCommand;
 use Illuminate\Support\Facades\DB;
 use App\Utilities\Ledger;
 use Illuminate\Support\Facades\Cache;
+use XRPLWin\XRPL\Client as XRPLWinApiClient;
 
 /**
  * DynamoDB Transaction Account information.
@@ -13,13 +14,18 @@ use Illuminate\Support\Facades\Cache;
 final class DAccount extends DTransaction
 {
   //No TYPE
-  public $fillable = ['PK','SK','l','by'];
+  public $fillable = [
+    'PK', //Primary Key
+    'SK', //Sort Key
+    'l',  //Last synced ledger_index
+    'by', //Activated by
+    't',  //account internal type, undefined - normal, 1 - issuer
+  ];
 
   public static function boot()
   {
       parent::boot();
       static::saved(function (DAccount $model) {
-        
         $model->flushCache();
       });
       static::deleted(function (DAccount $model) {
@@ -32,8 +38,11 @@ final class DAccount extends DTransaction
     Cache::forget('daccount_'.$this->PK);
   }
 
-
-  public function sync(bool $recursive = true)
+  /**
+   * Synces job if not already synced
+   * @return bool True if added to sync queue (queued)
+   */
+  public function sync(bool $recursive = true): bool
   {
     //check if already synced
     $check = DB::connection(config('database.default'))
@@ -43,7 +52,7 @@ final class DAccount extends DTransaction
       ->count();
     
     if($check)
-      return;
+      return false;
     
     QueueArtisanCommand::dispatch(
       'xwa:accountsync',
@@ -51,6 +60,7 @@ final class DAccount extends DTransaction
       'account',
       $this->address
     )->onQueue('default'); //todo replace default with sync
+    return true;
   }
 
   /**
@@ -73,6 +83,29 @@ final class DAccount extends DTransaction
   public function isSyncedRecently(): bool
   {
     return $this->isSynced(60);
+  }
+
+  /**
+   * Queries XRPLedger to determine if this account is issuer.
+   * @return bool
+   */
+  public function checkIsIssuer(): bool
+  {
+    //get if this account is issuer or not by checking obligations
+    $gateway_balances = app(XRPLWinApiClient::class)
+        ->api('gateway_balances')
+        ->params([
+            'account' => $this->address,
+            'strict' => true,
+            'ledger_index' => 'validated',
+        ])
+        ->send()
+        ->finalResult();
+
+    if(isset($gateway_balances->obligations) && !empty($gateway_balances->obligations))
+      return true;
+
+    return false;
   }
 
 }

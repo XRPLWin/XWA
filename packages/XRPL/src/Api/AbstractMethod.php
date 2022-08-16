@@ -173,7 +173,10 @@ abstract class AbstractMethod
     if(!$this->hasNextPage())
       return null;
     $params = $this->params;
-    $params['marker'] = (array)$this->result->result->marker;
+    if(is_object($this->result->result->marker))
+      $params['marker'] = (array)$this->result->result->marker;
+    else
+      $params['marker'] = $this->result->result->marker;
     $nextMethod = $this->client->api($this->method)->params($params);
 
     return $nextMethod;
