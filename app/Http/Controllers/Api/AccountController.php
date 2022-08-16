@@ -36,6 +36,8 @@ class AccountController extends Controller
 
   ###############
 
+  
+
   public function info(string $address): JsonResponse
   {
     $r = [
@@ -44,9 +46,9 @@ class AccountController extends Controller
       'type' => 'normal', // normal|issuer|exchange
     ];
 
-    $acct = AccountLoader::get($address);
+    $acct = AccountLoader::getOrCreate($address);
    
-    if($acct && !$acct->isSynced())
+    if(!$acct->isSynced())
     {
       $acct->sync(false);
       $r['sync_queued'] = true;
@@ -71,10 +73,51 @@ class AccountController extends Controller
       $r['EmailHash'] = $account_data->EmailHash;
 
     //get if this account is issuer or not by checking obligations
-    if($acct->t === 1)
+    if($acct && $acct->t === 1)
       $r['type'] = 'issuer';
     
     return response()->json($r);
+  }
+
+  /**
+   * List of issued tokens
+   * @return JsonResponse
+   */
+  public function issued(string $address): JsonResponse
+  {
+    $issued = [];
+    $acct = AccountLoader::getOrCreate($address);
+    if(!$acct->isSynced())
+      $acct->sync(false);
+
+    if($acct->t === 1)
+    {
+      //get obligations
+      $gateway_balances = app(XRPLWinApiClient::class)
+        ->api('gateway_balances')
+        ->params([
+            'account' => $address,
+            'strict' => true,
+            'ledger_index' => 'validated',
+        ])
+        ->send()
+        ->finalResult();
+
+      if(isset($gateway_balances->obligations) && !empty($gateway_balances->obligations))
+      {
+        //has issued currencies
+        foreach($gateway_balances->obligations as $k => $v) {
+          $issued[] = [
+            'currency_raw' => $k,
+            'currency' => xrp_currency_to_symbol($k),
+            'balance' => $v
+          ];
+        }
+      }
+    }
+
+
+    return response()->json($issued);
   }
 
   /**

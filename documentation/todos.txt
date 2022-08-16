@@ -21,3 +21,6 @@ https://xrpscan.com/account/rsAbXB4zViSBq7WHBPzRVcLNih3D24JhTc
 
 Sequence index test: https://xrpscan.com/tx/83B4894D5649D6057AEFDB99F86F0708DDA3B84BCD7F68CD77DC207600526198
 check Iripplepay (1) on this ledger: https://xrpscan.com/ledger/73618219
+
+
+## add base58 xrp address validation check https://xrpl.org/accounts.html#address-encoding (to helper or static class)

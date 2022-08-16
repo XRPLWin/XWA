@@ -19,17 +19,22 @@ class InfoController extends Controller
       'endpoints' => [
         [
           'action' => 'Get account info',
-          'route' => '/v1/account/info/{account}',
+          'route' => '/v1/account/info/{address}',
           'method' => 'GET'
         ],
         [
           'action' => 'Trustline info for account',
-          'route' => '/v1/account/trustlines/{account}',
+          'route' => '/v1/account/trustlines/{address}',
+          'method' => 'GET'
+        ],
+        [
+          'action' => 'Issued currencies (obligations)',
+          'route' => '/v1/account/issued/{address}',
           'method' => 'GET'
         ],
         [
           'action' => 'Chart data spending in XRP for account',
-          'route' => '/v1/account/chart/spending/{account}',
+          'route' => '/v1/account/chart/spending/{address}',
           'method' => 'GET'
         ],
         [
