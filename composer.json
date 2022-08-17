@@ -31,7 +31,8 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "XRPLWin\\XRPL\\": "packages/xrpl/src/"
+            "XRPLWin\\XRPL\\": "packages/XRPL/src/",
+            "XRPLWin\\XRPLOrderbookReader\\": "packages/XRPL-Orderbook-Reader/src/"
         }
     },
     "autoload-dev": {
