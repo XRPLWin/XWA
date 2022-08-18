@@ -19,7 +19,7 @@ class MainController extends Controller
             'from' => ['currency' => 'XRP'],
             'to' => ['currency' => 'USD', 'issuer' => 'rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq'],
             'amount' => 500,
-            'limit' => 25
+            'limit' => 200
         ],[],$client);
 
         $liquidity =  $lc->get();

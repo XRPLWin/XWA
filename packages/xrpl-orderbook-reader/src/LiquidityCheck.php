@@ -26,7 +26,10 @@ class LiquidityCheck
   ];
 
   private array $options;
-  //private object $result;
+  private array $book;
+  private array $bookReverse;
+  private bool $bookExecuted = false;
+  private bool $bookReverseExecuted = false;
   
   public function __construct(array $trade, array $options, XRPLWinClient $client)
   {
@@ -34,7 +37,7 @@ class LiquidityCheck
     $this->trade = $trade;
     
     //Check $trade array
-    if(count($this->trade) != 3)
+    if(count($this->trade) != 4)
       throw new \Exception('Invalid trade parameters');
     if(!isset($this->trade['from']) || !isset($this->trade['to']) || !isset($this->trade['amount']) || !isset($this->trade['limit']))
       throw new \Exception('Invalid trade parameters required parameters are from, to, amount and (int)limit');
@@ -59,31 +62,81 @@ class LiquidityCheck
 
   public function get()
   {
-    $this->send();
+    $this->fetchBook();
+    $this->fetchBook(true);
     
-    
+    dd($this);
     $lp = new LiquidityParser;
-    dd($lp);
+    $parsed = $lp->parse($this->result,$this->options, $this->trade['amount']);
+    dd($parsed,$this);
   }
 
   /**
-   * Fills $this->result
+   * Clears results and resets instance.
+   * @return self
+   */
+  public function reset()
+  {
+    $this->book = [];
+    $this->bookReverse = [];
+    $this->bookExecuted = false;
+    $this->bookReverseExecuted = false;
+    return $this;
+  }
+
+  /**
+   * Queries XRPL and gets results of book_offers
+   * Note that book_offers does not have pagination built in.
+   * Fills $this->book or $this->bookReverse (if $reverse = true)
+   * @throws \XRPLWin\XRPL\Exceptions\XWException
    * @return void
    */
-  private function send()
+  private function fetchBook($reverse = false)
   {
     if($this->trade['from'] === $this->trade['to'])
       return;
 
+    //prevent re-querying
+    if(!$reverse && $this->bookExecuted) 
+      return;
+    elseif($this->bookReverseExecuted)
+      return;
+
+    if(!$reverse) {
+      $from = $this->trade['from'];
+      $to = $this->trade['to'];
+    } else {
+      $from = $this->trade['to'];
+      $to = $this->trade['from'];
+    }
+    
+
     /** @var \XRPLWin\XRPL\Methods\BookOffers */
     $orderbook = $this->client->api('book_offers')->params([
-      'taker_gets' => $this->trade['from'],
-      'taker_pays' => $this->trade['to'],
+      'taker_gets' => $from,
+      'taker_pays' => $to,
       'limit' => $this->trade['limit'] //200
     ]);
 
-    dd($orderbook);
-  }
+    try {
+      $orderbook->send();
+    } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
+        // Handle errors
+        throw $e;
+    }
 
-  
+    if(!$orderbook->isSuccess()) {
+      //dd($orderbook);
+      //XRPL response is returned but field result.status did not return 'success'
+      return;
+    }
+
+    if(!$reverse) {
+      $this->book = $orderbook->finalResult(); //array response from ledger
+      $this->bookExecuted = true;
+    } else {
+      $this->bookReverse = $orderbook->finalResult(); //array response from ledger
+      $this->bookReverseExecuted = true;
+    }
+  }
 }

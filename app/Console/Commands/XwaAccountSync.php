@@ -125,9 +125,9 @@ class XwaAccountSync extends Command
         try {
             $account_tx->send();
         } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
-            // Handle errors
-            $do = false;
-            throw $e;
+          $do = false;
+          // Handle errors
+          throw $e;
         }
         //dd($account_tx);
         $txs = $account_tx->finalResult();

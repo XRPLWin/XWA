@@ -8,7 +8,7 @@ use XRPLWin\XRPL\Exceptions\XRPL\NotSuccessException;
 
 class BookOffers extends AbstractMethod
 {
-  protected string $method = 'account_tx';
+  protected string $method = 'book_offers';
   protected string $endpoint_config_key = 'endpoint_reporting_uri';
 
   /**
@@ -24,6 +24,6 @@ class BookOffers extends AbstractMethod
     if(!$this->isSuccess())
       throw new NotSuccessException('Request did not return success result: '.\json_encode($this->result));
 
-    return $this->result()->result->transactions;
+    return $this->result()->result->offers;
   }
 }
