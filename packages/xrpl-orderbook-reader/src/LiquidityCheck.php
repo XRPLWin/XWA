@@ -57,7 +57,6 @@ class LiquidityCheck
 
     $options = array_merge($this->options_default,$options);
     $this->options = $options;
-
   }
 
   public function get()
