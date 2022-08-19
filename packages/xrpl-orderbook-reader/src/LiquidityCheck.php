@@ -68,8 +68,8 @@ class LiquidityCheck
 
     //dd($this->book,$this->bookReverse);
 
-    $rate = LiquidityParser::parse($this->bookReverse, $this->trade['from'], $this->trade['to'], $this->trade['amount']);
-    $rateReversed = LiquidityParser::parse($this->book, $this->trade['to'], $this->trade['from'], $this->trade['amount']);
+    $rate = LiquidityParser::parse($this->book, $this->trade['from'], $this->trade['to'], $this->trade['amount']);
+    $rateReversed = LiquidityParser::parse($this->bookReverse, $this->trade['to'], $this->trade['from'], $this->trade['amount']);
     
     $errors = $this->detectErrors();
     $finalBookLine = $this->book[0];
@@ -119,8 +119,8 @@ class LiquidityCheck
 
     /** @var \XRPLWin\XRPL\Methods\BookOffers */
     $orderbook = $this->client->api('book_offers')->params([
-      'taker_gets' => $from,
-      'taker_pays' => $to,
+      'taker_gets' => $to,
+      'taker_pays' => $from,
       'limit' => $this->trade['limit'] //200
     ]);
 
