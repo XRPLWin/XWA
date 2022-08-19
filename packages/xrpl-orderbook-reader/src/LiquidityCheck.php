@@ -6,6 +6,8 @@ use XRPLWin\XRPL\Client as XRPLWinClient;
 
 class LiquidityCheck
 {
+  const ERROR_REQUESTED_LIQUIDITY_NOT_AVAILABLE = 'REQUESTED_LIQUIDITY_NOT_AVAILABLE';
+  const ERROR_REVERSE_LIQUIDITY_NOT_AVAILABLE = 'REVERSE_LIQUIDITY_NOT_AVAILABLE';
   protected XRPLWinClient $client;
 
   /**
@@ -64,14 +66,13 @@ class LiquidityCheck
   {
     $this->fetchBook();
     $this->fetchBook(true);
-    $this->detectErrors();
 
     //dd($this->book,$this->bookReverse);
 
-    $rate = LiquidityParser::parse($this->book, $this->trade['from'], $this->trade['to'], $this->trade['amount']);
-    $rateReversed = LiquidityParser::parse($this->bookReverse, $this->trade['to'], $this->trade['from'], $this->trade['amount']);
-    
-    $errors = $this->detectErrors();
+    $books1 = LiquidityParser::parse($this->book, $this->trade['from'], $this->trade['to'], $this->trade['amount']);
+    $books2 = LiquidityParser::parse($this->bookReverse, $this->trade['to'], $this->trade['from'], $this->trade['amount']);
+    $errors = $this->detectErrors($books1,$books2);
+    dd($errors);
     $finalBookLine = $this->book[0];
     dd($rate,$rateReversed, $this);
     
@@ -150,8 +151,25 @@ class LiquidityCheck
     }
   }
 
-  private function detectErrors()
+  private function detectErrors(array $books, array $booksReversed): array
   {
     $errors = [];
+    if(!count($books)) {
+      $errors[] = self::ERROR_REQUESTED_LIQUIDITY_NOT_AVAILABLE;
+      return $errors;
+    }
+      
+
+    if(!count($booksReversed)) {
+      $errors[] = self::ERROR_REVERSE_LIQUIDITY_NOT_AVAILABLE;
+      return $errors;
+    }
+
+    $amount = $this->trade['amount'];
+    //TODO
+    dd($amount);
+
+    return $errors;
+      
   }
 }

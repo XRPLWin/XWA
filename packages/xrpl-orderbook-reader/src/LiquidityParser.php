@@ -14,9 +14,9 @@ class LiquidityParser
    * @param array $to
    * @param mixed $amount int|decimal|float|string - number
    * @see https://github.com/XRPL-Labs/XRPL-Orderbook-Reader/blob/master/src/parser/LiquidityParser.ts
-   * @return float|int - rate
+   * @return array
    */
-  public static function parse(array $offers, array $from, array $to, mixed $amount) : float|int
+  public static function parse(array $offers, array $from, array $to, mixed $amount) : array
   {
     if(!count($offers))
       return 0;
@@ -41,6 +41,7 @@ class LiquidityParser
         $bookType = 'return';
 
     }
+    //dd($bookType);
 
     $offers_filtered = [];
     foreach($offers as $offer)
@@ -66,7 +67,7 @@ class LiquidityParser
      * @param $a array of offers
      * @param $b object one offer
      */
-    $reduced = \array_reduce($offers_filtered, function($a,$b) use ( $i, $bookType, $amount, &$reduceFiltered ) {
+    $reduced = \array_reduce($offers_filtered, function($a,$b) use (  $bookType, $amount, &$i, &$reduceFiltered ) {
       //$a = (array)$a;
       $b = (array)$b;
       
@@ -79,23 +80,23 @@ class LiquidityParser
       $_PaysSum = $_PaysEffective + (($i > 0) ? $a[$i-1]['_I_Get'] : 0);
 
       $_cmpField = ($bookType == 'source') ? '_I_Spend_Capped':'_I_Get_Capped';
-
       //Big number test
       //dd($amount +'10e-12' + 12);
 
-      $_GetsSumCapped = ($i > 0 && $a[$i-1]['_cmpField'] >= $amount) ?
-        $a[$i-1]['_cmpField']['_I_Spend_Capped']
+      $_GetsSumCapped = ($i > 0 && $a[$i-1][$_cmpField] >= $amount)
+        ? $a[$i-1]['_I_Spend_Capped']
         : $_GetsSum;
-      $_PaysSumCapped = ($i > 0 && $a[$i-1]['_cmpField'] >= $amount) ?
-        $a[$i-1]['_cmpField']['_I_Get_Capped']
+
+      $_PaysSumCapped = ($i > 0 && $a[$i-1][$_cmpField] >= $amount) 
+        ? $a[$i-1]['_I_Get_Capped']
         : $_PaysSum;
 
       $_CumulativeRate_Cap = null;
-      $_Capped = $i > 0 ? $a[$i-1]['_Capped'] : false;
+      $_Capped = ($i > 0) ? $a[$i-1]['_Capped'] : false;
 
       if($bookType == 'source') {
-
-        if(!$_Capped && $_GetsSumCapped !== null && $_GetsSumCapped > $amount) {
+        if($_Capped === false && $_GetsSumCapped !== null && $_GetsSumCapped > $amount) {
+          
           $_GetsCap = 1 - (($_GetsSumCapped - $amount)/$_GetsSumCapped);
           /*dd(
             $_GetsCap,
@@ -107,18 +108,18 @@ class LiquidityParser
           $_PaysSumCapped = $_PaysSumCapped * $_GetsCap;
           $_Capped = true;
         }
-      } else { //$bookType == return
-        if(!$_Capped && $_PaysSumCapped !== null && $_PaysSumCapped > $amount) {
+      } else { //$bookType == 'return'
+        if($_Capped === false && $_PaysSumCapped !== null && $_PaysSumCapped > $amount) {
           //todo test this
-          $_PaysCap = 1 - (($_PaysSumCapped -$amount)/$_PaysSumCapped);
-          //dd($_PaysCap);
+          $_PaysCap = 1 - (($_PaysSumCapped - $amount)/$_PaysSumCapped);
+
           $_GetsSumCapped = $_GetsSumCapped * $_PaysCap;
           $_PaysSumCapped = $_PaysSumCapped * $_PaysCap;
           $_Capped = true;
         }
       }
 
-      if($_PaysSumCapped > 0)
+      if($_Capped !== null && $_PaysSumCapped > 0)
         $_CumulativeRate_Cap = $_GetsSumCapped/$_PaysSumCapped;
 
       if($i > 0 && ( $a[$i-1]['_Capped'] === true || $a[$i-1]['_Capped'] === null )) {
@@ -135,22 +136,22 @@ class LiquidityParser
         $b['_I_Get'] = $_PaysSum;
         $b['_ExchangeRate'] = ($_PaysEffective == 0) ? null : ($_GetsEffective / $_PaysEffective);
         $b['_CumulativeRate'] = $_GetsSum / $_PaysSum;
-        $b['_I_Spend_Capped'] = $_GetsSumCapped;
-        $b['_I_Get_Capped'] = $_PaysSumCapped;
-        $b['_CumulativeRate_Cap'] = $_CumulativeRate_Cap;
-        $b['_Capped'] = $_Capped;
+        $b['_I_Spend_Capped'] = $_GetsSumCapped;          // null|number
+        $b['_I_Get_Capped'] = $_PaysSumCapped;            // null|number
+        $b['_CumulativeRate_Cap'] = $_CumulativeRate_Cap; // null|number
+        $b['_Capped'] = $_Capped;                         // null|bool
 
-        //TODO switch (direction) - not implemented yet
+        //Following commented functionality is not implemented.
         //if (((_b = (_a = ParserData.options) === null || _a === void 0 ? void 0 : _a.rates) === null || _b === void 0 ? void 0 : _b.toLowerCase().trim()) === 'to') {
-        if(true) //not reversed
-        {
-          if(isset($b['_ExchangeRate']))
+        //if(true) //not reversed, if RatesInCurrency.to = 'to' then true: (not used)
+        //{
+          if(isset($b['_ExchangeRate']) && $b['_ExchangeRate'] !== null)
             $b['_ExchangeRate'] = 1 / $b['_ExchangeRate'];
           if(isset($b['_CumulativeRate_Cap']))
             $b['_CumulativeRate_Cap'] = 1 / $b['_CumulativeRate_Cap'];
           if(isset($b['_CumulativeRate']))
             $b['_CumulativeRate'] = 1 / $b['_CumulativeRate'];
-        }
+        //}
       }
       else // One side of the offer is empty
       {
@@ -163,31 +164,26 @@ class LiquidityParser
       return $a;
 
     },[]);
-    //dd($reduced);
 
-    # Filter $reduced
+    # Filter $reduced orders
     $reducedFiltered = [];
-    foreach($reduced as $k => $v) {
-      dd($k,$v);
+    foreach($reduced as $v) {
+      if(empty($v)) continue;
+      if(!isset($v['_Capped'])) continue;
+      if($v['_Capped'] === null) continue;
+      if(!isset($v['_ExchangeRate'])) continue;
+      if($v['_ExchangeRate'] === null) continue;
+      $reducedFiltered[] = $v;
     }
+    return $reducedFiltered;
 
-
-
-
-
-
-
-
-
-    
-
-    if($reduced['_CumulativeRate_Cap'])
+    /*if($reduced['_CumulativeRate_Cap'])
       $rate = $reduced['_CumulativeRate_Cap'];
     else
       $rate = $reduced['_CumulativeRate'];
 
       dd($reduced,$rate);
-    return $rate;
+    return $rate;*/
   }
 
 
