@@ -30,6 +30,7 @@ class LiquidityCheck
   private array $bookReverse;
   private bool $bookExecuted = false;
   private bool $bookReverseExecuted = false;
+  private array $errors = [];
   
   public function __construct(array $trade, array $options, XRPLWinClient $client)
   {
@@ -63,11 +64,17 @@ class LiquidityCheck
   {
     $this->fetchBook();
     $this->fetchBook(true);
+    $this->detectErrors();
+
+    //dd($this->book,$this->bookReverse);
+
+    $rate = LiquidityParser::parse($this->bookReverse, $this->trade['from'], $this->trade['to'], $this->trade['amount']);
+    $rateReversed = LiquidityParser::parse($this->book, $this->trade['to'], $this->trade['from'], $this->trade['amount']);
     
-    dd($this);
-    $lp = new LiquidityParser;
-    $parsed = $lp->parse($this->result,$this->options, $this->trade['amount']);
-    dd($parsed,$this);
+    $errors = $this->detectErrors();
+    $finalBookLine = $this->book[0];
+    dd($rate,$rateReversed, $this);
+    
   }
 
   /**
@@ -125,8 +132,12 @@ class LiquidityCheck
     }
 
     if(!$orderbook->isSuccess()) {
-      //dd($orderbook);
       //XRPL response is returned but field result.status did not return 'success'
+
+      if(isset($orderbook->result()->result->error_message))
+        throw new \Exception($orderbook->result()->result->error_message);
+      else
+        throw new \Exception(\json_encode($orderbook->result()));
       return;
     }
 
@@ -137,5 +148,10 @@ class LiquidityCheck
       $this->bookReverse = $orderbook->finalResult(); //array response from ledger
       $this->bookReverseExecuted = true;
     }
+  }
+
+  private function detectErrors()
+  {
+    $errors = [];
   }
 }
