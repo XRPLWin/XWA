@@ -79,11 +79,11 @@ class LiquidityCheck
     $this->fetchBook();
     $this->fetchBook(true);
 
-    //dd($this->book,$this->bookReverse);
     $book1 = LiquidityParser::parse($this->book,        $this->trade['from'], $this->trade['to'], $this->trade['amount'], $this->options['rates']);
     $book2 = LiquidityParser::parse($this->bookReverse, $this->trade['from'], $this->trade['to'], $this->trade['amount'], ($this->options['rates'] == 'to' ? 'from':'to')); 
     $errors = $this->detectErrors($book1,$book2);
-    $finalBookLine = (count($this->book)) ? $this->book[0] : null;
+    $finalBookLine = (count($book1)) ? $book1[0] : null;
+
     if($finalBookLine === null)
       $rate = 0;
     else
@@ -192,6 +192,7 @@ class LiquidityCheck
     $amount = $this->trade['amount'];
 
     $bookAmount = \end($book)['_I_Spend_Capped'];
+    //dd($book);
     $bookReversedAmount = \end($bookReversed)['_I_Get_Capped'];
    
     $firstBookLine = $book[0];
@@ -209,6 +210,7 @@ class LiquidityCheck
     # Check for errors
     
     if(!BigNumber::of($bookAmount)->isEqualTo($amount)) {
+     // dd($bookAmount,$amount);
       $errors[] = self::ERROR_REQUESTED_LIQUIDITY_NOT_AVAILABLE;
       return $errors;
     }
