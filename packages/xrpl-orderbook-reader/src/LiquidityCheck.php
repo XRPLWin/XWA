@@ -2,12 +2,17 @@
 
 namespace XRPLWin\XRPLOrderbookReader;
 use XRPLWin\XRPL\Client as XRPLWinClient;
+use Brick\Math\BigNumber;
 
 
 class LiquidityCheck
 {
   const ERROR_REQUESTED_LIQUIDITY_NOT_AVAILABLE = 'REQUESTED_LIQUIDITY_NOT_AVAILABLE';
   const ERROR_REVERSE_LIQUIDITY_NOT_AVAILABLE = 'REVERSE_LIQUIDITY_NOT_AVAILABLE';
+  const ERROR_MAX_SPREAD_EXCEEDED = 'MAX_SPREAD_EXCEEDED';
+  const ERROR_MAX_SLIPPAGE_EXCEEDED = 'MAX_SLIPPAGE_EXCEEDED';
+  const ERROR_MAX_REVERSE_SLIPPAGE_EXCEEDED = 'MAX_REVERSE_SLIPPAGE_EXCEEDED';
+
   protected XRPLWinClient $client;
 
   /**
@@ -22,9 +27,10 @@ class LiquidityCheck
   private array $trade;
 
   private array $options_default = [
-    'maxSpreadPercentage' => 4,
-    'maxSlippagePercentage' => 3,
-    'maxSlippagePercentageReverse' => 3
+    'rates' => 'to',
+    'maxSpreadPercentage' => 4, //4
+    'maxSlippagePercentage' => 3, //3
+    'maxSlippagePercentageReverse' => 0.001 //3
   ];
 
   private array $options;
@@ -32,7 +38,6 @@ class LiquidityCheck
   private array $bookReverse;
   private bool $bookExecuted = false;
   private bool $bookReverseExecuted = false;
-  private array $errors = [];
   
   public function __construct(array $trade, array $options, XRPLWinClient $client)
   {
@@ -53,29 +58,42 @@ class LiquidityCheck
     if($this->trade['to']['currency'] != 'XRP' && !isset($this->trade['to']['issuer']))
       throw new \Exception('Invalid trade parameters to.issuer is not defined');
     if($this->trade['from'] === $this->trade['to'])
-    throw new \Exception('Invalid trade parameters they can not be the same');
+      throw new \Exception('Invalid trade parameters they can not be the same');
 
     \ksort($this->trade['from']);
     \ksort($this->trade['to']);
 
+
     $options = array_merge($this->options_default,$options);
+    if($options['rates'] != 'from' && $options['rates'] != 'to')
+      throw new \Exception('Options rates can be from or to only');
     $this->options = $options;
   }
 
-  public function get()
+  /**
+   * Fetches orderbook and reverse orderbook then calculates exchange rate, checks for errors.
+   * @return array [rate,safe,errors]
+   */
+  public function get(): array
   {
     $this->fetchBook();
     $this->fetchBook(true);
 
     //dd($this->book,$this->bookReverse);
+    $book1 = LiquidityParser::parse($this->book,        $this->trade['from'], $this->trade['to'], $this->trade['amount'], $this->options['rates']);
+    $book2 = LiquidityParser::parse($this->bookReverse, $this->trade['from'], $this->trade['to'], $this->trade['amount'], ($this->options['rates'] == 'to' ? 'from':'to')); 
+    $errors = $this->detectErrors($book1,$book2);
+    $finalBookLine = (count($this->book)) ? $this->book[0] : null;
+    if($finalBookLine === null)
+      $rate = 0;
+    else
+      $rate = ($finalBookLine['_CumulativeRate_Cap']) ? $finalBookLine['_CumulativeRate_Cap'] : $finalBookLine['_CumulativeRate'];
 
-    $books1 = LiquidityParser::parse($this->book, $this->trade['from'], $this->trade['to'], $this->trade['amount']);
-    $books2 = LiquidityParser::parse($this->bookReverse, $this->trade['to'], $this->trade['from'], $this->trade['amount']);
-    $errors = $this->detectErrors($books1,$books2);
-    dd($errors);
-    $finalBookLine = $this->book[0];
-    dd($rate,$rateReversed, $this);
-    
+    return [
+      'rate' => $rate,
+      'safe' => (count($errors) == 0),
+      'errors' => $errors
+    ];
   }
 
   /**
@@ -106,7 +124,7 @@ class LiquidityCheck
     //prevent re-querying
     if(!$reverse && $this->bookExecuted) 
       return;
-    elseif($this->bookReverseExecuted)
+    else if($this->bookReverseExecuted)
       return;
 
     if(!$reverse) {
@@ -151,25 +169,84 @@ class LiquidityCheck
     }
   }
 
-  private function detectErrors(array $books, array $booksReversed): array
+  /**
+   * Detects errors
+   * @param array $book
+   * @param array $bookReversed
+   * @return array of errors
+   */
+  private function detectErrors(array $book, array $bookReversed): array
   {
+    # Check for orders existance
     $errors = [];
-    if(!count($books)) {
+    if(!count($book)) {
       $errors[] = self::ERROR_REQUESTED_LIQUIDITY_NOT_AVAILABLE;
       return $errors;
     }
-      
-
-    if(!count($booksReversed)) {
+    if(!count($bookReversed)) {
       $errors[] = self::ERROR_REVERSE_LIQUIDITY_NOT_AVAILABLE;
       return $errors;
     }
 
+    # Prepeare parameters
     $amount = $this->trade['amount'];
-    //TODO
-    dd($amount);
 
-    return $errors;
+    $bookAmount = \end($book)['_I_Spend_Capped'];
+    $bookReversedAmount = \end($bookReversed)['_I_Get_Capped'];
+   
+    $firstBookLine = $book[0];
+    $finalBookLine = \end($book);
+
+    $startRate = ($firstBookLine['_CumulativeRate_Cap']) ? $firstBookLine['_CumulativeRate_Cap'] : $firstBookLine['_CumulativeRate'];
+    $finalRate = ($finalBookLine['_CumulativeRate_Cap']) ? $finalBookLine['_CumulativeRate_Cap'] : $finalBookLine['_CumulativeRate'];
+
+    $firstBookLineReverse = $bookReversed[0];
+    $finalBookLineReverse = \end($bookReversed);
+
+    $startRateReverse = ($firstBookLineReverse['_CumulativeRate_Cap']) ? $firstBookLineReverse['_CumulativeRate_Cap'] : $firstBookLineReverse['_CumulativeRate'];
+    $finalRateReverse = ($finalBookLineReverse['_CumulativeRate_Cap']) ? $finalBookLineReverse['_CumulativeRate_Cap'] : $finalBookLineReverse['_CumulativeRate'];
+
+    # Check for errors
+    
+    if(!BigNumber::of($bookAmount)->isEqualTo($amount)) {
+      $errors[] = self::ERROR_REQUESTED_LIQUIDITY_NOT_AVAILABLE;
+      return $errors;
+    }
+    if(!BigNumber::of($bookReversedAmount)->isEqualTo($amount)) {
+      $errors[] = self::ERROR_REVERSE_LIQUIDITY_NOT_AVAILABLE;
+      return $errors;
+    }
+
+    if($this->options['maxSpreadPercentage']) {
+      $spread = \abs(1 - ($startRate/$startRateReverse)) * 100;
+      $spread = BigNumber::of($spread);
+
+      //todo: log
+
+      if($spread->isGreaterThan($this->options['maxSpreadPercentage']))
+        $errors[] = self::ERROR_MAX_SPREAD_EXCEEDED;
+    }
+
+    if($this->options['maxSlippagePercentage']) {
+      $slippage = \abs(1 - ($startRate/$finalRate)) * 100;
+      $slippage = BigNumber::of($slippage);
+
+      //todo: log
+
+      if($slippage->isGreaterThan($this->options['maxSlippagePercentage']))
+        $errors[] = self::ERROR_MAX_SLIPPAGE_EXCEEDED;
+    }
+
+    if($this->options['maxSlippagePercentageReverse']) {
       
+      $slippage = \abs(1 - ($startRateReverse/$finalRateReverse)) * 100;
+      $slippage = BigNumber::of($slippage);
+
+      //todo: log
+
+      if($slippage->isGreaterThan($this->options['maxSlippagePercentageReverse']))
+        $errors[] = self::ERROR_MAX_REVERSE_SLIPPAGE_EXCEEDED;
+    }
+    return $errors;
   }
 }

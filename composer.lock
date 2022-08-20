@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "011923897417fa8760c7b04449750eb7",
+    "content-hash": "345beff550804f17a2230bbac0b65bc0",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -58,16 +58,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.233.4",
+            "version": "3.233.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "4f29c8f14e7833f6e9885d0d82ea98525f1bac1e"
+                "reference": "cd9019a38cee8cabfd42dc7692e54106c93c1e6a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/4f29c8f14e7833f6e9885d0d82ea98525f1bac1e",
-                "reference": "4f29c8f14e7833f6e9885d0d82ea98525f1bac1e",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/cd9019a38cee8cabfd42dc7692e54106c93c1e6a",
+                "reference": "cd9019a38cee8cabfd42dc7692e54106c93c1e6a",
                 "shasum": ""
             },
             "require": {
@@ -144,9 +144,9 @@
             "support": {
                 "forum": "https://forums.aws.amazon.com/forum.jspa?forumID=80",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.233.4"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.233.6"
             },
-            "time": "2022-08-17T18:17:58+00:00"
+            "time": "2022-08-19T18:16:02+00:00"
         },
         {
             "name": "baopham/dynamodb",
