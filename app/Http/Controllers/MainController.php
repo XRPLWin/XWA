@@ -21,7 +21,7 @@ class MainController extends Controller
             //'from' => ['currency' => 'ALV', 'issuer' => 'raEQc5krJ2rUXyi6fgmUAf63oAXmF7p6jp'],
 
             'amount' => 10,
-            'limit' => 10
+            'limit' => 5
         ],[],$client);
 
         $liquidity =  $lc->get();

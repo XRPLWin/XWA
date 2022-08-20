@@ -2,7 +2,8 @@
 
 namespace XRPLWin\XRPLOrderbookReader;
 use XRPLWin\XRPL\Client as XRPLWinClient;
-use Brick\Math\BigNumber;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 
 
 class LiquidityCheck
@@ -12,6 +13,17 @@ class LiquidityCheck
   const ERROR_MAX_SPREAD_EXCEEDED = 'MAX_SPREAD_EXCEEDED';
   const ERROR_MAX_SLIPPAGE_EXCEEDED = 'MAX_SLIPPAGE_EXCEEDED';
   const ERROR_MAX_REVERSE_SLIPPAGE_EXCEEDED = 'MAX_REVERSE_SLIPPAGE_EXCEEDED';
+
+  const PRECISION = 20;
+  /**
+   * PRECISION_CAPPED:
+   * Due to divisions, calculated values must be rounded to PRECISION, 
+   * sum of fields _I_Spend_Capped and _I_Get_Capped can be very close approximation of 
+   * TradeAmount. To create correct comparison of TradeAmount === _I_Spend_Capped or _I_Get_Capped,
+   * those fields are rounded to ROUNDING_MODE of PRECISION_CAPPED precision.
+   */
+  const PRECISION_CAPPED = 10;
+  const ROUNDING_MODE = RoundingMode::HALF_UP;
 
   protected XRPLWinClient $client;
 
@@ -192,36 +204,39 @@ class LiquidityCheck
     $amount = $this->trade['amount'];
 
     $bookAmount = \end($book)['_I_Spend_Capped'];
-    //dd($book);
     $bookReversedAmount = \end($bookReversed)['_I_Get_Capped'];
    
     $firstBookLine = $book[0];
     $finalBookLine = \end($book);
 
+    /** @var \Brick\Math\BigDecimal */
     $startRate = ($firstBookLine['_CumulativeRate_Cap']) ? $firstBookLine['_CumulativeRate_Cap'] : $firstBookLine['_CumulativeRate'];
+    /** @var \Brick\Math\BigDecimal */
     $finalRate = ($finalBookLine['_CumulativeRate_Cap']) ? $finalBookLine['_CumulativeRate_Cap'] : $finalBookLine['_CumulativeRate'];
 
     $firstBookLineReverse = $bookReversed[0];
     $finalBookLineReverse = \end($bookReversed);
 
+    /** @var \Brick\Math\BigDecimal */
     $startRateReverse = ($firstBookLineReverse['_CumulativeRate_Cap']) ? $firstBookLineReverse['_CumulativeRate_Cap'] : $firstBookLineReverse['_CumulativeRate'];
+    /** @var \Brick\Math\BigDecimal */
     $finalRateReverse = ($finalBookLineReverse['_CumulativeRate_Cap']) ? $finalBookLineReverse['_CumulativeRate_Cap'] : $finalBookLineReverse['_CumulativeRate'];
-
+   
     # Check for errors
-    
-    if(!BigNumber::of($bookAmount)->isEqualTo($amount)) {
-     // dd($bookAmount,$amount);
+    if(!$bookAmount->toScale(self::PRECISION_CAPPED,self::ROUNDING_MODE)->isEqualTo($amount)) {
       $errors[] = self::ERROR_REQUESTED_LIQUIDITY_NOT_AVAILABLE;
       return $errors;
     }
-    if(!BigNumber::of($bookReversedAmount)->isEqualTo($amount)) {
+    if(!$bookReversedAmount->toScale(self::PRECISION_CAPPED,self::ROUNDING_MODE)->isEqualTo($amount)) {
       $errors[] = self::ERROR_REVERSE_LIQUIDITY_NOT_AVAILABLE;
       return $errors;
     }
 
     if($this->options['maxSpreadPercentage']) {
-      $spread = \abs(1 - ($startRate/$startRateReverse)) * 100;
-      $spread = BigNumber::of($spread);
+      //dd($startRate,$startRateReverse);
+      $spread = BigDecimal::one()->minus(  $startRate->dividedBy($startRateReverse,self::PRECISION,self::ROUNDING_MODE) )->multipliedBy(100)->abs();
+      //$spread = \abs(1 - ($startRate/$startRateReverse)) * 100;
+      //$spread = BigNumber::of($spread);
 
       //todo: log
 
@@ -230,8 +245,9 @@ class LiquidityCheck
     }
 
     if($this->options['maxSlippagePercentage']) {
-      $slippage = \abs(1 - ($startRate/$finalRate)) * 100;
-      $slippage = BigNumber::of($slippage);
+      $slippage = BigDecimal::one()->minus(  $startRate->dividedBy($finalRate,self::PRECISION,self::ROUNDING_MODE) )->multipliedBy(100)->abs();
+      //$slippage = \abs(1 - ($startRate/$finalRate)) * 100;
+      //$slippage = BigNumber::of($slippage);
 
       //todo: log
 
@@ -240,9 +256,9 @@ class LiquidityCheck
     }
 
     if($this->options['maxSlippagePercentageReverse']) {
-      
-      $slippage = \abs(1 - ($startRateReverse/$finalRateReverse)) * 100;
-      $slippage = BigNumber::of($slippage);
+      $slippage = BigDecimal::one()->minus(  $startRateReverse->dividedBy($finalRateReverse,self::PRECISION,self::ROUNDING_MODE) )->multipliedBy(100)->abs();
+      //$slippage = \abs(1 - ($startRateReverse/$finalRateReverse)) * 100;
+      //$slippage = BigNumber::of($slippage);
 
       //todo: log
 

@@ -1,13 +1,13 @@
 <?php declare(strict_types=1);
 
 namespace XRPLWin\XRPLOrderbookReader;
-use Brick\Math\BigNumber;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 
 class LiquidityParser
 {
-  const DECIMALS = 17;
+  const PRECISION = 20;
+  const ROUNDING_MODE = RoundingMode::HALF_UP;
   /**
    * This methods takes XRPL Orderbook (book_offers) datasets and requested
    * volume to exchange and calculates the effective exchange rates based on 
@@ -65,7 +65,7 @@ class LiquidityParser
     }
 
     //dd($offers_filtered,$offers);
-    $amount = self::parseAmount($amount);
+    $amount = BigDecimal::of($amount);//dd($amount);
     $i = 0;
     //$reduceFiltered = [];
     /**
@@ -93,12 +93,12 @@ class LiquidityParser
       $_GetsSumCapped = ($i > 0 && $a[$i-1][$_cmpField] !== null && $a[$i-1][$_cmpField]->isGreaterThanOrEqualTo($amount) )
         ? $a[$i-1]['_I_Spend_Capped']
         : $_GetsSum;
-
+        
       /** @var \Brick\Math\BigDecimal|null */
       $_PaysSumCapped = ($i > 0 && $a[$i-1][$_cmpField] !== null && $a[$i-1][$_cmpField]->isGreaterThanOrEqualTo($amount))
         ? $a[$i-1]['_I_Get_Capped']
         : $_PaysSum;
-
+      
       $_CumulativeRate_Cap = null;
 
       /** @var bool */
@@ -107,26 +107,41 @@ class LiquidityParser
       if($bookType == 'source') {
         if($_Capped === false && $_GetsSumCapped !== null && $_GetsSumCapped->isGreaterThan($amount)) {
           
-          $_GetsCap = BigDecimal::of(1)->minus( $_GetsSumCapped->minus($amount)->dividedBy($_GetsSumCapped,self::DECIMALS,RoundingMode::HALF_UP) );
-          
+          //test
+          //$_GetsSumCapped = BigDecimal::of(50);
+          // ( 50 - 10 ) / 50
+          //$test = $_GetsSumCapped->minus($amount)->dividedBy($_GetsSumCapped,self::PRECISION,self::ROUNDING_MODE);
+          //dd($test,(string)$test,(string)$amount);
+          //exit;
+          //endtest
+          $_GetsCap = BigDecimal::of(1)->minus( $_GetsSumCapped->minus($amount)->dividedBy($_GetsSumCapped,self::PRECISION,self::ROUNDING_MODE) );
+          //dd((string)$_GetsCap);
           $_GetsSumCapped = $_GetsSumCapped->multipliedBy($_GetsCap);
           $_PaysSumCapped = $_PaysSumCapped->multipliedBy($_GetsCap);
           $_Capped = true;
         }
       } else { //$bookType == 'return'
-        if($_Capped === false && $_PaysSumCapped !== null && $_PaysSumCapped > $amount) {
+        if($_Capped === false && $_PaysSumCapped !== null && $_PaysSumCapped->isGreaterThan($amount)) {
 
-          $_PaysCap = BigDecimal::of(1)->minus( $_PaysSumCapped->minus($amount)->dividedBy($_PaysSumCapped,self::DECIMALS,RoundingMode::HALF_UP) );
+          $_PaysCap = BigDecimal::of(1)->minus( $_PaysSumCapped->minus($amount)->dividedBy($_PaysSumCapped,self::PRECISION,self::ROUNDING_MODE) )
+            //->toScale(20,self::ROUNDING_MODE)
+            ;
+           // dd($_PaysCap);
+          //dd((string)$_PaysCap,(string)$_PaysSumCapped);
           //$_PaysCap = 1 - (($_PaysSumCapped - $amount)/$_PaysSumCapped);
-
           $_GetsSumCapped = $_GetsSumCapped->multipliedBy($_PaysCap);
+          
           $_PaysSumCapped = $_PaysSumCapped->multipliedBy($_PaysCap);
           $_Capped = true;
         }
       }
-
-      if($_Capped !== null && $_PaysSumCapped !== null && $_PaysSumCapped->isGreaterThan(0))
-        $_CumulativeRate_Cap = $_GetsSumCapped->dividedBy($_PaysSumCapped,self::DECIMALS,RoundingMode::HALF_UP);
+      //dump($_Capped, $_PaysSumCapped,  $_PaysSumCapped->isGreaterThan(0));
+      if($_Capped !== null && $_PaysSumCapped !== null && $_PaysSumCapped->isGreaterThan(0)) {
+       
+        $_CumulativeRate_Cap = $_GetsSumCapped->dividedBy($_PaysSumCapped,self::PRECISION,self::ROUNDING_MODE);
+        //dd($_GetsSumCapped,$_PaysSumCapped,$_CumulativeRate_Cap );
+      }
+        
 
       if($i > 0 && ( $a[$i-1]['_Capped'] === true || $a[$i-1]['_Capped'] === null )) {
         $_GetsSumCapped = null;
@@ -138,8 +153,8 @@ class LiquidityParser
       if($_GetsSum->isGreaterThan(0) && $_PaysSum->isGreaterThan(0)) {
         $b['_I_Spend'] = $_GetsSum;
         $b['_I_Get'] = $_PaysSum;
-        $b['_ExchangeRate']       = ($_PaysEffective->isEqualTo(0)) ? null : $_GetsEffective->dividedBy($_PaysEffective,self::DECIMALS,RoundingMode::HALF_UP); //BigDecimal
-        $b['_CumulativeRate']     = $_GetsSum->dividedBy($_PaysSum,self::DECIMALS,RoundingMode::HALF_UP);  // BigDecimal
+        $b['_ExchangeRate']       = ($_PaysEffective->isEqualTo(0)) ? null : $_GetsEffective->dividedBy($_PaysEffective,self::PRECISION,self::ROUNDING_MODE); //BigDecimal
+        $b['_CumulativeRate']     = $_GetsSum->dividedBy($_PaysSum,self::PRECISION,self::ROUNDING_MODE);  // BigDecimal
         $b['_I_Spend_Capped']     = $_GetsSumCapped;                  // null|BigDecimal
         $b['_I_Get_Capped']       = $_PaysSumCapped;                  // null|BigDecimal
         $b['_CumulativeRate_Cap'] = $_CumulativeRate_Cap;             // null|BigDecimal
@@ -149,11 +164,11 @@ class LiquidityParser
         if($rates == 'to')
         {
           if(isset($b['_ExchangeRate']) && $b['_ExchangeRate'] !== null)
-            $b['_ExchangeRate'] = BigDecimal::of(1)->dividedBy($b['_ExchangeRate'],self::DECIMALS,RoundingMode::HALF_UP);
+            $b['_ExchangeRate'] = BigDecimal::of(1)->dividedBy($b['_ExchangeRate'],self::PRECISION,self::ROUNDING_MODE);
           if(isset($b['_CumulativeRate_Cap']))
-            $b['_CumulativeRate_Cap'] = BigDecimal::of(1)->dividedBy($b['_CumulativeRate_Cap'],self::DECIMALS,RoundingMode::HALF_UP);
+            $b['_CumulativeRate_Cap'] = BigDecimal::of(1)->dividedBy($b['_CumulativeRate_Cap'],self::PRECISION,self::ROUNDING_MODE);
           if(isset($b['_CumulativeRate']))
-            $b['_CumulativeRate'] = BigDecimal::of(1)->dividedBy($b['_CumulativeRate'],self::DECIMALS,RoundingMode::HALF_UP);
+            $b['_CumulativeRate'] = BigDecimal::of(1)->dividedBy($b['_CumulativeRate'],self::PRECISION,self::ROUNDING_MODE);
         }
       } else { // One side of the offer is empty
         $i++;
@@ -194,7 +209,7 @@ class LiquidityParser
   * @param mixed string|array|object
   * @return BigDecimal
   */
-  public static function parseAmount($amount): BigDecimal
+  public static function parseAmount(string|array|object $amount): BigDecimal
   {
     if(empty($amount))
       return BigDecimal::of(0);
@@ -210,7 +225,6 @@ class LiquidityParser
       return $number;
     }
       
-
     return BigDecimal::of(0);
   }
 }
