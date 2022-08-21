@@ -42,7 +42,7 @@ class LiquidityCheck
     'rates' => 'to',
     'maxSpreadPercentage' => 4, //4
     'maxSlippagePercentage' => 3, //3
-    'maxSlippagePercentageReverse' => 0.001 //3
+    'maxSlippagePercentageReverse' => 3 //3
   ];
 
   private array $options;
@@ -102,9 +102,10 @@ class LiquidityCheck
       $rate = ($finalBookLine['_CumulativeRate_Cap']) ? $finalBookLine['_CumulativeRate_Cap'] : $finalBookLine['_CumulativeRate'];
 
     return [
-      'rate' => $rate,
+      'rate' => (string)$rate,
       'safe' => (count($errors) == 0),
-      'errors' => $errors
+      'errors' => $errors,
+      //'books' => [$book1,$book2],
     ];
   }
 
@@ -233,10 +234,7 @@ class LiquidityCheck
     }
 
     if($this->options['maxSpreadPercentage']) {
-      //dd($startRate,$startRateReverse);
       $spread = BigDecimal::one()->minus(  $startRate->dividedBy($startRateReverse,self::PRECISION,self::ROUNDING_MODE) )->multipliedBy(100)->abs();
-      //$spread = \abs(1 - ($startRate/$startRateReverse)) * 100;
-      //$spread = BigNumber::of($spread);
 
       //todo: log
 
@@ -246,8 +244,6 @@ class LiquidityCheck
 
     if($this->options['maxSlippagePercentage']) {
       $slippage = BigDecimal::one()->minus(  $startRate->dividedBy($finalRate,self::PRECISION,self::ROUNDING_MODE) )->multipliedBy(100)->abs();
-      //$slippage = \abs(1 - ($startRate/$finalRate)) * 100;
-      //$slippage = BigNumber::of($slippage);
 
       //todo: log
 
@@ -257,8 +253,6 @@ class LiquidityCheck
 
     if($this->options['maxSlippagePercentageReverse']) {
       $slippage = BigDecimal::one()->minus(  $startRateReverse->dividedBy($finalRateReverse,self::PRECISION,self::ROUNDING_MODE) )->multipliedBy(100)->abs();
-      //$slippage = \abs(1 - ($startRateReverse/$finalRateReverse)) * 100;
-      //$slippage = BigNumber::of($slippage);
 
       //todo: log
 

@@ -45,14 +45,11 @@ class LiquidityParser
         $bookType = 'return';
 
     }
-    //dump($bookType);
 
     $offers_filtered = [];
     
     foreach($offers as $offer)
     {
-      //ignore if (a.TakerGetsFunded === undefined || (a.TakerGetsFunded && a.TakerGetsFunded.toNumber() > 0))
-      //ignore if (a.TakerPaysFunded === undefined || (a.TakerPaysFunded && a.TakerPaysFunded.toNumber() > 0))
       if(
         ( !isset($offer->taker_gets_funded) || (isset($offer->taker_gets_funded) && self::parseAmount($offer->taker_gets_funded)->isGreaterThan(0)) )
         &&
@@ -60,11 +57,9 @@ class LiquidityParser
       ) {
         $offers_filtered[] = $offer;
       }
-      //else dd($offer,'non funded',self::parseAmount($offer->taker_gets_funded),self::parseAmount($offer->taker_pays_funded));
-      
     }
 
-    //dd($offers_filtered,$offers);
+    
     $amount = BigDecimal::of($amount);//dd($amount);
     $i = 0;
     //$reduceFiltered = [];
@@ -88,7 +83,7 @@ class LiquidityParser
 
       $_cmpField = ($bookType == 'source') ? '_I_Spend_Capped':'_I_Get_Capped';
 
-     //if($i > 0) dd($a[$i-1][$_cmpField]);
+     
       /** @var \Brick\Math\BigDecimal|null */
       $_GetsSumCapped = ($i > 0 && $a[$i-1][$_cmpField] !== null && $a[$i-1][$_cmpField]->isGreaterThanOrEqualTo($amount) )
         ? $a[$i-1]['_I_Spend_Capped']
@@ -107,41 +102,26 @@ class LiquidityParser
       if($bookType == 'source') {
         if($_Capped === false && $_GetsSumCapped !== null && $_GetsSumCapped->isGreaterThan($amount)) {
           
-          //test
-          //$_GetsSumCapped = BigDecimal::of(50);
-          // ( 50 - 10 ) / 50
-          //$test = $_GetsSumCapped->minus($amount)->dividedBy($_GetsSumCapped,self::PRECISION,self::ROUNDING_MODE);
-          //dd($test,(string)$test,(string)$amount);
-          //exit;
-          //endtest
           $_GetsCap = BigDecimal::of(1)->minus( $_GetsSumCapped->minus($amount)->dividedBy($_GetsSumCapped,self::PRECISION,self::ROUNDING_MODE) );
-          //dd((string)$_GetsCap);
           $_GetsSumCapped = $_GetsSumCapped->multipliedBy($_GetsCap);
           $_PaysSumCapped = $_PaysSumCapped->multipliedBy($_GetsCap);
           $_Capped = true;
+
         }
       } else { //$bookType == 'return'
         if($_Capped === false && $_PaysSumCapped !== null && $_PaysSumCapped->isGreaterThan($amount)) {
 
-          $_PaysCap = BigDecimal::of(1)->minus( $_PaysSumCapped->minus($amount)->dividedBy($_PaysSumCapped,self::PRECISION,self::ROUNDING_MODE) )
-            //->toScale(20,self::ROUNDING_MODE)
-            ;
-           // dd($_PaysCap);
-          //dd((string)$_PaysCap,(string)$_PaysSumCapped);
-          //$_PaysCap = 1 - (($_PaysSumCapped - $amount)/$_PaysSumCapped);
+          $_PaysCap = BigDecimal::of(1)->minus( $_PaysSumCapped->minus($amount)->dividedBy($_PaysSumCapped,self::PRECISION,self::ROUNDING_MODE) );
           $_GetsSumCapped = $_GetsSumCapped->multipliedBy($_PaysCap);
-          
           $_PaysSumCapped = $_PaysSumCapped->multipliedBy($_PaysCap);
           $_Capped = true;
+
         }
       }
-      //dump($_Capped, $_PaysSumCapped,  $_PaysSumCapped->isGreaterThan(0));
+
       if($_Capped !== null && $_PaysSumCapped !== null && $_PaysSumCapped->isGreaterThan(0)) {
-       
         $_CumulativeRate_Cap = $_GetsSumCapped->dividedBy($_PaysSumCapped,self::PRECISION,self::ROUNDING_MODE);
-        //dd($_GetsSumCapped,$_PaysSumCapped,$_CumulativeRate_Cap );
       }
-        
 
       if($i > 0 && ( $a[$i-1]['_Capped'] === true || $a[$i-1]['_Capped'] === null )) {
         $_GetsSumCapped = null;
@@ -191,16 +171,8 @@ class LiquidityParser
       if($v['_ExchangeRate'] === null) continue;
       $reducedFiltered[] = $v;
     }
-    //dd($reducedFiltered);
+    
     return $reducedFiltered;
-
-    /*if($reduced['_CumulativeRate_Cap'])
-      $rate = $reduced['_CumulativeRate_Cap'];
-    else
-      $rate = $reduced['_CumulativeRate'];
-
-      dd($reduced,$rate);
-    return $rate;*/
   }
 
 

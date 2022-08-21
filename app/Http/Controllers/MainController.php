@@ -14,19 +14,16 @@ class MainController extends Controller
         $client = new Client([]);
 
         $lc = new LiquidityCheck([
+            //'to' => ['currency' => 'XRP'],
+            //'from' => ['currency' => '534F4C4F00000000000000000000000000000000', 'issuer' => 'rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz'],
+            'from' => ['currency' => 'MTA', 'issuer' => 'r95bSz69js5MrCoMdhejdGHvHyPRXumLTm'],
             'to' => ['currency' => 'XRP'],
-            'from' => ['currency' => '534F4C4F00000000000000000000000000000000', 'issuer' => 'rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz'],
-
-            //'to' => ['currency' => '5553444300000000000000000000000000000000', 'issuer' => 'rDsvn6aJG4YMQdHnuJtP9NLrFp18JYTJUf'],
-            //'from' => ['currency' => 'ALV', 'issuer' => 'raEQc5krJ2rUXyi6fgmUAf63oAXmF7p6jp'],
-
-            'amount' => 10,
-            'limit' => 5
+            'amount' => 0.1,
+            'limit' => 500
         ],[],$client);
 
         $liquidity =  $lc->get();
 
         return response()->json($liquidity);
-        dd($liquidity);
     }
 }
