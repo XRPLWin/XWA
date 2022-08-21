@@ -31,7 +31,7 @@ class LiquidityCheck
    * @var array $trade
    * [
    *    'from' => ['currency' => 'USD', 'issuer' (optional if XRP) => 'rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq'],
-   *    'to'   => ['currency' => 'EUR', 'issuer' (optional) => 'rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq'],
+   *    'to'   => ['currency' => 'EUR', 'issuer' (optional if XRP) => 'rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq'],
    *    'amount' => 500,
    *    'limit' => 200
    * ]
@@ -94,7 +94,7 @@ class LiquidityCheck
     $book1 = LiquidityParser::parse($this->book,        $this->trade['from'], $this->trade['to'], $this->trade['amount'], $this->options['rates']);
     $book2 = LiquidityParser::parse($this->bookReverse, $this->trade['from'], $this->trade['to'], $this->trade['amount'], ($this->options['rates'] == 'to' ? 'from':'to')); 
     $errors = $this->detectErrors($book1,$book2);
-    $finalBookLine = (count($book1)) ? $book1[0] : null;
+    $finalBookLine = (count($book1)) ? \end($book1) : null;
 
     if($finalBookLine === null)
       $rate = 0;
