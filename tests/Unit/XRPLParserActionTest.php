@@ -17,13 +17,13 @@ class XRPLParserActionTest extends TestCase
         $parser = Parser::get($tx_payment->result,$tx_payment->result->meta,'rfqhRdNGy8NFedhbHi64bC3Tcb74XTEowA');
 
         #check interface
-        $this->assertInstanceOf('\\App\\XRPLParsers\\XRPLParserInterface',$parser);
+        $this->assertInstanceOf(\App\XRPLParsers\XRPLParserInterface::class,$parser);
 
         #check extended base
-        $this->assertInstanceOf('\\App\\XRPLParsers\\XRPLParserBase',$parser);
+        $this->assertInstanceOf(\App\XRPLParsers\XRPLParserBase::class,$parser);
 
         #check final class
-        $this->assertInstanceOf('\\App\\XRPLParsers\\Types\\Payment',$parser);
+        $this->assertInstanceOf(\App\XRPLParsers\Types\Payment::class,$parser);
 
         $account_tx_payment_json = file_get_contents(__DIR__.'/../stubs/api/account_methods/account_tx/payments1.json');
         $account_tx_payment = \json_decode($account_tx_payment_json);
@@ -31,13 +31,13 @@ class XRPLParserActionTest extends TestCase
         $parser2 = Parser::get($account_tx_payment->result->transactions[0]->tx,$account_tx_payment->result->transactions[0]->meta,'rfqhRdNGy8NFedhbHi64bC3Tcb74XTEowA');
         
         #check interface
-        $this->assertInstanceOf('\\App\\XRPLParsers\\XRPLParserInterface',$parser2);
+        $this->assertInstanceOf(\App\XRPLParsers\XRPLParserInterface::class,$parser2);
 
         #check extended base
-        $this->assertInstanceOf('\\App\\XRPLParsers\\XRPLParserBase',$parser2);
+        $this->assertInstanceOf(\App\XRPLParsers\XRPLParserBase::class,$parser2);
 
         #check final class
-        $this->assertInstanceOf('\\App\\XRPLParsers\\Types\\Payment',$parser2);
+        $this->assertInstanceOf(\App\XRPLParsers\Types\Payment::class,$parser2);
 
 
         #fidelity check

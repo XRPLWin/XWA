@@ -15,7 +15,7 @@ class XRPLParserPaymentTest extends TestCase
         $tx_payment = \json_decode($tx_payment_json);
         $parser = Parser::get($tx_payment->result,$tx_payment->result->meta,'rfqhRdNGy8NFedhbHi64bC3Tcb74XTEowA');
 
-        $this->assertInstanceOf('\\App\\XRPLParsers\\Types\\Payment',$parser);
+        $this->assertInstanceOf(\App\XRPLParsers\Types\Payment::class,$parser);
         return $parser;
     }
 

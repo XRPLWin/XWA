@@ -42,7 +42,7 @@ class HelpersTest extends TestCase
     public function test_ripple_epoch_to_carbon()
     {
         $data = ripple_epoch_to_carbon(3243666);
-        $this->assertInstanceOf('\\Carbon\\Carbon',$data);
+        $this->assertInstanceOf(\Carbon\Carbon::class,$data);
         $this->assertEquals(949928466,$data->timestamp);
     }
 
