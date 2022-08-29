@@ -81,13 +81,13 @@ class XwaLedgerIndexSync extends Command
     public function handle()
     {
       //Get last from DB
-      $LastDb = Ledgerindex::select('ledger_index','day')->orderByDesc('day')->first();
+      $LastDb = Ledgerindex::select('ledger_index_last','day')->orderByDesc('day')->first();
       if(!$LastDb) {
         //Start at beginning (genesis)
         $this->ledger_current = config('xrpl.genesis_ledger');
         $start = ripple_epoch_to_epoch(config('xrpl.genesis_ledger_close_time'));
       } else {
-        $this->ledger_current = $LastDb->ledger_index + 1;
+        $this->ledger_current = $LastDb->ledger_index_last + 1;
         $start = $this->fetchLedgerIndexTime($this->ledger_current)->timestamp;
       }
       
@@ -99,7 +99,7 @@ class XwaLedgerIndexSync extends Command
 
         # find last ledger index for this $day
         $day_last_ledger_index = $this->findLastLedgerIndexForDay($day, $this->ledger_current, $this->ledger_last, $this->ledger_last);
-        //dump($day_last_ledger_index. ' - '. $day->format('Y-m-d'));
+        dump($day_last_ledger_index. ' - '. $day->format('Y-m-d'));
         $this->ledger_current = $day_last_ledger_index+1;
         //save to local db $day_last_ledger_index is last ledger of $day
         $this->saveToDb($day_last_ledger_index,$day);
@@ -112,7 +112,7 @@ class XwaLedgerIndexSync extends Command
     private function saveToDb(int $ledger_index, Carbon $day): void
     {
       $model = new Ledgerindex;
-      $model->ledger_index = $ledger_index;
+      $model->ledger_index_last = $ledger_index;
       $model->day = $day;
       $model->save();
     }
@@ -143,7 +143,7 @@ class XwaLedgerIndexSync extends Command
     {
       $n = ($high+$low)/2;
       $n = ceil($n);
-      //dump( 'L: '.$low.' H: '. $high. ' N: '.(int)$n);
+      dump( 'L: '.$low.' H: '. $high. ' N: '.(int)$n);
       return (int)$n;
     }
 
