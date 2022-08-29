@@ -30,7 +30,8 @@ return [
   'ripple_epoch' => 946684800,
 
   //min ledger index in existance
-  //'genesis_ledger' => 32570,
+  'genesis_ledger' => 32570,
+  'genesis_ledger_close_time' => 410325670, //ripple epoch (2013-Jan-01 03:21:10.000000000 UTC)
 
   //'token_source' => 'https://api.xrpldata.com/api/v1/tokens',
 
