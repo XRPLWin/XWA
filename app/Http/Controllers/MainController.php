@@ -11,6 +11,7 @@ class MainController extends Controller
 {
     public function test()
     {
+        
         $client = app(Client::class);
 
         $lc = new LiquidityCheck([
