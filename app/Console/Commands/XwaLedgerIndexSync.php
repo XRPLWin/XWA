@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use XRPLWin\XRPL\Client;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use XRPLWin\XRPL\Exceptions\BadRequestException;
 
 /**
  * Queries XRPL and finds last ledger for each day from genesis to today.
@@ -88,22 +89,27 @@ class XwaLedgerIndexSync extends Command
         $start = ripple_epoch_to_epoch(config('xrpl.genesis_ledger_close_time'));
       } else {
         $this->ledger_current = $LastDb->ledger_index_last + 1;
-        $start = $this->fetchLedgerIndexTime($this->ledger_current)->timestamp;
+        $startCarbon = $this->fetchLedgerIndexTime($this->ledger_current);
+        $start = $startCarbon->timestamp;
+        if($startCarbon->isToday()) {
+          $this->info('All days synced');
+          return 0;
+        }
       }
-      
-      $period = CarbonPeriod::since(Carbon::createFromTimestamp($start))->days(1)->until(now());
+
+      $period = CarbonPeriod::since(Carbon::createFromTimestamp($start))->days(1)->until(now()->addDays(-1));
 
       $bar = $this->output->createProgressBar($period->count());
       $bar->start();
       foreach($period as $day) {
-
         # find last ledger index for this $day
         $day_last_ledger_index = $this->findLastLedgerIndexForDay($day, $this->ledger_current, $this->ledger_last, $this->ledger_last);
-        dump($day_last_ledger_index. ' - '. $day->format('Y-m-d'));
+        $this->info($day_last_ledger_index. ' - '. $day->format('Y-m-d'));
         $this->ledger_current = $day_last_ledger_index+1;
         //save to local db $day_last_ledger_index is last ledger of $day
         $this->saveToDb($day_last_ledger_index,$day);
         $bar->advance();
+        $this->info('');
       }
       $bar->finish();
       
@@ -116,7 +122,6 @@ class XwaLedgerIndexSync extends Command
       $model->day = $day;
       $model->save();
     }
-
 
     private function findLastLedgerIndexForDay(Carbon $day, int $low, int $high, int $lastHigh): int
     {
@@ -143,7 +148,7 @@ class XwaLedgerIndexSync extends Command
     {
       $n = ($high+$low)/2;
       $n = ceil($n);
-      dump( 'L: '.$low.' H: '. $high. ' N: '.(int)$n);
+      $this->info( 'L: '.$low.' H: '. $high. ' N: '.(int)$n);
       return (int)$n;
     }
 
@@ -153,7 +158,7 @@ class XwaLedgerIndexSync extends Command
       return \Carbon\Carbon::createFromTimestamp(ripple_epoch_to_epoch($ledger_result->close_time));
     }
 
-    private function fetchLedgerIndexInfo(int $index)
+    private function fetchLedgerIndexInfo(int $index, $trynum = 1)
     {
       $ledger = $this->XRPLClient->api('ledger')
       ->params([
@@ -164,6 +169,22 @@ class XwaLedgerIndexSync extends Command
         'expand' => false,
         'owner_funds' => false,
       ]);
-     return  $ledger->send()->finalResult();
+      $success = true;
+      try {
+        $r = $ledger->send();
+      } catch (BadRequestException $e) {
+        $success = false;
+      }
+
+      if(!$success){
+        if($trynum > 5) {
+          echo 'Stopping, too many tries';
+          exit;
+        }
+        echo 'Sleeping for 10 seconds ('.$trynum.')...';
+        sleep(10);
+        return $this->fetchLedgerIndexInfo($index,$trynum+1);
+      }
+      return $ledger->finalResult();
     }
 }

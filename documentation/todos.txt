@@ -8,7 +8,8 @@ New Cmd job to detect changes betweeen MAIN an TESTNET or other. Save connection
 Show assets and xrp seperated by destination tag (total balance)
 
 
-
+Postgres reset seq
+ALTER SEQUENCE ledgerindexes_id_seq RESTART WITH 1498;
 
 
 ###
@@ -24,3 +25,12 @@ check Iripplepay (1) on this ledger: https://xrpscan.com/ledger/73618219
 
 
 ## add base58 xrp address validation check https://xrpl.org/accounts.html#address-encoding (to helper or static class)
+
+
+## Catched error response:
+
+ XRPLWin\XRPL\Exceptions\XRPL\NotSuccessException 
+
+  Request did not return success result: {"result":{"error":"tooBusy","error_code":9,"error_message":"The server is too busy to help you now.","request":{"accounts":false,"command":"ledger","expand":false,"full":false,"ledger_index":70135683,"owner_funds":false,"transactions":false},"status":"error"}}
+
+  
