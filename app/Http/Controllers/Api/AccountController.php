@@ -7,6 +7,7 @@ use App\Utilities\AccountLoader;
 use XRPLWin\XRPL\Client as XRPLWinApiClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Utilities\Search;
 #use App\Statics\XRPL;
 #use App\Statics\Account as StaticAccount;
 #use App\Loaders\AccountLoader;
@@ -38,7 +39,12 @@ class AccountController extends Controller
 
   public function search(Request $request): JsonResponse
   {
+    $search = new Search;
+    $search->buildFromRequest($request);
+    $search->execute();
 
+
+    return response()->json($search->result());
   }
 
   

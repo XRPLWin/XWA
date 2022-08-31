@@ -38,6 +38,12 @@ class InfoController extends Controller
           'method' => 'GET'
         ],
         [
+          'action' => 'Search transactions',
+          'route' => '/v1/account/search/{address}',
+          'method' => 'GET'
+        ],
+        
+        [
           'action' => 'Get queue info',
           'route' => '/server/queue',
           'method' => 'GET',
