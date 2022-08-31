@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Utilities\AccountLoader;
 use XRPLWin\XRPL\Client as XRPLWinApiClient;
 use Illuminate\Http\JsonResponse;
-#use Illuminate\Http\Request;
+use Illuminate\Http\Request;
 #use App\Statics\XRPL;
 #use App\Statics\Account as StaticAccount;
 #use App\Loaders\AccountLoader;
@@ -35,6 +35,11 @@ class AccountController extends Controller
   }*/
 
   ###############
+
+  public function search(Request $request): JsonResponse
+  {
+
+  }
 
   
 

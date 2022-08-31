@@ -7,13 +7,13 @@ use App\Http\Controllers\Controller;
 
 class InfoController extends Controller
 {
-    public function info()
+  public function info()
   {
     return response()->json([
-      'version' => config('xwin.version'),
-      'description' => 'XRPLWin Analyzer',
+      'version' => config('xwa.version'),
+      'description' => config('app.name'),
       'license' => 'MIT License',
-      'copyright' => 'Copyright (c) 2022, XRPLWin (https://xrpl.win)',
+      'copyright' => 'Copyright (c) '.\date('Y').', XRPLWin (https://xrpl.win)',
       //'documentation' => 'TODO',
       //'release-notes' => 'TODO',
       'endpoints' => [
