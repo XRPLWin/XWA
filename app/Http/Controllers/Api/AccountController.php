@@ -37,9 +37,9 @@ class AccountController extends Controller
 
   ###############
 
-  public function search(Request $request): JsonResponse
+  public function search(string $address, Request $request): JsonResponse
   {
-    $search = new Search;
+    $search = new Search($address);
     $search->buildFromRequest($request);
     $search->execute();
 
@@ -47,7 +47,6 @@ class AccountController extends Controller
     return response()->json($search->result());
   }
 
-  
 
   public function info(string $address): JsonResponse
   {
