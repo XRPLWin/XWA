@@ -19,18 +19,21 @@ class LedgerIndexesSeeder extends Seeder
   public function run()
   {
       $data = $this->ledgerseeddata();
+      $li_first = config('xrpl.genesis_ledger');
       foreach($data as $li => $daydate)
       {
+        
         //check if exists...
         $check = Ledgerindex::where('ledger_index_last',$li)->count();
         
         if(!$check) {
           $m = new Ledgerindex;
+          $m->ledger_index_first = $li_first;
           $m->ledger_index_last = $li;
           $m->day = \Carbon\Carbon::create($daydate);
           $m->save();
         }
-        
+        $li_first = $li+1;
       }
   }
 

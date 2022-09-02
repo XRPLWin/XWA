@@ -86,9 +86,12 @@ class XwaLedgerIndexSync extends Command
       if(!$LastDb) {
         //Start at beginning (genesis)
         $this->ledger_current = config('xrpl.genesis_ledger');
+        $li_first = config('xrpl.genesis_ledger');
         $start = ripple_epoch_to_epoch(config('xrpl.genesis_ledger_close_time'));
       } else {
+        
         $this->ledger_current = $LastDb->ledger_index_last + 1;
+        $li_first = $this->ledger_current;
         $startCarbon = $this->fetchLedgerIndexTime($this->ledger_current);
         $start = $startCarbon->timestamp;
         if($startCarbon->isToday()) {
@@ -96,6 +99,8 @@ class XwaLedgerIndexSync extends Command
           return 0;
         }
       }
+
+
 
       $period = CarbonPeriod::since(Carbon::createFromTimestamp($start))->days(1)->until(now()->addDays(-1));
 
@@ -107,7 +112,8 @@ class XwaLedgerIndexSync extends Command
         $this->info($day_last_ledger_index. ' - '. $day->format('Y-m-d'));
         $this->ledger_current = $day_last_ledger_index+1;
         //save to local db $day_last_ledger_index is last ledger of $day
-        $this->saveToDb($day_last_ledger_index,$day);
+        $this->saveToDb($li_first,$day_last_ledger_index,$day);
+        $li_first = $day_last_ledger_index+1;
         $bar->advance();
         $this->info('');
       }
@@ -115,10 +121,11 @@ class XwaLedgerIndexSync extends Command
       
     }
 
-    private function saveToDb(int $ledger_index, Carbon $day): void
+    private function saveToDb(int $ledger_index_first,int $ledger_index_last, Carbon $day): void
     {
       $model = new Ledgerindex;
-      $model->ledger_index_last = $ledger_index;
+      $model->ledger_index_first = $ledger_index_first;
+      $model->ledger_index_last = $ledger_index_last;
       $model->day = $day;
       $model->save();
     }

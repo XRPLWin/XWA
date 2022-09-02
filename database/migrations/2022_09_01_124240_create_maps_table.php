@@ -16,6 +16,12 @@ return new class extends Migration
         Schema::create('maps', function (Blueprint $table) {
             $table->id();
             $table->string('address', 35);
+            $table->foreignId('ledgerindex_id')->constrained('ledgerindexes')->onDelete('CASCADE')->onUpdate('CASCADE');
+            $table->string('condition',100);
+            $table->unsignedTinyInteger('type');
+            $table->unsignedInteger('count_num');
+            //$table->char('count_indicator',1);
+            $table->timestamp('created_at');
             //$table->
             //$table->timestamps();
         });

@@ -149,3 +149,17 @@ if (!function_exists('getbasedomainfromurl')) {
     return $url_info['host'];
   }
 }
+
+if (!function_exists('validateXRPAddressOrFail')) {
+  /**
+  * Validates XRP Address or throw exception.
+  * @throws Symfony\Component\HttpKernel\Exception\HttpException
+  */
+  function validateXRPAddressOrFail(mixed $address): void
+  {
+    $validator = \Illuminate\Support\Facades\Validator::make(['address' => $address], [
+      'address' => ['string',  new \App\Rules\XRPAddress],
+    ]);
+    if ($validator->fails()) {abort(422, 'XRP address format is invalid');}
+  }
+}

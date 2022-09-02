@@ -37,8 +37,11 @@ class AccountController extends Controller
 
   ###############
 
+  // http://xlanalyzer.test/v1/account/search/test?from=2021-09-01&to=2021-09-05
   public function search(string $address, Request $request): JsonResponse
   {
+    
+    validateXRPAddressOrFail($address);
     $search = new Search($address);
     $search->buildFromRequest($request);
     $search->execute();
@@ -50,6 +53,8 @@ class AccountController extends Controller
 
   public function info(string $address): JsonResponse
   {
+    validateXRPAddressOrFail($address);
+    
     $r = [
       'synced' => false,   // bool
       'sync_queued' => false, //bool
@@ -95,6 +100,7 @@ class AccountController extends Controller
    */
   public function issued(string $address): JsonResponse
   {
+    validateXRPAddressOrFail($address);
     $issued = [];
     $acct = AccountLoader::getOrCreate($address);
     if(!$acct->isSynced())
@@ -138,7 +144,7 @@ class AccountController extends Controller
    */
   public function trustlines(string $address): JsonResponse
   {
-
+    validateXRPAddressOrFail($address);
     $account_lines = app(XRPLWinApiClient::class)->api('account_lines')
     ->params([
         'account' => $address,
@@ -190,6 +196,7 @@ class AccountController extends Controller
   */
   public function chart_spending(string $account)
   {
+    validateXRPAddressOrFail($account);
     $acct = new AccountLoader($account);
     if(!$acct->synced)
       return response()->json([]);
@@ -245,6 +252,7 @@ class AccountController extends Controller
 
   /*public function dev_analyze(string $account)
   {
+    validateXRPAddressOrFail($account);
     $acct = new AccountLoader($account,false);
     if(!$acct->exists)
       dd('Does not exist locally');
