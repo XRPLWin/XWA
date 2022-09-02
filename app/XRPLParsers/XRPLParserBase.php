@@ -92,7 +92,10 @@ abstract class XRPLParserBase implements XRPLParserInterface
    */
   public function SK(): float
   {
-    return (float)($this->tx->ledger_index.'.'.$this->getTransactionIndex());
+    $ti = (string)$this->getTransactionIndex();
+    if(\strlen($ti) >= 4)
+      throw new \Exception('Transaction index of 4 or more characters detected: '.$ti. ' Db adjust required');
+    return (float)($this->tx->ledger_index.'.'.\str_pad($ti,3,'0',STR_PAD_LEFT));
   }
 
   /**

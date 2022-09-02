@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('address', 35);
             $table->foreignId('ledgerindex_id')->constrained('ledgerindexes')->onDelete('CASCADE')->onUpdate('CASCADE');
             $table->string('condition',100);
-            $table->unsignedTinyInteger('type');
+            $table->unsignedTinyInteger('txtype'); //transactiontype
             $table->unsignedInteger('count_num');
             //$table->char('count_indicator',1);
             $table->timestamp('created_at');

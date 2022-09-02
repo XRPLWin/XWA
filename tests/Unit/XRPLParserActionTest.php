@@ -66,7 +66,7 @@ class XRPLParserActionTest extends TestCase
      */
     public function test_parser_sk_is_correct(Payment $parser): Payment
     {
-        $this->assertEquals($parser->SK(), $parser->getTx()->ledger_index.'.'.$parser->getTransactionIndex());
+        $this->assertEquals($parser->SK(), $parser->getTx()->ledger_index.'.'.\str_pad((string)$parser->getTransactionIndex(),3,'0',STR_PAD_LEFT));
 
         return $parser;
     }

@@ -15,7 +15,7 @@ class Search
   private readonly array $result;
   private readonly array $params;
   private bool $isExecuted = false;
-  private array $parametersWhitelist = ['from','to','dir'];
+  private array $parametersWhitelist = ['from','to','dir','cp'];
   private array $txTypes = [
     // App\Models\DTransaction<VALUE_BELOW>::TYPE => App\Models\DTransaction<VALUE_BELOW>
     1 => 'Payment',
@@ -66,9 +66,13 @@ class Search
     $mapper->addCondition('txTypes',$txTypes);
 
     $param_dir = $this->param('dir');
-    if($param_dir && ($param_dir == 'in' || $param_dir == 'out')) {
+    if($param_dir && ($param_dir == 'in' || $param_dir == 'out'))
       $mapper->addCondition('dir',$param_dir);
-    }
+    
+
+    if($this->param('cp')) 
+      $mapper->addCondition('cp',$this->param('cp'));
+    
     unset($param_dir);
 
 
