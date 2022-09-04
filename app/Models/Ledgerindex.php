@@ -21,19 +21,19 @@ class Ledgerindex extends Model
   ];
 
   /**
-   * Retrieves id from cache or database, caches.
-   * @return ?int - null if not found
+   * Retrieves data from cache or database, caches.
+   * @return ?array - null if not found
    */
-  public static function getLedgerIndexForDay(Carbon $day): ?int
+  public static function getCachedLedgerindexDataForDay(Carbon $day): ?array
   {
     $cache_key = 'li_forday_'.$day->format('Ymd');
     $r = Cache::get($cache_key);
     if($r === null) {
-      $ledgerindex = self::select('id')->where('day',$day)->first();
+      $ledgerindex = self::select('id','ledger_index_first','ledger_index_last')->where('day',$day)->first();
       if(!$ledgerindex)
         $r = 0;
       else
-        $r = $ledgerindex->id;
+        $r = [$ledgerindex->id, $ledgerindex->ledger_index_first, $ledgerindex->ledger_index_last];
       
       Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
@@ -41,5 +41,33 @@ class Ledgerindex extends Model
     if($r === 0) return null;
 
     return $r;
+  }
+
+  /**
+   * Retrieves id from cache or database, caches.
+   * @return ?int - null if not found
+   */
+  public static function getLedgerindexIdForDay(Carbon $day): ?int
+  {
+    $r = self::getCachedLedgerindexDataForDay($day);
+    if(is_array($r))
+      return $r[0];
+    return null;
+  }
+
+  public static function getLedgerIndexFirstForDay(Carbon $day): ?int
+  {
+    $r = self::getCachedLedgerindexDataForDay($day);
+    if(is_array($r))
+      return $r[1];
+    return null;
+  }
+
+  public static function getLedgerIndexLastForDay(Carbon $day): ?int
+  {
+    $r = self::getCachedLedgerindexDataForDay($day);
+    if(is_array($r))
+      return $r[2];
+    return null;
   }
 }

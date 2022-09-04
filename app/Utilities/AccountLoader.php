@@ -34,13 +34,13 @@ class AccountLoader
    */
   public static function get(string $address): ?DAccount
   {
-    $l = \strlen($address);
-    if($l < 25 || $l > 35)
-      throw new \Exception('Address is incorrect format');
+    validateXRPAddressOrFail($address);
 
     $AccountArray = Cache::get('daccount_'.$address);
+    
     if(!$AccountArray) {
       $Account = DAccount::find(['PK' => $address, 'SK' => 0]);
+      //dd($Account);
       if(!$Account)
         return null;
       Cache::put('daccount_'.$address, $Account->toArray(), 86400); //86400 seconds = 24 hours

@@ -34,3 +34,5 @@ check Iripplepay (1) on this ledger: https://xrpscan.com/ledger/73618219
   Request did not return success result: {"result":{"error":"tooBusy","error_code":9,"error_message":"The server is too busy to help you now.","request":{"accounts":false,"command":"ledger","expand":false,"full":false,"ledger_index":70135683,"owner_funds":false,"transactions":false},"status":"error"}}
 
   
+# source tag and destination tag in one tx
+https://xrpscan.com/tx/F24027A8B4EF3BE5C68F83042BAC52DFC06A25A6CCB4D2D73EE8852B6C93DF01

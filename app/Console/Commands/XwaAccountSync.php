@@ -98,8 +98,9 @@ class XwaAccountSync extends Command
       //dd($account);
       
       //Test only start (comment this)
-      $account->l = 1; //1
-      $account->save();
+      //$account->l = 29810490; //1
+      //$account->save();
+      //exit;
       //Test only end
       
       if( config_static('xrpl.address_ignore.'.$account->address) !== null ) {
@@ -132,7 +133,7 @@ class XwaAccountSync extends Command
         //dd($account_tx);
         $txs = $account_tx->finalResult();
         $this->info('');
-        $this->info('Starting batch of '.count($txs).' transactions');
+        $this->info('Starting batch of '.count($txs).' transactions: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
         $bar = $this->output->createProgressBar(count($txs));
         $bar->start();
 
@@ -257,8 +258,8 @@ class XwaAccountSync extends Command
       $parser->detectActivations();
 
       if($activatedAddress = $parser->getActivated()) {
-        $this->info('');
-        $this->info('Activation: '.$activatedAddress. ' on index '.$parser->SK());
+        //$this->info('');
+        //$this->info('Activation: '.$activatedAddress. ' on index '.$parser->SK());
         $Activation = new DTransactionActivation;
         $Activation->PK = $account->address.'-'.DTransactionActivation::TYPE;
         $Activation->SK = $parser->SK();

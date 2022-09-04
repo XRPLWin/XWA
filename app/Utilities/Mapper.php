@@ -46,7 +46,19 @@ class Mapper
     $from = Carbon::createFromFormat('Y-m-d', $this->conditions['from']);
     $to = Carbon::createFromFormat('Y-m-d', $this->conditions['to']);
 
+    //Check if $this->address is synced within time ranges, if not then disallow search.
+    $account = AccountLoader::get($this->address);
+    if(!$account)
+      return [];
     
+    $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to);
+    if(!$LedgerIndexLastForDay)
+      return [];
+     // dd($account->l. ' < '.$LedgerIndexLastForDay);
+    if($account->l < $LedgerIndexLastForDay)
+      return []; //not synced yet to this ledger index
+    
+     
     $period = CarbonPeriod::since($from)->until($to);
 
     $foundLedgerIndexesIds = [];
@@ -57,7 +69,7 @@ class Mapper
     # Phase 1 ALL days per Tx Type
     foreach($period as $day) {
 
-      $ledgerindex = Ledgerindex::getLedgerIndexForDay($day);
+      $ledgerindex = Ledgerindex::getLedgerindexIdForDay($day);
       if($ledgerindex) {
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
           $count = $this->fetchAllCount($ledgerindex, $txTypeNamepart);
@@ -73,11 +85,45 @@ class Mapper
 
     # Phase 2 OPTIONAL CONDITIONS REDUCER:
     dump($foundLedgerIndexesIds);
-    $foundLedgerIndexesIds = $this->reduceInOut($foundLedgerIndexesIds);
-    $foundLedgerIndexesIds = $this->reduceCounterparty($foundLedgerIndexesIds);
-
     
-    dd($foundLedgerIndexesIds,'END');
+    if(isset($this->conditions['dir']) && $this->conditions['dir'] == 'in') {
+      $Filter = new Mapper\FilterIn($this->address,$this->conditions,$foundLedgerIndexesIds);
+      $foundLedgerIndexesIds = $Filter->reduce();
+      unset($Filter);
+      echo 'DIRIN: ';dump($foundLedgerIndexesIds);
+    } 
+    elseif(isset($this->conditions['dir']) && $this->conditions['dir'] == 'out') {
+      $Filter = new Mapper\FilterOut($this->address,$this->conditions,$foundLedgerIndexesIds);
+      $foundLedgerIndexesIds = $Filter->reduce();
+      unset($Filter);
+      echo 'DIROUT: ';dump($foundLedgerIndexesIds);
+    }
+    
+    if(isset($this->conditions['cp'])) {
+      
+      $Filter = new Mapper\FilterCounterparty($this->address,$this->conditions,$foundLedgerIndexesIds);
+      $foundLedgerIndexesIds = $Filter->reduce();
+      unset($Filter);
+      echo 'CP: ';dump($foundLedgerIndexesIds);
+    }
+
+    if(isset($this->conditions['dt'])) {
+      
+      $Filter = new Mapper\FilterDestinationtag($this->address,$this->conditions,$foundLedgerIndexesIds);
+      $foundLedgerIndexesIds = $Filter->reduce();
+      unset($Filter);
+      echo 'DT: ';dump($foundLedgerIndexesIds);
+    }
+
+    if(isset($this->conditions['st'])) {
+      
+      $Filter = new Mapper\FilterSourcetag($this->address,$this->conditions,$foundLedgerIndexesIds);
+      $foundLedgerIndexesIds = $Filter->reduce();
+      unset($Filter);
+      echo 'ST: ';dump($foundLedgerIndexesIds);
+    }
+    echo 'END';
+    dd($foundLedgerIndexesIds);
 
 
 
@@ -85,215 +131,9 @@ class Mapper
      * Now we have all data we need,
      * now reduce ledger indexes to ones that intersect with all conditions
      */
-    dd($foundLedgerIndexesIds);
+
   }
-
-  private function reduceInOut(array $foundLedgerIndexesIds): array
-  {
-    if(!isset($this->conditions['dir']))
-      return $foundLedgerIndexesIds;
-
-    $r = [];
-
-    foreach($this->conditions['txTypes'] as $txTypeNamepart) {
-      $r[$txTypeNamepart] = [];
-      foreach($foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-        if($countTotalReduced[0] == 0) continue; //no transactions here, skip
-
-        $r[$txTypeNamepart][$ledgerindex] = [$countTotalReduced[0],0];
-
-        if($this->conditions['dir'] == 'in') {
-          /**
-           * Condition: Direction IN (dirin)
-           */
-          $count = $this->fetchDirinCount($ledgerindex, $txTypeNamepart);
-          if($count > 0) { //has transactions
-            $r[$txTypeNamepart][$ledgerindex] = [$countTotalReduced[0],$count];
-          }
-          unset($count);
-
-        } elseif($this->conditions['dir'] == 'out') {
-          /**
-           * Condition: Direction OUT (dirout)
-           */
-          
-          $count = $this->fetchDiroutCount($ledgerindex, $txTypeNamepart);
-          if($count > 0) { //has transactions
-            $r[$txTypeNamepart][$ledgerindex] = [$countTotalReduced[0],$count];
-          }
-          unset($count);
-        }
-      }
-    }
-    return $r;
-  }
-
-  private function reduceCounterparty(array $foundLedgerIndexesIds): array
-  {
-    if(!isset($this->conditions['cp']))
-      return $foundLedgerIndexesIds;
-    $cpFirstFewLetters = \substr($this->conditions['cp'],1,2); //rAccount.. = Ac
-    $r = [];
-    
-    foreach($this->conditions['txTypes'] as $txTypeNamepart) {
-      $r[$txTypeNamepart] = [];
-      foreach($foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-        if($countTotalReduced[0] == 0) continue; //no transactions here, skip
-
-        $r[$txTypeNamepart][$ledgerindex] = [$countTotalReduced[0],0];
-
-          /**
-           * Condition: Counterparty (cp_AB)
-           */
-          $count = $this->fetchCounterpartyCount($ledgerindex, $txTypeNamepart, $cpFirstFewLetters);
-          if($count > 0) { //has transactions
-            $r[$txTypeNamepart][$ledgerindex] = [$countTotalReduced[0],$count];
-          }
-          unset($count);
-
-      }
-    }
-    return $r;
-  }
-
-  private function fetchCounterpartyCount(int $ledgerindex, string $txTypeNamepart, string $cpFirstFewLetters): int
-  {
-    $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
-    $cond = 'cp_'.$cpFirstFewLetters;
-    $cache_key = 'mpr'.$this->address.'_'.$cond.'_'.$ledgerindex.'_'.$DModelName::TYPE;
-    $r = Cache::get($cache_key);
-    //$r = null;
-    if($r === null) {
-      $map = Map::select('id','condition','count_num'/* ,count_indicator */)
-        ->where('address', $this->address)
-        ->where('ledgerindex_id',$ledgerindex)
-        ->where('txtype',$DModelName::TYPE)
-        ->where('condition',$cond)
-        ->first();
-     // $map = null;
-      if(!$map)
-      {
-        //no records found, query DyDB for this day, for this type and save
-        $li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
-        if(!$li) {
-          //clear cache then then/instead exception?
-          throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
-          //return 0; //something went wrong
-        }
-        $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE)
-          ->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999])
-          ->where('r', 'begins_with','r'.$cpFirstFewLetters) //check value presence (in attribute always does not exists if out)
-          ->count();
-          //dd($DModelTxCount,'r'.$cpFirstFewLetters);
   
-        $map = new Map;
-        $map->address = $this->address;
-        $map->ledgerindex_id = $ledgerindex;
-        $map->txtype = $DModelName::TYPE;
-        $map->condition = $cond;
-        $map->count_num = $DModelTxCount;
-        //$map->count_indicator = '='; //indicates that count is exact (=)
-        $map->created_at = now();
-        $map->save();
-      }
-  
-      $r = $map->count_num;
-      Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
-    }
-    
-    return $r;
-  }
-
-  private function fetchDiroutCount(int $ledgerindex, string $txTypeNamepart): int
-  {
-    $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
-    $cache_key = 'mpr'.$this->address.'_dirout_'.$ledgerindex.'_'.$DModelName::TYPE;
-    $r = Cache::get($cache_key);
-    if($r === null) {
-      $map = Map::select('id','condition','count_num'/* ,count_indicator */)
-        ->where('address', $this->address)
-        ->where('ledgerindex_id',$ledgerindex)
-        ->where('txtype',$DModelName::TYPE)
-        ->where('condition','dirout')
-        ->first();
-  
-      if(!$map)
-      {
-        //no records found, query DyDB for this day, for this type and save
-        $li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
-        if(!$li) {
-          //clear cache then then/instead exception?
-          throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
-          //return 0; //something went wrong
-        }
-        $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE)
-          ->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999])
-          ->whereNull('in') //check value presence (in attribute always does not exists if out)
-          ->count();
-  
-        $map = new Map;
-        $map->address = $this->address;
-        $map->ledgerindex_id = $ledgerindex;
-        $map->txtype = $DModelName::TYPE;
-        $map->condition = 'dirout';
-        $map->count_num = $DModelTxCount;
-        //$map->count_indicator = '='; //indicates that count is exact (=)
-        $map->created_at = now();
-        $map->save();
-      }
-  
-      $r = $map->count_num;
-      Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
-    }
-    
-    return $r;
-  }
-
-  private function fetchDirinCount(int $ledgerindex, string $txTypeNamepart): int
-  {
-    $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
-    $cache_key = 'mpr'.$this->address.'dirin_'.$ledgerindex.'_'.$DModelName::TYPE;
-    $r = Cache::get($cache_key);
-    if($r === null) {
-      $map = Map::select('id','condition','count_num'/* ,count_indicator */)
-        ->where('address', $this->address)
-        ->where('ledgerindex_id',$ledgerindex)
-        ->where('txtype',$DModelName::TYPE)
-        ->where('condition','dirin')
-        ->first();
-  
-      if(!$map)
-      {
-        //no records found, query DyDB for this day, for this type and save
-        $li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
-        if(!$li) {
-          //clear cache then then/instead exception?
-          throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
-          //return 0; //something went wrong
-        }
-        $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE)
-          ->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999])
-          ->whereNotNull('in') //check value presence (in attribute always true if in)
-          ->count();
-  
-        $map = new Map;
-        $map->address = $this->address;
-        $map->ledgerindex_id = $ledgerindex;
-        $map->txtype = $DModelName::TYPE;
-        $map->condition = 'dirin';
-        $map->count_num = $DModelTxCount;
-        //$map->count_indicator = '='; //indicates that count is exact (=)
-        $map->created_at = now();
-        $map->save();
-      }
-  
-      $r = $map->count_num;
-      Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
-    }
-    
-    return $r;
-  }
-
   /**
    * Fetches list of indexes for time range and types
    * From cache first, then from db, else generate from DyDB.
@@ -308,6 +148,7 @@ class Mapper
 
     $cache_key = 'mpr'.$this->address.'_all_'.$ledgerindex.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
+    //$r = null;
     if($r === null) {
       $map = Map::select('id','condition','count_num'/* ,count_indicator */)
         ->where('address', $this->address)
@@ -315,7 +156,7 @@ class Mapper
         ->where('txtype',$DModelName::TYPE)
         ->where('condition','all')
         ->first();
-  
+      //$map = null;
       if(!$map)
       {
         //no records found, query DyDB for this day, for this type and save
@@ -328,6 +169,8 @@ class Mapper
         $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE)
           ->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999])
           ->count();
+
+        //dd($DModelTxCount,$this->address.'-'.$DModelName::TYPE,[$li->ledger_index_first,$li->ledger_index_last + 0.9999]);
   
         $map = new Map;
         $map->address = $this->address;
