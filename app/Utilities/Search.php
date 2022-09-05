@@ -55,31 +55,44 @@ class Search
     $mapper->setAddress($this->address);
 
     //TODO do not allow more than 31 days at once!!! for performace reasons
+
+
     $mapper
     ->addCondition('from',$this->param('from'))
     ->addCondition('to',$this->param('to'));
     
+    if(!$mapper->dateRangeIsValid())
+      abort(422, 'From and to params spans more than allowed 31 days and from has to be before to');
+
 
     $txTypes = $this->txTypes; //thiese are all types
     //Todo get types from param
 
     $mapper->addCondition('txTypes',$txTypes);
 
+    //Direction (in|out)
     $param_dir = $this->param('dir');
     if($param_dir && ($param_dir == 'in' || $param_dir == 'out'))
       $mapper->addCondition('dir',$param_dir);
-    
+    unset($param_dir);
 
+    //Counterparty
     if($this->param('cp')) 
       $mapper->addCondition('cp',$this->param('cp'));
 
-    if($this->param('dt')) 
-      $mapper->addCondition('dt',$this->param('dt'));
+    //Destination Tag (int)
+    $param_dt = $this->param('dt');
+    if($param_dt && is_numeric($param_dt))
+      $mapper->addCondition('dt',$param_dt);
+    unset($param_dt);
 
-    if($this->param('st')) 
-      $mapper->addCondition('st',$this->param('st'));
+    //Source Tag (int)
+    $param_st = $this->param('st');
+    if($param_st && is_numeric($param_st)) 
+      $mapper->addCondition('st',$param_st);
+    unset($param_st);
     
-    unset($param_dir);
+    
 
 
     $intersected = $mapper->getIntersectedLedgerindexes();

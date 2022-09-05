@@ -40,13 +40,10 @@ class AccountController extends Controller
   // http://xlanalyzer.test/v1/account/search/test?from=2021-09-01&to=2021-09-05
   public function search(string $address, Request $request): JsonResponse
   {
-    
     validateXRPAddressOrFail($address);
     $search = new Search($address);
     $search->buildFromRequest($request);
     $search->execute();
-
-
     return response()->json($search->result());
   }
 

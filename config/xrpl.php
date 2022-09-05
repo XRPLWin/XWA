@@ -29,7 +29,10 @@ return [
   //https://xrpl.org/basic-data-types.html#specifying-time
   'ripple_epoch' => 946684800,
 
-  //min ledger index in existance
+  /**
+   * Min ledger Analyzer will collect data from
+   * You can opt in to less history by adjusting genesis_* values below.
+   */
   'genesis_ledger' => 32570,
   'genesis_ledger_close_time' => 410325670, //ripple epoch (2013-Jan-01 03:21:10.000000000 UTC)
 

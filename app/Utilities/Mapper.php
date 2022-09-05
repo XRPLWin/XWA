@@ -34,6 +34,32 @@ class Mapper
   }
 
   /**
+   * Check if dates are correct
+   * 1. From is less or equal to to
+   * 2. Do not span more than 31 days
+   * @return bool
+   */
+  public function dateRangeIsValid(): bool
+  {
+    if(!isset($this->conditions['from']) || !isset($this->conditions['to']))
+      return false;
+
+    if($this->conditions['from'] == $this->conditions['to'])
+      return true;
+
+    $from = Carbon::createFromFormat('Y-m-d', $this->conditions['from']);
+    //check if days between dates do not exceed 31 days
+    if($from->diffInDays($this->conditions['to']) > 31)
+      return false;
+
+    //'from' has to be before 'to'
+    if(!$from->isBefore($this->conditions['to']))
+      return false;
+    
+    return true;
+  }
+
+  /**
    * Depending ond conditions get list of intersected ledger indexes
    * in which transactions are present.
    * @return array
@@ -122,16 +148,9 @@ class Mapper
       unset($Filter);
       echo 'ST: ';dump($foundLedgerIndexesIds);
     }
-    echo 'END';
-    dd($foundLedgerIndexesIds);
-
-
-
-    /**
-     * Now we have all data we need,
-     * now reduce ledger indexes to ones that intersect with all conditions
-     */
-
+    //echo 'END';
+    //dd($foundLedgerIndexesIds);
+    return $foundLedgerIndexesIds;
   }
   
   /**
