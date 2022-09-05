@@ -2,12 +2,11 @@
 
 namespace App\Utilities\Mapper;
 
-use App\Utilities\Mapper\FilterInterface;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Map;
 use App\Models\Ledgerindex;
 
-class FilterSourcetag implements FilterInterface {
+class FilterSourcetag extends FilterBase {
     
   private readonly string $address;
   private readonly array $foundLedgerIndexesIds;
@@ -35,19 +34,19 @@ class FilterSourcetag implements FilterInterface {
    */
   public function reduce(): array
   {
-    $cpFirstFewLetters = \substr($this->conditions['st'],0,2);
-    //dd($cpFirstFewLetters);
+    $FirstFewLetters = \substr($this->conditions['st'],0,2);
+    //dd($FirstFewLetters);
     $r = [];
 
     foreach($this->txTypes as $txTypeNamepart) {
       $r[$txTypeNamepart] = [];
       foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
         $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
+        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
 
-        $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $cpFirstFewLetters);
+        $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $FirstFewLetters);
         if($count > 0) { //has transactions
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => 'lte'];
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => $this->calcEqualizer($countTotalReduced['e'], 'lte')];
         }
         unset($count);
       }
@@ -55,18 +54,18 @@ class FilterSourcetag implements FilterInterface {
     return $r;
   }
 
-  private function conditionName(string $cpFirstFewLetters)
+  private function conditionName(string $FirstFewLetters)
   {
-    return 'st_'.$cpFirstFewLetters;
+    return 'st_'.$FirstFewLetters;
   }
 
-  private function fetchCount(int $ledgerindex, string $txTypeNamepart, string $cpFirstFewLetters): int
+  private function fetchCount(int $ledgerindex, string $txTypeNamepart, string $FirstFewLetters): int
   {
     $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
-    $cond = $this->conditionName($cpFirstFewLetters);
+    $cond = $this->conditionName($FirstFewLetters);
     $cache_key = 'mpr'.$this->address.'_'.$cond.'_'.$ledgerindex.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
-    $r = null;
+    //$r = null;
     if($r === null) {
       $map = Map::select('count_num')
         ->where('address', $this->address)
@@ -74,7 +73,7 @@ class FilterSourcetag implements FilterInterface {
         ->where('txtype',$DModelName::TYPE)
         ->where('condition',$cond)
         ->first();
-      $map = null;
+      //$map = null;
       if(!$map)
       {
         //no records found, query DyDB for this day, for this type and save
@@ -86,13 +85,13 @@ class FilterSourcetag implements FilterInterface {
         }
         $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE)
           ->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999])
-          ->where('st', '>',$cpFirstFewLetters) //check value presence (in attribute always does not exists if out)
+          ->where('st', '>',$FirstFewLetters) //check value presence (in attribute always does not exists if out)
           //TODO ST attribute, check if can be done as cast as string else we will have to store st as string.
           //->toDynamoDbQuery()
           ->count()
           ;
 
-        dd($DModelTxCount);
+        //dd($DModelTxCount);
 
         $map = new Map;
         $map->address = $this->address;

@@ -2,12 +2,11 @@
 
 namespace App\Utilities\Mapper;
 
-use App\Utilities\Mapper\FilterInterface;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Map;
 use App\Models\Ledgerindex;
 
-class FilterDestinationtag implements FilterInterface {
+class FilterDestinationtag extends FilterBase {
     
   private readonly string $address;
   private readonly array $foundLedgerIndexesIds;
@@ -35,19 +34,20 @@ class FilterDestinationtag implements FilterInterface {
    */
   public function reduce(): array
   {
-    $cpFirstFewLetters = \substr($this->conditions['dt'],0,2); //
+    $FirstFewLetters = \substr($this->conditions['dt'],0,2); //
 
     $r = [];
 
     foreach($this->txTypes as $txTypeNamepart) {
       $r[$txTypeNamepart] = [];
       foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
         $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
+        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
+        
 
-        $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $cpFirstFewLetters);
+        $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $FirstFewLetters);
         if($count > 0) { //has transactions
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => 'lte'];
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => $this->calcEqualizer($countTotalReduced['e'], 'lte')];
         }
         unset($count);
       }
@@ -55,15 +55,15 @@ class FilterDestinationtag implements FilterInterface {
     return $r;
   }
 
-  private function conditionName(string $cpFirstFewLetters)
+  private function conditionName(string $FirstFewLetters)
   {
-    return 'dt_'.$cpFirstFewLetters;
+    return 'dt_'.$FirstFewLetters;
   }
 
-  private function fetchCount(int $ledgerindex, string $txTypeNamepart, string $cpFirstFewLetters): int
+  private function fetchCount(int $ledgerindex, string $txTypeNamepart, string $FirstFewLetters): int
   {
     $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
-    $cond = $this->conditionName($cpFirstFewLetters);
+    $cond = $this->conditionName($FirstFewLetters);
     $cache_key = 'mpr'.$this->address.'_'.$cond.'_'.$ledgerindex.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
     if($r === null) {
@@ -85,7 +85,7 @@ class FilterDestinationtag implements FilterInterface {
         }
         $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE)
           ->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999])
-          ->where('dt', 'begins_with',$cpFirstFewLetters) //check value presence (in attribute always does not exists if out)
+          ->where('dt', 'begins_with',$FirstFewLetters) //check value presence (in attribute always does not exists if out)
           ->count();
 
         $map = new Map;

@@ -20,7 +20,7 @@ class AccountLoader
       $Account = new DAccount();
       $Account->PK = $address;
       $Account->SK = 0;
-      $Account->l = 0; // Ledger index this account is scanned to.
+      $Account->l = config('xrpl.genesis_ledger'); // Ledger index this account is scanned to.
       //$Account->t = <INT>; //account type: undefined (default) - normal, 1 - issuer
       $Account->save();
     }

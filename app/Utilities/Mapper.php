@@ -66,6 +66,7 @@ class Mapper
    */
   public function getIntersectedLedgerindexes(): array
   {
+    //dump('aa');
     if( !isset($this->conditions['from']) || !isset($this->conditions['to']) || !isset($this->conditions['txTypes']) )
       throw new \Exception('From To and txTypes conditions are not set');
 
@@ -76,7 +77,7 @@ class Mapper
     $account = AccountLoader::get($this->address);
     if(!$account)
       return [];
-    
+   
     $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to);
     if(!$LedgerIndexLastForDay)
       return [];
@@ -94,13 +95,13 @@ class Mapper
 
     # Phase 1 ALL days per Tx Type
     foreach($period as $day) {
-
+      
       $ledgerindex = Ledgerindex::getLedgerindexIdForDay($day);
       if($ledgerindex) {
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
           $count = $this->fetchAllCount($ledgerindex, $txTypeNamepart);
           if($count > 0) { //has transactions
-            $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex] = ['total' => $count, 'found' => $count, 'e' => 'eq']; //[total, reduced, eq (equalizer eq|gt|gte|lt|lte)]
+            $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex] = ['total' => $count, 'found' => $count, 'e' => 'eq']; //[total, reduced, eq (equalizer eq|lte)]
           }
           unset($count);
         }
@@ -108,21 +109,21 @@ class Mapper
         //something went wrong... or out of scope
       }
     }
-
+    
     # Phase 2 OPTIONAL CONDITIONS REDUCER:
-    dump($foundLedgerIndexesIds);
+    //dump($foundLedgerIndexesIds);
     
     if(isset($this->conditions['dir']) && $this->conditions['dir'] == 'in') {
       $Filter = new Mapper\FilterIn($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
-      echo 'DIRIN: ';dump($foundLedgerIndexesIds);
+      //echo 'DIRIN: ';dump($foundLedgerIndexesIds);
     } 
     elseif(isset($this->conditions['dir']) && $this->conditions['dir'] == 'out') {
       $Filter = new Mapper\FilterOut($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
-      echo 'DIROUT: ';dump($foundLedgerIndexesIds);
+      //echo 'DIROUT: ';dump($foundLedgerIndexesIds);
     }
     
     if(isset($this->conditions['cp'])) {
@@ -130,7 +131,7 @@ class Mapper
       $Filter = new Mapper\FilterCounterparty($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
-      echo 'CP: ';dump($foundLedgerIndexesIds);
+      //echo 'CP: ';dump($foundLedgerIndexesIds);
     }
 
     if(isset($this->conditions['dt'])) {
@@ -138,7 +139,7 @@ class Mapper
       $Filter = new Mapper\FilterDestinationtag($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
-      echo 'DT: ';dump($foundLedgerIndexesIds);
+      //echo 'DT: ';dump($foundLedgerIndexesIds);
     }
 
     if(isset($this->conditions['st'])) {
@@ -146,7 +147,7 @@ class Mapper
       $Filter = new Mapper\FilterSourcetag($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
-      echo 'ST: ';dump($foundLedgerIndexesIds);
+      //echo 'ST: ';dump($foundLedgerIndexesIds);
     }
     //echo 'END';
     //dd($foundLedgerIndexesIds);

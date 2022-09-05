@@ -1,13 +1,20 @@
 <?php
+/**
+ * Main search class
+ *
+ * @category   Search Engine
+ * @package    XRPLWinAnalyzer
+ * @author     Zvjezdan Grguric <zgrgric@xrplwin.com>
+ */
 
 namespace App\Utilities;
 
-use App\Models\Ledgerindex;
+#use App\Models\Ledgerindex;
 #use App\Utilities\Mapper;
 #use XRPLWin\XRPL\Client;
 #use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+#use Carbon\Carbon;
 
 class Search
 {
@@ -97,76 +104,49 @@ class Search
       $mapper->addCondition('st',$param_st);
     unset($param_st);
     
+    /**
+     * Execute counts and get intersection of transaction hits depending on sent conditions.
+     */
+    $intersected = $mapper->getIntersectedLedgerindexes();
+
+
+    /**
+     * Caculate optimal SCAN plan
+     */
+    $scanplan = $this->calculateScanPlan($intersected);
+    dd($intersected , $scanplan);
+
+
     
 
 
-    $intersected = $mapper->getIntersectedLedgerindexes();
-    dd($mapper,$intersected);
+    dd($intersected);
 
     $this->isExecuted = true;
     return $this;
-    exit;
+  }
+
+  /**
+   * This function takes intersected array and returns optimal
+   * query SCAN plan which will be executed against DyDB
+   * @param array $data - final intersected array of transaction counts
+   * @return array
+   */
+  private function calculateScanPlan(array $data): array
+  {
+    $r = [];
+
+    # Eject zero edges
+    # - removes items with zero (0) 'found' param left and right, until cursor reaches filled item
 
 
-
-
-
-
-
-    # 1. Get time range from-to
-    if(!$this->param('from') || !$this->param('to')) abort(422);
-    try{
-      $from = Carbon::createFromFormat('Y-m-d', $this->param('from'));
-      $to = Carbon::createFromFormat('Y-m-d', $this->param('to'));
-    } catch (\Throwable) {
-      abort(422, 'Unable to parse from or to YYYY-MM-DD format');
-    }
-
-    //TODO check if from is less or equal than to else abort 422
-    
-    $fromLedger = Ledgerindex::select('id','ledger_index_first','day')->where('day',$from)->first();
-    if(!$fromLedger) abort(422, 'From ledger out of range');
-    $toLedger = Ledgerindex::select('id','ledger_index_last','day')->where('day',$to)->first();
-    if(!$toLedger) abort(422, 'To ledger out of range');
-    //dd($fromLedger,$toLedger);
-
-    $mapper
-      ->addCondition('from',$fromLedger)
-      ->addCondition('to',$toLedger);
-
-    # 2. Types to query
-    $txTypes = $this->txTypes; //thiese are all types
-    //Todo get types from param
-
-    $mapper->addCondition('txTypes',$txTypes);
-
-    $intersected = $mapper->getIntersectedLedgerindexes();
-    dd($mapper,$intersected);
-
-    # 2. Get all DTransactions within this range for all types
-    $txs = [];
-    foreach($txTypes as $txType)
-    {
-      //dump([$fromLedger->ledger_index_last,$toLedger->ledger_index_last]);
-      $mname = '\\App\\Models\\DTransaction'.$txType;
-      $txs['T'.$mname::TYPE] = $mname::where('PK',$this->address.'-'.$mname::TYPE)
-        ->where('SK','between',[$fromLedger->ledger_index_last,$toLedger->ledger_index_last])
-        ->get();
-       //dd( $txs['Type'.$mname::TYPE]);
-    }
-    dd($txs);
-    dd($from,$to);
-
-
-
-
-
-
-
-
-
-    $this->isExecuted = true;
-    return $this;
+    # Calculate batch ranges of SCAN query which will not span more than 1000 items (max 1kb items from db)
+    # - DyDB QUERY/SCAN operation will paginate after 1MB retrieved data, this should avoid this pagination
+    # - QUERY/SCAN is sorted by SK (sort key, eg ledger_index.transaction_index), if there is very large number of 
+    #   results and zero found results, it is safe to split to next query and skip group of ledger indexes
+    #   Tradeoff is second query to DyDb, and plus is no heavy/slow SCAN operation execution.
+   
+    return $r;
   }
 
 

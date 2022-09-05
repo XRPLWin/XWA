@@ -54,9 +54,15 @@ final class Payment extends XRPLParserBase
     if($this->data['In']) //to save space we only store true value
       $r['in'] = true;
 
+    /**
+     * dt - destination tag, stored as string
+     */
     if($this->data['DestinationTag'] !== null)
       $r['dt'] = (string)$this->data['DestinationTag'];
     
+    /**
+     * st - source tag, stored as string
+     */
     if($this->data['SourceTag'] !== null)
       $r['st'] = (string)$this->data['SourceTag'];
 

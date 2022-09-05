@@ -2,12 +2,11 @@
 
 namespace App\Utilities\Mapper;
 
-use App\Utilities\Mapper\FilterInterface;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Map;
 use App\Models\Ledgerindex;
 
-class FilterOut implements FilterInterface {
+class FilterOut extends FilterBase {
     
   private readonly string $address;
   private readonly array $foundLedgerIndexesIds;
@@ -40,12 +39,12 @@ class FilterOut implements FilterInterface {
     foreach($this->txTypes as $txTypeNamepart) {
       $r[$txTypeNamepart] = [];
       foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
         $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
+        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
 
         $count = $this->fetchCount($ledgerindex, $txTypeNamepart);
         if($count > 0) { //has transactions
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => 'eq'];
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => $this->calcEqualizer($countTotalReduced['e'], 'eq')];
         }
         unset($count);
       }
