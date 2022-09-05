@@ -35,19 +35,19 @@ class FilterSourcetag implements FilterInterface {
    */
   public function reduce(): array
   {
-    $cpFirstFewLetters = \substr($this->conditions['st'],0,2); //
-
+    $cpFirstFewLetters = \substr($this->conditions['st'],0,2);
+    //dd($cpFirstFewLetters);
     $r = [];
 
     foreach($this->txTypes as $txTypeNamepart) {
       $r[$txTypeNamepart] = [];
       foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-        if($countTotalReduced[0] == 0 || $countTotalReduced[1] == 0) continue; //no transactions here, skip
-        $r[$txTypeNamepart][$ledgerindex] = [$countTotalReduced[0],0];
+        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
+        $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
 
         $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $cpFirstFewLetters);
         if($count > 0) { //has transactions
-          $r[$txTypeNamepart][$ledgerindex] = [$countTotalReduced[0],$count];
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => 'lte'];
         }
         unset($count);
       }
@@ -57,7 +57,7 @@ class FilterSourcetag implements FilterInterface {
 
   private function conditionName(string $cpFirstFewLetters)
   {
-    return 'dt_'.$cpFirstFewLetters;
+    return 'st_'.$cpFirstFewLetters;
   }
 
   private function fetchCount(int $ledgerindex, string $txTypeNamepart, string $cpFirstFewLetters): int
@@ -66,6 +66,7 @@ class FilterSourcetag implements FilterInterface {
     $cond = $this->conditionName($cpFirstFewLetters);
     $cache_key = 'mpr'.$this->address.'_'.$cond.'_'.$ledgerindex.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
+    $r = null;
     if($r === null) {
       $map = Map::select('count_num')
         ->where('address', $this->address)
@@ -73,7 +74,7 @@ class FilterSourcetag implements FilterInterface {
         ->where('txtype',$DModelName::TYPE)
         ->where('condition',$cond)
         ->first();
-  
+      $map = null;
       if(!$map)
       {
         //no records found, query DyDB for this day, for this type and save
@@ -85,8 +86,13 @@ class FilterSourcetag implements FilterInterface {
         }
         $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE)
           ->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999])
-          ->where('st', 'begins_with',$cpFirstFewLetters) //check value presence (in attribute always does not exists if out)
-          ->count();
+          ->where('st', '>',$cpFirstFewLetters) //check value presence (in attribute always does not exists if out)
+          //TODO ST attribute, check if can be done as cast as string else we will have to store st as string.
+          //->toDynamoDbQuery()
+          ->count()
+          ;
+
+        dd($DModelTxCount);
 
         $map = new Map;
         $map->address = $this->address;

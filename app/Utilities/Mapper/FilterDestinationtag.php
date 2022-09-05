@@ -42,12 +42,12 @@ class FilterDestinationtag implements FilterInterface {
     foreach($this->txTypes as $txTypeNamepart) {
       $r[$txTypeNamepart] = [];
       foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-        if($countTotalReduced[0] == 0 || $countTotalReduced[1] == 0) continue; //no transactions here, skip
-        $r[$txTypeNamepart][$ledgerindex] = [$countTotalReduced[0],0];
+        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
+        $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
 
         $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $cpFirstFewLetters);
         if($count > 0) { //has transactions
-          $r[$txTypeNamepart][$ledgerindex] = [$countTotalReduced[0],$count];
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => 'lte'];
         }
         unset($count);
       }

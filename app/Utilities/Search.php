@@ -46,6 +46,9 @@ class Search
     return $this->buildFromArray($request->only($this->parametersWhitelist));
   }
 
+  /**
+   * Sample: /v1/account/search/rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4?from=2021-09-01&to=2021-09-28&cp=r3mmzMZxRQaiuLRsKDATciyegSgZod88uT
+   */
   public function execute(): self
   {
     $this->result = [];
@@ -53,8 +56,6 @@ class Search
     //Mapper
     $mapper = new Mapper();
     $mapper->setAddress($this->address);
-
-    //TODO do not allow more than 31 days at once!!! for performace reasons
 
 
     $mapper
@@ -77,8 +78,12 @@ class Search
     unset($param_dir);
 
     //Counterparty
-    if($this->param('cp')) 
-      $mapper->addCondition('cp',$this->param('cp'));
+    $param_cp = $this->param('cp');
+    if($param_cp && isValidXRPAddressFormat($param_cp)) {
+      $mapper->addCondition('cp',$param_cp);
+    }
+    unset($param_cp);
+      
 
     //Destination Tag (int)
     $param_dt = $this->param('dt');

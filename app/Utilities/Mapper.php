@@ -100,7 +100,7 @@ class Mapper
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
           $count = $this->fetchAllCount($ledgerindex, $txTypeNamepart);
           if($count > 0) { //has transactions
-            $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex] = [$count,$count]; //[total, reduced]
+            $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex] = ['total' => $count, 'found' => $count, 'e' => 'eq']; //[total, reduced, eq (equalizer eq|gt|gte|lt|lte)]
           }
           unset($count);
         }

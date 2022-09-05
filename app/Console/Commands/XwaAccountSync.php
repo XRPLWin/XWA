@@ -102,6 +102,9 @@ class XwaAccountSync extends Command
       //$account->save();
       //exit;
       //Test only end
+
+      //$this->ledger_current = 66055480;
+     // $account->l = 66055470;
       
       if( config_static('xrpl.address_ignore.'.$account->address) !== null ) {
         $this->info('History sync skipped (ignored)');

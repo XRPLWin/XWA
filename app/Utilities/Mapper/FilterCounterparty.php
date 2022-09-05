@@ -38,16 +38,16 @@ class FilterCounterparty implements FilterInterface {
     $cpFirstFewLetters = \substr($this->conditions['cp'],1,2); //rAccount.. = Ac
 
     $r = [];
-
+    //dd($this->foundLedgerIndexesIds);
     foreach($this->txTypes as $txTypeNamepart) {
       $r[$txTypeNamepart] = [];
       foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-        if($countTotalReduced[0] == 0 || $countTotalReduced[1] == 0) continue; //no transactions here, skip
-        $r[$txTypeNamepart][$ledgerindex] = [$countTotalReduced[0],0];
+        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
+        $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
 
         $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $cpFirstFewLetters);
         if($count > 0) { //has transactions
-          $r[$txTypeNamepart][$ledgerindex] = [$countTotalReduced[0],$count];
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => 'lte'];
         }
         unset($count);
       }
@@ -66,7 +66,7 @@ class FilterCounterparty implements FilterInterface {
     $cond = $this->conditionName($cpFirstFewLetters);
     $cache_key = 'mpr'.$this->address.'_'.$cond.'_'.$ledgerindex.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
-    $r = null;
+    //$r = null;
     if($r === null) {
       $map = Map::select('count_num')
         ->where('address', $this->address)
@@ -74,10 +74,9 @@ class FilterCounterparty implements FilterInterface {
         ->where('txtype',$DModelName::TYPE)
         ->where('condition',$cond)
         ->first();
-      $map = null;
+      //$map = null;
       if(!$map)
       {
-        
         //no records found, query DyDB for this day, for this type and save
         $li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
         if(!$li) {
@@ -89,9 +88,7 @@ class FilterCounterparty implements FilterInterface {
           ->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999])
           ->where('r', 'begins_with','r'.$cpFirstFewLetters) //check value presence (in attribute always does not exists if out)
           //->toDynamoDbQuery()
-          ->count()
-          ;
-        //dd($DModelTxCount);
+          ->count();
 
         $map = new Map;
         $map->address = $this->address;

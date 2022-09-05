@@ -157,9 +157,23 @@ if (!function_exists('validateXRPAddressOrFail')) {
   */
   function validateXRPAddressOrFail(mixed $address): void
   {
+    if(!isValidXRPAddressFormat($address))
+      abort(422, 'XRP address format is invalid');
+  }
+}
+
+if (!function_exists('isValidXRPAddressFormat')) {
+  /**
+  * Validates XRP Address or throw exception.
+  * @throws Symfony\Component\HttpKernel\Exception\HttpException
+  */
+  function isValidXRPAddressFormat(mixed $address): bool
+  {
     $validator = \Illuminate\Support\Facades\Validator::make(['address' => $address], [
       'address' => ['string',  new \App\Rules\XRPAddress],
     ]);
-    if ($validator->fails()) {abort(422, 'XRP address format is invalid');}
+    if ($validator->fails())
+      return false;
+    return true;
   }
 }
