@@ -36,8 +36,8 @@ return [
    * Default genesis_ledger_close_time  : 410325670
    * @see https://xrpl.org/websocket-api-tool.html#ledger
    */
-  'genesis_ledger' => 32570,//69190567,
-  'genesis_ledger_close_time' => 410325670,//696201961, //ripple epoch (2013-Jan-01 03:21:10.000000000 UTC)
+  'genesis_ledger' =>  env('XRPL_GENESIS_LEDGER', 32570),
+  'genesis_ledger_close_time' => env('XRPL_GENESIS_LEDGER_CLOSE_TIME', 410325670), //ripple epoch (2013-Jan-01 03:21:10.000000000 UTC)
 
   //'token_source' => 'https://api.xrpldata.com/api/v1/tokens',
 

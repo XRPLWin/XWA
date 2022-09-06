@@ -53,7 +53,7 @@ class InfoController extends Controller
           'action' => 'Get currency exchange rate',
           'route' => '/v1/currency_rates/{from}/{to}/{amount?}',
           'method' => 'GET',
-          'example' => config('app.url').'/currency_rates/USD+rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq/XRP',
+          'example' => config('app.url').'/v1/currency_rates/USD+rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq/XRP',
         ]
       ]
     ]);

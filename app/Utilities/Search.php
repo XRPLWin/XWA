@@ -54,7 +54,7 @@ class Search
   }
 
   /**
-   * Sample: /v1/account/search/rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4?from=2021-09-01&to=2021-09-28&cp=r3mmzMZxRQaiuLRsKDATciyegSgZod88uT
+   * Sample: /v1/account/search/rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4?from=2022-05-01&to=2022-05-28&st=1&cp=r3mmzMZxRQaiuLRsKDATciyegSgZod88uT
    */
   public function execute(): self
   {
@@ -114,6 +114,12 @@ class Search
      * Caculate optimal SCAN plan
      */
     $scanplan = $this->calculateScanPlan($intersected);
+
+    /**
+     * Query the DyDB using $scanplan
+     */
+
+
     dd($intersected , $scanplan);
 
 
@@ -130,23 +136,72 @@ class Search
    * This function takes intersected array and returns optimal
    * query SCAN plan which will be executed against DyDB
    * @param array $data - final intersected array of transaction counts
-   * @return array
+   * @return array [txTypeNamepart => [ QUERY_ITERATION => [int total, int ledgerindex_first, int ledgerindex_last] ] ]
+   *  ledgerindex_last = 'id' from local db table ledgerindexes
    */
   private function calculateScanPlan(array $data): array
   {
-    $r = [];
-
     # Eject zero edges
     # - removes items with zero (0) 'found' param left and right, until cursor reaches filled item
 
+    $newData = [];
+    foreach($data as $txTypeNamepart => $l) {
+      $l_fwd = $l;
+      foreach($l_fwd as $ledgerindexID => $counts) {
+        if(!$counts['found']) unset($l_fwd[$ledgerindexID]);
+        else break; //stop inner loop
+      }
+
+      $l_rew = \array_reverse($l_fwd,true);
+      unset($l_fwd);
+      foreach($l_rew as $ledgerindexID => $counts) {
+        if(!$counts['found']) unset($l_rew[$ledgerindexID]);
+        else break; //stop inner loop
+      }
+      $newData[$txTypeNamepart] = \array_reverse($l_rew,true);
+      unset($l_rew);
+    }
+    $data = $newData;
+    unset($newData);
 
     # Calculate batch ranges of SCAN query which will not span more than 1000 items (max 1kb items from db)
     # - DyDB QUERY/SCAN operation will paginate after 1MB retrieved data, this should avoid this pagination
     # - QUERY/SCAN is sorted by SK (sort key, eg ledger_index.transaction_index), if there is very large number of 
     #   results and zero found results, it is safe to split to next query and skip group of ledger indexes
-    #   Tradeoff is second query to DyDb, and plus is no heavy/slow SCAN operation execution.
-   
-    return $r;
+    #   Tradeoff is second query to DyDb, and benifit is no heavy/slow SCAN operation execution.
+
+    $breakpoint = 1000; //how db items until new query is created, scan limit may overflow over this value - default: 1000
+
+    $tracker = [];
+    foreach($data as $txTypeNamepart => $l) {
+      if(empty($l)) continue;
+      $i = 1;
+      $tracker[$txTypeNamepart] = [$i => ['total' => 0, 'llist' => []] ]; //first iteration starting point
+
+      foreach($l as $ledgerindexID => $counts) {
+        if($tracker[$txTypeNamepart][$i]['total'] !== 0 && ($tracker[$txTypeNamepart][$i]['total']+$counts['total']) > $breakpoint) {
+          //breakpoint reached
+          //dd($counts);
+          $i++;
+          $tracker[$txTypeNamepart][$i] = ['total' => 0, 'llist' => []]; //next iteration starting point
+        }
+        $tracker[$txTypeNamepart][$i]['total'] += $counts['total'];
+        $tracker[$txTypeNamepart][$i]['llist'][] = $ledgerindexID;
+      }
+      unset($i);
+
+      //from each llist take only edge ledger indexes (list of ledgerindexes are always sorted from past to future)
+      foreach($tracker[$txTypeNamepart] as $i => $v) {
+        //dd($tracker);
+        $tracker[$txTypeNamepart][$i]['ledgerindex_first'] = $v['llist'][0];
+        $tracker[$txTypeNamepart][$i]['ledgerindex_last'] = $v['llist'][count($v['llist'])-1];
+        unset($tracker[$txTypeNamepart][$i]['llist']); //remove this line if you need info about all ledgers between ledgerindex_first and ledgerindex_last
+      }
+    }
+
+    //dump($tracker);
+    //dd($data);
+    return $tracker;
   }
 
 
