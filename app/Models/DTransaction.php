@@ -16,6 +16,7 @@ use BaoPham\DynamoDb\DynamoDbModel;
  */
 class DTransaction extends DynamoDbModel
 {
+  const TYPE = 0;
   protected $primaryKey = 'PK';
   protected $compositeKey = ['PK', 'SK'];
   public $timestamps = false;

@@ -13,6 +13,9 @@ namespace App\Utilities;
 #use App\Utilities\Mapper;
 #use XRPLWin\XRPL\Client;
 #use Illuminate\Support\Facades\Cache;
+
+use App\Models\Ledgerindex;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 #use Carbon\Carbon;
 
@@ -58,7 +61,7 @@ class Search
    */
   public function execute(): self
   {
-    $this->result = [];
+   //$this->result = [];
 
     //Mapper
     $mapper = new Mapper();
@@ -118,18 +121,54 @@ class Search
     /**
      * Query the DyDB using $scanplan
      */
-
-
-    dd($intersected , $scanplan);
-
-
     
+    $definitiveResults = [];
+    foreach($scanplan as $txTypeNamepart => $scanplanTypeData) {
+      $definitiveResults[$txTypeNamepart] = [];
+      foreach($scanplanTypeData['data'] as $ledgerindexID => $resultStats) {
+        $ledgerindex_first_range = Ledgerindex::getLedgerindexData($resultStats['ledgerindex_first']);
+        $ledgerindex_last_range = Ledgerindex::getLedgerindexData($resultStats['ledgerindex_last']);
 
+        /** @var \App\Models\DTransaction */
+        $DTransactionModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
+        $results = $DTransactionModelName::select('st','a','r','fe')
+        ->where('PK', $this->address.'-'.$DTransactionModelName::TYPE)
+        ->where('SK','between',[(int)$ledgerindex_first_range[0],(int)$ledgerindex_last_range[1] + 0.9999])
+        ->get();
 
-    dd($intersected);
+        $definitiveResults[$txTypeNamepart] = $this->applyDefinitiveFilters($results,$txTypeNamepart);
 
+        //dd($q->getKeys(),$q);
+        //TODO allow pagination here
+        //dd($DTransactionModelName,$q);
+        //dd($txTypeNamepart,$resultStats,$ledgerindex_first_range,$ledgerindex_last_range);
+        
+      }
+    }
+    $this->result = $definitiveResults;
+
+    //dd($intersected , $scanplan,$definitiveResults);
     $this->isExecuted = true;
     return $this;
+  }
+
+  /**
+   * Filters items via $this->params (precise)
+   * @return Collection - filtered collection
+   */
+  private function applyDefinitiveFilters(Collection $results, string $txTypeNamepart): Collection
+  {
+    //dd($this->params);
+    $filter_dt = $this->param('dt');
+    //todo all filters via Class objects!
+
+    $r = [];
+    foreach($results as $v) {
+      if($filter_dt !== null && $v->dt != $filter_dt) continue;
+      $r[] = $v;
+    }
+    //todo filter items via $this->param($name)
+    return collect($r);
   }
 
   /**
@@ -176,31 +215,34 @@ class Search
     foreach($data as $txTypeNamepart => $l) {
       if(empty($l)) continue;
       $i = 1;
-      $tracker[$txTypeNamepart] = [$i => ['total' => 0, 'llist' => []] ]; //first iteration starting point
-
+      $tracker[$txTypeNamepart] = [
+        'stats' => ['total_rows' => 0, 'e' => 'eq'],
+        'data' => [ $i => ['total' => 0, 'llist' => []] ], //first iteration starting point
+      ];
+      
       foreach($l as $ledgerindexID => $counts) {
-        if($tracker[$txTypeNamepart][$i]['total'] !== 0 && ($tracker[$txTypeNamepart][$i]['total']+$counts['total']) > $breakpoint) {
+        if($tracker[$txTypeNamepart]['data'][$i]['total'] !== 0 && ($tracker[$txTypeNamepart]['data'][$i]['total']+$counts['total']) > $breakpoint) {
           //breakpoint reached
           //dd($counts);
           $i++;
-          $tracker[$txTypeNamepart][$i] = ['total' => 0, 'llist' => []]; //next iteration starting point
+          $tracker[$txTypeNamepart]['data'][$i] = ['total' => 0, 'llist' => []]; //next iteration starting point
         }
-        $tracker[$txTypeNamepart][$i]['total'] += $counts['total'];
-        $tracker[$txTypeNamepart][$i]['llist'][] = $ledgerindexID;
+        $tracker[$txTypeNamepart]['data'][$i]['total'] += $counts['total'];
+        $tracker[$txTypeNamepart]['stats']['total_rows'] += $counts['total'];
+        
+        $tracker[$txTypeNamepart]['stats']['e'] = self::calcSearchEqualizer($tracker[$txTypeNamepart]['stats']['e'],$counts['e']);
+        $tracker[$txTypeNamepart]['data'][$i]['llist'][] = $ledgerindexID;
       }
       unset($i);
 
       //from each llist take only edge ledger indexes (list of ledgerindexes are always sorted from past to future)
-      foreach($tracker[$txTypeNamepart] as $i => $v) {
-        //dd($tracker);
-        $tracker[$txTypeNamepart][$i]['ledgerindex_first'] = $v['llist'][0];
-        $tracker[$txTypeNamepart][$i]['ledgerindex_last'] = $v['llist'][count($v['llist'])-1];
-        unset($tracker[$txTypeNamepart][$i]['llist']); //remove this line if you need info about all ledgers between ledgerindex_first and ledgerindex_last
+      foreach($tracker[$txTypeNamepart]['data'] as $i => $v) {
+        $tracker[$txTypeNamepart]['data'][$i]['ledgerindex_first'] = $v['llist'][0];
+        $tracker[$txTypeNamepart]['data'][$i]['ledgerindex_last'] = $v['llist'][count($v['llist'])-1];
+        unset($tracker[$txTypeNamepart]['data'][$i]['llist']); //remove this line if you need info about all ledgers between ledgerindex_first and ledgerindex_last
       }
     }
 
-    //dump($tracker);
-    //dd($data);
     return $tracker;
   }
 
@@ -219,5 +261,20 @@ class Search
   private function param($name)
   {
     return isset($this->params[$name]) ? $this->params[$name]:null;
+  }
+
+  /**
+   * Used to determine which equilizer is prominent when analyzing returned resultset counts.
+   * Return eq or lte depending of parameters
+   * @param string $existingE eq|lte
+   * @param string $newE eq|lte
+   * @return string eq|lte
+   */
+  public static function calcSearchEqualizer(string $existingE, string $newE): string
+  {
+    if($existingE == 'lte')
+      return 'lte';
+      
+    return $newE;
   }
 }

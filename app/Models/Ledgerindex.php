@@ -26,21 +26,46 @@ class Ledgerindex extends Model
    */
   public static function getCachedLedgerindexDataForDay(Carbon $day): ?array
   {
-    $cache_key = 'li_forday_'.$day->format('Ymd');
+    $cache_key = 'lid:'.$day->format('Ymd');
     $r = Cache::get($cache_key);
     if($r === null) {
       $ledgerindex = self::select('id','ledger_index_first','ledger_index_last')->where('day',$day)->first();
       if(!$ledgerindex)
         $r = 0;
       else
-        $r = [$ledgerindex->id, $ledgerindex->ledger_index_first, $ledgerindex->ledger_index_last];
+        $r = $ledgerindex->id.':'.$ledgerindex->ledger_index_first.':'.$ledgerindex->ledger_index_last;
       
       Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     
     if($r === 0) return null;
 
+    return \explode(':',$r);
+
     return $r;
+  }
+
+  /**
+   * Retrieves (from cache or fetches)  ledger_index_first and ledger_index_last info about Ledgerindex
+   * @return ?array [ledger_index_first,ledger_index_last]
+   */
+  public static function getLedgerindexData(int $id): ?array
+  {
+    $cache_key = 'li:'.$id;
+    $r = Cache::get($cache_key);
+    if($r === null) {
+      $ledgerindex = self::select('ledger_index_first','ledger_index_last')->where('id',$id)->first();
+      if(!$ledgerindex)
+        $r = 0;
+      else
+        $r = (string)$ledgerindex->ledger_index_first.'.'.(string)$ledgerindex->ledger_index_last;
+      
+      Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
+    }
+    
+    if($r === 0) return null;
+
+    return \explode('.',$r);
   }
 
   /**

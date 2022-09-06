@@ -46,7 +46,7 @@ class FilterSourcetag extends FilterBase {
 
         $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $FirstFewLetters);
         if($count > 0) { //has transactions
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => $this->calcEqualizer($countTotalReduced['e'], 'lte')];
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'lte')];
         }
         unset($count);
       }

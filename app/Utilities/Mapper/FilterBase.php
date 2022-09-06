@@ -12,7 +12,7 @@ abstract class FilterBase implements FilterInterface {
    * @param string $newE eq|lte
    * @return string eq|lte
    */
-  protected function calcEqualizer(string $existingE, string $newE): string
+  public static function calcEqualizer(string $existingE, string $newE): string
   {
     if($existingE == 'lte')
       return 'lte';

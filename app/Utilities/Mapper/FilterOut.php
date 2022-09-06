@@ -44,7 +44,7 @@ class FilterOut extends FilterBase {
 
         $count = $this->fetchCount($ledgerindex, $txTypeNamepart);
         if($count > 0) { //has transactions
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => $this->calcEqualizer($countTotalReduced['e'], 'eq')];
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'eq')];
         }
         unset($count);
       }
