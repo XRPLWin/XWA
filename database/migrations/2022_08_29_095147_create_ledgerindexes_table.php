@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create('ledgerindexes', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('ledger_index_first'); //first ledger index of 'day'
-            $table->unsignedInteger('ledger_index_last'); //last ledger index of 'day'
+            $table->unsignedInteger('ledger_index_last')->nullable(); //last ledger index of 'day'
             $table->date('day')->unique();
             //$table->timestamps();
         });

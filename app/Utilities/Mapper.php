@@ -80,20 +80,20 @@ class Mapper
 
     $from = Carbon::createFromFormat('Y-m-d', $this->conditions['from']);
     $to = Carbon::createFromFormat('Y-m-d', $this->conditions['to']);
-
+    
     //Check if $this->address is synced within time ranges, if not then disallow search.
     $account = AccountLoader::get($this->address);
     if(!$account)
       return [];
-   
+
     $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to);
     if(!$LedgerIndexLastForDay)
       return [];
-     // dd($account->l. ' < '.$LedgerIndexLastForDay);
+    
     if($account->l < $LedgerIndexLastForDay)
       return []; //not synced yet to this ledger index
     
-     
+
     $period = CarbonPeriod::since($from)->until($to);
 
     $foundLedgerIndexesIds = [];
@@ -105,6 +105,7 @@ class Mapper
     foreach($period as $day) {
       
       $ledgerindex = Ledgerindex::getLedgerindexIdForDay($day);
+      //dd( $ledgerindex);
       if($ledgerindex) {
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
           $count = $this->fetchAllCount($ledgerindex, $txTypeNamepart);
@@ -115,7 +116,9 @@ class Mapper
         }
       } else {
         //something went wrong... or out of scope
+     
       }
+    
     }
     
     # Phase 2 OPTIONAL CONDITIONS REDUCER:

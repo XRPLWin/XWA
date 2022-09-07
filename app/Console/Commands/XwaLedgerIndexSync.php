@@ -94,7 +94,7 @@ class XwaLedgerIndexSync extends Command
         $li_first = $this->ledger_current;
         $startCarbon = $this->fetchLedgerIndexTime($this->ledger_current);
         $start = $startCarbon->timestamp;
-        if($startCarbon->isToday()) {
+        if($startCarbon->isTomorrow()) {
           $this->info('All days synced');
           return 0;
         }
@@ -102,13 +102,15 @@ class XwaLedgerIndexSync extends Command
 
 
 
-      $period = CarbonPeriod::since(Carbon::createFromTimestamp($start))->days(1)->until(now()->addDays(-1));
-
+      $period = CarbonPeriod::since(Carbon::createFromTimestamp($start))->days(1)->until(now()/*->addDays(-1)*/);
+      //dd($period );
       $bar = $this->output->createProgressBar($period->count());
       $bar->start();
       foreach($period as $day) {
         # find last ledger index for this $day
+        
         $day_last_ledger_index = $this->findLastLedgerIndexForDay($day, $this->ledger_current, $this->ledger_last, $this->ledger_last);
+        //dd('test');
         $this->info($day_last_ledger_index. ' - '. $day->format('Y-m-d'));
         $this->ledger_current = $day_last_ledger_index+1;
         //save to local db $day_last_ledger_index is last ledger of $day
@@ -133,17 +135,20 @@ class XwaLedgerIndexSync extends Command
     private function findLastLedgerIndexForDay(Carbon $day, int $low, int $high, int $lastHigh): int
     {
       $day->endOfDay(); //set to end of day
-
+      
       $time_high = $this->fetchLedgerIndexTime($high);
       if($time_high->greaterThan($day)) //too high
       {
+        
         return $this->findLastLedgerIndexForDay($day, $low, $this->halveNumbers($low,$high), $high);
       }
       else
       {
+        
         //$high ledger is somewhere between $low and end of $day
         //check if next ledger is in next day, if not then continue with adjusted ranges
         $next_ledger_time = $this->fetchLedgerIndexTime($high+1);
+        
         if($next_ledger_time->greaterThanOrEqualTo($day)) //Found it.
           return $high;
         else //contine search with adjusted lower threshold...
@@ -162,6 +167,8 @@ class XwaLedgerIndexSync extends Command
     private function fetchLedgerIndexTime(int $index): Carbon
     {
       $ledger_result = $this->fetchLedgerIndexInfo($index);
+      if(!isset($ledger_result->close_time))
+      dd($ledger_result);
       return \Carbon\Carbon::createFromTimestamp(ripple_epoch_to_epoch($ledger_result->close_time));
     }
 

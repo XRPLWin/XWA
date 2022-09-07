@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use App\Utilities\Ledger;
 
 class Ledgerindex extends Model
 {
@@ -26,6 +27,13 @@ class Ledgerindex extends Model
    */
   public static function getCachedLedgerindexDataForDay(Carbon $day): ?array
   {
+    /*if($day->isToday())
+    {
+      $prevday = self::getCachedLedgerindexDataForDay(Carbon::yesterday());
+      if(!$prevday)
+        return $prevday;
+      return [1,$prevday[1],Ledger::current()];
+    }*/
     $cache_key = 'lid:'.$day->format('Ymd');
     $r = Cache::get($cache_key);
     if($r === null) {
@@ -87,6 +95,9 @@ class Ledgerindex extends Model
     return null;
   }
 
+  /**
+   * @return int or string 'current' or null
+   */
   public static function getLedgerIndexLastForDay(Carbon $day): ?int
   {
     $r = self::getCachedLedgerindexDataForDay($day);

@@ -71,7 +71,7 @@ class Search
     $mapper
     ->addCondition('from',$this->param('from'))
     ->addCondition('to',$this->param('to'));
-    
+
     if(!$mapper->dateRangeIsValid())
       abort(422, 'From and to params spans more than allowed 31 days and "from" has to be before "to". Dates must not be in future.');
 
