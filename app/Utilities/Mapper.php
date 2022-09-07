@@ -17,7 +17,7 @@ class Mapper
   private array $conditions = [
     //from
     //to
-    //txTypes ...
+    //...
   ];
   private readonly string $address;
 
@@ -54,6 +54,14 @@ class Mapper
 
     //'from' has to be before 'to'
     if(!$from->isBefore($this->conditions['to']))
+      return false;
+
+    //from and to needs to be current date or past
+    if($from->isFuture())
+      return false;
+
+    $to = Carbon::createFromFormat('Y-m-d', $this->conditions['to']);
+    if($to->isFuture())
       return false;
     
     return true;

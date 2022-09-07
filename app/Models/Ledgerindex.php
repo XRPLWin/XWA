@@ -37,8 +37,7 @@ class Ledgerindex extends Model
       
       Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
-    
-    if($r === 0) return null;
+    if($r === 0 || $r === '0') return null;
 
     return \explode(':',$r);
 
@@ -63,7 +62,7 @@ class Ledgerindex extends Model
       Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     
-    if($r === 0) return null;
+    if($r === 0 || $r === '0') return null;
 
     return \explode('.',$r);
   }
@@ -93,6 +92,7 @@ class Ledgerindex extends Model
     $r = self::getCachedLedgerindexDataForDay($day);
     if(is_array($r))
       return $r[2];
+      
     return null;
   }
 }

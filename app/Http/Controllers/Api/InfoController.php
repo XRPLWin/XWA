@@ -38,8 +38,8 @@ class InfoController extends Controller
           'method' => 'GET'
         ],
         [
-          'action' => 'Search transactions',
-          'route' => '/v1/account/search/{address}',
+          'action' => 'Search and filter account transactions',
+          'route' => '/v1/account/search/{address}?from=DD-MM-YYYY&to=DD-MM-YYYY[&dir=in|out][&st=Int32][&dt=Int32][&cp=rCounterpartyAccount]',
           'method' => 'GET'
         ],
         

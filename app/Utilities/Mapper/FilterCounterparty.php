@@ -108,7 +108,7 @@ class FilterCounterparty extends FilterBase {
 
   /**
    * Check if DyDB item has $value in its data.
-   * Checked field is 'dt', must be exact.
+   * Checked field is 'r', must be exact.
    * @return bool
    */
   public static function itemHasFilter(\App\Models\DTransaction $item, string|int|float|bool $value): bool
