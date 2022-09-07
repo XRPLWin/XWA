@@ -27,13 +27,6 @@ class Ledgerindex extends Model
    */
   public static function getCachedLedgerindexDataForDay(Carbon $day): ?array
   {
-    /*if($day->isToday())
-    {
-      $prevday = self::getCachedLedgerindexDataForDay(Carbon::yesterday());
-      if(!$prevday)
-        return $prevday;
-      return [1,$prevday[1],Ledger::current()];
-    }*/
     $cache_key = 'lid:'.$day->format('Ymd');
     $r = Cache::get($cache_key);
     if($r === null) {
@@ -47,14 +40,23 @@ class Ledgerindex extends Model
     }
     if($r === 0 || $r === '0') return null;
 
-    return \explode(':',$r);
+    $r = \explode(':',$r);
+
+    $r[0] = (int)$r[0];
+    $r[1] = (int)$r[1];
+    $r[2] = (int)$r[2];
+
+    //if($r[2] === -1) {
+      //$r[2] = Ledger::current();
+      //$r[2] = 9999999999999;      
+    //}
 
     return $r;
   }
 
   /**
    * Retrieves (from cache or fetches)  ledger_index_first and ledger_index_last info about Ledgerindex
-   * @return ?array [ledger_index_first,ledger_index_last]
+   * @return ?array [(int)ledger_index_first,(int)ledger_index_last]
    */
   public static function getLedgerindexData(int $id): ?array
   {
@@ -72,7 +74,11 @@ class Ledgerindex extends Model
     
     if($r === 0 || $r === '0') return null;
 
-    return \explode('.',$r);
+    $r = \explode('.',$r);
+
+    $r[0] = (int)$r[0];
+    $r[1] = (int)$r[1];
+    return $r;
   }
 
   /**
@@ -102,7 +108,10 @@ class Ledgerindex extends Model
   {
     $r = self::getCachedLedgerindexDataForDay($day);
     if(is_array($r))
+    {
       return $r[2];
+    }
+      
       
     return null;
   }

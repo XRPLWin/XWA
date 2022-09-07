@@ -82,7 +82,7 @@ class XwaLedgerIndexSync extends Command
     public function handle()
     {
       //Get last from DB
-      $LastDb = Ledgerindex::select('ledger_index_last','day')->orderByDesc('day')->first();
+      $LastDb = Ledgerindex::select('ledger_index_last','day')->where('ledger_index_last','!=',-1)->orderByDesc('day')->first();
       if(!$LastDb) {
         //Start at beginning (genesis)
         $this->ledger_current = config('xrpl.genesis_ledger');
@@ -94,7 +94,8 @@ class XwaLedgerIndexSync extends Command
         $li_first = $this->ledger_current;
         $startCarbon = $this->fetchLedgerIndexTime($this->ledger_current);
         $start = $startCarbon->timestamp;
-        if($startCarbon->isTomorrow()) {
+        if($startCarbon->isToday()) {
+          $this->updateTodayRecord();
           $this->info('All days synced');
           return 0;
         }
@@ -102,15 +103,13 @@ class XwaLedgerIndexSync extends Command
 
 
 
-      $period = CarbonPeriod::since(Carbon::createFromTimestamp($start))->days(1)->until(now()/*->addDays(-1)*/);
-      //dd($period );
+      $period = CarbonPeriod::since(Carbon::createFromTimestamp($start))->days(1)->until(now()->addDays(-1));
+
       $bar = $this->output->createProgressBar($period->count());
       $bar->start();
       foreach($period as $day) {
         # find last ledger index for this $day
-        
         $day_last_ledger_index = $this->findLastLedgerIndexForDay($day, $this->ledger_current, $this->ledger_last, $this->ledger_last);
-        //dd('test');
         $this->info($day_last_ledger_index. ' - '. $day->format('Y-m-d'));
         $this->ledger_current = $day_last_ledger_index+1;
         //save to local db $day_last_ledger_index is last ledger of $day
@@ -120,35 +119,48 @@ class XwaLedgerIndexSync extends Command
         $this->info('');
       }
       $bar->finish();
+      $this->updateTodayRecord();
       
     }
 
-    private function saveToDb(int $ledger_index_first,int $ledger_index_last, Carbon $day): void
+    private function updateTodayRecord(): void
     {
-      $model = new Ledgerindex;
+      $yesterdayLedgerindex = Ledgerindex::where('day',Carbon::yesterday())->first();
+      if($yesterdayLedgerindex)
+      {
+        $this->saveToDb($yesterdayLedgerindex->ledger_index_last+1,-1,Carbon::now());
+        $this->info('Today ledger info added/updated');
+      }
+      else
+      $this->info('Today ledger info not added - not ready');
+    }
+
+    private function saveToDb(int $ledger_index_first, int $ledger_index_last, Carbon $day): int
+    {
+      $model = Ledgerindex::where('day',$day)->first();
+      if(!$model)
+        $model = new Ledgerindex;
       $model->ledger_index_first = $ledger_index_first;
       $model->ledger_index_last = $ledger_index_last;
       $model->day = $day;
       $model->save();
+      return $model->id;
     }
 
     private function findLastLedgerIndexForDay(Carbon $day, int $low, int $high, int $lastHigh): int
     {
       $day->endOfDay(); //set to end of day
-      
+
       $time_high = $this->fetchLedgerIndexTime($high);
       if($time_high->greaterThan($day)) //too high
       {
-        
         return $this->findLastLedgerIndexForDay($day, $low, $this->halveNumbers($low,$high), $high);
       }
       else
       {
-        
         //$high ledger is somewhere between $low and end of $day
         //check if next ledger is in next day, if not then continue with adjusted ranges
         $next_ledger_time = $this->fetchLedgerIndexTime($high+1);
-        
         if($next_ledger_time->greaterThanOrEqualTo($day)) //Found it.
           return $high;
         else //contine search with adjusted lower threshold...
@@ -167,8 +179,6 @@ class XwaLedgerIndexSync extends Command
     private function fetchLedgerIndexTime(int $index): Carbon
     {
       $ledger_result = $this->fetchLedgerIndexInfo($index);
-      if(!isset($ledger_result->close_time))
-      dd($ledger_result);
       return \Carbon\Carbon::createFromTimestamp(ripple_epoch_to_epoch($ledger_result->close_time));
     }
 

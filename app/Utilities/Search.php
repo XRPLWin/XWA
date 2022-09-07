@@ -132,9 +132,13 @@ class Search
         /** @var \App\Models\DTransaction */
         $DTransactionModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
         $results = $DTransactionModelName::select('st','a','r','fe')
-        ->where('PK', $this->address.'-'.$DTransactionModelName::TYPE)
-        ->where('SK','between',[(int)$ledgerindex_first_range[0],(int)$ledgerindex_last_range[1] + 0.9999])
-        ->get();
+        ->where('PK', $this->address.'-'.$DTransactionModelName::TYPE);
+        if($ledgerindex_last_range[1] == -1)
+          $results = $results->where('SK','>=',$ledgerindex_first_range[0]);
+        else
+          $results = $results->where('SK','between',[$ledgerindex_first_range[0],$ledgerindex_last_range[1] + 0.9999]);
+        
+        $results = $results->get();
 
         $definitiveResults[$txTypeNamepart] = $this->applyDefinitiveFilters($results,$txTypeNamepart);
 

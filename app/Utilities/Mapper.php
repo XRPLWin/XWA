@@ -85,15 +85,19 @@ class Mapper
     $account = AccountLoader::get($this->address);
     if(!$account)
       return [];
-
+   
     $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to);
     if(!$LedgerIndexLastForDay)
       return [];
     
+    if($LedgerIndexLastForDay == -1) {
+      //Viewing current day, account should be synced to today atleast
+      $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexFirstForDay($to)-1;
+    }
+    
     if($account->l < $LedgerIndexLastForDay)
       return []; //not synced yet to this ledger index
-    
-
+  
     $period = CarbonPeriod::since($from)->until($to);
 
     $foundLedgerIndexesIds = [];
@@ -197,9 +201,14 @@ class Mapper
           throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
           //return 0; //something went wrong
         }
-        $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE)
-          ->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999])
-          ->count();
+        $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
+
+        if($li->ledger_index_last == -1) //latest
+          $DModelTxCount = $DModelTxCount->where('SK','>=',$li->ledger_index_first);
+        else
+          $DModelTxCount = $DModelTxCount->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999]);
+
+        $DModelTxCount = $DModelTxCount->count();
 
         //dd($DModelTxCount,$this->address.'-'.$DModelName::TYPE,[$li->ledger_index_first,$li->ledger_index_last + 0.9999]);
   

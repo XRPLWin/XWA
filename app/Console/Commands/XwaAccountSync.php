@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 
 use XRPLWin\XRPL\Client;
 use App\Utilities\AccountLoader;
+use App\Utilities\Ledger;
 use App\Models\DAccount;
 use App\Models\DTransactionPayment;
 use App\Models\DTransactionActivation;
@@ -85,10 +86,11 @@ class XwaAccountSync extends Command
       //dd('test',config_static('xrpl.address_ignore.rBKPS4oLSaV2KVVuHH8EpQqMGgGefGFQs72'));
       $address = $this->argument('address');
       $this->recursiveaccountqueue = $this->option('recursiveaccountqueue'); //bool
-      $this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
+      //$this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
+      $this->ledger_current = Ledger::current();
       
       $account = AccountLoader::getOrCreate($address);
-
+      //dd($account);
       //If this account is issuer (by checking obligations) set t field to 1.
       if($account->checkIsIssuer())
         $account->t = 1;
