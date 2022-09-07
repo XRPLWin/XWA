@@ -19,6 +19,7 @@ class DTransaction extends DynamoDbModel
   const TYPE = 0;
   protected $primaryKey = 'PK';
   protected $compositeKey = ['PK', 'SK'];
+  //protected $hidden = ['PK', 'SK'];
   public $timestamps = false;
 
   /**

@@ -17,7 +17,7 @@ class Mapper
   private array $conditions = [
     //from
     //to
-    //txTypes
+    //txTypes ...
   ];
   private readonly string $address;
 

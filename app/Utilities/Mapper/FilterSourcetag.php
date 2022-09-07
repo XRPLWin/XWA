@@ -109,4 +109,14 @@ class FilterSourcetag extends FilterBase {
     
     return $r;
   }
+
+  /**
+   * Check if DyDB item has $value in its data.
+   * Checked field is 'st', must be exact.
+   * @return bool
+   */
+  public static function itemHasFilter(\App\Models\DTransaction $item, string|int|float|bool $value): bool
+  {
+    return ((string)$item->st == (string)$value);
+  }
 }

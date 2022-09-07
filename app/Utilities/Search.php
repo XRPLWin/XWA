@@ -158,13 +158,26 @@ class Search
    */
   private function applyDefinitiveFilters(Collection $results, string $txTypeNamepart): Collection
   {
-    //dd($this->params);
+    $filter_st = $this->param('st');
     $filter_dt = $this->param('dt');
+    $filter_cp = $this->param('cp');
+
     //todo all filters via Class objects!
 
     $r = [];
+    /** @var \App\Models\DTransaction */
     foreach($results as $v) {
-      if($filter_dt !== null && $v->dt != $filter_dt) continue;
+
+      //On each item apply non eq filter:
+      if($filter_st !== null) {
+        if(!Mapper\FilterSourcetag::itemHasFilter($v, $filter_st)) continue;
+      }
+      if($filter_dt !== null) {
+        if(!Mapper\FilterDestinationtag::itemHasFilter($v, $filter_dt)) continue;
+      }
+      if($filter_cp !== null) {
+        if(!Mapper\FilterCounterparty::itemHasFilter($v, $filter_cp)) continue;
+      }
       $r[] = $v;
     }
     //todo filter items via $this->param($name)

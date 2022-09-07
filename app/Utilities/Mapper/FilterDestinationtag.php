@@ -104,4 +104,15 @@ class FilterDestinationtag extends FilterBase {
     
     return $r;
   }
+
+  /**
+   * Check if DyDB item has $value in its data.
+   * Checked field is 'dt', must be exact.
+   * @return bool
+   */
+  public static function itemHasFilter(\App\Models\DTransaction $item, string|int|float|bool $value): bool
+  {
+    return ((string)$item->dt == (string)$value);
+  }
+
 }
