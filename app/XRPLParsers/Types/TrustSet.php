@@ -36,7 +36,7 @@ final class TrustSet extends XRPLParserBase
       'a' => $this->data['Amount'],
       'c' => $this->data['Currency'],
       'i' => $this->data['Issuer'],
-     // 'h' => $this->data['hash'],
+      'h' => $this->data['hash'],
     ];
 
     if($this->data['In']) //to save space we only store true value

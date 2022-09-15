@@ -48,7 +48,7 @@ final class Payment extends XRPLParserBase
       'fe' => $this->data['Fee'],
       //'in' => $this->data['In'],
       'r' => $this->data['Counterparty'],
-      //'h' => $this->data['hash'],
+      'h' => $this->data['hash'],
     ];
 
     if($this->data['In']) //to save space we only store true value
