@@ -85,6 +85,7 @@ class Mapper
     $account = AccountLoader::get($this->address);
     if(!$account)
       return [];
+
    
     $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to);
     if(!$LedgerIndexLastForDay)

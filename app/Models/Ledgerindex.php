@@ -6,7 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
-use App\Utilities\Ledger;
+#use App\Utilities\Ledger;
 
 class Ledgerindex extends Model
 {
@@ -20,6 +20,26 @@ class Ledgerindex extends Model
   protected $casts = [
       'day' => 'date',
   ];
+
+  /**
+   * The "booted" method of the model.
+   *
+   * @return void
+   */
+  protected static function booted()
+  {
+      static::saved(function ($model) {
+          $model->flushCache();
+      });
+  }
+
+  public function flushCache()
+  {
+    Cache::forget('lid:'.$this->day->format('Ymd'));
+    if($this->id) {
+      Cache::forget('li:'.$this->id);
+    }
+  }
 
   /**
    * Retrieves data from cache or database, caches.
