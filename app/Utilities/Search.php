@@ -122,20 +122,18 @@ class Search
      * Query the DyDB using $scanplan
      */
     $definitiveResults = collect([]);
-    $max_per_page = 10;
 
     //Count full array template with default zero values
     $resultCounts = [
-      'total' => 0,
-      'total_e' => 'eq',
-      'page_total' => 0,
-      'max_per_page' => $max_per_page,
+      'total_filtered' => 0, //definitive total results
+      'total_scanned' => 0, //non-definitive total results (informational only)
+      //'total_e' => 'eq', //non-definitive equilizer (if eq then total_filtered = total)
     ];
     //dd($scanplan);
     foreach($scanplan as $txTypeNamepart => $scanplanTypeData) {
       //$definitiveResults[$txTypeNamepart] = collect([]);
-      $resultCounts['total'] += $scanplanTypeData['stats']['total_rows'];
-      $resultCounts['total_e'] = self::calcSearchEqualizer($resultCounts['total_e'],$scanplanTypeData['stats']['e']);
+      $resultCounts['total_scanned'] += $scanplanTypeData['stats']['total_rows'];
+      //$resultCounts['total_e'] = self::calcSearchEqualizer($resultCounts['total_e'],$scanplanTypeData['stats']['e']);
       foreach($scanplanTypeData['data'] as $ledgerindexID => $resultStats) {
         
         $ledgerindex_first_range = Ledgerindex::getLedgerindexData($resultStats['ledgerindex_first']);
@@ -153,8 +151,6 @@ class Search
 
         $results = $query->get();
         //dd($results,$results->lastKey(),$query->afterKey($results->lastKey())->limit(2)->all());
-
-        //$definitiveResults[$txTypeNamepart] = $definitiveResults[$txTypeNamepart]->merge($this->applyDefinitiveFilters($results,$txTypeNamepart));
         
         $definitiveResults = $definitiveResults->merge($this->applyDefinitiveFilters($results,$txTypeNamepart));
         
@@ -170,8 +166,8 @@ class Search
       //  $resultCounts['total'] += $v->count();
       //}
     }
-    $resultCounts['page_total'] = $definitiveResults->count();
-
+    $resultCounts['total_filtered'] = $definitiveResults->count();
+    
     //sort by SK
     $definitiveResults = $definitiveResults->sortByDesc('SK')->values();
     //dd($definitiveResults->take(10));
@@ -251,7 +247,7 @@ class Search
     # - DyDB QUERY/SCAN operation will paginate after 1MB retrieved data, this should avoid this pagination
     # - QUERY/SCAN is sorted by SK (sort key, eg ledger_index.transaction_index), if there is very large number of 
     #   results and zero found results, it is safe to split to next query and skip group of ledger indexes
-    #   Tradeoff is second query to DyDb, and benifit is no heavy/slow SCAN operation execution.
+    #   Tradeoff is second query to DyDb, and benefit is no heavy/slow SCAN operation execution.
 
     $breakpoint = 1000; //how db items until new query is created, scan limit may overflow over this value - default: 1000
 
@@ -283,13 +279,36 @@ class Search
       foreach($tracker[$txTypeNamepart]['data'] as $i => $v) {
         $tracker[$txTypeNamepart]['data'][$i]['ledgerindex_first'] = $v['llist'][0];
         $tracker[$txTypeNamepart]['data'][$i]['ledgerindex_last'] = $v['llist'][count($v['llist'])-1];
-        unset($tracker[$txTypeNamepart]['data'][$i]['llist']); //remove this line if you need info about all ledgers between ledgerindex_first and ledgerindex_last
+        //unset($tracker[$txTypeNamepart]['data'][$i]['llist']); //remove this line if you need info about all ledgers between ledgerindex_first and ledgerindex_last
       }
     }
 
     return $tracker;
   }
 
+  /**
+   * This search identifier. This string identifies all search parameters for this search.
+   * Used as path for search export.
+   * 
+   * @return string SHA-512Half
+   */
+  public function getSearchIdentifier(): string
+  {
+    $indentity = $this->address.':';
+    $_params = $this->params;
+    \ksort($_params);
+    $_txTypes = $this->txTypes;
+    \ksort($_txTypes);
+
+    foreach($_params as $k => $v) {
+      $indentity .= $k.'='.$v.':';
+    }
+    foreach($_txTypes as $k => $v) {
+      $indentity .= $k.'='.$v.':';
+    }
+    $hash = \hash('sha512', $indentity);
+    return \substr($hash,0,64);
+  }
 
   ###
   
@@ -304,7 +323,10 @@ class Search
     if(!$this->isExecuted)
       throw new \Exception('Search::result() called before execute()');
 
-    return ['stats' => $this->result_counts, 'data' => $this->result];
+    $r = $this->result_counts;
+    $r['identifier'] = $this->getSearchIdentifier();
+    $r['data'] = $this->result;
+    return $r;
   }
 
   private function param($name)
