@@ -22,7 +22,8 @@ use Illuminate\Http\Request;
 class Search
 {
   private string $address;
-  private readonly array $result;
+  private readonly Collection $result;
+  private readonly array $result_counts;
   private readonly array $params;
   private bool $isExecuted = false;
   private array $parametersWhitelist = ['from','to','dir','cp','dt','st'];
@@ -110,46 +111,72 @@ class Search
     /**
      * Execute counts and get intersection of transaction hits depending on sent conditions.
      */
+    
     $intersected = $mapper->getIntersectedLedgerindexes();
-
-
     /**
      * Caculate optimal SCAN plan
      */
     $scanplan = $this->calculateScanPlan($intersected);
-
+    //dd($scanplan);
     /**
      * Query the DyDB using $scanplan
      */
-    
-    $definitiveResults = [];
+    $definitiveResults = collect([]);
+    $max_per_page = 10;
+
+    //Count full array template with default zero values
+    $resultCounts = [
+      'total' => 0,
+      'total_e' => 'eq',
+      'page_total' => 0,
+      'max_per_page' => $max_per_page,
+    ];
+    //dd($scanplan);
     foreach($scanplan as $txTypeNamepart => $scanplanTypeData) {
-      $definitiveResults[$txTypeNamepart] = [];
+      //$definitiveResults[$txTypeNamepart] = collect([]);
+      $resultCounts['total'] += $scanplanTypeData['stats']['total_rows'];
+      $resultCounts['total_e'] = self::calcSearchEqualizer($resultCounts['total_e'],$scanplanTypeData['stats']['e']);
       foreach($scanplanTypeData['data'] as $ledgerindexID => $resultStats) {
+        
         $ledgerindex_first_range = Ledgerindex::getLedgerindexData($resultStats['ledgerindex_first']);
         $ledgerindex_last_range = Ledgerindex::getLedgerindexData($resultStats['ledgerindex_last']);
 
         /** @var \App\Models\DTransaction */
         $DTransactionModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
-        $results = $DTransactionModelName::select('st','a','r','fe')
-        ->where('PK', $this->address.'-'.$DTransactionModelName::TYPE);
+        //$results = $DTransactionModelName::select('st','a','r','fe')
+        $query = $DTransactionModelName::where('PK', $this->address.'-'.$DTransactionModelName::TYPE);
+
         if($ledgerindex_last_range[1] == -1)
-          $results = $results->where('SK','>=',$ledgerindex_first_range[0]);
+          $query = $query->where('SK','>=',$ledgerindex_first_range[0]);
         else
-          $results = $results->where('SK','between',[$ledgerindex_first_range[0],$ledgerindex_last_range[1] + 0.9999]);
+          $query = $query->where('SK','between',[$ledgerindex_first_range[0],$ledgerindex_last_range[1] + 0.9999]);
+
+        $results = $query->get();
+        //dd($results,$results->lastKey(),$query->afterKey($results->lastKey())->limit(2)->all());
+
+        //$definitiveResults[$txTypeNamepart] = $definitiveResults[$txTypeNamepart]->merge($this->applyDefinitiveFilters($results,$txTypeNamepart));
         
-        $results = $results->get();
-
-        $definitiveResults[$txTypeNamepart] = $this->applyDefinitiveFilters($results,$txTypeNamepart);
-
+        $definitiveResults = $definitiveResults->merge($this->applyDefinitiveFilters($results,$txTypeNamepart));
+        
+        //dd($definitiveResults[$txTypeNamepart]->first());
         //dd($q->getKeys(),$q);
         //TODO allow pagination here
         //dd($DTransactionModelName,$q);
         //dd($txTypeNamepart,$resultStats,$ledgerindex_first_range,$ledgerindex_last_range);
         
       }
+      //Add total counts
+      //foreach($definitiveResults as $v){
+      //  $resultCounts['total'] += $v->count();
+      //}
     }
+    $resultCounts['page_total'] = $definitiveResults->count();
+
+    //sort by SK
+    $definitiveResults = $definitiveResults->sortByDesc('SK')->values();
+    //dd($definitiveResults->take(10));
     $this->result = $definitiveResults;
+    $this->result_counts = $resultCounts;
 
     //dd($intersected , $scanplan,$definitiveResults);
     $this->isExecuted = true;
@@ -267,12 +294,17 @@ class Search
   ###
   
 
+  /**
+   * Returns array of count statistics and results by type.
+   * This is used as public api output.
+   * @return array [stats, data]
+   */
   public function result(): array
   {
     if(!$this->isExecuted)
       throw new \Exception('Search::result() called before execute()');
 
-    return $this->result;
+    return ['stats' => $this->result_counts, 'data' => $this->result];
   }
 
   private function param($name)

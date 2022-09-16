@@ -44,6 +44,7 @@ class AccountController extends Controller
     $search = new Search($address);
     $search->buildFromRequest($request);
     $search->execute();
+    dd($search->result());
     return response()->json($search->result());
   }
 

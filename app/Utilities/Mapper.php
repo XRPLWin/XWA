@@ -110,12 +110,15 @@ class Mapper
     foreach($period as $day) {
       
       $ledgerindex = Ledgerindex::getLedgerindexIdForDay($day);
+      
       //dd( $ledgerindex);
       if($ledgerindex) {
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
           $count = $this->fetchAllCount($ledgerindex, $txTypeNamepart);
+   
           if($count > 0) { //has transactions
             $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex] = ['total' => $count, 'found' => $count, 'e' => 'eq']; //[total, reduced, eq (equalizer eq|lte)]
+            
           }
           unset($count);
         }
@@ -143,7 +146,7 @@ class Mapper
     }
     
     if(isset($this->conditions['cp'])) {
-      
+    
       $Filter = new Mapper\FilterCounterparty($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);

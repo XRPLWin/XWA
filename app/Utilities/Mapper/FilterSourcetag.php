@@ -77,16 +77,22 @@ class FilterSourcetag extends FilterBase {
       if(!$map)
       {
         //no records found, query DyDB for this day, for this type and save
-        $li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
+        //$li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
+        $li = Ledgerindex::getLedgerindexData($ledgerindex);
+        //dd($li);
         if(!$li) {
           //clear cache then then/instead exception?
           throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
           //return 0; //something went wrong
         }
-        $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE)
-          ->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999])
-          ->where('st', '>',$FirstFewLetters) //check value presence (in attribute always does not exists if out)
-          //TODO ST attribute, check if can be done as cast as string else we will have to store st as string.
+        $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
+
+        if($li[1] == -1)
+          $DModelTxCount = $DModelTxCount->where('SK','>=',$li[0]);
+        else
+          $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
+
+        $DModelTxCount = $DModelTxCount = $DModelTxCount->where('st', 'begins_with', $FirstFewLetters) //check value presence (in attribute always does not exists if out)
           //->toDynamoDbQuery()
           ->count()
           ;
