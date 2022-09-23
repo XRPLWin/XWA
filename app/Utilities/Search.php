@@ -17,6 +17,7 @@ namespace App\Utilities;
 use App\Models\Ledgerindex;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 #use Carbon\Carbon;
 
 class Search
@@ -70,14 +71,8 @@ class Search
     return $r;
   }
 
-  /**
-   * Sample: /v1/account/search/rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4?from=2022-05-01&to=2022-05-28&st=1&cp=r3mmzMZxRQaiuLRsKDATciyegSgZod88uT
-   */
-  public function execute(): self
+  private function _execute_real()
   {
-   //$this->result = [];
-
-    //Mapper
     $mapper = new Mapper();
     $mapper->setAddress($this->address);
 
@@ -107,8 +102,7 @@ class Search
       $mapper->addCondition('cp',$param_cp);
     }
     unset($param_cp);
-      
-
+    
     //Destination Tag (int)
     $param_dt = $this->param('dt');
     if($param_dt && is_numeric($param_dt))
@@ -134,7 +128,7 @@ class Search
     /**
      * Query the DyDB using $scanplan
      */
-    $definitiveResults = collect([]);
+    $nonDefinitiveResults = [];
 
     //Count full array template with default zero values
     $resultCounts = [
@@ -144,7 +138,7 @@ class Search
     ];
     //dd($scanplan);
     foreach($scanplan as $txTypeNamepart => $scanplanTypeData) {
-      //$definitiveResults[$txTypeNamepart] = collect([]);
+      $nonDefinitiveResults[$txTypeNamepart] = collect([]);
       $resultCounts['total_scanned'] += $scanplanTypeData['stats']['total_rows'];
       //$resultCounts['total_e'] = self::calcSearchEqualizer($resultCounts['total_e'],$scanplanTypeData['stats']['e']);
       foreach($scanplanTypeData['data'] as $ledgerindexID => $resultStats) {
@@ -164,28 +158,55 @@ class Search
 
         $results = $query->get();
         //dd($results,$results->lastKey(),$query->afterKey($results->lastKey())->limit(2)->all());
-        
-        $definitiveResults = $definitiveResults->merge($this->applyDefinitiveFilters($results,$txTypeNamepart));
-        
-        //dd($definitiveResults[$txTypeNamepart]->first());
-        //dd($q->getKeys(),$q);
-        //TODO allow pagination here
-        //dd($DTransactionModelName,$q);
-        //dd($txTypeNamepart,$resultStats,$ledgerindex_first_range,$ledgerindex_last_range);
-        
+        $nonDefinitiveResults[$txTypeNamepart] =  $nonDefinitiveResults[$txTypeNamepart]->merge($results);
+        //exit;
+        //$definitiveResults = $definitiveResults->merge($this->applyDefinitiveFilters($results,$txTypeNamepart));
+
       }
       //Add total counts
       //foreach($definitiveResults as $v){
       //  $resultCounts['total'] += $v->count();
       //}
     }
-    $resultCounts['total_filtered'] = $definitiveResults->count();
-    
+    //dd(['counts' => $resultCounts, 'data' => $nonDefinitiveResults]);
+    return ['counts' => $resultCounts, 'data' => $nonDefinitiveResults];
+  }
+
+  /**
+   * Sample: /v1/account/search/rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4?from=2022-05-01&to=2022-05-28&st=1&cp=r3mmzMZxRQaiuLRsKDATciyegSgZod88uT
+   */
+  public function execute(): self
+  {
+    ########### DISK CACHE ###########
+    # Check if this search indentifier already exists as json dump on Disk.
+    $searchIdentifier = $this->getSearchIdentifier();
+    //Eg: "searchv1_store/f61/f619f823c40900418b4f808ac32947bde56eba68259616efab26e3ca869e993c"
+    $filepath = config('xwa.searchcachedir').'/'.\strtolower(\substr($searchIdentifier,0,3)).'/'.$searchIdentifier;
+    $exists = Storage::disk(config('xwa.searchcachedisk'))->exists($filepath);
+    if(!$exists) {
+      $data = $this->_execute_real();
+      # Save this $data to S3
+      Storage::disk(config('xwa.searchcachedisk'))->put($filepath,\serialize($data));
+    }
+    else {
+      # Retrieve from S3
+      $data = Storage::disk(config('xwa.searchcachedisk'))->get($filepath);
+      $data = \unserialize($data);
+    }
+    #
+    ########### DISK CACHE ###########
+      
+
+    $definitiveResults = collect([]);
+    foreach($data['data'] as $txTypeNamepart => $collection)
+    {
+      $definitiveResults = $definitiveResults->merge($this->applyDefinitiveFilters($collection,$txTypeNamepart));
+    }
+    $data['counts']['total_filtered'] = $definitiveResults->count();
     //sort by SK
     $definitiveResults = $definitiveResults->sortByDesc('SK')->values();
-    //dd($definitiveResults->take(10));
     $this->result = $definitiveResults;
-    $this->result_counts = $resultCounts;
+    $this->result_counts = $data['counts'];
 
     //dd($intersected , $scanplan,$definitiveResults);
     $this->isExecuted = true;

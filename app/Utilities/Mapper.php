@@ -118,13 +118,11 @@ class Mapper
    
           if($count > 0) { //has transactions
             $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex] = ['total' => $count, 'found' => $count, 'e' => 'eq']; //[total, reduced, eq (equalizer eq|lte)]
-            
           }
           unset($count);
         }
       } else {
         //something went wrong... or out of scope
-     
       }
     
     }

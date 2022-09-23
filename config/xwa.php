@@ -19,4 +19,19 @@ return [
   */
   //'moment' => 500,
 
+  /*
+  |--------------------------------------------------------------------------
+  | Search cache disk
+  |--------------------------------------------------------------------------
+  |
+  | Where to store serialized search cache dumps.
+  | One of: s3, local, public
+  | @see config/filesystems.php
+  | Diectory path on disk sample: /searchcachedir/ful/Fullfilename
+  | Second part is sub-dir first 3 letters of filename lowercased.
+  */
+  'searchcachedisk' => env('XWA_SEARCHCACHEDISK', 's3'),
+  'searchcachedir' => env('XWA_SEARCHCACHEDIR','searchcachedir'),
+  
+
 ];
