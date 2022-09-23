@@ -12,8 +12,7 @@ namespace App\Utilities;
 #use App\Models\Ledgerindex;
 #use App\Utilities\Mapper;
 #use XRPLWin\XRPL\Client;
-#use Illuminate\Support\Facades\Cache;
-
+use Illuminate\Support\Facades\Cache;
 use App\Models\Ledgerindex;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
@@ -173,16 +172,61 @@ class Search
   }
 
   /**
+   * Will cache result of existance check of a file on S3.
+   * Will cache existance flag only if exist.
+   */
+  private function checkIfCacheFileExists(string $searchIdentifier, string $filepath): bool
+  {
+    $cachekey = 'searchcacheexist:'.$searchIdentifier;
+    if (Cache::has($cachekey)) {
+      return true;
+    }
+    $exists = Storage::disk(config('xwa.searchcachedisk'))->exists($filepath);
+    if($exists) {
+      Cache::put($cachekey, 1, 600); //assuming human paginating over results will be done by now (1 byte)
+    }
+    return $exists;
+  }
+
+  /**
+   * Removes related cache for this search.
+   * @param string $what all|fileexistanceflag|disk
+   */
+  private function flushCache(string $what = 'all')
+  {
+    if($what == 'all' || $what == 'disk') {
+      $searchIdentifier = $this->getSearchIdentifier();
+      // delete file from disk
+      Storage::disk(config('xwa.searchcachedisk'))->delete($this->searchIdentifierToFilepath($searchIdentifier));
+    }
+    if($what == 'all' || $what == 'fileexistanceflag') {
+      // remove file flag from cache
+      Cache::forget('searchcacheexist:'.$searchIdentifier);
+    }
+  }
+
+  /**
+   * Generates filepath from searchIdentifier
+   */
+  private function searchIdentifierToFilepath(string $searchIdentifier)
+  {
+    return config('xwa.searchcachedir').'/'.\strtolower(\substr($searchIdentifier,0,3)).'/'.$searchIdentifier;
+  }
+
+  /**
    * Sample: /v1/account/search/rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4?from=2022-05-01&to=2022-05-28&st=1&cp=r3mmzMZxRQaiuLRsKDATciyegSgZod88uT
    */
   public function execute(): self
   {
+    $this->flushCache();exit;
     ########### DISK CACHE ###########
     # Check if this search indentifier already exists as json dump on Disk.
     $searchIdentifier = $this->getSearchIdentifier();
     //Eg: "searchv1_store/f61/f619f823c40900418b4f808ac32947bde56eba68259616efab26e3ca869e993c"
-    $filepath = config('xwa.searchcachedir').'/'.\strtolower(\substr($searchIdentifier,0,3)).'/'.$searchIdentifier;
-    $exists = Storage::disk(config('xwa.searchcachedisk'))->exists($filepath);
+    $filepath = $this->searchIdentifierToFilepath($searchIdentifier);
+    $exists = $this->checkIfCacheFileExists($searchIdentifier, $filepath);
+    
+    //$exists = true;
     if(!$exists) {
       $data = $this->_execute_real();
       # Save this $data to S3
@@ -191,7 +235,13 @@ class Search
     else {
       # Retrieve from S3
       $data = Storage::disk(config('xwa.searchcachedisk'))->get($filepath);
-      $data = \unserialize($data);
+      if($data === null) {
+        //disk file recently deleted and cache did not picked up yet, or disk unavailable
+        $this->flushCache('fileexistanceflag');
+        $data = $this->_execute_real();
+      }
+      else
+        $data = \unserialize($data);
     }
     #
     ########### DISK CACHE ###########
