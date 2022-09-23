@@ -218,7 +218,7 @@ class Search
    */
   public function execute(): self
   {
-    $this->flushCache();exit;
+    //$this->flushCache();exit;
     ########### DISK CACHE ###########
     # Check if this search indentifier already exists as json dump on Disk.
     $searchIdentifier = $this->getSearchIdentifier();
