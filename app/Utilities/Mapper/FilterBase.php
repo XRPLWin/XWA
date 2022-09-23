@@ -29,4 +29,16 @@ abstract class FilterBase implements FilterInterface {
   {
     return true;
   }
+
+  /**
+   * If not applicable return $param
+   * If applicable eg. counterparty of "rAccount123" returns "Acc"
+   * eg. source and destination tags returns 12345 -> 12, 34567 -> 34 ...
+   * Depends on filter.
+   * @return string
+   */
+  public static function parseToNonDefinitiveParam(string $param): string
+  {
+    return $param;
+  }
 }

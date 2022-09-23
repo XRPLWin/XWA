@@ -25,6 +25,7 @@ class Search
   private readonly Collection $result;
   private readonly array $result_counts;
   private readonly array $params;
+  //private readonly array $definitive_params;
   private bool $isExecuted = false;
   private array $parametersWhitelist = ['from','to','dir','cp','dt','st'];
   private array $txTypes = [
@@ -42,12 +43,6 @@ class Search
 
   public function buildFromArray(array $data): self
   {
-   
-    ///($data);
-    foreach($data as $k => $v)
-    {
-      //
-    }
     $this->params = $data;
     return $this;
   }
@@ -55,6 +50,24 @@ class Search
   public function buildFromRequest(Request $request): self
   {
     return $this->buildFromArray($request->only($this->parametersWhitelist));
+  }
+
+  private function buildNonDefinitiveParams(array $params)
+  {
+    $r = [];
+    foreach($params as $k => $v)
+    {
+      if($k == 'cp') {
+        $r[$k] = \App\Utilities\Mapper\FilterCounterparty::parseToNonDefinitiveParam($v);
+      } elseif($k == 'dt') {
+        $r[$k] = \App\Utilities\Mapper\FilterDestinationtag::parseToNonDefinitiveParam($v);
+      } elseif($k == 'st') {
+        $r[$k] = \App\Utilities\Mapper\FilterSourcetag::parseToNonDefinitiveParam($v);
+      } else {
+        $r[$k] = $v;
+      }
+    }
+    return $r;
   }
 
   /**
@@ -287,12 +300,12 @@ class Search
   }
 
   /**
-   * This search identifier. This string identifies all search parameters for this search.
-   * Used as path for search export.
+   * This search identifier. This string identifies all definitive search parameters for this search.
+   * NOT used as path for search export.
    * 
    * @return string SHA-512Half
    */
-  public function getSearchIdentifier(): string
+  public function getSearchDefinitiveIdentifier(): string
   {
     $indentity = $this->address.':';
     $_params = $this->params;
@@ -310,8 +323,30 @@ class Search
     return \substr($hash,0,64);
   }
 
-  ###
-  
+  /**
+   * This search identifier. This string identifies all non-definitive search parameters for this search.
+   * Used as path for search export.
+   * 
+   * @return string SHA-512Half
+   */
+  public function getSearchIdentifier(): string
+  {
+    //dd($this);
+    $indentity = $this->address.':';
+    $_params = $this->buildNonDefinitiveParams($this->params);
+    \ksort($_params);
+    $_txTypes = $this->txTypes;
+    \ksort($_txTypes);
+
+    foreach($_params as $k => $v) {
+      $indentity .= $k.'='.$v.':';
+    }
+    foreach($_txTypes as $k => $v) {
+      $indentity .= $k.'='.$v.':';
+    }
+    $hash = \hash('sha512', $indentity);
+    return \substr($hash,0,64);
+  }
 
   /**
    * Returns array of count statistics and results by type.
@@ -325,6 +360,7 @@ class Search
 
     $r = $this->result_counts;
     $r['identifier'] = $this->getSearchIdentifier();
+    $r['definitiveidentifier'] = $this->getSearchDefinitiveIdentifier();
     $r['data'] = $this->result;
     return $r;
   }

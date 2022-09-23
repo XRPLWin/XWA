@@ -29,12 +29,21 @@ class FilterSourcetag extends FilterBase {
   }
 
   /**
+   * 123456... = 12
+   * @return string
+   */
+  public static function parseToNonDefinitiveParam(string $param): string
+  {
+    return \substr($param,0,2);
+  }
+
+  /**
    * Returns array with count information for this filter.
    * @return array
    */
   public function reduce(): array
   {
-    $FirstFewLetters = \substr($this->conditions['st'],0,2);
+    $FirstFewLetters = self::parseToNonDefinitiveParam($this->conditions['st']);
     //dd($FirstFewLetters);
     $r = [];
 

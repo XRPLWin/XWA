@@ -29,13 +29,21 @@ class FilterCounterparty extends FilterBase {
   }
 
   /**
+   * rAccount.. = Ac
+   * @return string
+   */
+  public static function parseToNonDefinitiveParam(string $param): string
+  {
+    return \substr($param,1,2); //rAccount.. = Ac
+  }
+
+  /**
    * Returns array with count information for this filter.
    * @return array
    */
   public function reduce(): array
   {
-    $FirstFewLetters = \substr($this->conditions['cp'],1,2); //rAccount.. = Ac
-
+    $FirstFewLetters = self::parseToNonDefinitiveParam($this->conditions['cp']);
     $r = [];
     //dd($this->foundLedgerIndexesIds);
     foreach($this->txTypes as $txTypeNamepart) {
