@@ -46,4 +46,11 @@ class DTransaction extends DynamoDbModel
     return $this->PK;
   }
 
+  public function toArray()
+  {
+    $array = parent::toArray();
+    $array['_type'] = $this::TYPE;
+    return $array;
+  }
+
 }

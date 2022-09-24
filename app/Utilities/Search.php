@@ -17,7 +17,7 @@ use App\Models\Ledgerindex;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-#use Carbon\Carbon;
+use Carbon\Carbon;
 
 class Search
 {
@@ -195,11 +195,12 @@ class Search
   private function flushCache(string $what = 'all')
   {
     if($what == 'all' || $what == 'disk') {
-      $searchIdentifier = $this->getSearchIdentifier();
+      if(!isset($searchIdentifier)) $searchIdentifier = $this->getSearchIdentifier();
       // delete file from disk
       Storage::disk(config('xwa.searchcachedisk'))->delete($this->searchIdentifierToFilepath($searchIdentifier));
     }
     if($what == 'all' || $what == 'fileexistanceflag') {
+      if(!isset($searchIdentifier)) $searchIdentifier = $this->getSearchIdentifier();
       // remove file flag from cache
       Cache::forget('searchcacheexist:'.$searchIdentifier);
     }
@@ -218,33 +219,44 @@ class Search
    */
   public function execute(): self
   {
-    //$this->flushCache();exit;
-    ########### DISK CACHE ###########
-    # Check if this search indentifier already exists as json dump on Disk.
-    $searchIdentifier = $this->getSearchIdentifier();
-    //Eg: "searchv1_store/f61/f619f823c40900418b4f808ac32947bde56eba68259616efab26e3ca869e993c"
-    $filepath = $this->searchIdentifierToFilepath($searchIdentifier);
-    $exists = $this->checkIfCacheFileExists($searchIdentifier, $filepath);
-    
-    //$exists = true;
-    if(!$exists) {
+    $to = Carbon::createFromFormat('Y-m-d', $this->param('to'));
+    $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to);
+    if($LedgerIndexLastForDay == -1) {
+      // this search is incomplete and should not be cached to disk
       $data = $this->_execute_real();
-      # Save this $data to S3
-      Storage::disk(config('xwa.searchcachedisk'))->put($filepath,\serialize($data));
-    }
-    else {
-      # Retrieve from S3
-      $data = Storage::disk(config('xwa.searchcachedisk'))->get($filepath);
-      if($data === null) {
-        //disk file recently deleted and cache did not picked up yet, or disk unavailable
-        $this->flushCache('fileexistanceflag');
+    } else {
+      // this search is complete and wont change
+    
+      ########### DISK CACHE ###########
+      # Check if this search indentifier already exists as json dump on Disk.
+      $searchIdentifier = $this->getSearchIdentifier();
+      //Eg: "searchv1_store/f61/f619f823c40900418b4f808ac32947bde56eba68259616efab26e3ca869e993c"
+      $filepath = $this->searchIdentifierToFilepath($searchIdentifier);
+      $exists = $this->checkIfCacheFileExists($searchIdentifier, $filepath);
+      
+      //$exists = true;
+      if(!$exists) {
         $data = $this->_execute_real();
+        # Save this $data to S3
+        Storage::disk(config('xwa.searchcachedisk'))->put($filepath,\serialize($data));
       }
-      else
-        $data = \unserialize($data);
+      else {
+        # Retrieve from S3
+        $data = Storage::disk(config('xwa.searchcachedisk'))->get($filepath);
+        if($data === null) {
+          //disk file recently deleted and cache did not picked up yet, or disk unavailable
+          $this->flushCache('fileexistanceflag');
+          $data = $this->_execute_real();
+        }
+        else
+          $data = \unserialize($data);
+      }
+      #
+      ########### DISK CACHE ###########
     }
-    #
-    ########### DISK CACHE ###########
+
+    //$this->flushCache();exit;
+   
       
 
     $definitiveResults = collect([]);
