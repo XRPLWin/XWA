@@ -49,6 +49,7 @@ final class Payment extends XRPLParserBase
       //'in' => $this->data['In'],
       'r' => $this->data['Counterparty'],
       'h' => $this->data['hash'],
+      'a' => $this->data['Amount'],
     ];
 
     if($this->data['In']) //to save space we only store true value
@@ -65,8 +66,6 @@ final class Payment extends XRPLParserBase
      */
     if($this->data['SourceTag'] !== null)
       $r['st'] = (string)$this->data['SourceTag'];
-
-    $r['a'] = $this->data['Amount'];
 
     if($this->data['Issuer'] !== null) { //it is payment specific currency (token)
       $r['i'] = $this->data['Issuer'];
