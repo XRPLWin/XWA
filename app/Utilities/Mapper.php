@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Cache;
  */
 class Mapper
 {
+  /**
+   * Flag that indicates this search can be cached.
+   * If false that means time range is out of scope or ledger index data is behind on sync.
+   */
+  //public $cacheable = true;
+
   private array $conditions = [
     //from
     //to
@@ -80,21 +86,30 @@ class Mapper
     $from = Carbon::createFromFormat('Y-m-d', $this->conditions['from']);
     $to = Carbon::createFromFormat('Y-m-d', $this->conditions['to']);
     
-    //Check if $this->address is synced within time ranges, if not then disallow search.
-    $account = AccountLoader::get($this->address);
+    
+    try{
+      $account = AccountLoader::get($this->address);
+    } catch (\Throwable $e) {
+      $account = null;
+    }
     if(!$account)
-      return [];
-
-   
+      throw new \Exception('Invalid account or account address format');
+      
     $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to);
-    if(!$LedgerIndexLastForDay)
-      return [];
+    
+    if($LedgerIndexLastForDay === null)
+      throw new \Exception('Ledger index for end day is not yet synced');
     
     if($LedgerIndexLastForDay == -1) {
       //Viewing current day, account should be synced to today atleast
       $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexFirstForDay($to)-1;
     }
-    
+
+    if($account->l < $LedgerIndexLastForDay) {
+      throw new \Exception('Account not synced to this ledger index yet ('.$account->l.' < '.$LedgerIndexLastForDay.')');
+    }
+
+    //Check if $this->address is synced within time ranges, if not then disallow search
     if($account->l < $LedgerIndexLastForDay)
       return []; //not synced yet to this ledger index
   

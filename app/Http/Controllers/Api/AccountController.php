@@ -44,8 +44,14 @@ class AccountController extends Controller
     $search = new Search($address);
     $search->buildFromRequest($request);
     $search->execute();
+    if($search->hasErrors())
+      return response()->json(['success' => false, 'errors' => $search->getErrors()],422);
+
     //dd($search->result());
-    return response()->json($search->result());
+    $result =  ['success' => true];
+    $result = array_merge($result, $search->result());
+
+    return response()->json($result);
   }
 
 

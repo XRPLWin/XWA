@@ -25,12 +25,12 @@ return [
   |--------------------------------------------------------------------------
   |
   | Where to store serialized search cache dumps.
-  | One of: s3, local, public
+  | One of: s3, private, public
   | @see config/filesystems.php
   | Diectory path on disk sample: /searchcachedir/ful/Fullfilename
   | Second part is sub-dir first 3 letters of filename lowercased.
   */
-  'searchcachedisk' => env('XWA_SEARCHCACHEDISK', 's3'),
+  'searchcachedisk' => env('XWA_SEARCHCACHEDISK', 'private'),
   'searchcachedir' => env('XWA_SEARCHCACHEDIR','searchcachedir'),
   
 

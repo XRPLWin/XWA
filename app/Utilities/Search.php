@@ -27,6 +27,7 @@ class Search
   private readonly array $params;
   //private readonly array $definitive_params;
   private bool $isExecuted = false;
+  private array $errors = [];
   private array $parametersWhitelist = ['from','to','dir','cp','dt','st'];
   private array $txTypes = [
     // App\Models\DTransaction<VALUE_BELOW>::TYPE => App\Models\DTransaction<VALUE_BELOW>
@@ -70,19 +71,33 @@ class Search
     return $r;
   }
 
+  public function hasErrors(): bool
+  {
+    if(count($this->errors))
+      return true;
+    return false;
+  }
+
+  public function getErrors(): array
+  {
+    return $this->errors;
+  }
+
+  /**
+   * @throws \Exception
+   * @return array ['counts' => $resultCounts, 'data' => $nonDefinitiveResults]
+   */
   private function _execute_real()
   {
     $mapper = new Mapper();
     $mapper->setAddress($this->address);
-
 
     $mapper
     ->addCondition('from',$this->param('from'))
     ->addCondition('to',$this->param('to'));
 
     if(!$mapper->dateRangeIsValid())
-      abort(422, 'From and to params spans more than allowed 31 days and "from" has to be before "to". Dates must not be in future.');
-
+      throw new \Exception('From and to params spans more than allowed 31 days and *from* has to be before *to*. Dates must not be in future');
 
     $txTypes = $this->txTypes; //thiese are all types
     //Todo get types from param
@@ -223,7 +238,13 @@ class Search
     $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to);
     if($LedgerIndexLastForDay == -1) {
       // this search is incomplete and should not be cached to disk
-      $data = $this->_execute_real();
+      try{
+        $data = $this->_execute_real();
+      } catch (\Throwable $e) {
+        $this->errors[] = $e->getMessage();
+        return $this;
+      }
+      
     } else {
       // this search is complete and wont change
     
@@ -236,7 +257,12 @@ class Search
       
       //$exists = true;
       if(!$exists) {
-        $data = $this->_execute_real();
+        try{
+          $data = $this->_execute_real();
+        } catch (\Throwable $e) {
+          $this->errors[] = $e->getMessage();
+          return $this;
+        }
         # Save this $data to S3
         Storage::disk(config('xwa.searchcachedisk'))->put($filepath,\serialize($data));
       }

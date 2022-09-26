@@ -48,8 +48,8 @@ class DTransaction extends DynamoDbModel
 
   public function toArray()
   {
-    $array = parent::toArray();
-    $array['_type'] = $this::TYPE;
+    $array = ['type' => $this::TYPE];
+    $array = \array_merge($array,parent::toArray());
     return $array;
   }
 
