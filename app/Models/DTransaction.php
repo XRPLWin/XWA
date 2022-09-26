@@ -17,6 +17,8 @@ use BaoPham\DynamoDb\DynamoDbModel;
 class DTransaction extends DynamoDbModel
 {
   const TYPE = 0;
+  const CONTEXT_DEFAULT = false;
+
   protected $primaryKey = 'PK';
   protected $compositeKey = ['PK', 'SK'];
   //protected $hidden = ['PK', 'SK'];
@@ -48,8 +50,11 @@ class DTransaction extends DynamoDbModel
 
   public function toArray()
   {
-    $array = ['type' => $this::TYPE];
-    $array = \array_merge($array,parent::toArray());
+    $array = [
+      'type' => $this::TYPE,
+      'context' => $this::CONTEXT_DEFAULT
+    ];
+    $array = \array_merge(parent::toArray(),$array);
     return $array;
   }
 

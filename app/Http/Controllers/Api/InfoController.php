@@ -38,7 +38,7 @@ class InfoController extends Controller
           'method' => 'GET'
         ],
         [
-          'action' => 'Search and filter account transactions',
+          'action' => 'Search and filter account transactions and events (todo add missing type to pattern below)',
           'route' => '/v1/account/search/{address}?from=DD-MM-YYYY&to=DD-MM-YYYY[&dir=in|out][&st=Int32][&dt=Int32][&cp=rCounterpartyAccount]',
           'method' => 'GET'
         ],

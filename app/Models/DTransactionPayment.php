@@ -13,7 +13,7 @@ final class DTransactionPayment extends DTransaction
   public function toArray()
   {
     $array = ['type' => $this::TYPE];
-    $array = \array_merge($array,parent::toArray());
+    $array = \array_merge(parent::toArray(),$array);
     if(isset($array['i'])){
       //it is issued currency
       $array['c_formatted'] = xrp_currency_to_symbol($array['c']);
