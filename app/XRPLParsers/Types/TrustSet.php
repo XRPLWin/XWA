@@ -30,11 +30,13 @@ final class TrustSet extends XRPLParserBase
   public function toDArray(): array
   {
     $r = [
+      't' => $this->data['Date'],
       'fe' => $this->data['Fee'],
       //'in' => $this->data['In'],
       's' => $this->data['StateCreated'],
       'a' => $this->data['Amount'],
       'c' => $this->data['Currency'],
+      'r' => $this->data['Issuer'],
       'i' => $this->data['Issuer'],
       'h' => $this->data['hash'],
     ];

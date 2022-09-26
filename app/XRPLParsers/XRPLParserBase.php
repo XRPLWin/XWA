@@ -71,8 +71,13 @@ abstract class XRPLParserBase implements XRPLParserInterface
 
     # TransactionIndex (int)
     if(!is_int($this->meta->TransactionIndex))
-    throw new \Exception('TransactionIndex not integer for transaction hash: '.$this->tx->hash);
+      throw new \Exception('TransactionIndex not integer for transaction hash: '.$this->tx->hash);
     $this->data['TransactionIndex'] = $this->meta->TransactionIndex;
+
+    # XRPL Epoch time
+    $this->data['Date'] = $this->tx->date;
+    if(!isset($this->tx->date))
+      throw new \Exception('date not found for transaction hash: '.$this->tx->hash);
 
   }
 
@@ -178,5 +183,10 @@ abstract class XRPLParserBase implements XRPLParserInterface
   public function getData()
   {
     return $this->data;
+  }
+
+  public function getDataField($key)
+  {
+    return $this->data[$key];
   }
 }

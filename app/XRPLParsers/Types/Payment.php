@@ -45,6 +45,7 @@ final class Payment extends XRPLParserBase
   public function toDArray(): array
   {
     $r = [
+      't' => $this->data['Date'],
       'fe' => $this->data['Fee'],
       //'in' => $this->data['In'],
       'r' => $this->data['Counterparty'],

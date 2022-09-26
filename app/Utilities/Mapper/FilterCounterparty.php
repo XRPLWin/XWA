@@ -11,7 +11,7 @@ class FilterCounterparty extends FilterBase {
   private readonly string $address;
   private readonly array $foundLedgerIndexesIds;
   private readonly array $conditions;
-  private array $allowedTxTypes = ['Payment'];
+  private array $allowedTxTypes = ['Payment','Activation'];
   private readonly array $txTypes;
 
   public function __construct(string $address, array $conditions, array $foundLedgerIndexesIds)

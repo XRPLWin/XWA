@@ -268,6 +268,7 @@ class XwaAccountSync extends Command
         $Activation = new DTransactionActivation;
         $Activation->PK = $account->address.'-'.DTransactionActivation::TYPE;
         $Activation->SK = $parser->SK();
+        $Activation->t = $parser->getDataField('Date');
         $Activation->r = $activatedAddress;
         $Activation->save();
       }
