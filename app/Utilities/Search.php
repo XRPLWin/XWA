@@ -28,7 +28,7 @@ class Search
   //private readonly array $definitive_params;
   private bool $isExecuted = false;
   private array $errors = [];
-  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token'];
+  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','types'];
   private array $txTypes = [
     // App\Models\DTransaction<VALUE_BELOW>::TYPE => App\Models\DTransaction<VALUE_BELOW>
     1 => 'Payment',
@@ -99,7 +99,25 @@ class Search
     if(!$mapper->dateRangeIsValid())
       throw new \Exception('From and to params spans more than allowed 31 days and *from* has to be before *to*. Dates must not be in future');
 
-    $txTypes = $this->txTypes; //thiese are all types
+    //$txTypes = $this->txTypes; //thiese are all types
+    $types = $this->param('types');
+    $txTypes = [];
+    if($types) {
+      $txTypesFlipped = \array_flip($this->txTypes);
+      //dd($txTypesFlipped);
+      foreach($types as $type) {
+        if(isset($txTypesFlipped[$type])) {
+          $txTypes[$txTypesFlipped[$type]] = $type;
+        }
+      }
+      unset($txTypesFlipped);
+      //dd($txTypes);
+    } else {
+      //use all types
+      $txTypes = $this->txTypes;
+    }
+    unset($types);
+    
     //Todo get types from param
 
     $mapper->addCondition('txTypes',$txTypes);
@@ -449,14 +467,19 @@ class Search
     $indentity = $this->address.':';
     $_params = $this->params;
     \ksort($_params);
-    $_txTypes = $this->txTypes;
-    \ksort($_txTypes);
+    if(isset($_params['types'])) {
+      $_txTypes = $_params['types'];
+      unset($_params['types']);
+      \ksort($_txTypes);
+    }
 
     foreach($_params as $k => $v) {
       $indentity .= $k.'='.$v.':';
     }
-    foreach($_txTypes as $k => $v) {
-      $indentity .= $k.'='.$v.':';
+    if(isset($_txTypes)) {
+      foreach($_txTypes as $k => $v) {
+        $indentity .= $k.'='.$v.':';
+      }
     }
     $hash = \hash('sha512', $indentity);
     return \substr($hash,0,64);
@@ -474,15 +497,22 @@ class Search
     $indentity = $this->address.':';
     $_params = $this->buildNonDefinitiveParams($this->params);
     \ksort($_params);
-    $_txTypes = $this->txTypes;
-    \ksort($_txTypes);
 
+    if(isset($_params['types'])) {
+      $_txTypes = $_params['types'];
+      unset($_params['types']);
+      \ksort($_txTypes);
+    }
+    
     foreach($_params as $k => $v) {
       $indentity .= $k.'='.$v.':';
     }
-    foreach($_txTypes as $k => $v) {
-      $indentity .= $k.'='.$v.':';
+    if(isset($_txTypes)) {
+      foreach($_txTypes as $k => $v) {
+        $indentity .= $k.'='.$v.':';
+      }
     }
+    
     $hash = \hash('sha512', $indentity);
     return \substr($hash,0,64);
   }

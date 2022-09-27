@@ -42,6 +42,7 @@ class AccountController extends Controller
   {
     validateXRPAddressOrFail($address);
     $search = new Search($address);
+    //dd($request->input());
     $search->buildFromRequest($request);
     $search->execute();
     if($search->hasErrors()) {
