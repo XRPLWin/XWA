@@ -53,7 +53,9 @@ class AccountController extends Controller
     //dd($search->result());
     $result =  ['success' => true];
     $result = array_merge($result, $search->result());
-
+    //$test = $result['data']->skip(35)->take(1);
+    //dd($test->first()->toArray());
+    //return response()->json($test);
     return response()->json($result);
   }
 
