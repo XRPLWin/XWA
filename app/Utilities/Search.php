@@ -110,13 +110,6 @@ class Search
       $mapper->addCondition('dir',$param_dir);
     unset($param_dir);
 
-    //Counterparty
-    $param_cp = $this->param('cp');
-    if($param_cp && isValidXRPAddressFormat($param_cp)) {
-      $mapper->addCondition('cp',$param_cp);
-    }
-    unset($param_cp);
-
     //Token (ISSUER+CURRENCY)
     $param_token = $this->param('token');
     if($param_token) {
@@ -129,6 +122,15 @@ class Search
       unset($param_token_ex);
     }
     unset($param_token);
+
+    //Counterparty
+    $param_cp = $this->param('cp');
+    if($param_cp && isValidXRPAddressFormat($param_cp)) {
+      $mapper->addCondition('cp',$param_cp);
+    }
+    unset($param_cp);
+
+    
     
     //Destination Tag (int)
     $param_dt = $this->param('dt');
@@ -322,8 +324,8 @@ class Search
   {
     $filter_st = $this->param('st');
     $filter_dt = $this->param('dt');
-    $filter_cp = $this->param('cp');
     $filter_token = $this->param('token');
+    $filter_cp = $this->param('cp');
 
     //todo all filters via Class objects!
 
@@ -338,11 +340,11 @@ class Search
       if($filter_dt !== null) {
         if(!Mapper\FilterDestinationtag::itemHasFilter($v, $filter_dt)) continue;
       }
-      if($filter_cp !== null) {
-        if(!Mapper\FilterCounterparty::itemHasFilter($v, $filter_cp)) continue;
-      }
       if($filter_token !== null) {
         if(!Mapper\FilterToken::itemHasFilter($v, $filter_token)) continue;
+      }
+      if($filter_cp !== null) {
+        if(!Mapper\FilterCounterparty::itemHasFilter($v, $filter_cp)) continue;
       }
       $r[] = $v;
     }

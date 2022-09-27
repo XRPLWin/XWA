@@ -156,17 +156,17 @@ class Mapper
       unset($Filter);
       //echo 'DIROUT: ';dump($foundLedgerIndexesIds);
     }
+
+    if(isset($this->conditions['token'])) {
+      $Filter = new Mapper\FilterToken($this->address,$this->conditions,$foundLedgerIndexesIds);
+      $foundLedgerIndexesIds = $Filter->reduce();
+      unset($Filter);
+      //echo 'TOKEN: ';dump($foundLedgerIndexesIds);
+    }
     
     if(isset($this->conditions['cp'])) {
     
       $Filter = new Mapper\FilterCounterparty($this->address,$this->conditions,$foundLedgerIndexesIds);
-      $foundLedgerIndexesIds = $Filter->reduce();
-      unset($Filter);
-      //echo 'CP: ';dump($foundLedgerIndexesIds);
-    }
-
-    if(isset($this->conditions['token'])) {
-      $Filter = new Mapper\FilterToken($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
       //echo 'CP: ';dump($foundLedgerIndexesIds);
