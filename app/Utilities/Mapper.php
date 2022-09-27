@@ -165,6 +165,13 @@ class Mapper
       //echo 'CP: ';dump($foundLedgerIndexesIds);
     }
 
+    if(isset($this->conditions['token'])) {
+      $Filter = new Mapper\FilterToken($this->address,$this->conditions,$foundLedgerIndexesIds);
+      $foundLedgerIndexesIds = $Filter->reduce();
+      unset($Filter);
+      //echo 'CP: ';dump($foundLedgerIndexesIds);
+    }
+
     if(isset($this->conditions['dt'])) {
       
       $Filter = new Mapper\FilterDestinationtag($this->address,$this->conditions,$foundLedgerIndexesIds);

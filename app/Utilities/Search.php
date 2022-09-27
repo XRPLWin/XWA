@@ -28,7 +28,7 @@ class Search
   //private readonly array $definitive_params;
   private bool $isExecuted = false;
   private array $errors = [];
-  private array $parametersWhitelist = ['from','to','dir','cp','dt','st'];
+  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token'];
   private array $txTypes = [
     // App\Models\DTransaction<VALUE_BELOW>::TYPE => App\Models\DTransaction<VALUE_BELOW>
     1 => 'Payment',
@@ -116,6 +116,19 @@ class Search
       $mapper->addCondition('cp',$param_cp);
     }
     unset($param_cp);
+
+    //Token (ISSUER+CURRENCY)
+    $param_token = $this->param('token');
+    if($param_token) {
+      $param_token_ex = \explode('+',$param_token);
+      if(count($param_token_ex) == 2) {
+        if(isValidXRPAddressFormat($param_token_ex[0])) {
+          $mapper->addCondition('token',$param_token);
+        }
+      }
+      unset($param_token_ex);
+    }
+    unset($param_token);
     
     //Destination Tag (int)
     $param_dt = $this->param('dt');
@@ -310,6 +323,7 @@ class Search
     $filter_st = $this->param('st');
     $filter_dt = $this->param('dt');
     $filter_cp = $this->param('cp');
+    $filter_token = $this->param('token');
 
     //todo all filters via Class objects!
 
@@ -326,6 +340,9 @@ class Search
       }
       if($filter_cp !== null) {
         if(!Mapper\FilterCounterparty::itemHasFilter($v, $filter_cp)) continue;
+      }
+      if($filter_token !== null) {
+        if(!Mapper\FilterToken::itemHasFilter($v, $filter_token)) continue;
       }
       $r[] = $v;
     }
