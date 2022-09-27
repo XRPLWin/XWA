@@ -124,39 +124,66 @@ class XwaAccountSync extends Command
             'forward' => true,
             'limit' => 400, //400
           ]);
-          
+
+      $account_tx->setCooldownHandler(
+        /**
+         * @param int $current_try Current try 1 to max
+         * @param int $default_cooldown_seconds Predefined cooldown seconds
+         * @see https://github.com/XRPLWin/XRPL#custom-rate-limit-handling
+         * @return void|boolean return false to stop process
+         */
+        function(int $current_try, int $default_cooldown_seconds) {
+            $sec = $default_cooldown_seconds * $current_try;
+            if($sec > 300) {
+              echo 'Cooldown threshold of '.$current_try.' tries reached exiting'.PHP_EOL;
+              return false; //force stop
+            }
+            echo 'Cooling down for '.$sec.' seconds'.PHP_EOL;
+            sleep($sec);
+        }
+      );
           
       $do = true;
       while($do) {
         try {
-            $account_tx->send();
+          $account_tx->send();
         } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
           $do = false;
           // Handle errors
+          $this->info('Error occured');
           throw $e;
         }
-        //dd($account_tx);
-        $txs = $account_tx->finalResult();
-        $this->info('');
-        $this->info('Starting batch of '.count($txs).' transactions: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
-        $bar = $this->output->createProgressBar(count($txs));
-        $bar->start();
-
-        //Do the logic here
-        foreach($txs as $tx) {
-          $this->processTransaction($account,$tx);
-          $bar->advance();
-        }
-        $bar->finish();
-
-        if($account_tx = $account_tx->next()) {
-          //update last synced ledger index to account metadata
-          $account->l = $tx->tx->ledger_index;
-          $account->save();
-          //continuing to next page
+        if(!$account_tx->isSuccess()) {
+          $this->info('');
+          $this->info('Unsuccessful response, trying again: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
+          sleep(3);
         }
         else
-          $do = false;
+        {
+          //dd($account_tx);
+          $txs = $account_tx->finalResult();
+          $this->info('');
+          $this->info('Starting batch of '.count($txs).' transactions: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
+          $bar = $this->output->createProgressBar(count($txs));
+          $bar->start();
+
+          //Do the logic here
+          foreach($txs as $tx) {
+            $this->processTransaction($account,$tx);
+            $bar->advance();
+          }
+          $bar->finish();
+
+          if($account_tx = $account_tx->next()) {
+            //update last synced ledger index to account metadata
+            $account->l = $tx->tx->ledger_index;
+            $account->save();
+            //continuing to next page
+          }
+          else
+            $do = false;
+        }
+        
       }
 
       # Save last scanned ledger index
