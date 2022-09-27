@@ -49,16 +49,18 @@ class FilterDestinationtag extends FilterBase {
 
     foreach($this->txTypes as $txTypeNamepart) {
       $r[$txTypeNamepart] = [];
-      foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-        $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
-        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
-        
+      if(isset($this->foundLedgerIndexesIds[$txTypeNamepart])) {
+        foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
+          if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
+          
 
-        $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $FirstFewLetters);
-        if($count > 0) { //has transactions
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'lte')];
+          $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $FirstFewLetters);
+          if($count > 0) { //has transactions
+            $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'lte')];
+          }
+          unset($count);
         }
-        unset($count);
       }
     }
     return $r;

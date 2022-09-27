@@ -38,15 +38,17 @@ class FilterOut extends FilterBase {
 
     foreach($this->txTypes as $txTypeNamepart) {
       $r[$txTypeNamepart] = [];
-      foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-        $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
-        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
+      if(isset($this->foundLedgerIndexesIds[$txTypeNamepart])) {
+        foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
+          if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
 
-        $count = $this->fetchCount($ledgerindex, $txTypeNamepart);
-        if($count > 0) { //has transactions
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'eq')];
+          $count = $this->fetchCount($ledgerindex, $txTypeNamepart);
+          if($count > 0) { //has transactions
+            $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'eq')];
+          }
+          unset($count);
         }
-        unset($count);
       }
     }
     return $r;
@@ -107,6 +109,17 @@ class FilterOut extends FilterBase {
     }
     
     return $r;
+  }
+
+  /**
+   * Check if DyDB item has $value in its data.
+   * Checked field depends on filter.
+   * @return bool
+   */
+  public static function itemHasFilter(\App\Models\DTransaction $item, string|int|float|bool $value): bool
+  {
+    if(!isset($item->in)) return true;
+    return (isset($item->in) && !$item->in);
   }
 
 }

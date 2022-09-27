@@ -106,8 +106,10 @@ class Search
 
     //Direction (in|out)
     $param_dir = $this->param('dir');
+    
     if($param_dir && ($param_dir == 'in' || $param_dir == 'out'))
       $mapper->addCondition('dir',$param_dir);
+
     unset($param_dir);
 
     //Token (ISSUER+CURRENCY)
@@ -256,7 +258,7 @@ class Search
       try{
         $data = $this->_execute_real();
       } catch (\Throwable $e) {
-        $this->errors[] = $e->getMessage();
+        $this->errors[] = $e->getMessage().' on line '.$e->getLine().' on line '.$e->getLine(). ' in file '.$e->getFile();
         return $this;
       }
       
@@ -275,7 +277,7 @@ class Search
         try{
           $data = $this->_execute_real();
         } catch (\Throwable $e) {
-          $this->errors[] = $e->getMessage();
+          $this->errors[] = $e->getMessage().' on line '.$e->getLine(). ' in file '.$e->getFile();
           return $this;
         }
         # Save this $data to S3
@@ -303,7 +305,7 @@ class Search
     $definitiveResults = collect([]);
     foreach($data['data'] as $txTypeNamepart => $collection)
     {
-      $definitiveResults = $definitiveResults->merge($this->applyDefinitiveFilters($collection,$txTypeNamepart));
+      $definitiveResults = $definitiveResults->merge($this->applyDefinitiveFilters($collection));
     }
     $data['counts']['total_filtered'] = $definitiveResults->count();
     //sort by SK
@@ -320,8 +322,9 @@ class Search
    * Filters items via $this->params (precise)
    * @return Collection - filtered collection
    */
-  private function applyDefinitiveFilters(Collection $results, string $txTypeNamepart): Collection
+  private function applyDefinitiveFilters(Collection $results): Collection
   {
+    $filter_dir = $this->param('dir');
     $filter_st = $this->param('st');
     $filter_dt = $this->param('dt');
     $filter_token = $this->param('token');
@@ -334,6 +337,14 @@ class Search
     foreach($results as $v) {
 
       //On each item apply non eq filter:
+      if($filter_dir) {
+        if($filter_dir == 'in') {
+          if(!Mapper\FilterIn::itemHasFilter($v, true)) continue;
+        } elseif($filter_dir == 'out') {
+          if(!Mapper\FilterOut::itemHasFilter($v, true)) continue;
+        }
+      }
+
       if($filter_st !== null) {
         if(!Mapper\FilterSourcetag::itemHasFilter($v, $filter_st)) continue;
       }

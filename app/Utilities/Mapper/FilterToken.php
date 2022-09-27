@@ -39,6 +39,9 @@ class FilterToken extends FilterBase {
 
   public static function extractIssuerAndToken(string $param): array
   {
+    if($param == 'XRP')
+      return ['issuer' => 'XRP', 'currency' => 'XRP']; 
+
     $param = explode('+', $param);
     if(count($param) != 2 )
       throw new \Exception('Invalid token parameter');
@@ -56,15 +59,17 @@ class FilterToken extends FilterBase {
     //dd($this->foundLedgerIndexesIds);
     foreach($this->txTypes as $txTypeNamepart) {
       $r[$txTypeNamepart] = [];
-      foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-        $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
-        if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
-        
-        $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $FirstFewLetters);
-        if($count > 0) { //has transactions
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'lte')];
+      if(isset($this->foundLedgerIndexesIds[$txTypeNamepart])) {
+        foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
+          if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
+          
+          $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $FirstFewLetters);
+          if($count > 0) { //has transactions
+            $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'lte')];
+          }
+          unset($count);
         }
-        unset($count);
       }
     }
     return $r;
@@ -109,10 +114,16 @@ class FilterToken extends FilterBase {
         else
           $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
         $issuerAndToken = self::extractIssuerAndToken($FirstFewLetters);
-        
-        $DModelTxCount = $DModelTxCount->where('i', '=',$issuerAndToken['issuer'])->where('c', '=', $issuerAndToken['currency'])
-          //->toDynamoDbQuery()
-          ->count();
+        if($issuerAndToken['issuer'] == 'XRP' && $issuerAndToken['currency'] == 'XRP') {
+          //i and c must not exist
+          $DModelTxCount = $DModelTxCount->whereNull('i')->whereNull('c'); //check value presence (in attribute always does not exists if out)
+        } else {
+          $DModelTxCount = $DModelTxCount->where('i', '=',$issuerAndToken['issuer'])->where('c', '=', $issuerAndToken['currency']);
+        }
+          
+          $DModelTxCount = $DModelTxCount
+            //->toDynamoDbQuery()
+            ->count();
         
         $map = new Map;
         $map->address = $this->address;
@@ -138,6 +149,12 @@ class FilterToken extends FilterBase {
    */
   public static function itemHasFilter(\App\Models\DTransaction $item, string|int|float|bool $value): bool
   {
+    if($value == 'XRP') {
+      if(!isset($item->i) && !isset($item->c))
+        return true;
+      return false;
+    }
+
     if(isset($item->i) && isset($item->c)) {
       $issuerAndToken = self::extractIssuerAndToken($value);
       if((string)$item->i == (string)$issuerAndToken['issuer'] && (string)$item->c == (string)$issuerAndToken['currency'])
