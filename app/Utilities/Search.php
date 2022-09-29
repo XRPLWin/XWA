@@ -231,7 +231,7 @@ class Search
     
     $resultCounts['page'] = $page;
     $resultCounts['total_pages'] = (int)\ceil($resultCounts['total_scanned']/$limit);
-
+    if($resultCounts['total_pages'] < 1) $resultCounts['total_pages'] = 1;
     if($page > $resultCounts['total_pages'])
       throw new \Exception('Page out of range');
    
@@ -532,7 +532,7 @@ class Search
    */
   public function getSearchDefinitiveIdentifier(): string
   {
-    return $this->_generateSearchIndentifier($this->params);
+    return $this->_generateSearchIndentifier($this->params).'_'.$this->param('page');
   }
 
   /**

@@ -41,7 +41,7 @@ class AccountController extends Controller
   public function search(string $address, Request $request): JsonResponse
   {
     ini_set('memory_limit', '1024M');
-    
+
     //sleep(rand(1,3));
     //if(rand(1,99) > 80)
     //  return abort(422);
