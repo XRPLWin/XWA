@@ -1,8 +1,14 @@
 # XRPLWinAnalyzer
 
-XRP Ledger Analyzer
+XRP Ledger Analyzer (WORK IN PROGRESS)
 
+# Installation
 
+Set permissions:
+```
+find storage/ -type d -exec chmod 770 {} \;
+find storage/ -type f -exec chmod 760 {} \;
+```
 
 ## Tests
 To execute all tests run:
