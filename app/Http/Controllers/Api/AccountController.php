@@ -40,15 +40,21 @@ class AccountController extends Controller
   // http://xlanalyzer.test/v1/account/search/test?from=2021-09-01&to=2021-09-05
   public function search(string $address, Request $request): JsonResponse
   {
+    ini_set('memory_limit', '1024M');
+    
+    //sleep(rand(1,3));
+    //if(rand(1,99) > 80)
+    //  return abort(422);
     validateXRPAddressOrFail($address);
     $search = new Search($address);
     //dd($request->input());
     $search->buildFromRequest($request);
     $search->execute();
     if($search->hasErrors()) {
+     
       return response()->json(['success' => false, 'errors' => $search->getErrors()],422);
     }
-      
+
 
     //dd($search->result());
     $result =  ['success' => true];

@@ -28,7 +28,7 @@ class Search
   //private readonly array $definitive_params;
   private bool $isExecuted = false;
   private array $errors = [];
-  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','types'];
+  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','types','page'];
   private array $txTypes = [
     // App\Models\DTransaction<VALUE_BELOW>::TYPE => App\Models\DTransaction<VALUE_BELOW>
     1 => 'Payment',
@@ -44,6 +44,11 @@ class Search
 
   public function buildFromArray(array $data): self
   {
+    //ensure page existance
+    $data['page'] = (!isset($data['page'])) ? 1 : (int)$data['page'];
+    if(!$data['page']) $data['page'] = 1;
+    $data['page'] = \abs($data['page']);
+
     $this->params = $data;
     return $this;
   }
@@ -87,7 +92,7 @@ class Search
    * @throws \Exception
    * @return array ['counts' => $resultCounts, 'data' => $nonDefinitiveResults]
    */
-  private function _execute_real()
+  private function _execute_real(int $page = 1)
   {
     $mapper = new Mapper();
     $mapper->setAddress($this->address);
@@ -150,8 +155,6 @@ class Search
     }
     unset($param_cp);
 
-    
-    
     //Destination Tag (int)
     $param_dt = $this->param('dt');
     if($param_dt && is_numeric($param_dt))
@@ -177,7 +180,8 @@ class Search
     /**
      * Query the DyDB using $scanplan
      */
-    $nonDefinitiveResults = [];
+    //$nonDefinitiveResults = [];
+    $nonDefinitiveResults = collect([]);
 
     //Count full array template with default zero values
     $resultCounts = [
@@ -187,7 +191,7 @@ class Search
     ];
     //dd($scanplan);
     foreach($scanplan as $txTypeNamepart => $scanplanTypeData) {
-      $nonDefinitiveResults[$txTypeNamepart] = collect([]);
+      //$nonDefinitiveResults[$txTypeNamepart] = collect([]);
       $resultCounts['total_scanned'] += $scanplanTypeData['stats']['total_rows'];
       //$resultCounts['total_e'] = self::calcSearchEqualizer($resultCounts['total_e'],$scanplanTypeData['stats']['e']);
       foreach($scanplanTypeData['data'] as $ledgerindexID => $resultStats) {
@@ -206,10 +210,10 @@ class Search
           $query = $query->where('SK','between',[$ledgerindex_first_range[0],$ledgerindex_last_range[1] + 0.9999]);
 
         $results = $query->get();
+       
         //dd($results,$results->lastKey(),$query->afterKey($results->lastKey())->limit(2)->all());
-        $nonDefinitiveResults[$txTypeNamepart] =  $nonDefinitiveResults[$txTypeNamepart]->merge($results);
-        //exit;
-        //$definitiveResults = $definitiveResults->merge($this->applyDefinitiveFilters($results,$txTypeNamepart));
+        //$nonDefinitiveResults[$txTypeNamepart] =  $nonDefinitiveResults[$txTypeNamepart]->merge($results);
+        $nonDefinitiveResults = $nonDefinitiveResults->merge($results);
 
       }
       //Add total counts
@@ -217,23 +221,36 @@ class Search
       //  $resultCounts['total'] += $v->count();
       //}
     }
-    //dd(['counts' => $resultCounts, 'data' => $nonDefinitiveResults]);
-    return ['counts' => $resultCounts, 'data' => $nonDefinitiveResults];
+    //sort by SK
+    $nonDefinitiveResults = $nonDefinitiveResults->sortByDesc('SK');
+    
+    //apply paginator
+    $limit = config('xwa.max_search_results_per_page');
+    $skip = ($page * $limit) - $limit;
+    $nonDefinitiveResultsPart = $nonDefinitiveResults->skip($skip)->take($limit)->values();
+    
+    $resultCounts['page'] = $page;
+    $resultCounts['total_pages'] = (int)\ceil($resultCounts['total_scanned']/$limit);
+
+    if($page > $resultCounts['total_pages'])
+      throw new \Exception('Page out of range');
+   
+    return ['counts' => $resultCounts, 'data' => $nonDefinitiveResultsPart];
   }
 
   /**
    * Will cache result of existance check of a file on S3.
    * Will cache existance flag only if exist.
    */
-  private function checkIfCacheFileExists(string $searchIdentifier, string $filepath): bool
+  private function checkIfCacheFileExists(string $searchIdentifier, int $page, string $filepath): bool
   {
-    $cachekey = 'searchcacheexist:'.$searchIdentifier;
+    $cachekey = 'searchcacheexist:'.$searchIdentifier.'_'.config('xwa.max_search_results_per_page').'_'.$page;
     if (Cache::has($cachekey)) {
       return true;
     }
     $exists = Storage::disk(config('xwa.searchcachedisk'))->exists($filepath);
     if($exists) {
-      Cache::put($cachekey, 1, 600); //assuming human paginating over results will be done by now (1 byte)
+      Cache::put($cachekey, 1, 600); //1 byte of cache data
     }
     return $exists;
   }
@@ -242,26 +259,27 @@ class Search
    * Removes related cache for this search.
    * @param string $what all|fileexistanceflag|disk
    */
-  private function flushCache(string $what = 'all')
+  private function flushCache(string $what = 'all', $page = 1)
   {
     if($what == 'all' || $what == 'disk') {
       if(!isset($searchIdentifier)) $searchIdentifier = $this->getSearchIdentifier();
       // delete file from disk
-      Storage::disk(config('xwa.searchcachedisk'))->delete($this->searchIdentifierToFilepath($searchIdentifier));
+      Storage::disk(config('xwa.searchcachedisk'))->delete($this->searchIdentifierToFilepath($searchIdentifier,$page)); //todo delete all pages
     }
     if($what == 'all' || $what == 'fileexistanceflag') {
       if(!isset($searchIdentifier)) $searchIdentifier = $this->getSearchIdentifier();
+      $searchcacheexistKey = 'searchcacheexist:'.$searchIdentifier.'_'.config('xwa.max_search_results_per_page').'_'.$page;
       // remove file flag from cache
-      Cache::forget('searchcacheexist:'.$searchIdentifier);
+      Cache::forget($searchcacheexistKey);
     }
   }
 
   /**
    * Generates filepath from searchIdentifier
    */
-  private function searchIdentifierToFilepath(string $searchIdentifier)
+  private function searchIdentifierToFilepath(string $searchIdentifier, $page = 1)
   {
-    return config('xwa.searchcachedir').'/'.\strtolower(\substr($searchIdentifier,0,3)).'/'.$searchIdentifier;
+    return config('xwa.searchcachedir').'/'.\strtolower(\substr($searchIdentifier,0,3)).'/'.$searchIdentifier.'_'.config('xwa.max_search_results_per_page').'_'.$page;
   }
 
   /**
@@ -269,31 +287,34 @@ class Search
    */
   public function execute(): self
   {
+    $page = $this->param('page');
     $to = Carbon::createFromFormat('Y-m-d', $this->param('to'));
     $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to);
     if($LedgerIndexLastForDay == -1) {
+      
       // this search is incomplete and should not be cached to disk
       try{
-        $data = $this->_execute_real();
+        $data = $this->_execute_real($page);
       } catch (\Throwable $e) {
         $this->errors[] = $e->getMessage().' on line '.$e->getLine().' on line '.$e->getLine(). ' in file '.$e->getFile();
         return $this;
       }
       
     } else {
+   
       // this search is complete and wont change
     
       ########### DISK CACHE ###########
       # Check if this search indentifier already exists as json dump on Disk.
       $searchIdentifier = $this->getSearchIdentifier();
       //Eg: "searchv1_store/f61/f619f823c40900418b4f808ac32947bde56eba68259616efab26e3ca869e993c"
-      $filepath = $this->searchIdentifierToFilepath($searchIdentifier);
-      $exists = $this->checkIfCacheFileExists($searchIdentifier, $filepath);
+      $filepath = $this->searchIdentifierToFilepath($searchIdentifier, $page);
+      $exists = $this->checkIfCacheFileExists($searchIdentifier, $page, $filepath);
       
       //$exists = true;
       if(!$exists) {
         try{
-          $data = $this->_execute_real();
+          $data = $this->_execute_real($page);
         } catch (\Throwable $e) {
           $this->errors[] = $e->getMessage().' on line '.$e->getLine(). ' in file '.$e->getFile();
           return $this;
@@ -302,36 +323,59 @@ class Search
         Storage::disk(config('xwa.searchcachedisk'))->put($filepath,\serialize($data));
       }
       else {
+
+         /* 
+        function aaconvert($size)
+          {
+              $unit=array('b','kb','mb','gb','tb','pb');
+              return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+          }
+        */
         # Retrieve from S3
-        $data = Storage::disk(config('xwa.searchcachedisk'))->get($filepath);
+        $data = Storage::disk(config('xwa.searchcachedisk'))->get($filepath); //could rack up to 100 MB
+        //dd($data);
+        //echo aaconvert(memory_get_usage(true)); // 123 kb
+        //exit;
+       
         if($data === null) {
+ 
           //disk file recently deleted and cache did not picked up yet, or disk unavailable
-          $this->flushCache('fileexistanceflag');
-          $data = $this->_execute_real();
+          $this->flushCache('fileexistanceflag',$page);
+          try{
+            $data = $this->_execute_real($page);
+          } catch (\Throwable $e) {
+            $this->errors[] = $e->getMessage().' on line '.$e->getLine(). ' in file '.$e->getFile();
+            return $this;
+          }
         }
         else
           $data = \unserialize($data);
+          //echo aaconvert(memory_get_usage(true)); // 123 kb
+          //exit;
       }
       #
       ########### DISK CACHE ###########
     }
 
-    //$this->flushCache();exit;
-   
-      
+    //$this->flushCache('all',$page);exit;
 
-    $definitiveResults = collect([]);
-    foreach($data['data'] as $txTypeNamepart => $collection)
-    {
-      $definitiveResults = $definitiveResults->merge($this->applyDefinitiveFilters($collection));
-    }
-    $data['counts']['total_filtered'] = $definitiveResults->count();
-    //sort by SK
+    $definitiveResults = $this->applyDefinitiveFilters($data['data']);
     $definitiveResults = $definitiveResults->sortByDesc('SK')->values();
     $this->result = $definitiveResults;
-    $this->result_counts = $data['counts'];
 
-    //dd($intersected , $scanplan,$definitiveResults);
+    $result_counts = [
+      'filtered' => $definitiveResults->count(),
+      'scanned' => $data['counts']['total_scanned'],
+      'page' => $data['counts']['page'],
+      'pages' => $data['counts']['total_pages'],
+    ];
+
+    if($result_counts['pages'] > $result_counts['page']) {
+      $result_counts['next'] = true;
+    }
+
+    $this->result_counts = $result_counts;
+
     $this->isExecuted = true;
     return $this;
   }
@@ -456,24 +500,19 @@ class Search
     return $tracker;
   }
 
-  /**
-   * This search identifier. This string identifies all definitive search parameters for this search.
-   * NOT used as path for search export.
-   * 
-   * @return string SHA-512Half
-   */
-  public function getSearchDefinitiveIdentifier(): string
+  private function _generateSearchIndentifier(array $params): string
   {
     $indentity = $this->address.':';
-    $_params = $this->params;
-    \ksort($_params);
-    if(isset($_params['types'])) {
-      $_txTypes = $_params['types'];
-      unset($_params['types']);
+    unset($params['page']);
+
+    \ksort($params);
+    if(isset($params['types'])) {
+      $_txTypes = $params['types'];
+      unset($params['types']);
       \ksort($_txTypes);
     }
 
-    foreach($_params as $k => $v) {
+    foreach($params as $k => $v) {
       $indentity .= $k.'='.$v.':';
     }
     if(isset($_txTypes)) {
@@ -486,6 +525,17 @@ class Search
   }
 
   /**
+   * This search identifier. This string identifies all definitive search parameters for this search.
+   * NOT used as path for search export.
+   * 
+   * @return string SHA-512Half
+   */
+  public function getSearchDefinitiveIdentifier(): string
+  {
+    return $this->_generateSearchIndentifier($this->params);
+  }
+
+  /**
    * This search identifier. This string identifies all non-definitive search parameters for this search.
    * Used as path for search export.
    * 
@@ -493,28 +543,7 @@ class Search
    */
   public function getSearchIdentifier(): string
   {
-    //dd($this);
-    $indentity = $this->address.':';
-    $_params = $this->buildNonDefinitiveParams($this->params);
-    \ksort($_params);
-
-    if(isset($_params['types'])) {
-      $_txTypes = $_params['types'];
-      unset($_params['types']);
-      \ksort($_txTypes);
-    }
-    
-    foreach($_params as $k => $v) {
-      $indentity .= $k.'='.$v.':';
-    }
-    if(isset($_txTypes)) {
-      foreach($_txTypes as $k => $v) {
-        $indentity .= $k.'='.$v.':';
-      }
-    }
-    
-    $hash = \hash('sha512', $indentity);
-    return \substr($hash,0,64);
+    return $this->_generateSearchIndentifier($this->buildNonDefinitiveParams($this->params));
   }
 
   /**

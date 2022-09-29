@@ -32,6 +32,15 @@ return [
   */
   'searchcachedisk' => env('XWA_SEARCHCACHEDISK', 'private'),
   'searchcachedir' => env('XWA_SEARCHCACHEDIR','searchcachedir'),
+
+  /*
+  |--------------------------------------------------------------------------
+  | Max search transactions per request
+  |--------------------------------------------------------------------------
+  |
+  | How much results one request can serve max, before paginating.
+  */
+  'max_search_results_per_page' => 10000, //10000
   
 
 ];
