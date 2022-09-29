@@ -51,18 +51,24 @@ class AccountController extends Controller
     $search->buildFromRequest($request);
     $search->execute();
     if($search->hasErrors()) {
-     
       return response()->json(['success' => false, 'errors' => $search->getErrors()],422);
     }
 
 
-    //dd($search->result());
     $result =  ['success' => true];
     $result = array_merge($result, $search->result());
-    //$test = $result['data']->skip(35)->take(1);
-    //dd($test->first()->toArray());
-    //return response()->json($test);
-    return response()->json($result);
+
+
+    $ttl = 1209600; //1209600 = 14 days
+
+    //if end date is today we will set low ttl, since new data can come in at any time
+    if($request->input('to') == \date('Y-m-d'))
+      $ttl = 120;
+
+    return response()->json($result)
+      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$ttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $ttl))
+    ;
   }
 
 

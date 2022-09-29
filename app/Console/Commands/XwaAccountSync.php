@@ -108,11 +108,11 @@ class XwaAccountSync extends Command
       //$this->ledger_current = 66055480;
      // $account->l = 66055470;
       
-      if( config_static('xrpl.address_ignore.'.$account->address) !== null ) {
+      /*if( config_static('xrpl.address_ignore.'.$account->address) !== null ) {
         $this->info('History sync skipped (ignored)');
         //modify $account todo
         return 0;
-      }
+      }*/
 
       $account_tx = $this->XRPLClient->api('account_tx')
           ->params([
@@ -145,18 +145,27 @@ class XwaAccountSync extends Command
           
       $do = true;
       while($do) {
+
+        $is_success = true;
         try {
           $account_tx->send();
         } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
           $do = false;
           // Handle errors
-          $this->info('Error occured');
-          throw $e;
+          $this->info('');
+          $this->info('Error occured: '.$e->getMessage());
+          sleep(3);
+          $this->info('Trying again...');
+          $is_success = false;
+          //throw $e;
         }
-        if(!$account_tx->isSuccess()) {
+
+        $is_success = $account_tx->isSuccess();
+        if(!$is_success) {
           $this->info('');
           $this->info('Unsuccessful response, trying again: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
           sleep(3);
+          $this->info('Trying again...');
         }
         else
         {
