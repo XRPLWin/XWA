@@ -160,7 +160,10 @@ class XwaAccountSync extends Command
           //throw $e;
         }
 
-        $is_success = $account_tx->isSuccess();
+        //if($is_success)
+          $is_success = $account_tx->isSuccess();
+        $this->info('isSuccess: '.(int)$is_success);
+        
         if(!$is_success) {
           $this->info('');
           $this->info('Unsuccessful response, trying again: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
