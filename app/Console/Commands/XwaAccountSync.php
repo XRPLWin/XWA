@@ -154,7 +154,7 @@ class XwaAccountSync extends Command
           // Handle errors
           $this->info('');
           $this->info('Error occured: '.$e->getMessage());
-          sleep(3);
+          $this->info('Unsuccessful response (code 2), trying again: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
           $this->info('Trying again...');
           $is_success = false;
           //throw $e;
@@ -162,11 +162,13 @@ class XwaAccountSync extends Command
 
         //if($is_success)
           $is_success = $account_tx->isSuccess();
+
+
         $this->info('isSuccess: '.(int)$is_success);
-        
+
         if(!$is_success) {
           $this->info('');
-          $this->info('Unsuccessful response, trying again: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
+          $this->info('Unsuccessful response (code 1), trying again: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
           sleep(3);
           $this->info('Trying again...');
         }
