@@ -52,15 +52,14 @@ class XwaLedgerIndexSync extends Command
     protected readonly Client $XRPLClient;
 
     /**
-     * Create a new command instance.
+     * Execute the console command.
      *
-     * @return void
+     * @return int
      */
-    public function __construct()
+    public function handle()
     {
-        parent::__construct();
-        $this->XRPLClient = app(Client::class);
-        $ledger_last_api = $this->XRPLClient->api('ledger')
+      $this->XRPLClient = app(Client::class);
+      $ledger_last_api = $this->XRPLClient->api('ledger')
         ->params([
           'ledger_index' => 'validated',
           'accounts' => false,
@@ -69,18 +68,9 @@ class XwaLedgerIndexSync extends Command
           'expand' => false,
           'owner_funds' => false,
         ]);
-  
-        $this->ledger_last = (int)$ledger_last_api->send()->finalResult()->ledger_index;
-    }
+      $this->ledger_last = (int)$ledger_last_api->send()->finalResult()->ledger_index;
 
-    
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     */
-    public function handle()
-    {
+
       //Get last from DB
       $LastDb = Ledgerindex::select('ledger_index_last','day')->where('ledger_index_last','!=',-1)->orderByDesc('day')->first();
       if(!$LastDb) {

@@ -65,28 +65,19 @@ class XwaAccountSync extends Command
     protected readonly Client $XRPLClient;
 
     /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->XRPLClient = app(Client::class);
-    }
-
-    
-    /**
      * Execute the console command.
      *
      * @return int
      */
     public function handle()
     {
+      $this->XRPLClient = app(Client::class);
+
       //dd('test',config_static('xrpl.address_ignore.rBKPS4oLSaV2KVVuHH8EpQqMGgGefGFQs72'));
       $address = $this->argument('address');
       $this->recursiveaccountqueue = $this->option('recursiveaccountqueue'); //bool
       //$this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
+      
       $this->ledger_current = Ledger::current();
       
       $account = AccountLoader::getOrCreate($address);
@@ -146,31 +137,24 @@ class XwaAccountSync extends Command
       $do = true;
       while($do) {
 
-        $is_success = true;
         try {
           $account_tx->send();
         } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
-          $do = false;
           // Handle errors
           $this->info('');
-          $this->info('Error occured: '.$e->getMessage());
-          $this->info('Unsuccessful response (code 2), trying again: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
-          $this->info('Trying again...');
-          $is_success = false;
+          $this->info('Error catched: '.$e->getMessage());
           //throw $e;
         }
-
-        //if($is_success)
-          $is_success = $account_tx->isSuccess();
-
-
-        $this->info('isSuccess: '.(int)$is_success);
+        
+        //Handles sucessful response from ledger with unsucessful message.
+        //Hanldes rate limited responses.
+        $is_success = $account_tx->isSuccess();
 
         if(!$is_success) {
           $this->info('');
           $this->info('Unsuccessful response (code 1), trying again: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
+          $this->info('Retrying in 3 seconds...');
           sleep(3);
-          $this->info('Trying again...');
         }
         else
         {
@@ -207,7 +191,7 @@ class XwaAccountSync extends Command
       //TODO start data analysis
       //$analyzed = StaticAccount::analyzeData($account);
 
-      return 0;
+      return Command::SUCCESS;
     }
 
 
