@@ -190,18 +190,37 @@ class Search
       //'total_e' => 'eq', //non-definitive equilizer (if eq then total_filtered = total)
     ];
     //dd($scanplan);
+
+    /*
+
+http://analyzer.xrplwin.test/v1/account/search/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?from=2017-12-01&to=2017-12-07&types[0]=Payment&page=2
+
+
+
+http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31?from=2021-12-01&to=2021-12-31
+
+
+
+
+
+
+
+
+
+
+
+    */
     foreach($scanplan as $txTypeNamepart => $scanplanTypeData) {
       //$nonDefinitiveResults[$txTypeNamepart] = collect([]);
       $resultCounts['total_scanned'] += $scanplanTypeData['stats']['total_rows'];
       //$resultCounts['total_e'] = self::calcSearchEqualizer($resultCounts['total_e'],$scanplanTypeData['stats']['e']);
-      foreach($scanplanTypeData['data'] as $ledgerindexID => $resultStats) {
+      foreach($scanplanTypeData['data'] as $page => $resultStats) { //TODO Ovjde ne treba loop jer znamo koji page tocno zelimo iz parametra...
         
         $ledgerindex_first_range = Ledgerindex::getLedgerindexData($resultStats['ledgerindex_first']);
         $ledgerindex_last_range = Ledgerindex::getLedgerindexData($resultStats['ledgerindex_last']);
 
         /** @var \App\Models\DTransaction */
         $DTransactionModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
-        //$results = $DTransactionModelName::select('st','a','r','fe')
         $query = $DTransactionModelName::where('PK', $this->address.'-'.$DTransactionModelName::TYPE);
 
         if($ledgerindex_last_range[1] == -1)
@@ -210,7 +229,10 @@ class Search
           $query = $query->where('SK','between',[$ledgerindex_first_range[0],$ledgerindex_last_range[1] + 0.9999]);
 
         $results = $query->get();
-       
+        
+        //TODO next page to dynamodb!
+
+
         //dd($results,$results->lastKey(),$query->afterKey($results->lastKey())->limit(2)->all());
         //$nonDefinitiveResults[$txTypeNamepart] =  $nonDefinitiveResults[$txTypeNamepart]->merge($results);
         $nonDefinitiveResults = $nonDefinitiveResults->merge($results);
@@ -425,6 +447,11 @@ class Search
     return collect($r);
   }
 
+  private function calculateScanPlan_calcPageShift(int $count, int $breakpoint): int
+  {
+    return ($count > $breakpoint) ? 1:0;
+  }
+
   /**
    * This function takes intersected array and returns optimal
    * query SCAN plan which will be executed against DyDB
@@ -434,6 +461,7 @@ class Search
    */
   private function calculateScanPlan(array $data): array
   {
+   
     # Eject zero edges
     # - removes items with zero (0) 'found' param left and right, until cursor reaches filled item
 
@@ -456,48 +484,68 @@ class Search
     }
     $data = $newData;
     unset($newData);
-
+    unset($counts);
+    unset($ledgerindexID);
+    unset($txTypeNamepart);
+    unset($l);
+    unset($l_fwd);
+    
     # Calculate batch ranges of SCAN query which will not span more than 1000 items (max 1kb items from db)
     # - DyDB QUERY/SCAN operation will paginate after 1MB retrieved data, this should avoid this pagination
     # - QUERY/SCAN is sorted by SK (sort key, eg ledger_index.transaction_index), if there is very large number of 
     #   results and zero found results, it is safe to split to next query and skip group of ledger indexes
     #   Tradeoff is second query to DyDb, and benefit is no heavy/slow SCAN operation execution.
 
-    $breakpoint = 1000; //how db items until new query is created, scan limit may overflow over this value - default: 1000
-
-    $tracker = [];
-    foreach($data as $txTypeNamepart => $l) {
-      if(empty($l)) continue;
-      $i = 1;
-      $tracker[$txTypeNamepart] = [
-        'stats' => ['total_rows' => 0, 'e' => 'eq'],
-        'data' => [ $i => ['total' => 0, 'llist' => []] ], //first iteration starting point
-      ];
-      
-      foreach($l as $ledgerindexID => $counts) {
-        if($tracker[$txTypeNamepart]['data'][$i]['total'] !== 0 && ($tracker[$txTypeNamepart]['data'][$i]['total']+$counts['total']) > $breakpoint) {
-          //breakpoint reached
-          //dd($counts);
-          $i++;
-          $tracker[$txTypeNamepart]['data'][$i] = ['total' => 0, 'llist' => []]; //next iteration starting point
-        }
-        $tracker[$txTypeNamepart]['data'][$i]['total'] += $counts['total'];
-        $tracker[$txTypeNamepart]['stats']['total_rows'] += $counts['total'];
-        
-        $tracker[$txTypeNamepart]['stats']['e'] = self::calcSearchEqualizer($tracker[$txTypeNamepart]['stats']['e'],$counts['e']);
-        $tracker[$txTypeNamepart]['data'][$i]['llist'][] = $ledgerindexID;
-      }
-      unset($i);
-
-      //from each llist take only edge ledger indexes (list of ledgerindexes are always sorted from past to future)
-      foreach($tracker[$txTypeNamepart]['data'] as $i => $v) {
-        $tracker[$txTypeNamepart]['data'][$i]['ledgerindex_first'] = $v['llist'][0];
-        $tracker[$txTypeNamepart]['data'][$i]['ledgerindex_last'] = $v['llist'][count($v['llist'])-1];
-        //unset($tracker[$txTypeNamepart]['data'][$i]['llist']); //remove this line if you need info about all ledgers between ledgerindex_first and ledgerindex_last
+    $breakpoint = 10; //how db items until new query is created, scan limit may overflow over this value - default: 500
+   
+    $maxes = [];
+    foreach($data as $txTypeNamepart => $v) {
+      foreach($v as $ledgerIndexID => $counts) {
+        $maxes[$ledgerIndexID][] = $counts['total'];
       }
     }
 
-    return $tracker;
+    $ledgerIndexIdPages = [];
+    $lastpage = 1;
+    foreach($maxes as $ledgerIndexID => $v) {
+      $ledgerIndexIdPages[$ledgerIndexID] = $lastpage;
+      if($this->calculateScanPlan_calcPageShift(\max($maxes[$ledgerIndexID]),$breakpoint))
+        $lastpage++;
+    }
+
+    //dd($ledgerIndexIdPages);
+
+    $tracker = [];
+    foreach($ledgerIndexIdPages as $ledgerIndexID => $page) {
+      $i = 1;
+      foreach($data as $txTypeNamepart => $li_totals) {
+
+        if(!isset($li_totals[$ledgerIndexID]))
+          continue; //continue on inner loop
+
+        if(!isset($tracker[$page][$txTypeNamepart]['stats']))
+          $tracker[$page][$txTypeNamepart]['stats'] = ['total_rows' => 0, 'e' => 'eq' ];
+
+        if(!isset($tracker[$page][$txTypeNamepart]['data'][$i]))
+          $tracker[$page][$txTypeNamepart]['data'][$i] = ['total' => 0, 'llist' => []];
+
+        $tracker[$page][$txTypeNamepart]['data'][$i]['total'] += $li_totals[$ledgerIndexID]['total'];
+        $tracker[$page][$txTypeNamepart]['stats']['total_rows']  += $li_totals[$ledgerIndexID]['total'];
+        $tracker[$page][$txTypeNamepart]['data'][$i]['llist'][] = $ledgerIndexID;
+        $tracker[$page][$txTypeNamepart]['stats']['e'] = self::calcSearchEqualizer($tracker[$page][$txTypeNamepart]['stats']['e'],$li_totals[$ledgerIndexID]['e']);
+
+        //from each llist take only edge ledger indexes (list of ledgerindexes are always sorted from past to future)
+        foreach($tracker[$page][$txTypeNamepart]['data'] as $i => $v) {
+          $tracker[$page][$txTypeNamepart]['data'][$i]['ledgerindex_first'] = $v['llist'][0];
+          $tracker[$page][$txTypeNamepart]['data'][$i]['ledgerindex_last'] = $v['llist'][count($v['llist'])-1];
+        }
+        $i++;
+      }
+    }
+
+    //return $tracker;
+    dd($tracker);
+
   }
 
   private function _generateSearchIndentifier(array $params): string
