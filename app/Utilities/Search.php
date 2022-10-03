@@ -508,14 +508,16 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
     #   Tradeoff is second query to DyDb, and benefit is no heavy/slow SCAN operation execution.
 
     $breakpoint = self::getPaginatorBreakpoint();
-    $breakpoint = 10;
+    //$breakpoint = 10;
 
     ##
     $_calc = [];
+    $_flat_ledgerindexesIds = [];
     foreach($data as $txTypeNamepart => $v) {
       $_calc_c = 0;
       $_calc_page = 1;
       foreach($v as $ledgerIndexID => $counts) {
+        $_flat_ledgerindexesIds[$ledgerIndexID] = true;
         $_calc[$txTypeNamepart][$ledgerIndexID] = ['found' => $counts['found'], 'c' => $_calc_c, 'page' => $_calc_page];
         if($this->calculateScanPlan_calcPageShift($_calc_c,$breakpoint)) {
           $_calc_c = 0;
@@ -533,32 +535,33 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
 
     $maxes = [];
     $lastpage = 1;
+    foreach($_flat_ledgerindexesIds as $li => $foo)
+    {
+      foreach($_calc as $txTypeNamepart => $v) {
+        if(isset($v[$li])) {
+          $lastpage = \max($v[$li]['page'],$lastpage);
+          $maxes[$li][$txTypeNamepart] = $lastpage;
+        }
+      }
+    }
+    /*dd($maxes);
+    $maxes = [];
+    $maxes_l = [];
     foreach($_calc as $txTypeNamepart => $v) {
+      $lastpage = 1;
       foreach($v as $ledgerIndexID => $foundCPage) {
         $lastpage = \max($foundCPage['page'],$lastpage);
-        $maxes[$ledgerIndexID][] = $lastpage;
+        $maxes[$ledgerIndexID][$txTypeNamepart] = $lastpage;
       }
     }
-
-
+    dd($maxes);*/
     unset($_calc);
-    ##
-/*
-    return [];
-   
-    $maxes = [];
-    foreach($data as $txTypeNamepart => $v) {
-      foreach($v as $ledgerIndexID => $counts) {
-        $maxes[$ledgerIndexID][] = $counts['found'];
-      }
-    }
-*/
+    unset($_flat_ledgerindexesIds);
+
     $ledgerIndexIdPages = [];
     foreach($maxes as $ledgerIndexID => $v) {
       $ledgerIndexIdPages[$ledgerIndexID] = \max($maxes[$ledgerIndexID]);
     }
-
-  //  dd($maxes, $ledgerIndexIdPages);
 
     $tracker = [];
     foreach($ledgerIndexIdPages as $ledgerIndexID => $page) {
@@ -583,8 +586,8 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
       }
     }
 
-    //return $tracker;
-    dd($tracker,$ledgerIndexIdPages);
+    return $tracker;
+    //dd($tracker,$ledgerIndexIdPages,$maxes);
 
   }
 
