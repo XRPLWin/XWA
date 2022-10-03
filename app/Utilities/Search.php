@@ -449,7 +449,17 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
 
   private function calculateScanPlan_calcPageShift(int $count, int $breakpoint): int
   {
-    return ($count > $breakpoint) ? 1:0;
+    return ($count >= $breakpoint) ? 1:0;
+  }
+
+  /**
+   * How much db items until new page is created, scan limit may overflow over this value - default: 500
+   * Changing this value will break tests.
+   * @return int
+   */
+  public static function getPaginatorBreakpoint(): int
+  {
+    return 500;
   }
 
   /**
@@ -459,9 +469,10 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
    * @return array [txTypeNamepart => [ QUERY_ITERATION => [int total, int ledgerindex_first, int ledgerindex_last] ] ]
    *  ledgerindex_last = 'id' from local db table ledgerindexes
    */
-  private function calculateScanPlan(array $data): array
+  public function calculateScanPlan(array $data): array
   {
    
+   // dd($data);
     # Eject zero edges
     # - removes items with zero (0) 'found' param left and right, until cursor reaches filled item
 
@@ -496,28 +507,61 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
     #   results and zero found results, it is safe to split to next query and skip group of ledger indexes
     #   Tradeoff is second query to DyDb, and benefit is no heavy/slow SCAN operation execution.
 
-    $breakpoint = 10; //how db items until new query is created, scan limit may overflow over this value - default: 500
+    $breakpoint = self::getPaginatorBreakpoint();
+    $breakpoint = 10;
+
+    ##
+    $_calc = [];
+    foreach($data as $txTypeNamepart => $v) {
+      $_calc_c = 0;
+      $_calc_page = 1;
+      foreach($v as $ledgerIndexID => $counts) {
+        $_calc[$txTypeNamepart][$ledgerIndexID] = ['found' => $counts['found'], 'c' => $_calc_c, 'page' => $_calc_page];
+        if($this->calculateScanPlan_calcPageShift($_calc_c,$breakpoint)) {
+          $_calc_c = 0;
+          $_calc_page++;
+        }
+        $_calc[$txTypeNamepart][$ledgerIndexID]['page'] = $_calc_page;
+        $_calc_c += $counts['found'];
+      }
+    }
+    unset($_calc_c);
+    unset($_calc_offset);
+    unset($counts);
+    unset($ledgerIndexID);
+    unset($txTypeNamepart);
+
+    $maxes = [];
+    $lastpage = 1;
+    foreach($_calc as $txTypeNamepart => $v) {
+      foreach($v as $ledgerIndexID => $foundCPage) {
+        $lastpage = \max($foundCPage['page'],$lastpage);
+        $maxes[$ledgerIndexID][] = $lastpage;
+      }
+    }
+
+
+    unset($_calc);
+    ##
+/*
+    return [];
    
     $maxes = [];
     foreach($data as $txTypeNamepart => $v) {
       foreach($v as $ledgerIndexID => $counts) {
-        $maxes[$ledgerIndexID][] = $counts['total'];
+        $maxes[$ledgerIndexID][] = $counts['found'];
       }
     }
-
+*/
     $ledgerIndexIdPages = [];
-    $lastpage = 1;
     foreach($maxes as $ledgerIndexID => $v) {
-      $ledgerIndexIdPages[$ledgerIndexID] = $lastpage;
-      if($this->calculateScanPlan_calcPageShift(\max($maxes[$ledgerIndexID]),$breakpoint))
-        $lastpage++;
+      $ledgerIndexIdPages[$ledgerIndexID] = \max($maxes[$ledgerIndexID]);
     }
 
-    //dd($ledgerIndexIdPages);
+  //  dd($maxes, $ledgerIndexIdPages);
 
     $tracker = [];
     foreach($ledgerIndexIdPages as $ledgerIndexID => $page) {
-      $i = 1;
       foreach($data as $txTypeNamepart => $li_totals) {
 
         if(!isset($li_totals[$ledgerIndexID]))
@@ -526,25 +570,21 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
         if(!isset($tracker[$page][$txTypeNamepart]['stats']))
           $tracker[$page][$txTypeNamepart]['stats'] = ['total_rows' => 0, 'e' => 'eq' ];
 
-        if(!isset($tracker[$page][$txTypeNamepart]['data'][$i]))
-          $tracker[$page][$txTypeNamepart]['data'][$i] = ['total' => 0, 'llist' => []];
+        if(!isset($tracker[$page][$txTypeNamepart]['data']))
+          $tracker[$page][$txTypeNamepart]['data'] = ['total' => 0, 'llist' => []];
 
-        $tracker[$page][$txTypeNamepart]['data'][$i]['total'] += $li_totals[$ledgerIndexID]['total'];
+        $tracker[$page][$txTypeNamepart]['data']['total'] += $li_totals[$ledgerIndexID]['total'];
         $tracker[$page][$txTypeNamepart]['stats']['total_rows']  += $li_totals[$ledgerIndexID]['total'];
-        $tracker[$page][$txTypeNamepart]['data'][$i]['llist'][] = $ledgerIndexID;
+        $tracker[$page][$txTypeNamepart]['data']['llist'][] = $ledgerIndexID;
         $tracker[$page][$txTypeNamepart]['stats']['e'] = self::calcSearchEqualizer($tracker[$page][$txTypeNamepart]['stats']['e'],$li_totals[$ledgerIndexID]['e']);
 
-        //from each llist take only edge ledger indexes (list of ledgerindexes are always sorted from past to future)
-        foreach($tracker[$page][$txTypeNamepart]['data'] as $i => $v) {
-          $tracker[$page][$txTypeNamepart]['data'][$i]['ledgerindex_first'] = $v['llist'][0];
-          $tracker[$page][$txTypeNamepart]['data'][$i]['ledgerindex_last'] = $v['llist'][count($v['llist'])-1];
-        }
-        $i++;
+        $tracker[$page][$txTypeNamepart]['data']['ledgerindex_first'] = $tracker[$page][$txTypeNamepart]['data']['llist'][0];
+        $tracker[$page][$txTypeNamepart]['data']['ledgerindex_last'] = $tracker[$page][$txTypeNamepart]['data']['llist'][count($tracker[$page][$txTypeNamepart]['data']['llist'])-1];
       }
     }
 
     //return $tracker;
-    dd($tracker);
+    dd($tracker,$ledgerIndexIdPages);
 
   }
 

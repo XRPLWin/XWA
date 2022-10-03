@@ -64,11 +64,13 @@ class XRPLParserPaymentTest extends TestCase
     {
         $darray = $parser->toDArray();
 
-        $this->assertEquals(4,count($darray));
+        $this->assertEquals(6,count($darray));
         $this->assertArrayHasKey('fe',$darray);
         $this->assertArrayHasKey('r',$darray);
         $this->assertArrayHasKey('in',$darray);
         $this->assertArrayHasKey('a',$darray);
+        $this->assertArrayHasKey('h',$darray);
+        $this->assertArrayHasKey('t',$darray);
 
         return $parser;
     }
