@@ -198,20 +198,9 @@ class Search
 
     /*
 
-http://analyzer.xrplwin.test/v1/account/search/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?from=2017-12-01&to=2017-12-07&types[0]=Payment&page=2
-http://xlanalyzer-ui.test/account/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh/search?types%5B%5D=Payment&from=2016-01-01&to=2018-02-28&st=&dt=&cp=&token=&dir=
-
-
-
-http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31?from=2021-12-01&to=2021-12-31
-
-
-
-
-
-
-
-
+    http://analyzer.xrplwin.test/v1/account/search/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?from=2017-12-01&to=2017-12-07&types[0]=Payment&page=2
+    http://xlanalyzer-ui.test/account/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh/search?types%5B%5D=Payment&from=2016-01-01&to=2018-02-28&st=&dt=&cp=&token=&dir=
+    http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31?from=2021-12-01&to=2021-12-31
 
 
 
@@ -226,7 +215,7 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
       throw new \Exception('Page out of range');
 
     $scanplan_page = $scanplan[$page];
-
+    
     //dd($conditions);
 
     //dd($scanplan);
@@ -258,7 +247,6 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
 
       //$nonDefinitiveResults[$txTypeNamepart] =  $nonDefinitiveResults[$txTypeNamepart]->merge($results);
       $nonDefinitiveResults = $nonDefinitiveResults->merge($results);
-
      
       //Add total counts
       //foreach($definitiveResults as $v){
@@ -267,7 +255,6 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
     }
     //sort by SK
     $nonDefinitiveResults = $nonDefinitiveResults->sortByDesc('SK');
-
     $resultCounts['page'] = $page;
     $resultCounts['total_pages'] = $pages_count;
     return ['counts' => $resultCounts, 'data' => $nonDefinitiveResults];
