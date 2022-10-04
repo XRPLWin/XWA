@@ -199,6 +199,7 @@ class Search
     /*
 
 http://analyzer.xrplwin.test/v1/account/search/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?from=2017-12-01&to=2017-12-07&types[0]=Payment&page=2
+http://xlanalyzer-ui.test/account/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh/search?types%5B%5D=Payment&from=2016-01-01&to=2018-02-28&st=&dt=&cp=&token=&dir=
 
 
 

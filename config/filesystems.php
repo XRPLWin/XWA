@@ -50,6 +50,12 @@ return [
             'throw' => false,
         ],
 
+        'mnt' => [
+            'driver' => 'local',
+            'root' => env('FILESYSTEMS_DISKS_MNT_ROOT','/mnt/changeme'),
+            'throw' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
