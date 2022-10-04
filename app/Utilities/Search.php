@@ -233,13 +233,23 @@ class Search
 
       //apply non-definitive conditions to $query
       $query = $mapper->applyQueryConditions($query);
-
+      
       if($ledgerindex_last_range[1] == -1)
         $query = $query->where('SK','>=',$ledgerindex_first_range[0]);
       else
         $query = $query->where('SK','between',[$ledgerindex_first_range[0],$ledgerindex_last_range[1] + 0.9999]);
       
+      dump($query->toDynamoDbQuery());
       $results = $query->get();
+      //dd($results);
+
+      $j = 1;
+      foreach($results as $r )
+      {
+        echo $j.' '.($r->SK).'<br>';
+        $j++;
+      }
+      exit;
       
       //TODO next page to dynamodb!
       //dd($results,$results->lastKey(),$query->afterKey($results->lastKey())->limit(2)->all());
@@ -253,6 +263,7 @@ class Search
       //  $resultCounts['total'] += $v->count();
       //}
     }
+    dd($results->last());
     //sort by SK
     $nonDefinitiveResults = $nonDefinitiveResults->sortByDesc('SK');
     $resultCounts['page'] = $page;
@@ -528,7 +539,6 @@ class Search
   {
     # Eject zero edges
     # - removes items with zero (0) 'found' param left and right, until cursor reaches filled item
-
     $newData = [];
     foreach($data as $txTypeNamepart => $l) {
       $l_fwd = $l;
@@ -599,6 +609,7 @@ class Search
     }
 
     $tracker = [];
+    //dd($ledgerIndexIdPages,$data);
     foreach($ledgerIndexIdPages as $ledgerIndexID => $page) {
       foreach($data as $txTypeNamepart => $li_totals) {
 

@@ -124,12 +124,11 @@ class Mapper
     foreach($period as $day) {
       
       $ledgerindex = Ledgerindex::getLedgerindexIdForDay($day);
-      
       //dd( $ledgerindex);
       if($ledgerindex) {
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
           $count = $this->fetchAllCount($ledgerindex, $txTypeNamepart);
-   
+
           if($count > 0) { //has transactions
             $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex] = ['total' => $count, 'found' => $count, 'e' => 'eq']; //[total, reduced, eq (equalizer eq|lte)]
           }
@@ -137,6 +136,7 @@ class Mapper
         }
       } else {
         //something went wrong... or out of scope
+        throw new \Exception('Mapper count failed');
       }
     
     }
@@ -238,7 +238,7 @@ class Mapper
 
     $cache_key = 'mpr'.$this->address.'_all_'.$ledgerindex.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
-    //$r = null;
+    $r = null;
     if($r === null) {
       $map = Map::select('id','condition','count_num'/* ,count_indicator */)
         ->where('address', $this->address)
@@ -246,25 +246,30 @@ class Mapper
         ->where('txtype',$DModelName::TYPE)
         ->where('condition','all')
         ->first();
-      //$map = null;
+       
+      $map = null;
       if(!$map)
       {
         //no records found, query DyDB for this day, for this type and save
-        $li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
+        //$li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
+        $li = Ledgerindex::getLedgerindexData($ledgerindex);
         if(!$li) {
           //clear cache then then/instead exception?
           throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
           //return 0; //something went wrong
         }
         $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
-
-        if($li->ledger_index_last == -1) //latest
-          $DModelTxCount = $DModelTxCount->where('SK','>=',$li->ledger_index_first);
+        if($li[1] == -1) //latest
+          $DModelTxCount = $DModelTxCount->where('SK','>=',$li[0]);
         else
-          $DModelTxCount = $DModelTxCount->where('SK','between',[$li->ledger_index_first,$li->ledger_index_last + 0.9999]);
-
+          $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
+        //dd($DModelTxCount);
+        //dump($DModelTxCount->toDynamoDbQuery());
+        //dd($DModelTxCount,$DModelTxCount->lastKey(),$DModelTxCount->afterKey($DModelTxCount->lastKey())->limit(2)->all());
         $DModelTxCount = $DModelTxCount->count();
 
+        
+        dump($DModelTxCount);
         //dd($DModelTxCount,$this->address.'-'.$DModelName::TYPE,[$li->ledger_index_first,$li->ledger_index_last + 0.9999]);
   
         $map = new Map;
