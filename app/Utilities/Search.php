@@ -317,10 +317,50 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
     return config('xwa.searchcachedir').'/'.\strtolower(\substr($searchIdentifier,0,3)).'/'.$searchIdentifier.'_'.config('xwa.paginator_breakpoint').'_'.$page;
   }
 
+  public function execute(): self
+  {
+    $page = $this->param('page');
+    
+    try{
+      $data = $this->_execute_real($page);
+    } catch (\Throwable $e) {
+      if(config('app.debug')) {
+        $this->errors[] = $e->getMessage().' on line '.$e->getLine().' on line '.$e->getLine(). ' in file '.$e->getFile();
+        \Log::debug($e);
+      }
+      else
+        $this->errors[] = $e->getMessage();
+      return $this;
+    }
+    
+    //$this->flushCache('all',$page);exit;
+
+    $definitiveResults = $this->applyDefinitiveFilters($data['data']);
+    $definitiveResults = $definitiveResults->sortByDesc('SK')->values();
+    $this->result = $definitiveResults;
+
+    $result_counts = [
+      'filtered' => $definitiveResults->count(),
+      'scanned' => $data['counts']['total_scanned'],
+      'page' => $data['counts']['page'],
+      'pages' => $data['counts']['total_pages'],
+    ];
+
+    if($result_counts['pages'] > $result_counts['page']) {
+      $result_counts['next'] = true;
+    }
+
+    $this->result_counts = $result_counts;
+
+    $this->isExecuted = true;
+    return $this;
+  }
+
+
   /**
    * Sample: /v1/account/search/rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4?from=2022-05-01&to=2022-05-28&st=1&cp=r3mmzMZxRQaiuLRsKDATciyegSgZod88uT
    */
-  public function execute(): self
+  /*public function execute_disk(): self
   {
     $page = $this->param('page');
     $to = Carbon::createFromFormat('Y-m-d', $this->param('to'));
@@ -364,19 +404,19 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
             $this->errors[] = $e->getMessage();
           return $this;
         }
-        # Save this $data to S3
+        # Save this $data to disk
         Storage::disk(config('xwa.searchcachedisk'))->put($filepath,\serialize($data));
       }
       else {
 
-         /* 
-        function aaconvert($size)
-          {
-              $unit=array('b','kb','mb','gb','tb','pb');
-              return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
-          }
-        */
-        # Retrieve from S3
+          
+        //function aaconvert($size)
+        //{
+        //      $unit=array('b','kb','mb','gb','tb','pb');
+        //      return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+        //}
+        
+        # Retrieve from disk
         $data = Storage::disk(config('xwa.searchcachedisk'))->get($filepath); //could rack up to 100 MB
         //dd($data);
         //echo aaconvert(memory_get_usage(true)); // 123 kb
@@ -428,7 +468,7 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
 
     $this->isExecuted = true;
     return $this;
-  }
+  }*/
 
   /**
    * Filters items via $this->params (precise)
