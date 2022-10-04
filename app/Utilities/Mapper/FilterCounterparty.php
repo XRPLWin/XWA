@@ -102,7 +102,8 @@ class FilterCounterparty extends FilterBase {
         else
           $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
 
-        $DModelTxCount = $DModelTxCount->where('r', 'begins_with','r'.$FirstFewLetters) //check value presence (in attribute always does not exists if out)
+
+        $DModelTxCount = $this->applyQueryCondition($DModelTxCount,$FirstFewLetters)
           //->toDynamoDbQuery()
           ->count();
 
@@ -124,6 +125,15 @@ class FilterCounterparty extends FilterBase {
   }
 
   /**
+   * Adds WHERE conditions to query builder if any.
+   * @return \BaoPham\DynamoDb\DynamoDbQueryBuilder
+   */
+  public function applyQueryCondition(\BaoPham\DynamoDb\DynamoDbQueryBuilder $query, ...$params)
+  {
+    return $query->where('r', 'begins_with','r'.$params[0]);
+  }
+
+  /**
    * Check if DyDB item has $value in its data.
    * Checked field is 'r', must be exact.
    * @return bool
@@ -132,5 +142,7 @@ class FilterCounterparty extends FilterBase {
   {
     return ((string)$item->r == (string)$value);
   }
+
+  
 
 }

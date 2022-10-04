@@ -14,7 +14,7 @@ class FilterIn extends FilterBase {
   private array $allowedTxTypes = ['Payment'];
   private readonly array $txTypes;
 
-  public function __construct(string $address, array $conditions, array $foundLedgerIndexesIds)
+  public function __construct(string $address, array $conditions, array $foundLedgerIndexesIds = [])
   {
     $this->address = $address;
     $this->conditions = $conditions;
@@ -90,7 +90,7 @@ class FilterIn extends FilterBase {
         else
           $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
         
-        $DModelTxCount = $DModelTxCount->whereNotNull('in') //check value presence (in attribute always true if in)
+        $DModelTxCount = $this->applyQueryCondition($DModelTxCount) //check value presence (in attribute always true if in)
           //->toDynamoDbQuery() 
           ->count();
   
@@ -109,6 +109,15 @@ class FilterIn extends FilterBase {
     }
     
     return $r;
+  }
+
+  /**
+   * Adds WHERE conditions to query builder if any.
+   * @return \BaoPham\DynamoDb\DynamoDbQueryBuilder
+   */
+  public function applyQueryCondition(\BaoPham\DynamoDb\DynamoDbQueryBuilder $query, ...$params)
+  {
+    return $query->whereNotNull('in');
   }
 
   /**

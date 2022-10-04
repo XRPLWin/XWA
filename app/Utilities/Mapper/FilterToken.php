@@ -113,17 +113,10 @@ class FilterToken extends FilterBase {
           $DModelTxCount = $DModelTxCount->where('SK','>=',$li[0]);
         else
           $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
-        $issuerAndToken = self::extractIssuerAndToken($FirstFewLetters);
-        if($issuerAndToken['issuer'] == 'XRP' && $issuerAndToken['currency'] == 'XRP') {
-          //i and c must not exist
-          $DModelTxCount = $DModelTxCount->whereNull('i')->whereNull('c'); //check value presence (in attribute always does not exists if out)
-        } else {
-          $DModelTxCount = $DModelTxCount->where('i', '=',$issuerAndToken['issuer'])->where('c', '=', $issuerAndToken['currency']);
-        }
-          
-          $DModelTxCount = $DModelTxCount
-            //->toDynamoDbQuery()
-            ->count();
+
+        $DModelTxCount = $this->applyQueryCondition($DModelTxCount,$FirstFewLetters)
+          //->toDynamoDbQuery()
+          ->count();
         
         $map = new Map;
         $map->address = $this->address;
@@ -140,6 +133,22 @@ class FilterToken extends FilterBase {
     }
     
     return $r;
+  }
+
+  /**
+   * Adds WHERE conditions to query builder if any.
+   * @return \BaoPham\DynamoDb\DynamoDbQueryBuilder
+   */
+  public function applyQueryCondition(\BaoPham\DynamoDb\DynamoDbQueryBuilder $query, ...$params)
+  {
+    $issuerAndToken = self::extractIssuerAndToken($params[0]);;
+    if($issuerAndToken['issuer'] == 'XRP' && $issuerAndToken['currency'] == 'XRP') {
+      //i and c must not exist
+      $query = $query->whereNull('i')->whereNull('c'); //check value presence (in attribute always does not exists if out)
+    } else {
+      $query = $query->where('i', '=',$issuerAndToken['issuer'])->where('c', '=', $issuerAndToken['currency']);
+    }
+    return $query;
   }
 
   /**
@@ -162,5 +171,6 @@ class FilterToken extends FilterBase {
     }
     return false;
   }
+  
 
 }

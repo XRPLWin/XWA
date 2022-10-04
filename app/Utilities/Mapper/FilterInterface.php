@@ -8,4 +8,5 @@ interface FilterInterface {
     public static function calcEqualizer(string $existingE, string $newE): string;
     public static function itemHasFilter(\App\Models\DTransaction $item, string|int|float|bool $value): bool;
     public static function parseToNonDefinitiveParam(string $param): string;
+    public function applyQueryCondition(\BaoPham\DynamoDb\DynamoDbQueryBuilder $query, ...$params);
 }

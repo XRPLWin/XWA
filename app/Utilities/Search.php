@@ -138,13 +138,17 @@ class Search
     //Token (ISSUER+CURRENCY)
     $param_token = $this->param('token');
     if($param_token) {
-      $param_token_ex = \explode('+',$param_token);
-      if(count($param_token_ex) == 2) {
-        if(isValidXRPAddressFormat($param_token_ex[0])) {
-          $mapper->addCondition('token',$param_token);
+      if($param_token === 'XRP')
+        $mapper->addCondition('token','XRP');
+      else {
+        $param_token_ex = \explode('+',$param_token);
+        if(count($param_token_ex) == 2) {
+          if(isValidXRPAddressFormat($param_token_ex[0])) {
+            $mapper->addCondition('token',$param_token);
+          }
         }
+        unset($param_token_ex);
       }
-      unset($param_token_ex);
     }
     unset($param_token);
 
@@ -176,6 +180,7 @@ class Search
      * Caculate optimal SCAN plan
      */
     $scanplan = $this->calculateScanPlan($intersected);
+    
     //dd($scanplan);
     /**
      * Query the DyDB using $scanplan
@@ -210,34 +215,50 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
 
 
     */
-    foreach($scanplan as $txTypeNamepart => $scanplanTypeData) {
+    $pages_count = count($scanplan);
+    if($pages_count == 0) {
+      $resultCounts['page'] = 0;
+      $resultCounts['total_pages'] = 0;
+      return ['counts' => $resultCounts, 'data' => collect([])];
+    }
+    if(!isset($scanplan[$page]))
+      throw new \Exception('Page out of range');
+
+    $scanplan_page = $scanplan[$page];
+
+    //dd($conditions);
+
+    //dd($scanplan);
+    foreach($scanplan_page as $txTypeNamepart => $scanplanTypeData) {
       //$nonDefinitiveResults[$txTypeNamepart] = collect([]);
       $resultCounts['total_scanned'] += $scanplanTypeData['stats']['total_rows'];
       //$resultCounts['total_e'] = self::calcSearchEqualizer($resultCounts['total_e'],$scanplanTypeData['stats']['e']);
-      foreach($scanplanTypeData['data'] as $page => $resultStats) { //TODO Ovjde ne treba loop jer znamo koji page tocno zelimo iz parametra...
-        
-        $ledgerindex_first_range = Ledgerindex::getLedgerindexData($resultStats['ledgerindex_first']);
-        $ledgerindex_last_range = Ledgerindex::getLedgerindexData($resultStats['ledgerindex_last']);
+      
+      $ledgerindex_first_range = Ledgerindex::getLedgerindexData($scanplanTypeData['data']['ledgerindex_first']);
+      $ledgerindex_last_range = Ledgerindex::getLedgerindexData($scanplanTypeData['data']['ledgerindex_last']);
 
-        /** @var \App\Models\DTransaction */
-        $DTransactionModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
-        $query = $DTransactionModelName::where('PK', $this->address.'-'.$DTransactionModelName::TYPE);
+      /** @var \App\Models\DTransaction */
+      $DTransactionModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
+      $query = $DTransactionModelName::where('PK', $this->address.'-'.$DTransactionModelName::TYPE);
 
-        if($ledgerindex_last_range[1] == -1)
-          $query = $query->where('SK','>=',$ledgerindex_first_range[0]);
-        else
-          $query = $query->where('SK','between',[$ledgerindex_first_range[0],$ledgerindex_last_range[1] + 0.9999]);
+      //apply non-definitive conditions to $query
+      $query = $mapper->applyQueryConditions($query);
 
-        $results = $query->get();
-        
-        //TODO next page to dynamodb!
+      if($ledgerindex_last_range[1] == -1)
+        $query = $query->where('SK','>=',$ledgerindex_first_range[0]);
+      else
+        $query = $query->where('SK','between',[$ledgerindex_first_range[0],$ledgerindex_last_range[1] + 0.9999]);
+      
+      $results = $query->get();
+      
+      //TODO next page to dynamodb!
+      //dd($results,$results->lastKey(),$query->afterKey($results->lastKey())->limit(2)->all());
 
 
-        //dd($results,$results->lastKey(),$query->afterKey($results->lastKey())->limit(2)->all());
-        //$nonDefinitiveResults[$txTypeNamepart] =  $nonDefinitiveResults[$txTypeNamepart]->merge($results);
-        $nonDefinitiveResults = $nonDefinitiveResults->merge($results);
+      //$nonDefinitiveResults[$txTypeNamepart] =  $nonDefinitiveResults[$txTypeNamepart]->merge($results);
+      $nonDefinitiveResults = $nonDefinitiveResults->merge($results);
 
-      }
+     
       //Add total counts
       //foreach($definitiveResults as $v){
       //  $resultCounts['total'] += $v->count();
@@ -245,19 +266,10 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
     }
     //sort by SK
     $nonDefinitiveResults = $nonDefinitiveResults->sortByDesc('SK');
-    
-    //apply paginator
-    $limit = config('xwa.max_search_results_per_page');
-    $skip = ($page * $limit) - $limit;
-    $nonDefinitiveResultsPart = $nonDefinitiveResults->skip($skip)->take($limit)->values();
-    
+
     $resultCounts['page'] = $page;
-    $resultCounts['total_pages'] = (int)\ceil($resultCounts['total_scanned']/$limit);
-    if($resultCounts['total_pages'] < 1) $resultCounts['total_pages'] = 1;
-    if($page > $resultCounts['total_pages'])
-      throw new \Exception('Page out of range');
-   
-    return ['counts' => $resultCounts, 'data' => $nonDefinitiveResultsPart];
+    $resultCounts['total_pages'] = $pages_count;
+    return ['counts' => $resultCounts, 'data' => $nonDefinitiveResults];
   }
 
   /**
@@ -266,7 +278,7 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
    */
   private function checkIfCacheFileExists(string $searchIdentifier, int $page, string $filepath): bool
   {
-    $cachekey = 'searchcacheexist:'.$searchIdentifier.'_'.config('xwa.max_search_results_per_page').'_'.$page;
+    $cachekey = 'searchcacheexist:'.$searchIdentifier.'_'.config('xwa.paginator_breakpoint').'_'.$page;
     if (Cache::has($cachekey)) {
       return true;
     }
@@ -290,7 +302,7 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
     }
     if($what == 'all' || $what == 'fileexistanceflag') {
       if(!isset($searchIdentifier)) $searchIdentifier = $this->getSearchIdentifier();
-      $searchcacheexistKey = 'searchcacheexist:'.$searchIdentifier.'_'.config('xwa.max_search_results_per_page').'_'.$page;
+      $searchcacheexistKey = 'searchcacheexist:'.$searchIdentifier.'_'.config('xwa.paginator_breakpoint').'_'.$page;
       // remove file flag from cache
       Cache::forget($searchcacheexistKey);
     }
@@ -301,7 +313,7 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
    */
   private function searchIdentifierToFilepath(string $searchIdentifier, $page = 1)
   {
-    return config('xwa.searchcachedir').'/'.\strtolower(\substr($searchIdentifier,0,3)).'/'.$searchIdentifier.'_'.config('xwa.max_search_results_per_page').'_'.$page;
+    return config('xwa.searchcachedir').'/'.\strtolower(\substr($searchIdentifier,0,3)).'/'.$searchIdentifier.'_'.config('xwa.paginator_breakpoint').'_'.$page;
   }
 
   /**
@@ -318,7 +330,12 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
       try{
         $data = $this->_execute_real($page);
       } catch (\Throwable $e) {
-        $this->errors[] = $e->getMessage().' on line '.$e->getLine().' on line '.$e->getLine(). ' in file '.$e->getFile();
+        if(config('app.debug')) {
+          $this->errors[] = $e->getMessage().' on line '.$e->getLine().' on line '.$e->getLine(). ' in file '.$e->getFile();
+          \Log::debug($e);
+        }
+        else
+          $this->errors[] = $e->getMessage();
         return $this;
       }
       
@@ -338,7 +355,12 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
         try{
           $data = $this->_execute_real($page);
         } catch (\Throwable $e) {
-          $this->errors[] = $e->getMessage().' on line '.$e->getLine(). ' in file '.$e->getFile();
+          if(config('app.debug')) {
+            $this->errors[] = $e->getMessage().' on line '.$e->getLine().' on line '.$e->getLine(). ' in file '.$e->getFile();
+            \Log::debug($e);
+          }
+          else
+            $this->errors[] = $e->getMessage();
           return $this;
         }
         # Save this $data to S3
@@ -366,7 +388,12 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
           try{
             $data = $this->_execute_real($page);
           } catch (\Throwable $e) {
-            $this->errors[] = $e->getMessage().' on line '.$e->getLine(). ' in file '.$e->getFile();
+            if(config('app.debug')) {
+              $this->errors[] = $e->getMessage().' on line '.$e->getLine().' on line '.$e->getLine(). ' in file '.$e->getFile();
+              \Log::debug($e);
+            }
+            else
+              $this->errors[] = $e->getMessage();
             return $this;
           }
         }
@@ -459,7 +486,7 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
    */
   public static function getPaginatorBreakpoint(): int
   {
-    return 500;
+    return config('xwa.paginator_breakpoint');
   }
 
   /**
@@ -471,8 +498,6 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
    */
   public function calculateScanPlan(array $data): array
   {
-   
-   // dd($data);
     # Eject zero edges
     # - removes items with zero (0) 'found' param left and right, until cursor reaches filled item
 
@@ -483,7 +508,6 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
         if(!$counts['found']) unset($l_fwd[$ledgerindexID]);
         else break; //stop inner loop
       }
-
       $l_rew = \array_reverse($l_fwd,true);
       unset($l_fwd);
       foreach($l_rew as $ledgerindexID => $counts) {
@@ -500,17 +524,9 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
     unset($txTypeNamepart);
     unset($l);
     unset($l_fwd);
-    
-    # Calculate batch ranges of SCAN query which will not span more than 1000 items (max 1kb items from db)
-    # - DyDB QUERY/SCAN operation will paginate after 1MB retrieved data, this should avoid this pagination
-    # - QUERY/SCAN is sorted by SK (sort key, eg ledger_index.transaction_index), if there is very large number of 
-    #   results and zero found results, it is safe to split to next query and skip group of ledger indexes
-    #   Tradeoff is second query to DyDb, and benefit is no heavy/slow SCAN operation execution.
 
     $breakpoint = self::getPaginatorBreakpoint();
-    //$breakpoint = 10;
 
-    ##
     $_calc = [];
     $_flat_ledgerindexesIds = [];
     foreach($data as $txTypeNamepart => $v) {
@@ -527,12 +543,12 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
         $_calc_c += $counts['found'];
       }
     }
+    \ksort($_flat_ledgerindexesIds,SORT_NUMERIC);
     unset($_calc_c);
     unset($_calc_offset);
     unset($counts);
     unset($ledgerIndexID);
     unset($txTypeNamepart);
-
     $maxes = [];
     $lastpage = 1;
     foreach($_flat_ledgerindexesIds as $li => $foo)
@@ -544,17 +560,8 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
         }
       }
     }
-    /*dd($maxes);
-    $maxes = [];
-    $maxes_l = [];
-    foreach($_calc as $txTypeNamepart => $v) {
-      $lastpage = 1;
-      foreach($v as $ledgerIndexID => $foundCPage) {
-        $lastpage = \max($foundCPage['page'],$lastpage);
-        $maxes[$ledgerIndexID][$txTypeNamepart] = $lastpage;
-      }
-    }
-    dd($maxes);*/
+    unset($li);
+    unset($lastpage);
     unset($_calc);
     unset($_flat_ledgerindexesIds);
 
@@ -587,8 +594,6 @@ http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT3
     }
 
     return $tracker;
-    //dd($tracker,$ledgerIndexIdPages,$maxes);
-
   }
 
   private function _generateSearchIndentifier(array $params): string

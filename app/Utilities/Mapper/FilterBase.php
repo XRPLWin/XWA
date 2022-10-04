@@ -41,4 +41,14 @@ abstract class FilterBase implements FilterInterface {
   {
     return $param;
   }
+
+  /**
+   * Adds WHERE conditions to query builder if any.
+   * @return \BaoPham\DynamoDb\DynamoDbQueryBuilder
+   */
+  public function applyQueryCondition(\BaoPham\DynamoDb\DynamoDbQueryBuilder $query, ...$params)
+  {
+    throw new \Exception('Not implemented');
+    //return $query;
+  }
 }

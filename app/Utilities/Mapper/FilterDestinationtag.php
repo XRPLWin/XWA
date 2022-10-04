@@ -101,7 +101,7 @@ class FilterDestinationtag extends FilterBase {
         else
           $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
           
-        $DModelTxCount = $DModelTxCount->where('dt', 'begins_with',$FirstFewLetters) //check value presence (in attribute always does not exists if out)
+        $DModelTxCount = $this->applyQueryCondition($DModelTxCount,$FirstFewLetters)
           //->toDynamoDbQuery()
           ->count();
 
@@ -120,6 +120,15 @@ class FilterDestinationtag extends FilterBase {
     }
     
     return $r;
+  }
+
+  /**
+   * Adds WHERE conditions to query builder if any.
+   * @return \BaoPham\DynamoDb\DynamoDbQueryBuilder
+   */
+  public function applyQueryCondition(\BaoPham\DynamoDb\DynamoDbQueryBuilder $query, ...$params)
+  {
+    return $query->where('dt', 'begins_with',$params[0]);
   }
 
   /**

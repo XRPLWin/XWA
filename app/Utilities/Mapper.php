@@ -156,7 +156,6 @@ class Mapper
       unset($Filter);
       //echo 'DIROUT: ';dump($foundLedgerIndexesIds);
     }
-
     if(isset($this->conditions['token'])) {
       $Filter = new Mapper\FilterToken($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
@@ -165,7 +164,6 @@ class Mapper
     }
     
     if(isset($this->conditions['cp'])) {
-    
       $Filter = new Mapper\FilterCounterparty($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
@@ -190,6 +188,40 @@ class Mapper
     //echo 'END';
     //dd($foundLedgerIndexesIds);
     return $foundLedgerIndexesIds;
+  }
+
+  public function applyQueryConditions(\BaoPham\DynamoDb\DynamoDbQueryBuilder $query) 
+  {
+    if(isset($this->conditions['dir']) && $this->conditions['dir'] == 'in') {
+      $Filter = new Mapper\FilterIn($this->address,$this->conditions);
+      $query = $Filter->applyQueryCondition($query);
+    }
+    elseif(isset($this->conditions['dir']) && $this->conditions['dir'] == 'out') {
+      $Filter = new Mapper\FilterOut($this->address,$this->conditions,[]);
+      $query = $Filter->applyQueryCondition($query);
+    }
+
+    if(isset($this->conditions['token'])) {
+      $Filter = new Mapper\FilterToken($this->address,$this->conditions,[]);
+      $query = $Filter->applyQueryCondition($query, Mapper\FilterToken::parseToNonDefinitiveParam($this->conditions['token']));
+    }
+
+    if(isset($this->conditions['cp'])) {
+      $Filter = new Mapper\FilterCounterparty($this->address,$this->conditions,[]);
+      $query = $Filter->applyQueryCondition($query, Mapper\FilterCounterparty::parseToNonDefinitiveParam($this->conditions['cp']));
+    }
+
+    if(isset($this->conditions['dt'])) {
+      $Filter = new Mapper\FilterDestinationtag($this->address,$this->conditions,[]);
+      $query = $Filter->applyQueryCondition($query, Mapper\FilterDestinationtag::parseToNonDefinitiveParam($this->conditions['dt']));
+    }
+
+    if(isset($this->conditions['st'])) {
+      $Filter = new Mapper\FilterSourcetag($this->address,$this->conditions,[]);
+      $query = $Filter->applyQueryCondition($query, Mapper\FilterSourcetag::parseToNonDefinitiveParam($this->conditions['st']));
+    }
+
+    return $query;
   }
   
   /**

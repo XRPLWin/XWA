@@ -35,12 +35,12 @@ return [
 
   /*
   |--------------------------------------------------------------------------
-  | Max search transactions per request
+  | Paginator breakpoint
   |--------------------------------------------------------------------------
   |
-  | How much results one request can serve max, before paginating.
+  | How much results one request can pulll per txType, before paginating.
   */
-  'max_search_results_per_page' => 10000, //10000
+  'paginator_breakpoint' => 500, //500
   
 
 ];

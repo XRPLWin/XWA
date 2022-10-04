@@ -90,7 +90,7 @@ class FilterOut extends FilterBase {
         else
           $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
 
-        $DModelTxCount = $DModelTxCount->whereNull('in') //check value presence (in attribute always does not exists if out)
+        $DModelTxCount = $this->applyQueryCondition($DModelTxCount) //check value presence (in attribute always does not exists if out)
           //->toDynamoDbQuery()
           ->count();
   
@@ -120,6 +120,15 @@ class FilterOut extends FilterBase {
   {
     if(!isset($item->in)) return true;
     return (isset($item->in) && !$item->in);
+  }
+
+  /**
+   * Adds WHERE conditions to query builder if any.
+   * @return \BaoPham\DynamoDb\DynamoDbQueryBuilder
+   */
+  public function applyQueryCondition(\BaoPham\DynamoDb\DynamoDbQueryBuilder $query, ...$params)
+  {
+    return $query->whereNull('in');
   }
 
 }
