@@ -11,7 +11,52 @@ class MainController extends Controller
 {
     public function test()
     {
+        /*$model = new \App\Models\DTransactionPayment;
+
+        $raw = $model->toDynamoDbQuery(['count(*)']);
+      
+        $r = $model->scan($raw);
+        dd($raw,$r);*/
+    
         
+        $count1 = new \App\Models\DTransactionPayment;
+        $count1 = $count1->where('PK','rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh-1')->where('SK', 'between', [35470456,35496119.9999])->where('r','123');
+        $count1Result = $count1->pagedCount();
+
+        $count2 = $count1->setExclusiveStartKey($count1Result->lastKey);
+        $count2Result = $count2->pagedCount();
+
+        $count3 = $count1->setExclusiveStartKey($count2Result->lastKey);
+        $count3Result = $count3->pagedCount();
+
+        dd($count1Result,$count2Result,$count3Result);
+        //$test = $count->prepare();
+        //dd($test->get(['count(*)']));
+        //dd($count->toDynamoDbQuery(),$count->toDynamoDbQuery()->query);
+        //$last = $count->last();
+        $test = $count->all(['count(*)']);
+        dd($test);
+        $nextPage = $count->after($test->last())->limit(2)->all();
+
+        dd($test,$nextPage);
+        dd('--',$count->count(),$count->get(['count(*)']),$count->toDynamoDbQuery());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        return;
         $client = app(Client::class);
 
         $lc = new LiquidityCheck([
