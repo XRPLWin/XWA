@@ -4,8 +4,8 @@ namespace App\Models;
 
 #use Illuminate\Database\Eloquent\Model;
 #use Kitar\Dynamodb\Model\Model;
-use BaoPham\DynamoDb\DynamoDbModel;
-
+#use BaoPham\DynamoDb\DynamoDbModel;
+use App\Override\DynamoDb\XWDynamoDbModel;
 
 /**
  * DynamoDB Transaction model.
@@ -14,7 +14,7 @@ use BaoPham\DynamoDb\DynamoDbModel;
  * For payment       PK: rAcct-1   SK: <INT>
  * For trustset      PK: rAcct-2   SK: <INT> ...
  */
-class DTransaction extends DynamoDbModel
+class DTransaction extends XWDynamoDbModel
 {
   const TYPE = 0;
   const CONTEXT_DEFAULT = false;
