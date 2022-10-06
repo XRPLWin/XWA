@@ -182,7 +182,7 @@ class Search
      */
     $scanplan = $this->calculateScanPlan($intersected);
     
-    dd($scanplan);
+    //dd($scanplan);
     /**
      * Query the DyDB using $scanplan
      */
@@ -203,6 +203,7 @@ class Search
     http://xlanalyzer-ui.test/account/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh/search?types%5B%5D=Payment&from=2016-01-01&to=2018-02-28&st=&dt=&cp=&token=&dir=
     http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31?from=2021-12-01&to=2021-12-31
 
+    /v1/account/search/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?from=2018-01-01&to=2018-01-31&dir=in&page=1&cp=rJb5KsHsDHF1YS5B5DU6QCkH5NsPaKQTcy
 
 
     */
@@ -240,17 +241,17 @@ class Search
       else
         $query = $query->where('SK','between',[$ledgerindex_first_range[0],$ledgerindex_last_range[1] + 0.9999]);
       
-      dump($query->toDynamoDbQuery());
+      //dump($query->toDynamoDbQuery());
       $results = $query->get();
       //dd($results);
 
-      $j = 1;
+     /* $j = 1;
       foreach($results as $r )
       {
         echo $j.' '.($r->SK).'<br>';
         $j++;
       }
-      exit;
+      exit;*/
       
       //TODO next page to dynamodb!
       //dd($results,$results->lastKey(),$query->afterKey($results->lastKey())->limit(2)->all());
@@ -264,7 +265,7 @@ class Search
       //  $resultCounts['total'] += $v->count();
       //}
     }
-    dd($results->last());
+    //dd($results->last());
     //sort by SK
     $nonDefinitiveResults = $nonDefinitiveResults->sortByDesc('SK');
     $resultCounts['page'] = $page;
@@ -530,6 +531,71 @@ class Search
   }
 
   /**
+   * Takes 123.03 and converts to 123103000
+   * Another example is 35484942.028 to 35484942102800
+   * @return array ['value' => STRING, 'count' => INT ]
+   */
+  private function calculateScanPlan_Explode_DecToInt_data(string $bp): array
+  {
+    $bp = \explode('-',$bp);
+    $ex = \explode('.', $bp[0]);
+    if(!isset($ex[1])) {
+      $ex[1] = '0';
+    }
+    $ex[1] = \str_pad( '1'.$ex[1],6,'0',STR_PAD_RIGHT);
+    return ['value' => $ex[0].$ex[1], 'count' => (int)$bp[1]];
+  }
+
+  /**
+   * Explodes large ledger indexes to smaller chunks via breakpoints.
+   */
+  private function calculateScanPlan_Explode(array $data): array
+  {
+    $new = [];
+    foreach($data as $txTypeNamepart => $l) {
+      $new[$txTypeNamepart] = [];
+      foreach($l as $ledgerindexID => $counts) {
+        // add primary row
+        $total_count = $counts['total'];
+        $new[$txTypeNamepart][$ledgerindexID] = [
+          'total' => null,
+          'found' => null,
+          'e' => $counts['e']
+        ];
+        if($counts['breakpoints'] !== '')
+        {
+          //add additional rows
+          $breakpoints = \explode('|', $counts['breakpoints']);
+          $lastcount = null;
+          foreach($breakpoints as $bp) {
+            $bpdectoint_data = $this->calculateScanPlan_Explode_DecToInt_data($bp);
+            
+            if($new[$txTypeNamepart][$ledgerindexID]['total'] === null)
+              $new[$txTypeNamepart][$ledgerindexID]['total'] = $new[$txTypeNamepart][$ledgerindexID]['found'] = $bpdectoint_data['count'];
+           // dd($bpdectoint_data['count']);
+            $new[$txTypeNamepart][(string)($ledgerindexID.'.'.$bpdectoint_data['value'])] = [
+              'total' => $lastcount, 'found' => $lastcount, 'e' => 'eq'
+            ];
+
+            $lastcount = $bpdectoint_data['count'];
+          }
+          //$ledgerindexIDSecond = $ledgerindexID;
+          //$new[$txTypeNamepart][];
+        }
+
+        if($new[$txTypeNamepart][$ledgerindexID]['total'] === null) {
+          $new[$txTypeNamepart][$ledgerindexID]['total'] = $counts['total'];
+          $new[$txTypeNamepart][$ledgerindexID]['found'] = $counts['found'];
+        }
+          
+      }
+    }
+    \ksort($new,SORT_NUMERIC);
+    //dd($new);
+    return $new;
+  }
+
+  /**
    * This function takes intersected array and returns optimal
    * query SCAN plan which will be executed against DyDB
    * Large ledger days are split to smaller chunks which adds to number of pages,
@@ -539,6 +605,10 @@ class Search
    */
   public function calculateScanPlan(array $data): array
   {
+    # Explode inner pages
+    $data = $this->calculateScanPlan_Explode($data);
+
+    dd($data);
     # Eject zero edges
     # - removes items with zero (0) 'found' param left and right, until cursor reaches filled item
     $newData = [];

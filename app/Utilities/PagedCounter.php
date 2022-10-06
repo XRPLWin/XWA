@@ -63,8 +63,9 @@ class PagedCounter
       $r = self::countWithBreakpoints($queryBuilder,null,['SK','N']);
       $breakpoints = '';
       foreach($r['breakpoints'] as $bp) {
-        //$key = \key($bp[0]); $breakpoints .= $key.'-'.$bp[0][$key].'|';
-        $breakpoints .= \key($bp[0]).'|';
+        $key = \key($bp[0]);
+        $breakpoints .= $key.'-'.$bp[0][$key].'|';
+        //$breakpoints .= \key($bp[0]).'|';
       }
       $breakpoints = \rtrim($breakpoints,'|');
 

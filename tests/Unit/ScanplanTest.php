@@ -17,6 +17,39 @@ class ScanplanTest extends TestCase
 		$this->createApplication();
 	}
 
+  public function test_numeric_ledgerindexes_decimal_sorting()
+  {
+    $a = [
+      '1827' => 1,
+      '1827.10' => 1,
+      '1827.11000' => 1,
+      '1827.111' => 1,
+      '1827.2' => 1,
+      '1827.22' => 1,
+      '10' => 1,
+      '11' => 1,
+      '111' => 1,
+      '2' => 1,
+      '22' => 1,
+    ];
+
+    \ksort($a,SORT_NUMERIC);
+
+    $this->assertEquals([
+      '2' => 1,
+      '10' => 1,
+      '11' => 1,
+      '22' => 1,
+      '111' => 1,
+      '1827' => 1,
+      '1827.10' => 1,
+      '1827.11000' => 1,
+      '1827.111' => 1,
+      '1827.2' => 1,
+      '1827.22' => 1,
+    ], $a);
+  }
+
   public function test_scanplan_paginator_single_page(): void
 	{
     $address = 'rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4';
