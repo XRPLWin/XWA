@@ -176,12 +176,13 @@ class Search
      */
     
     $intersected = $mapper->getIntersectedLedgerindexes();
+    //dd($intersected);
     /**
      * Caculate optimal SCAN plan
      */
     $scanplan = $this->calculateScanPlan($intersected);
     
-    //dd($scanplan);
+    dd($scanplan);
     /**
      * Query the DyDB using $scanplan
      */
@@ -582,6 +583,7 @@ class Search
       }
     }
     \ksort($_flat_ledgerindexesIds,SORT_NUMERIC);
+    //dd($_flat_ledgerindexesIds);
     unset($_calc_c);
     unset($_calc_offset);
     unset($counts);
@@ -598,6 +600,7 @@ class Search
         }
       }
     }
+    //dd($maxes);
     unset($li);
     unset($lastpage);
     unset($_calc);
@@ -612,15 +615,16 @@ class Search
     //dd($ledgerIndexIdPages,$data);
     foreach($ledgerIndexIdPages as $ledgerIndexID => $page) {
       foreach($data as $txTypeNamepart => $li_totals) {
-
+        
         if(!isset($li_totals[$ledgerIndexID]))
-          continue; //continue on inner loop
-
+          continue; //continue inner loop
+        
+          //dd($li_totals[$ledgerIndexID]);
         if(!isset($tracker[$page][$txTypeNamepart]['stats']))
-          $tracker[$page][$txTypeNamepart]['stats'] = ['total_rows' => 0, 'e' => 'eq' ];
+          $tracker[$page][$txTypeNamepart]['stats'] = ['total_rows' => 0, 'e' => 'eq'];
 
         if(!isset($tracker[$page][$txTypeNamepart]['data']))
-          $tracker[$page][$txTypeNamepart]['data'] = ['total' => 0, 'llist' => []];
+          $tracker[$page][$txTypeNamepart]['data'] = ['total' => 0, 'llist' => []/*, 'breakpoints' => ''*/];
 
         $tracker[$page][$txTypeNamepart]['data']['total'] += $li_totals[$ledgerIndexID]['total'];
         $tracker[$page][$txTypeNamepart]['stats']['total_rows']  += $li_totals[$ledgerIndexID]['total'];
@@ -629,9 +633,11 @@ class Search
 
         $tracker[$page][$txTypeNamepart]['data']['ledgerindex_first'] = $tracker[$page][$txTypeNamepart]['data']['llist'][0];
         $tracker[$page][$txTypeNamepart]['data']['ledgerindex_last'] = $tracker[$page][$txTypeNamepart]['data']['llist'][count($tracker[$page][$txTypeNamepart]['data']['llist'])-1];
+
+        //$tracker[$page][$txTypeNamepart]['data']['breakpoints'] = $li_totals[$ledgerIndexID]['breakpoints'];
       }
     }
-
+    //dd($tracker);
     return $tracker;
   }
 

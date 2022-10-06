@@ -50,12 +50,12 @@ class FilterCounterparty extends FilterBase {
       $r[$txTypeNamepart] = [];
       if(isset($this->foundLedgerIndexesIds[$txTypeNamepart])) {
         foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq', 'breakpoints' => $countTotalReduced['breakpoints']];
           if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
           
           $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $FirstFewLetters);
           if($count > 0) { //has transactions
-            $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'lte')];
+            $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'lte'), 'breakpoints' => $countTotalReduced['breakpoints']];
           }
           unset($count);
         }
@@ -103,16 +103,20 @@ class FilterCounterparty extends FilterBase {
           $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
 
 
-        $DModelTxCount = $this->applyQueryCondition($DModelTxCount,$FirstFewLetters)
+        $DModelTxCount = $this->applyQueryCondition($DModelTxCount,$FirstFewLetters);
           //->toDynamoDbQuery()
-          ->count();
+          //->count();
+
+        $count = \App\Utilities\PagedCounter::count($DModelTxCount);
 
         $map = new Map;
         $map->address = $this->address;
         $map->ledgerindex_id = $ledgerindex;
         $map->txtype = $DModelName::TYPE;
         $map->condition = $cond;
-        $map->count_num = $DModelTxCount;
+        $map->count_num = $count;
+        $map->breakpoints = '';
+        //$map->breakpoints = $count['breakpoints'];
         $map->created_at = now();
         $map->save();
       }

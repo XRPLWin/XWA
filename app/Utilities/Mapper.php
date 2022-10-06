@@ -127,12 +127,12 @@ class Mapper
       //dd( $ledgerindex);
       if($ledgerindex) {
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
-          $count = $this->fetchAllCount($ledgerindex, $txTypeNamepart);
-
-          if($count > 0) { //has transactions
-            $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex] = ['total' => $count, 'found' => $count, 'e' => 'eq']; //[total, reduced, eq (equalizer eq|lte)]
+          $countWithBreakpoints = $this->fetchAllCount($ledgerindex, $txTypeNamepart);
+          //dd($countWithBreakpoints[0]);
+          if($countWithBreakpoints[0] > 0) { //has transactions
+            $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex] = ['total' => $countWithBreakpoints[0], 'found' => $countWithBreakpoints[0], 'e' => 'eq', 'breakpoints' => $countWithBreakpoints[1]]; //[total, reduced, eq (equalizer eq|lte)]
           }
-          unset($count);
+          unset($countWithBreakpoints);
         }
       } else {
         //something went wrong... or out of scope
@@ -171,7 +171,6 @@ class Mapper
     }
 
     if(isset($this->conditions['dt'])) {
-      
       $Filter = new Mapper\FilterDestinationtag($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
@@ -179,7 +178,6 @@ class Mapper
     }
 
     if(isset($this->conditions['st'])) {
-      
       $Filter = new Mapper\FilterSourcetag($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
@@ -230,24 +228,24 @@ class Mapper
    * Appliable to ALL transaction types.
    * @param int $ledgerindex - id from ledgerindexes table
    * @param string $txTypeNamepart - \App\Models\DTransaction<NAMEPART>
-   * @return int transactions count
+   * @return array [ int transaction count, string breakpoints ]
    */
-  private function fetchAllCount(int $ledgerindex, string $txTypeNamepart): int
+  private function fetchAllCount(int $ledgerindex, string $txTypeNamepart): array
   {
     $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
 
     $cache_key = 'mpr'.$this->address.'_all_'.$ledgerindex.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
-    $r = null;
+    //$r = null; //TODO remove
     if($r === null) {
-      $map = Map::select('id','condition','count_num'/* ,count_indicator */)
+      $map = Map::select('count_num','breakpoints')
         ->where('address', $this->address)
         ->where('ledgerindex_id',$ledgerindex)
         ->where('txtype',$DModelName::TYPE)
         ->where('condition','all')
         ->first();
        
-      $map = null;
+      //$map = null; //TODO remove
       if(!$map)
       {
         //no records found, query DyDB for this day, for this type and save
@@ -258,33 +256,34 @@ class Mapper
           throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
           //return 0; //something went wrong
         }
-        $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
+        $query = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
         if($li[1] == -1) //latest
-          $DModelTxCount = $DModelTxCount->where('SK','>=',$li[0]);
+          $query = $query->where('SK','>=',$li[0]);
         else
-          $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
-        //dd($DModelTxCount);
-        //dump($DModelTxCount->toDynamoDbQuery());
-        //dd($DModelTxCount,$DModelTxCount->lastKey(),$DModelTxCount->afterKey($DModelTxCount->lastKey())->limit(2)->all());
-        $DModelTxCount = $DModelTxCount->count();
-
+          $query = $query->where('SK','between',[$li[0],$li[1] + 0.9999]);
+        //dd($query);
+        //dump($query->toDynamoDbQuery());
+        //dd($query,$query->lastKey(),$query->afterKey($DModelTxCount->lastKey())->limit(2)->all());
         
-        dump($DModelTxCount);
-        //dd($DModelTxCount,$this->address.'-'.$DModelName::TYPE,[$li->ledger_index_first,$li->ledger_index_last + 0.9999]);
-  
+        /**
+         * Get count and Sort Key breakpoints used for counting pages within one ledger day:
+         */
+        $countWithBreakpoints = \App\Utilities\PagedCounter::countAndReturnBreakpointsForTransacitons($query);
+        
         $map = new Map;
         $map->address = $this->address;
         $map->ledgerindex_id = $ledgerindex;
         $map->txtype = $DModelName::TYPE;
         $map->condition = 'all';
-        $map->count_num = $DModelTxCount;
+        $map->count_num = $countWithBreakpoints['count'];
+        $map->breakpoints = $countWithBreakpoints['breakpoints'];
         //$map->count_indicator = '='; //indicates that count is exact (=)
-        $map->created_at = now();
+        $map->created_at = now(); //TODO do not use now(), use \date() to improve performance
         $map->save();
       }
   
-      $r = $map->count_num;
-      Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
+      $r = [$map->count_num, $map->breakpoints];
+      Cache::put($cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     
     return $r;

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('condition',100);
             $table->unsignedTinyInteger('txtype'); //transactiontype
             $table->unsignedInteger('count_num');
+            $table->text('breakpoints');
             //$table->char('count_indicator',1);
             $table->timestamp('created_at');
             //$table->
