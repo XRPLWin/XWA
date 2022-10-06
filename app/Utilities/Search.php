@@ -532,9 +532,10 @@ class Search
   /**
    * This function takes intersected array and returns optimal
    * query SCAN plan which will be executed against DyDB
+   * Large ledger days are split to smaller chunks which adds to number of pages,
+   * limit of those smaller chunks are extracted from DyDB paged count on ledger day (cached).
    * @param array $data - final intersected array of transaction counts
-   * @return array [txTypeNamepart => [ QUERY_ITERATION => [int total, int ledgerindex_first, int ledgerindex_last] ] ]
-   *  ledgerindex_last = 'id' from local db table ledgerindexes
+   * @return array [PAGE => [ txTypeNamepart => [ array stats, array data ] ] ]
    */
   public function calculateScanPlan(array $data): array
   {
