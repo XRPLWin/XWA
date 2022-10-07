@@ -40,12 +40,13 @@ class FilterOut extends FilterBase {
       $r[$txTypeNamepart] = [];
       if(isset($this->foundLedgerIndexesIds[$txTypeNamepart])) {
         foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq', 'breakpoints' => $countTotalReduced['breakpoints']];
+          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
           if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
+          $ledgerindexEx = $this->explodeLedgerindex($ledgerindex);
+          $count = $this->fetchCount($ledgerindexEx[0], $ledgerindexEx[1], $txTypeNamepart, $countTotalReduced['first'], $countTotalReduced['next']);
 
-          $count = $this->fetchCount($ledgerindex, $txTypeNamepart);
           if($count > 0) { //has transactions
-            $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'eq'), 'breakpoints' => $countTotalReduced['breakpoints']];
+            $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'eq')];
           }
           unset($count);
         }
@@ -59,16 +60,18 @@ class FilterOut extends FilterBase {
     return 'dirout';
   }
 
-  private function fetchCount(int $ledgerindex, string $txTypeNamepart): int
+  private function fetchCount(int $ledgerindex, int $subpage, string $txTypeNamepart, ?string $first_exclusive, ?string $nextSK): int
   {
     $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
     $cond = $this->conditionName();
-    $cache_key = 'mpr'.$this->address.'_'.$cond.'_'.$ledgerindex.'_'.$DModelName::TYPE;
+    $cache_key = 'mpr'.$this->address.'_'.$cond.'_'.$ledgerindex.'_'.$subpage.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
+
     if($r === null) {
       $map = Map::select('count_num')
         ->where('address', $this->address)
         ->where('ledgerindex_id',$ledgerindex)
+        ->where('page',$subpage)
         ->where('txtype',$DModelName::TYPE)
         ->where('condition',$cond)
         ->first();
@@ -91,18 +94,29 @@ class FilterOut extends FilterBase {
           $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
 
         $DModelTxCount = $this->applyQueryCondition($DModelTxCount); //check value presence (in attribute always does not exists if out)
-          //->toDynamoDbQuery()
-          //->count();
-        $count = \App\Utilities\PagedCounter::count($DModelTxCount);
+
+        if($first_exclusive !== null)
+          $DModelTxCount->afterKey(['PK' => $this->address.'-'.$DModelName::TYPE, 'SK' => (float)$first_exclusive]);
+
+        $count = $DModelTxCount->pagedCount();
+
+        # Sanity check start
+        if($count->lastKey) {
+          if($count->lastKey['SK']['N'] != $nextSK)
+            throw new \Exception('Critical error: page count in filter returned lastKey evaluation which does not match inherited next SK');
+        } else {
+          if($nextSK !== null)
+            throw new \Exception('Critical error: page count in filter did not returned lastKey evaluation which does not match inherited next SK');
+        }
+        # Sanity check end
         
         $map = new Map;
         $map->address = $this->address;
         $map->ledgerindex_id = $ledgerindex;
         $map->txtype = $DModelName::TYPE;
         $map->condition = $cond;
-        $map->count_num = $count;
-        $map->breakpoints = '';
-        //$map->breakpoints = $count['breakpoints'];
+        $map->count_num = $count->count;
+        $map->page = $subpage;
         $map->created_at = now();
         $map->save();
       }

@@ -17,10 +17,14 @@ return new class extends Migration
             $table->id();
             $table->string('address', 35);
             $table->foreignId('ledgerindex_id')->constrained('ledgerindexes')->onDelete('CASCADE')->onUpdate('CASCADE');
+            $table->smallInteger('page')->default(1); //default first page
+            $table->string('first_exclusive')->nullable()->default(null); //exclusive SK
+            $table->string('next')->nullable()->default(null); //ledgerindex.transactionindex (last evaluated) - for building query for next page
             $table->string('condition',100);
             $table->unsignedTinyInteger('txtype'); //transactiontype
             $table->unsignedInteger('count_num');
-            $table->text('breakpoints');
+            
+            //$table->text('breakpoints');
             //$table->char('count_indicator',1);
             $table->timestamp('created_at');
             //$table->

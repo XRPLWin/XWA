@@ -57,6 +57,7 @@ class PagedCounter
 
     /**
      * Specific function for counting dynamodb XRPL Transactions.
+     * @deprecated
      */
     public static function countAndReturnBreakpointsForTransacitons(DynamoDbQueryBuilder $queryBuilder): array
     {

@@ -51,4 +51,16 @@ abstract class FilterBase implements FilterInterface {
     throw new \Exception('Not implemented');
     //return $query;
   }
+
+  /**
+   * @param string $ledgerindexwithpage - 1827.0020
+   * @return array [ (int)1827, (int)20]
+   */
+  protected function explodeLedgerindex(string $ledgerindexwithpage): array
+  {
+    $ex = \explode('.',$ledgerindexwithpage);
+    $ledgerindex = (int)$ex[0];
+    $subpage = (int)(\ltrim($ex[1]));
+    return [$ledgerindex,$subpage];
+  }
 }

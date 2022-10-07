@@ -127,22 +127,46 @@ class Mapper
       //dd( $ledgerindex);
       if($ledgerindex) {
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
-          $countWithBreakpoints = $this->fetchAllCount($ledgerindex, $txTypeNamepart);
-          //dd($countWithBreakpoints[0]);
-          if($countWithBreakpoints[0] > 0) { //has transactions
-            $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex] = ['total' => $countWithBreakpoints[0], 'found' => $countWithBreakpoints[0], 'e' => 'eq', 'breakpoints' => $countWithBreakpoints[1]]; //[total, reduced, eq (equalizer eq|lte)]
+          $page = 1;
+          $next = null;
+          $do = true;
+          while($do) {
+            //if($next) dd($ledgerindex, $txTypeNamepart, $page, $next);
+            $countWithNext = $this->fetchAllCount($ledgerindex, $txTypeNamepart, $page, $next); //first page
+            if($countWithNext[0] > 0) { //has transactions
+              $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex.'.'.\str_pad($page,4,'0',STR_PAD_LEFT)] = ['total' => $countWithNext[0], 'found' => $countWithNext[0], 'e' => 'eq', 'first' =>  $countWithNext[1], 'next' => $countWithNext[2]]; //[total, reduced, eq (equalizer eq|lte)]
+            } else {
+              //Sanity check:
+              //if no transactions on first page then wont be on next pages (no next pages)
+              if($countWithNext[2] !== null)
+                throw new \Exception('Critical error: page count returned zero results but lastKey is evaluated');
+            }
+            //if($page == 4)
+            //  dd($countWithNext);
+
+            if($countWithNext[2] === null) {
+              //no more next pages
+              $do = false;
+              //dump('DO = false');
+            } else {
+              $page++;
+              $next = $countWithNext[2];
+              //dd($countWithNext,$next);
+            }
+            
+            unset($countWithNext);
           }
-          unset($countWithBreakpoints);
+          unset($page);
+          unset($next);
         }
       } else {
         //something went wrong... or out of scope
-        throw new \Exception('Mapper count failed');
+        throw new \Exception('Mapper count failed due to missing ledgerindex for day');
       }
-    
     }
     
     # Phase 2 OPTIONAL CONDITIONS REDUCER:
-    //dump($foundLedgerIndexesIds);
+    //dd($foundLedgerIndexesIds);
     
     if(isset($this->conditions['dir']) && $this->conditions['dir'] == 'in') {
       $Filter = new Mapper\FilterIn($this->address,$this->conditions,$foundLedgerIndexesIds);
@@ -156,6 +180,7 @@ class Mapper
       unset($Filter);
       //echo 'DIROUT: ';dump($foundLedgerIndexesIds);
     }
+    dd('stop');
     if(isset($this->conditions['token'])) {
       $Filter = new Mapper\FilterToken($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
@@ -228,24 +253,26 @@ class Mapper
    * Appliable to ALL transaction types.
    * @param int $ledgerindex - id from ledgerindexes table
    * @param string $txTypeNamepart - \App\Models\DTransaction<NAMEPART>
+   * @param ?string $next - latest evaluated SK for building lastKey for DynamoDB iterator
    * @return array [ int transaction count, string breakpoints ]
    */
-  private function fetchAllCount(int $ledgerindex, string $txTypeNamepart): array
+  private function fetchAllCount(int $ledgerindex, string $txTypeNamepart, int $subpage = 1, ?string $nextSK = null): array
   {
+   
     $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
-
-    $cache_key = 'mpr'.$this->address.'_all_'.$ledgerindex.'_'.$DModelName::TYPE;
+    
+    $cache_key = 'mpr'.$this->address.'_all_'.$ledgerindex.'_'.$subpage.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
     //$r = null; //TODO remove
     if($r === null) {
-      $map = Map::select('count_num','breakpoints')
+      $map = Map::select('count_num','first_exclusive','next')
         ->where('address', $this->address)
         ->where('ledgerindex_id',$ledgerindex)
         ->where('txtype',$DModelName::TYPE)
         ->where('condition','all')
+        ->where('page', $subpage)
         ->first();
-       
-      //$map = null; //TODO remove
+      
       if(!$map)
       {
         //no records found, query DyDB for this day, for this type and save
@@ -263,26 +290,35 @@ class Mapper
           $query = $query->where('SK','between',[$li[0],$li[1] + 0.9999]);
         //dd($query);
         //dump($query->toDynamoDbQuery());
-        //dd($query,$query->lastKey(),$query->afterKey($DModelTxCount->lastKey())->limit(2)->all());
         
-        /**
-         * Get count and Sort Key breakpoints used for counting pages within one ledger day:
-         */
-        $countWithBreakpoints = \App\Utilities\PagedCounter::countAndReturnBreakpointsForTransacitons($query);
+        if($nextSK !== null) {
+          $query->afterKey(['PK' => $this->address.'-'.$DModelName::TYPE, 'SK' => (float)$nextSK]);
+        }
+          
+        $c = $query->pagedCount();
+        $count = $c->count;
+        
+        //$countWithBreakpoints = \App\Utilities\PagedCounter::countAndReturnBreakpointsForTransacitons($query);
+        //$countWithBreakpoints = \App\Utilities\PagedCounter::countWithBreakpoints($query,null,['SK','N']);
         
         $map = new Map;
         $map->address = $this->address;
         $map->ledgerindex_id = $ledgerindex;
         $map->txtype = $DModelName::TYPE;
         $map->condition = 'all';
-        $map->count_num = $countWithBreakpoints['count'];
-        $map->breakpoints = $countWithBreakpoints['breakpoints'];
+        $map->count_num = $count;//$countWithBreakpoints['count'];
+        $map->page = $subpage;
+        $map->next = $c->lastKey ? $c->lastKey['SK']['N'] : null;
+        $map->first_exclusive = $nextSK; //(exclusive); If null then use LedgerIndex.ledger_index_first (inclusive)
+        //$map->last_li = $c->lastKey['SK']['N'];
+        //$map->breakpoints = $countWithBreakpoints['breakpoints'];
         //$map->count_indicator = '='; //indicates that count is exact (=)
         $map->created_at = now(); //TODO do not use now(), use \date() to improve performance
         $map->save();
       }
-  
-      $r = [$map->count_num, $map->breakpoints];
+      
+      $r = [$map->count_num, $map->first_exclusive, $map->next];
+
       Cache::put($cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     
