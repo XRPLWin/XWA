@@ -110,7 +110,7 @@ class AccountController extends Controller
       $r['EmailHash'] = $account_data->EmailHash;
 
     //get if this account is issuer or not by checking obligations
-    if($acct && $acct->t === 1)
+    if($acct->t === 1)
       $r['type'] = 'issuer';
     
     return response()->json($r);

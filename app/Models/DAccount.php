@@ -35,7 +35,7 @@ final class DAccount extends DTransaction
 
   public function flushCache()
   {
-    Cache::forget('daccount_'.$this->PK);
+    Cache::forget('daccount_'.$this->PK); // @phpstan-ignore-line
   }
 
   /**
@@ -69,7 +69,7 @@ final class DAccount extends DTransaction
   public function isSynced($leeway_ledgers = 1)
   {
     $current_ledger = Ledger::current();
-    $l = (int)$this->l;
+    $l = (int)$this->l; // @phpstan-ignore-line
     $check = $l + $leeway_ledgers;
     if($check <= $current_ledger)
       return false;

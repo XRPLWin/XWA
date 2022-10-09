@@ -96,7 +96,7 @@ if (!function_exists('xw_number_format')) {
   function xw_number_format($decimalnumber) {
 
     if(\Str::contains((string)$decimalnumber,'.'))
-      return rtrim(rtrim($decimalnumber,0),'.');
+      return rtrim(rtrim((string)$decimalnumber,'0'),'.');
 
     return $decimalnumber;
   }

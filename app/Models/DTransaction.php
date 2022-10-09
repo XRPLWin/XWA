@@ -45,7 +45,7 @@ class DTransaction extends XWDynamoDbModel
   public function getAddressAttribute(): string
   {
     //TODO: explode and remove -<INT> part for Items with transaction type designation
-    return $this->PK;
+    return $this->PK; // @phpstan-ignore-line
   }
 
   public function toArray()

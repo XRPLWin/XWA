@@ -9,7 +9,7 @@ class AccountLoader
   /**
    * Fetches DAccount model or creates new in DB.
    * @return DAccount
-   * @throws Exception
+   * @throws \Exception
    */
   public static function getOrCreate(string $address): DAccount
   {
@@ -18,9 +18,10 @@ class AccountLoader
     if(!$Account)
     {
       $Account = new DAccount();
-      $Account->PK = $address;
-      $Account->SK = 0;
-      $Account->l = config('xrpl.genesis_ledger'); // Ledger index this account is scanned to.
+      $Account->PK = $address; // @phpstan-ignore-line
+      $Account->SK = 0; // @phpstan-ignore-line
+      // Ledger index this account is scanned to.
+      $Account->l = config('xrpl.genesis_ledger');  // @phpstan-ignore-line
       //$Account->t = <INT>; //account type: undefined (default) - normal, 1 - issuer
       $Account->save();
     }

@@ -9,6 +9,7 @@ class Map extends Model
 {
   public $table = 'maps';
   public $timestamps = false;
+  
   /**
    * The attributes that should be cast.
    *
