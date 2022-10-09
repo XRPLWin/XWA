@@ -44,20 +44,30 @@ class FilterDestinationtag extends FilterBase {
   public function reduce(): array
   {
     $FirstFewLetters = self::parseToNonDefinitiveParam($this->conditions['dt']);
-
     $r = [];
-
     foreach($this->txTypes as $txTypeNamepart) {
       $r[$txTypeNamepart] = [];
       if(isset($this->foundLedgerIndexesIds[$txTypeNamepart])) {
         foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq', 'breakpoints' => $countTotalReduced['breakpoints']];
+          $r[$txTypeNamepart][$ledgerindex] = [
+            'total' => $countTotalReduced['total'],
+            'found' => 0,
+            'e' => 'eq',
+            'first' => $countTotalReduced['first'],
+            'next' => $countTotalReduced['next']
+          ];
           if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
           
-
-          $count = $this->fetchCount($ledgerindex, $txTypeNamepart, $FirstFewLetters);
+          $ledgerindexEx = $this->explodeLedgerindex($ledgerindex);
+          $count = $this->fetchCount($ledgerindexEx[0], $ledgerindexEx[1], $txTypeNamepart, $FirstFewLetters, $countTotalReduced['first'], $countTotalReduced['next']);
           if($count > 0) { //has transactions
-            $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'lte'), 'breakpoints' => $countTotalReduced['breakpoints']];
+            $r[$txTypeNamepart][$ledgerindex] = [
+              'total' => $countTotalReduced['total'],
+              'found' => $count,
+              'e' => self::calcEqualizer($countTotalReduced['e'], 'lte'),
+              'first' => $countTotalReduced['first'],
+              'next' => $countTotalReduced['next']
+            ];
           }
           unset($count);
         }
@@ -71,24 +81,34 @@ class FilterDestinationtag extends FilterBase {
     return 'dt_'.$FirstFewLetters;
   }
 
-  private function fetchCount(int $ledgerindex, string $txTypeNamepart, string $FirstFewLetters): int
+  /**
+   * @param int $ledgerindex - local internal LedgerIndex->id
+   * @param int $subpage - subpage within LedgerIndex
+   * @param string $txTypeNamepart
+   * @param string $FirstFewLetters - part of filter to do non-definitive filtering on
+   * @param ?string $first_exclusive
+   *   - if null then use LedgerIndex->ledger_index_first as inclusive starting SK starting point
+   *   - if string then use that for afterKey (exclusive)
+   */
+  private function fetchCount(int $ledgerindex, int $subpage, string $txTypeNamepart, string $FirstFewLetters, ?string $first_exclusive, ?string $nextSK): int
   {
     $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
     $cond = $this->conditionName($FirstFewLetters);
-    $cache_key = 'mpr'.$this->address.'_'.$cond.'_'.$ledgerindex.'_'.$DModelName::TYPE;
+    $cache_key = 'mpr'.$this->address.'_'.$cond.'_'.$ledgerindex.'_'.$subpage.'_'.$DModelName::TYPE;
+
     $r = Cache::get($cache_key);
+
     if($r === null) {
       $map = Map::select('count_num')
         ->where('address', $this->address)
         ->where('ledgerindex_id',$ledgerindex)
+        ->where('page',$subpage)
         ->where('txtype',$DModelName::TYPE)
         ->where('condition',$cond)
         ->first();
   
       if(!$map)
       {
-        //no records found, query DyDB for this day, for this type and save
-        //$li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
         $li = Ledgerindex::getLedgerindexData($ledgerindex);
         if(!$li) {
           //clear cache then then/instead exception?
@@ -96,25 +116,36 @@ class FilterDestinationtag extends FilterBase {
           //return 0; //something went wrong
         }
         $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
+
         if($li[1] == -1)
           $DModelTxCount = $DModelTxCount->where('SK','>=',$li[0]);
         else
           $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
           
-        $DModelTxCount = $this->applyQueryCondition($DModelTxCount,$FirstFewLetters);
-          //->toDynamoDbQuery()
-          //->count();
+        $DModelTxCount = $this->applyQueryCondition($DModelTxCount, $FirstFewLetters);
 
-        $count = \App\Utilities\PagedCounter::count($DModelTxCount);
+        if($first_exclusive !== null)
+          $DModelTxCount->afterKey(['PK' => $this->address.'-'.$DModelName::TYPE, 'SK' => (float)$first_exclusive]);
+
+        $count = $DModelTxCount->pagedCount();
+
+        # Sanity check start
+        if($count->lastKey) {
+          if($count->lastKey['SK']['N'] != $nextSK)
+            throw new \Exception('Critical error: page count in filter returned lastKey evaluation which does not match inherited next SK');
+        } else {
+          if($nextSK !== null)
+            throw new \Exception('Critical error: page count in filter did not returned lastKey evaluation which does not match inherited next SK');
+        }
+        # Sanity check end
 
         $map = new Map;
         $map->address = $this->address;
         $map->ledgerindex_id = $ledgerindex;
         $map->txtype = $DModelName::TYPE;
         $map->condition = $cond;
-        $map->count_num = $count;
-        $map->breakpoints = '';
-        //$map->breakpoints = $count['breakpoints'];
+        $map->count_num = $count->count;
+        $map->page = $subpage;
         $map->created_at = now();
         $map->save();
       }

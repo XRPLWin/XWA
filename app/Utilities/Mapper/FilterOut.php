@@ -35,18 +35,29 @@ class FilterOut extends FilterBase {
   public function reduce(): array
   {
     $r = [];
-
     foreach($this->txTypes as $txTypeNamepart) {
       $r[$txTypeNamepart] = [];
       if(isset($this->foundLedgerIndexesIds[$txTypeNamepart])) {
         foreach($this->foundLedgerIndexesIds[$txTypeNamepart] as $ledgerindex => $countTotalReduced) {
-          $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => 0, 'e' => 'eq'];
+          $r[$txTypeNamepart][$ledgerindex] = [
+            'total' => $countTotalReduced['total'],
+            'found' => 0,
+            'e' => 'eq',
+            'first' => $countTotalReduced['first'],
+            'next' => $countTotalReduced['next']
+          ];
           if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
           $ledgerindexEx = $this->explodeLedgerindex($ledgerindex);
           $count = $this->fetchCount($ledgerindexEx[0], $ledgerindexEx[1], $txTypeNamepart, $countTotalReduced['first'], $countTotalReduced['next']);
 
           if($count > 0) { //has transactions
-            $r[$txTypeNamepart][$ledgerindex] = ['total' => $countTotalReduced['total'], 'found' => $count, 'e' => self::calcEqualizer($countTotalReduced['e'], 'eq')];
+            $r[$txTypeNamepart][$ledgerindex] = [
+              'total' => $countTotalReduced['total'],
+              'found' => $count,
+              'e' => self::calcEqualizer($countTotalReduced['e'], 'eq'),
+              'first' => $countTotalReduced['first'],
+              'next' => $countTotalReduced['next']
+            ];
           }
           unset($count);
         }
@@ -78,8 +89,6 @@ class FilterOut extends FilterBase {
   
       if(!$map)
       {
-        //no records found, query DyDB for this day, for this type and save
-        //$li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
         $li = Ledgerindex::getLedgerindexData($ledgerindex);
         if(!$li) {
           //clear cache then then/instead exception?

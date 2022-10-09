@@ -180,7 +180,7 @@ class Mapper
       unset($Filter);
       //echo 'DIROUT: ';dump($foundLedgerIndexesIds);
     }
-    dd('stop');
+    
     if(isset($this->conditions['token'])) {
       $Filter = new Mapper\FilterToken($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
@@ -263,7 +263,7 @@ class Mapper
     
     $cache_key = 'mpr'.$this->address.'_all_'.$ledgerindex.'_'.$subpage.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
-    //$r = null; //TODO remove
+    
     if($r === null) {
       $map = Map::select('count_num','first_exclusive','next')
         ->where('address', $this->address)
@@ -283,7 +283,7 @@ class Mapper
           throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
           //return 0; //something went wrong
         }
-        $query = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
+        $query = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE); //In need of more performance, use this: ->take(2000);
         if($li[1] == -1) //latest
           $query = $query->where('SK','>=',$li[0]);
         else
@@ -315,8 +315,12 @@ class Mapper
         //$map->count_indicator = '='; //indicates that count is exact (=)
         $map->created_at = now(); //TODO do not use now(), use \date() to improve performance
         $map->save();
+
+       
+  
       }
-      
+     
+
       $r = [$map->count_num, $map->first_exclusive, $map->next];
 
       Cache::put($cache_key, $r, 2629743); //2629743 seconds = 1 month

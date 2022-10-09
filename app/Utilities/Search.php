@@ -18,6 +18,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Utilities\Scanplan\Parser as ScanplanParser;
 
 class Search
 {
@@ -180,7 +181,10 @@ class Search
     /**
      * Caculate optimal SCAN plan
      */
-    $scanplan = $this->calculateScanPlan($intersected);
+    $scanplan = new ScanplanParser($intersected);
+    $scanplan = $scanplan->parse();
+    //dd($scanplan,'AAA');
+    //$scanplan = $this->calculateScanPlan($intersected);
     
     //dd($scanplan);
     /**
@@ -207,6 +211,7 @@ class Search
 
 
     */
+    
     $pages_count = count($scanplan);
     if($pages_count == 0) {
       $resultCounts['page'] = 0;
@@ -216,8 +221,8 @@ class Search
     if(!isset($scanplan[$page]))
       throw new \Exception('Page out of range');
 
-    $scanplan_page = $scanplan[$page];
-    
+    $scanplan_page = ScanplanParser::parseOnePage($scanplan[$page]);
+    //dd($scanplan_page);
     //dd($conditions);
 
     //dd($scanplan);
@@ -515,6 +520,9 @@ class Search
     return collect($r);
   }
 
+  /**
+   * @deprecated
+   */
   private function calculateScanPlan_calcPageShift(int $count, int $breakpoint): int
   {
     return ($count >= $breakpoint) ? 1:0;
@@ -535,7 +543,7 @@ class Search
    * Another example is 35484942.028 to 35484942102800
    * @return array ['value' => STRING, 'count' => INT ]
    */
-  private function calculateScanPlan_Explode_DecToInt_data(string $bp): array
+  /*private function calculateScanPlan_Explode_DecToInt_data(string $bp): array
   {
     $bp = \explode('-',$bp);
     $ex = \explode('.', $bp[0]);
@@ -544,12 +552,13 @@ class Search
     }
     $ex[1] = \str_pad( '1'.$ex[1],6,'0',STR_PAD_RIGHT);
     return ['value' => $ex[0].$ex[1], 'count' => (int)$bp[1]];
-  }
+  }*/
 
   /**
    * Explodes large ledger indexes to smaller chunks via breakpoints.
+   * @deprecated 
    */
-  private function calculateScanPlan_Explode(array $data): array
+  /*private function calculateScanPlan_Explode(array $data): array
   {
     $new = [];
     foreach($data as $txTypeNamepart => $l) {
@@ -593,7 +602,7 @@ class Search
     \ksort($new,SORT_NUMERIC);
     //dd($new);
     return $new;
-  }
+  }*/
 
   /**
    * This function takes intersected array and returns optimal
@@ -605,23 +614,24 @@ class Search
    */
   public function calculateScanPlan(array $data): array
   {
-    # Explode inner pages
-    $data = $this->calculateScanPlan_Explode($data);
-
     dd($data);
+    # Explode inner pages
+    //$data = $this->calculateScanPlan_Explode($data);
+
+    //dd($data);
     # Eject zero edges
     # - removes items with zero (0) 'found' param left and right, until cursor reaches filled item
     $newData = [];
     foreach($data as $txTypeNamepart => $l) {
       $l_fwd = $l;
       foreach($l_fwd as $ledgerindexID => $counts) {
-        if(!$counts['found']) unset($l_fwd[$ledgerindexID]);
+        if($counts['found'] === 0) unset($l_fwd[$ledgerindexID]);
         else break; //stop inner loop
       }
       $l_rew = \array_reverse($l_fwd,true);
       unset($l_fwd);
       foreach($l_rew as $ledgerindexID => $counts) {
-        if(!$counts['found']) unset($l_rew[$ledgerindexID]);
+        if($counts['found'] === 0) unset($l_rew[$ledgerindexID]);
         else break; //stop inner loop
       }
       $newData[$txTypeNamepart] = \array_reverse($l_rew,true);
@@ -636,15 +646,27 @@ class Search
     unset($l_fwd);
 
     $breakpoint = self::getPaginatorBreakpoint();
-
+    
     $_calc = [];
     $_flat_ledgerindexesIds = [];
     foreach($data as $txTypeNamepart => $v) {
       $_calc_c = 0;
       $_calc_page = 1;
       foreach($v as $ledgerIndexID => $counts) {
-        $_flat_ledgerindexesIds[$ledgerIndexID] = true;
-        $_calc[$txTypeNamepart][$ledgerIndexID] = ['found' => $counts['found'], 'c' => $_calc_c, 'page' => $_calc_page];
+        
+        ###
+        # <LedgerIndex->id>.000X<FIRST STR_PAD_LEFT(0x15)><LAST STR_PAD_LEFT(0x15)>
+        //$ledgerIndexIDCompound = \explode('.',$ledgerIndexID)[0] .
+        //  \str_pad(  ((string)($counts['first'] *1000) ?? '0')    , 15,'0',STR_PAD_LEFT) . 
+        //  \str_pad(  ((string)($counts['next']  *1000)  ?? '0')   , 15,'0',STR_PAD_LEFT)
+        //;
+        //dd($ledgerIndexIDCompound,((string)($counts['next']*1000)),$counts['next']);
+        //$_flat_ledgerindexesIds[$ledgerIndexIDCompound] = [$counts['first'],$counts['next']];
+        //$_calc[$txTypeNamepart][$ledgerIndexIDCompound] = ['found' => $counts['found'], 'c' => $_calc_c, 'page' => $_calc_page, 'first' => $counts['first'], 'next' => $counts['next']];
+        ### ELSE
+        $_flat_ledgerindexesIds[$ledgerIndexID] = [$counts['first'],$counts['next']];
+        $_calc[$txTypeNamepart][$ledgerIndexID] = ['found' => $counts['found'], 'c' => $_calc_c, 'page' => $_calc_page, 'first' => $counts['first'], 'next' => $counts['next']];
+        ###
         if($this->calculateScanPlan_calcPageShift($_calc_c,$breakpoint)) {
           $_calc_c = 0;
           $_calc_page++;
@@ -653,8 +675,10 @@ class Search
         $_calc_c += $counts['found'];
       }
     }
+    //dump($_flat_ledgerindexesIds);
     \ksort($_flat_ledgerindexesIds,SORT_NUMERIC);
-    //dd($_flat_ledgerindexesIds);
+    
+    //dd($_flat_ledgerindexesIds,$_calc,$_calc_c);
     unset($_calc_c);
     unset($_calc_offset);
     unset($counts);
@@ -662,6 +686,7 @@ class Search
     unset($txTypeNamepart);
     $maxes = [];
     $lastpage = 1;
+    //dd($_flat_ledgerindexesIds,$_calc);
     foreach($_flat_ledgerindexesIds as $li => $foo)
     {
       foreach($_calc as $txTypeNamepart => $v) {
@@ -673,6 +698,7 @@ class Search
     }
     //dd($maxes);
     unset($li);
+    unset($foo);
     unset($lastpage);
     unset($_calc);
     unset($_flat_ledgerindexesIds);
@@ -684,33 +710,225 @@ class Search
 
     $tracker = [];
     //dd($ledgerIndexIdPages,$data);
-    foreach($ledgerIndexIdPages as $ledgerIndexID => $page) {
-      foreach($data as $txTypeNamepart => $li_totals) {
+
+    //looping $data but by ledgerindexes low to high
+    foreach($ledgerIndexIdPages as $ledgerIndexID => $page) { //[ 1234.001 => 1, 1235.001 => 2, 1236.001 = 3, 1236.002 => 4] 
+      /*$tracker[$page]['_GLOBAL'] = [
+        'txtypescompleted' => [],
+        'min_ledgerindex' => null,
+        'max_ledgerindex' => null
+      ];*/
+      foreach($data as $txTypeNamepart => $li_totals) { //for each Payment Activation Trustset ....
         
         if(!isset($li_totals[$ledgerIndexID]))
           continue; //continue inner loop
+
+        //$tracker[$page]['_GLOBAL']['txtypescompleted'][$txTypeNamepart] = false; //false = complete
+        //jedan po tipu, u payment imamo jedno okidanje, u activation jedno, u trustset jedno - po PAGEu!
         
-          //dd($li_totals[$ledgerIndexID]);
-        if(!isset($tracker[$page][$txTypeNamepart]['stats']))
-          $tracker[$page][$txTypeNamepart]['stats'] = ['total_rows' => 0, 'e' => 'eq'];
+        //dd($li_totals[$ledgerIndexID]);
+        if(!isset($tracker[$page][$txTypeNamepart])) {
+          $tracker[$page][$txTypeNamepart] = [
+            'total_rows' => 0,
+            'found' => 0, //todo rename to found
+            'e' => 'eq',
+            //'first' => $li_totals[$ledgerIndexID]['first'],
+            //'next' => $li_totals[$ledgerIndexID]['next'],
+            'llist' => [],
+            //'test' => [],
+          ];
+        } else {
+          //throw new \Exception('test test test');
+        }
+          
+        //dd($tracker);
+          
+        $tracker[$page][$txTypeNamepart]['found'] += $li_totals[$ledgerIndexID]['found'];
+        $tracker[$page][$txTypeNamepart]['total_rows']  += $li_totals[$ledgerIndexID]['total'];
+        $tracker[$page][$txTypeNamepart]['llist'][] = [$ledgerIndexID => ['first' => $li_totals[$ledgerIndexID]['first'], 'next' => $li_totals[$ledgerIndexID]['next']]];
+        //$tracker[$page][$txTypeNamepart]['test'][] = [$li_totals[$ledgerIndexID]['first'],$li_totals[$ledgerIndexID]['next']];
+        $tracker[$page][$txTypeNamepart]['e'] = self::calcSearchEqualizer($tracker[$page][$txTypeNamepart]['e'],$li_totals[$ledgerIndexID]['e']);
 
-        if(!isset($tracker[$page][$txTypeNamepart]['data']))
-          $tracker[$page][$txTypeNamepart]['data'] = ['total' => 0, 'llist' => []/*, 'breakpoints' => ''*/];
+        //first is set, save as global min limit
+        /*if($li_totals[$ledgerIndexID]['first'] !== null) {
+          if($tracker[$page]['_GLOBAL']['min_ledgerindex'] > $li_totals[$ledgerIndexID]['first'] || $tracker[$page]['_GLOBAL']['min_ledgerindex'] === null) {
+            $tracker[$page]['_GLOBAL']['min_ledgerindex'] = $li_totals[$ledgerIndexID]['first'];
+            
+          }
+            
+        }*/
+        //next is set, save as global max limit
+        /*if($li_totals[$ledgerIndexID]['next'] !== null) {
+          if($tracker[$page]['_GLOBAL']['max_ledgerindex'] > $li_totals[$ledgerIndexID]['next'] || $tracker[$page]['_GLOBAL']['max_ledgerindex'] === null) {
+            $tracker[$page]['_GLOBAL']['max_ledgerindex'] = $li_totals[$ledgerIndexID]['next'];
+            
+          }
+            
+        }*/
 
-        $tracker[$page][$txTypeNamepart]['data']['total'] += $li_totals[$ledgerIndexID]['total'];
-        $tracker[$page][$txTypeNamepart]['stats']['total_rows']  += $li_totals[$ledgerIndexID]['total'];
-        $tracker[$page][$txTypeNamepart]['data']['llist'][] = $ledgerIndexID;
-        $tracker[$page][$txTypeNamepart]['stats']['e'] = self::calcSearchEqualizer($tracker[$page][$txTypeNamepart]['stats']['e'],$li_totals[$ledgerIndexID]['e']);
+        //$tracker[$page]['_GLOBAL']['txtypescompleted'][$txTypeNamepart] = true; //true - incomplete
+        
 
-        $tracker[$page][$txTypeNamepart]['data']['ledgerindex_first'] = $tracker[$page][$txTypeNamepart]['data']['llist'][0];
-        $tracker[$page][$txTypeNamepart]['data']['ledgerindex_last'] = $tracker[$page][$txTypeNamepart]['data']['llist'][count($tracker[$page][$txTypeNamepart]['data']['llist'])-1];
 
-        //$tracker[$page][$txTypeNamepart]['data']['breakpoints'] = $li_totals[$ledgerIndexID]['breakpoints'];
+        $tracker[$page][$txTypeNamepart]['ledgerindex_first'] = $tracker[$page][$txTypeNamepart]['llist'][0];
+        $tracker[$page][$txTypeNamepart]['ledgerindex_last'] = $tracker[$page][$txTypeNamepart]['llist'][count($tracker[$page][$txTypeNamepart]['llist'])-1];
+
+        //$tracker[$page][$txTypeNamepart]['breakpoints'] = $li_totals[$ledgerIndexID]['breakpoints'];
       }
     }
-    //dd($tracker);
-    return $tracker;
+
+
+    # Last phase: exploding inner pages
+    dd($tracker);
+    foreach($tracker as $page) {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ############################# OLD
+    dd($tracker);
+    //new:
+    $result = [];
+    foreach($tracker as $page => $parts)
+    {
+      $result[$page] = $this->calculateScanPlan_InnerExplodePages($page,$parts);
+    }
+    dd($result, $tracker, $data);
+    return $result;
   }
+
+  /**
+   * We got one page. See if exploding is needed depending on others.
+   */
+  public function calculateScanPlan_InnerExplodePages(int $page, array $data)
+  {
+    
+    $page = 1;
+    $do = true;
+    $curr_li = 0;
+    $curr_next = 0;
+    $tracker = [];
+    while($do) {
+      foreach($data as $txTypeNamepart => $stats) {
+        foreach($stats['llist'] as $kk => $lis) {
+          foreach($lis as $ledgerindex => $firstnext) {
+            if($curr_li < $ledgerindex )
+              $curr_li = $ledgerindex;
+          }
+        }
+      }
+      $page++;
+      $do = false;
+    }
+    dd($data);
+
+    #####################
+    $plan = [];
+    $p = 1; //page 1
+    foreach($data as $txTypeNamepart => $stats) {
+      foreach($stats['llist'] as $kk => $lis) {
+        foreach($lis as $ledgerindex => $firstnext)
+        {
+          if(!isset($plan[$ledgerindex]['min'])) $plan[$ledgerindex]= ['min' => 999999999999999999999999, 'first' => null,'next' => null, 'page' => $page];
+
+          if($firstnext['next'] !== 0) {
+            if($plan[$ledgerindex]['min'] > $firstnext['next']) {
+              $plan[$ledgerindex]['min'] = $firstnext['next'];
+              $plan[$ledgerindex]['first'] = $firstnext['first'];
+              $plan[$ledgerindex]['next'] = $firstnext['next'];
+            }
+          }
+            
+        }
+       
+      }
+    }
+    dd($data,$plan);
+
+
+
+
+    return $data;
+    //if($page == 2) dd($data);
+    # 1 add weight
+    
+    foreach($data as $txTypeNamepart => $stats) {
+      $data[$txTypeNamepart]['llist2'] = [];
+      foreach($stats['llist'] as $kk => $lis) {
+        foreach($lis as $k => $v) {
+          $first = $v['first'] ?? 0;
+          $next = $v['next'] ?? $first;
+          $weight = $next - $first;
+          if($weight == 0) $weight = 999999999999999999999999999;
+          $data[$txTypeNamepart]['llist'][$kk][$k]['weight'] = $weight; //if 0 then no limit
+          unset($first);
+          unset($next);
+          unset($weight);
+        }
+      }
+    }
+    $granularLlist = $granularLlistMap = [];
+    foreach($data as $txTypeNamepart => $stats) {
+      foreach($stats['llist'] as $kk => $lis) {
+        foreach($lis as $k => $v) {
+          //if($v['weight'] !== 0)
+            $granularLlist[$k][] = $v['weight'];
+        
+            $granularLlistMap[$v['weight']] = [$k => $v];
+        }
+      }
+    }
+    //dump($data, $granularLlistMap,$granularLlist);
+
+    foreach($data as $txTypeNamepart => $stats) {
+      foreach($stats['llist'] as $kk => $lis) {
+        foreach($lis as $k => $v) {
+          $data[$txTypeNamepart]['llist2'][] = $granularLlistMap[\min($granularLlist[$k])];
+          //dd($v,$granularLlist,$k,\min($granularLlist[$k]),$granularLlistMap[\min($granularLlist[$k])]);
+        }
+      }
+    }
+    //dd($data,$granularLlist);
+    return $data;
+  }
+
 
   private function _generateSearchIndentifier(array $params): string
   {

@@ -38,7 +38,9 @@ return [
   | Paginator breakpoint
   |--------------------------------------------------------------------------
   |
-  | How much results one request can pulll per txType, before paginating.
+  | How much results one request can pull per txType, before paginating multiple ledger days.
+  | This value does not takes into account internal per-ledger-day paginating, this is done
+  | automatically imposed by DynamoDB 1MB limit.
   */
   'paginator_breakpoint' => 500, //500
   

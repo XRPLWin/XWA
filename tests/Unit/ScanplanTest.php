@@ -17,6 +17,31 @@ class ScanplanTest extends TestCase
 		$this->createApplication();
 	}
 
+  public function test_calculate_scan_plan_inner_explode_pages()
+  {
+    $address = 'rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4';
+    $search = new Search($address);
+
+    $testdata = [
+      'Payment' => ['llist' => [ 
+        ['1854.0001' => ['first' => null, 'next' => 1000.055]], //if part then only one can exist
+      ]],
+      'Trustset' => ['llist' => [ 
+        ['1854.0001' => ['first' => null, 'next' => null]],
+        ['1855.0001' => ['first' => null, 'next' => null]],
+      ]],
+      'Third' => ['llist' => [ 
+        ['1854.0001' => ['first' => null, 'next' => 800.055]], //if part then only one can exist
+      ]],
+
+
+    ];
+
+    
+    $response = $search->calculateScanPlan_InnerExplodePages(1,$testdata);
+    dd('TEST',$response);
+  }
+
   public function test_numeric_ledgerindexes_decimal_sorting()
   {
     $a = [
@@ -50,6 +75,38 @@ class ScanplanTest extends TestCase
     ], $a);
   }
 
+  public function test_numeric_ledgerindexes_largedecimal_sorting()
+  {
+    $a = [
+      '2990.0001000000000000000358920530622000' => 1,
+      '1843.0001000000000000000358920530610000' => 1,
+      '1843.0001000000000000000358920530611000' => 1,
+      '1843.0001000000000000000358920530611100' => 1,
+      '1843.0001000000000000000358920530620000' => 1,
+      '1843.0001000000000000000358920530622000' => 1,
+      '2810.0001000000000000000358920530622000' => 1,
+      '2811.0001000000000000000358920530622000' => 1,
+      '2900.0001000000000000000358920530622000' => 1,
+      
+    ];
+
+    \ksort($a,SORT_NUMERIC);
+
+    $this->assertEquals([
+      '2' => 1,
+      '10' => 1,
+      '11' => 1,
+      '22' => 1,
+      '111' => 1,
+      '1827' => 1,
+      '1827.10' => 1,
+      '1827.11000' => 1,
+      '1827.111' => 1,
+      '1827.2' => 1,
+      '1827.22' => 1,
+    ], $a);
+  }
+
   public function test_scanplan_paginator_single_page(): void
 	{
     $address = 'rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4';
@@ -58,30 +115,48 @@ class ScanplanTest extends TestCase
     $grid = [];
 
     //Should yield sigle page
-    $grid['3000_Payment']  = 2;
-    $grid['3002_Payment']  = 2;
-    $grid['3003_Payment']  = 49;
-    $grid['3004_Payment']  = 49;
+    $grid['3000.0001|null|null_Payment']  = 2;
+    $grid['3002.0001|null|null_Payment']  = 2;
+    $grid['3003.0001|null|null_Payment']  = 49;
+    $grid['3004.0001|null|null_Payment']  = 49;
 
-    $grid['4008_Trustset'] = 49;
+    /*
+    $grid['3000.0001|null|2000.05_Payment']  = 2;
+    $grid['3000.0002|2000.05|2100.05_Payment']  = 2;
+    $grid['3000.0003|2100.05|null_Payment']  = 2;
+    $grid['3002.0001|null|null_Payment']  = 2;
+    $grid['3003.0001|null|null_Payment']  = 49;
+    $grid['3004.0001|null|null_Payment']  = 49;
+    */
+
+    $grid['4008.0001|null|null_Trustset'] = 49;
 
     $seed = $this->convertGridToSeed($grid);
-
+    
     $result = $search->calculateScanPlan($seed);
-
+    
     $this->assertEquals(1, count($result)); //number of pages = 1
-
-    $this->assertEquals(102,$result[1]['Payment']['stats']['total_rows']);
-    $this->assertEquals(102,$result[1]['Payment']['data']['total']);
-    $this->assertEquals([3000,3002,3003,3004],$result[1]['Payment']['data']['llist']);
-    $this->assertEquals(3000,$result[1]['Payment']['data']['ledgerindex_first']);
-    $this->assertEquals(3004,$result[1]['Payment']['data']['ledgerindex_last']);
-
-    $this->assertEquals(49,$result[1]['Trustset']['stats']['total_rows']);
-    $this->assertEquals(49,$result[1]['Trustset']['data']['total']);
-    $this->assertEquals([4008],$result[1]['Trustset']['data']['llist']);
-    $this->assertEquals(4008,$result[1]['Trustset']['data']['ledgerindex_first']);
-    $this->assertEquals(4008,$result[1]['Trustset']['data']['ledgerindex_last']);
+    
+    $this->assertEquals(102,$result[1]['Payment']['total_rows']);
+    
+    $this->assertEquals(102,$result[1]['Payment']['found']);
+    $this->assertEquals([
+        '3000.0001' => [null,null],
+        '3002.0001' => [null,null],
+        '3003.0001' => [null,null],
+        '3004.0001' => [null,null]
+      ],
+      $result[1]['Payment']['llist']
+    );
+    $this->assertEquals('3000.0001',$result[1]['Payment']['ledgerindex_first']);
+    $this->assertEquals('3004.0001',$result[1]['Payment']['ledgerindex_last']);
+    
+    $this->assertEquals(49,$result[1]['Trustset']['total_rows']);
+    $this->assertEquals(49,$result[1]['Trustset']['found']);
+    $this->assertEquals(['4008.0001' => [null,null]],$result[1]['Trustset']['llist']);
+    $this->assertEquals('4008.0001',$result[1]['Trustset']['ledgerindex_first']);
+    $this->assertEquals('4008.0001',$result[1]['Trustset']['ledgerindex_last']);
+    dd($result);
   }
 
   public function test_scanplan_paginator_two_pages(): void
@@ -365,9 +440,12 @@ class ScanplanTest extends TestCase
     foreach($grid as $k => $v)
     {
       $k_ex = \explode('_',$k);
-      $seed[$k_ex[1]][(int)$k_ex[0]]['total'] = $v;
-      $seed[$k_ex[1]][(int)$k_ex[0]]['found'] = $v;
-      $seed[$k_ex[1]][(int)$k_ex[0]]['e'] = 'eq';
+      $k_li_first_next = \explode('|',$k_ex[0]);
+      $seed[$k_ex[1]][(string)$k_li_first_next[0]]['total'] = $v;
+      $seed[$k_ex[1]][(string)$k_li_first_next[0]]['found'] = $v;
+      $seed[$k_ex[1]][(string)$k_li_first_next[0]]['e'] = 'eq';
+      $seed[$k_ex[1]][(string)$k_li_first_next[0]]['first'] = $k_li_first_next[1] == 'null' ? null:$k_li_first_next[1];
+      $seed[$k_ex[1]][(string)$k_li_first_next[0]]['next'] = $k_li_first_next[2] == 'null' ? null:$k_li_first_next[2];
     }
     return $seed;
   }
