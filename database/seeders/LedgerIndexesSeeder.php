@@ -19,27 +19,33 @@ class LedgerIndexesSeeder extends Seeder
   public function run()
   {
       $data = $this->ledgerseeddata();
-      $li_first = config('xrpl.genesis_ledger');
-      foreach($data as $li => $daydate)
+
+      $li_first = 325700000; //genesis ledger index 32570*10000 (real)
+
+      foreach($data as $li => $Ymd)
       {
-        
+        $li = (($li + 1) * 10000);
         //check if exists...
-        $check = Ledgerindex::where('ledger_index_last',$li)->count();
+        $check = Ledgerindex::where('ledger_index_last',($li-1))->count();
         
         if(!$check) {
           $m = new Ledgerindex;
           $m->ledger_index_first = $li_first;
-          $m->ledger_index_last = $li;
-          $m->day = \Carbon\Carbon::create($daydate);
+          $m->ledger_index_last = $li - 1;
+          $m->day = \Carbon\Carbon::create($Ymd);
           $m->save();
         }
-        $li_first = $li+1;
+        $li_first = $li;
       }
   }
 
+  /**
+   * @return array [ <ledger_index (last)> => 'Y-m-d', ... ]
+   */
   private function ledgerseeddata()
   {
     return  [
+      //32570 => '2012-12-31', //genesis ledger index (real)
       36733 => '2013-01-01',
       41436 => '2013-01-02',
       46216 => '2013-01-03',

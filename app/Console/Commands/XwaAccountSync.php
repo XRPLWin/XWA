@@ -80,6 +80,7 @@ class XwaAccountSync extends Command
       
       $this->ledger_current = Ledger::current();
       
+      
       $account = AccountLoader::getOrCreate($address);
       //dd($account);
       //If this account is issuer (by checking obligations) set t field to 1.

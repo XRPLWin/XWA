@@ -197,6 +197,8 @@ class Search
     $resultCounts = [
       'total_filtered' => 0, //definitive total results
       'total_scanned' => 0, //non-definitive total results (informational only)
+      'page' => 0,
+      'total_pages' => 0,
       //'total_e' => 'eq', //non-definitive equilizer (if eq then total_filtered = total)
     ];
     //dd($scanplan);
@@ -213,26 +215,28 @@ class Search
     */
     
     $pages_count = count($scanplan);
+    
     if($pages_count == 0) {
-      $resultCounts['page'] = 0;
-      $resultCounts['total_pages'] = 0;
       return ['counts' => $resultCounts, 'data' => collect([])];
     }
+    //dd($pages_count,$scanplan);
     if(!isset($scanplan[$page]))
       throw new \Exception('Page out of range');
 
-    $scanplan_page = ScanplanParser::parseOnePage($scanplan[$page]);
+    //$scanplan_page = ScanplanParser::parseOnePage($scanplan[$page]);
     //dd($scanplan_page);
     //dd($conditions);
 
-    //dd($scanplan);
-    foreach($scanplan_page as $txTypeNamepart => $scanplanTypeData) {
+    //dd($scanplan[$page]);
+    foreach($scanplan[$page] as $txTypeNamepart => $scanplanTypeData) {
+      //dd( $scanplanTypeData,9);
       //$nonDefinitiveResults[$txTypeNamepart] = collect([]);
-      $resultCounts['total_scanned'] += $scanplanTypeData['stats']['total_rows'];
+      $resultCounts['total_scanned'] += $scanplanTypeData['total'];
+      
       //$resultCounts['total_e'] = self::calcSearchEqualizer($resultCounts['total_e'],$scanplanTypeData['stats']['e']);
       
-      $ledgerindex_first_range = Ledgerindex::getLedgerindexData($scanplanTypeData['data']['ledgerindex_first']);
-      $ledgerindex_last_range = Ledgerindex::getLedgerindexData($scanplanTypeData['data']['ledgerindex_last']);
+      //$ledgerindex_first_range = Ledgerindex::getLedgerindexData($scanplanTypeData['data']['ledgerindex_first']);
+      $ledgerindex_last_range = Ledgerindex::getLedgerindexData($scanplanTypeData['ledgerindex_last_id']);
 
       /** @var \App\Models\DTransaction */
       $DTransactionModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
@@ -242,12 +246,12 @@ class Search
       $query = $mapper->applyQueryConditions($query);
       
       if($ledgerindex_last_range[1] == -1)
-        $query = $query->where('SK','>=',$ledgerindex_first_range[0]);
+        $query = $query->where('SK','>=',$scanplanTypeData['ledgerindex_first']);
       else
-        $query = $query->where('SK','between',[$ledgerindex_first_range[0],$ledgerindex_last_range[1] + 0.9999]);
+        $query = $query->where('SK','between',[(float)$scanplanTypeData['ledgerindex_first'],(float)$scanplanTypeData['ledgerindex_last']]); //DynamoDB BETWEEN is inclusive
       
-      //dump($query->toDynamoDbQuery());
-      $results = $query->get();
+      //dump($query->toDynamoDbQuery());exit;
+      $results = $query->all();
       //dd($results);
 
      /* $j = 1;
@@ -264,12 +268,15 @@ class Search
 
       //$nonDefinitiveResults[$txTypeNamepart] =  $nonDefinitiveResults[$txTypeNamepart]->merge($results);
       $nonDefinitiveResults = $nonDefinitiveResults->merge($results);
-     
+      dump($scanplanTypeData);
+     dump($results->first(),$results->last(),'count: '.$results->count());
       //Add total counts
       //foreach($definitiveResults as $v){
       //  $resultCounts['total'] += $v->count();
       //}
     }
+    
+    //dd('stop');
     //dd($results->last());
     //sort by SK
     $nonDefinitiveResults = $nonDefinitiveResults->sortByDesc('SK');
@@ -1004,6 +1011,8 @@ class Search
    * @param string $existingE eq|lte
    * @param string $newE eq|lte
    * @return string eq|lte
+   * 
+   * @deprecated
    */
   public static function calcSearchEqualizer(string $existingE, string $newE): string
   {

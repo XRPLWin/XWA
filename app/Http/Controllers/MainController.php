@@ -17,6 +17,23 @@ class MainController extends Controller
       
         $r = $model->scan($raw);
         dd($raw,$r);*/
+
+
+        $test = new \App\Models\DTransactionPayment;
+        $test = $test
+            ->where('PK','rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh-1')
+            ->where('SK', 'between', [35521645,36198903.033])
+            ->where('r','begins_with','rDC')
+            ;
+        $r = $test->get();
+        dd($r,$test);
+
+
+
+
+
+
+        return;
     
         
         $count1 = new \App\Models\DTransactionPayment;

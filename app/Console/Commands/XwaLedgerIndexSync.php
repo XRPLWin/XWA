@@ -70,17 +70,16 @@ class XwaLedgerIndexSync extends Command
         ]);
       $this->ledger_last = (int)$ledger_last_api->send()->finalResult()->ledger_index;
 
-
       //Get last from DB
       $LastDb = Ledgerindex::select('ledger_index_last','day')->where('ledger_index_last','!=',-1)->orderByDesc('day')->first();
       if(!$LastDb) {
         //Start at beginning (genesis)
-        $this->ledger_current = config('xrpl.genesis_ledger');
-        $li_first = config('xrpl.genesis_ledger');
-        $start = ripple_epoch_to_epoch(config('xrpl.genesis_ledger_close_time'));
+        $this->ledger_current = 32570; //genesis ledger index 32570*10000 (real)
+        $li_first = 32570; //genesis ledger index 32570*10000 (real)
+        $start = ripple_epoch_to_epoch(410325670); //genesis ledger close time (ripple epoch)
       } else {
         
-        $this->ledger_current = $LastDb->ledger_index_last + 1;
+        $this->ledger_current = ($LastDb->ledger_index_last + 1) / 10000;
         $li_first = $this->ledger_current;
         $startCarbon = $this->fetchLedgerIndexTime($this->ledger_current);
         $start = $startCarbon->timestamp;
@@ -90,8 +89,6 @@ class XwaLedgerIndexSync extends Command
           return 0;
         }
       }
-
-
 
       $period = CarbonPeriod::since(Carbon::createFromTimestamp($start))->days(1)->until(now()->addDays(-1));
 
@@ -116,13 +113,12 @@ class XwaLedgerIndexSync extends Command
     private function updateTodayRecord(): void
     {
       $yesterdayLedgerindex = Ledgerindex::where('day',Carbon::yesterday())->first();
-      if($yesterdayLedgerindex)
-      {
-        $this->saveToDb($yesterdayLedgerindex->ledger_index_last+1,-1,Carbon::now());
+      if($yesterdayLedgerindex) {
+        $this->saveToDb((($yesterdayLedgerindex->ledger_index_last+1)/10000),-1,Carbon::now());
         $this->info('Today ledger info added/updated');
       }
       else
-      $this->info('Today ledger info not added - not ready');
+        $this->info('Today ledger info not added - not ready');
     }
 
     private function saveToDb(int $ledger_index_first, int $ledger_index_last, Carbon $day): int
@@ -130,8 +126,11 @@ class XwaLedgerIndexSync extends Command
       $model = Ledgerindex::where('day',$day)->first();
       if(!$model)
         $model = new Ledgerindex;
-      $model->ledger_index_first = $ledger_index_first;
-      $model->ledger_index_last = $ledger_index_last;
+      $model->ledger_index_first = $ledger_index_first * 10000;
+      if($ledger_index_last == -1)
+        $model->ledger_index_last = -1;
+      else
+        $model->ledger_index_last = (($ledger_index_last + 1 ) * 10000) - 1;
       $model->day = $day;
       $model->save();
       return $model->id;

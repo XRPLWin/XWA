@@ -64,7 +64,7 @@ class Ledgerindex extends Model
 
     $r[0] = (int)$r[0];
     $r[1] = (int)$r[1];
-    $r[2] = (int)$r[2];
+    $r[2] = (float)($r[2].'.9999');
 
     //if($r[2] === -1) {
       //$r[2] = Ledger::current();
@@ -76,7 +76,7 @@ class Ledgerindex extends Model
 
   /**
    * Retrieves (from cache or fetches)  ledger_index_first and ledger_index_last info about Ledgerindex
-   * @return ?array [(int)ledger_index_first,(int)ledger_index_last]
+   * @return ?array [(int)ledger_index_first,(string)ledger_index_last]
    */
   public static function getLedgerindexData(int $id): ?array
   {
@@ -87,17 +87,17 @@ class Ledgerindex extends Model
       if(!$ledgerindex)
         $r = 0;
       else
-        $r = (string)$ledgerindex->ledger_index_first.'.'.(string)$ledgerindex->ledger_index_last;
+        $r = (string)$ledgerindex->ledger_index_first.';'.(string)$ledgerindex->ledger_index_last;
       
       Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     
     if($r === 0 || $r === '0') return null;
 
-    $r = \explode('.',$r);
+    $r = \explode(';',$r);
 
     $r[0] = (int)$r[0];
-    $r[1] = (int)$r[1];
+    $r[1] = (float)($r[1].'.9999');
     return $r;
   }
 

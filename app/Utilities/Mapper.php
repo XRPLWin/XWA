@@ -287,7 +287,7 @@ class Mapper
         if($li[1] == -1) //latest
           $query = $query->where('SK','>=',$li[0]);
         else
-          $query = $query->where('SK','between',[$li[0],$li[1] + 0.9999]);
+          $query = $query->where('SK','between',[$li[0],$li[1]]);
         //dd($query);
         //dump($query->toDynamoDbQuery());
         
@@ -308,21 +308,15 @@ class Mapper
         $map->condition = 'all';
         $map->count_num = $count;//$countWithBreakpoints['count'];
         $map->page = $subpage;
-        $map->next = $c->lastKey ? $c->lastKey['SK']['N'] : null;
+        $map->next = $c->lastKey ? ($c->lastKey['SK']['N']-0.0001) : null;
         $map->first_exclusive = $nextSK; //(exclusive); If null then use LedgerIndex.ledger_index_first (inclusive)
         //$map->last_li = $c->lastKey['SK']['N'];
         //$map->breakpoints = $countWithBreakpoints['breakpoints'];
         //$map->count_indicator = '='; //indicates that count is exact (=)
         $map->created_at = now(); //TODO do not use now(), use \date() to improve performance
         $map->save();
-
-       
-  
       }
-     
-
-      $r = [$map->count_num, $map->first_exclusive, $map->next];
-
+      $r = [$map->count_num, $map->first_exclusive, $map->next ? ($map->next+0.0001) : null];
       Cache::put($cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     
