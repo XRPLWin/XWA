@@ -86,7 +86,6 @@ class Mapper
     $from = Carbon::createFromFormat('Y-m-d', $this->conditions['from']);
     $to = Carbon::createFromFormat('Y-m-d', $this->conditions['to']);
     
-    
     try{
       $account = AccountLoader::get($this->address);
     } catch (\Throwable $e) {
@@ -95,23 +94,20 @@ class Mapper
     if(!$account)
       throw new \Exception('Invalid account or account address format');
       
-    $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to);
+    $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to); //10k
     
     if($LedgerIndexLastForDay === null)
       throw new \Exception('Ledger index for end day is not yet synced');
-    
+
     if($LedgerIndexLastForDay == -1) {
       //Viewing current day, account should be synced to today atleast
       $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexFirstForDay($to)-1;
     }
 
-    if($account->l < $LedgerIndexLastForDay) {
-      throw new \Exception('Account not synced to this ledger index yet ('.$account->l.' < '.$LedgerIndexLastForDay.')');
-    }
-
     //Check if $this->address is synced within time ranges, if not then disallow search
-    if($account->l < $LedgerIndexLastForDay)
-      return []; //not synced yet to this ledger index
+    if(($account->l * 10000) < $LedgerIndexLastForDay) {
+      throw new \Exception('Account not synced to this ledger index yet ('.($account->l*10000).' < '.$LedgerIndexLastForDay.')');
+    }
   
     $period = CarbonPeriod::since($from)->until($to);
 
@@ -124,7 +120,8 @@ class Mapper
     foreach($period as $day) {
       
       $ledgerindex = Ledgerindex::getLedgerindexIdForDay($day);
-      //dd( $ledgerindex);
+    
+      dd( $ledgerindex);
       if($ledgerindex) {
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
           $page = 1;
@@ -265,7 +262,7 @@ class Mapper
     $r = Cache::get($cache_key);
     
     if($r === null) {
-      $map = Map::select('count_num','first_exclusive','next')
+      $map = Map::select('count_num','first','next')
         ->where('address', $this->address)
         ->where('ledgerindex_id',$ledgerindex)
         ->where('txtype',$DModelName::TYPE)
@@ -309,14 +306,14 @@ class Mapper
         $map->count_num = $count;//$countWithBreakpoints['count'];
         $map->page = $subpage;
         $map->next = $c->lastKey ? ($c->lastKey['SK']['N']-0.0001) : null;
-        $map->first_exclusive = $nextSK; //(exclusive); If null then use LedgerIndex.ledger_index_first (inclusive)
+        $map->first = $nextSK; //(exclusive); If null then use LedgerIndex.ledger_index_first (inclusive)
         //$map->last_li = $c->lastKey['SK']['N'];
         //$map->breakpoints = $countWithBreakpoints['breakpoints'];
         //$map->count_indicator = '='; //indicates that count is exact (=)
         $map->created_at = now(); //TODO do not use now(), use \date() to improve performance
         $map->save();
       }
-      $r = [$map->count_num, $map->first_exclusive, $map->next ? ($map->next+0.0001) : null];
+      $r = [$map->count_num, $map->first, $map->next ? ($map->next+0.0001) : null];
       Cache::put($cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     

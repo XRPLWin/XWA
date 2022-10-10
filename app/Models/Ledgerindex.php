@@ -49,8 +49,10 @@ class Ledgerindex extends Model
   {
     $cache_key = 'lid:'.$day->format('Ymd');
     $r = Cache::get($cache_key);
+    
     if($r === null) {
       $ledgerindex = self::select('id','ledger_index_first','ledger_index_last')->where('day',$day)->first();
+      //dd($ledgerindex);
       if(!$ledgerindex)
         $r = 0;
       else
@@ -64,7 +66,7 @@ class Ledgerindex extends Model
 
     $r[0] = (int)$r[0];
     $r[1] = (int)$r[1];
-    $r[2] = (float)($r[2].'.9999');
+    $r[2] = ($r[2] === -1) ? -1 : (int)$r[2];
 
     //if($r[2] === -1) {
       //$r[2] = Ledger::current();
@@ -87,17 +89,17 @@ class Ledgerindex extends Model
       if(!$ledgerindex)
         $r = 0;
       else
-        $r = (string)$ledgerindex->ledger_index_first.';'.(string)$ledgerindex->ledger_index_last;
+        $r = (string)$ledgerindex->ledger_index_first.'.'.(string)$ledgerindex->ledger_index_last;
       
       Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     
     if($r === 0 || $r === '0') return null;
 
-    $r = \explode(';',$r);
+    $r = \explode('.',$r);
 
     $r[0] = (int)$r[0];
-    $r[1] = (float)($r[1].'.9999');
+    $r[1] = ($r[1] === -1) ? -1 : (int)$r[1];
     return $r;
   }
 

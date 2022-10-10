@@ -78,8 +78,10 @@ class XwaLedgerIndexSync extends Command
         $li_first = 32570; //genesis ledger index 32570*10000 (real)
         $start = ripple_epoch_to_epoch(410325670); //genesis ledger close time (ripple epoch)
       } else {
-        
-        $this->ledger_current = ($LastDb->ledger_index_last + 1) / 10000;
+        if($LastDb->ledger_index_last  === -1)
+          $this->ledger_current = -1;
+        else
+          $this->ledger_current = ($LastDb->ledger_index_last + 1) / 10000;
         $li_first = $this->ledger_current;
         $startCarbon = $this->fetchLedgerIndexTime($this->ledger_current);
         $start = $startCarbon->timestamp;

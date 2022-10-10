@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('address', 35);
             $table->foreignId('ledgerindex_id')->constrained('ledgerindexes')->onDelete('CASCADE')->onUpdate('CASCADE');
             $table->smallInteger('page')->default(1); //default first page
-            $table->string('first_exclusive')->nullable()->default(null); //exclusive SK
-            $table->string('next')->nullable()->default(null); //ledgerindex.transactionindex (last evaluated) - for building query for next page
+            $table->unsignedBigInteger('first')->nullable()->default(null); //exclusive SK
+            $table->unsignedBigInteger('next')->nullable()->default(null); //ledgerindex.transactionindex (last evaluated) - for building query for next page
             $table->string('condition',100);
             $table->unsignedTinyInteger('txtype'); //transactiontype
             $table->unsignedInteger('count_num');
@@ -31,7 +31,7 @@ return new class extends Migration
             //$table->timestamps();
         });
     }
-
+    
     /**
      * Reverse the migrations.
      *

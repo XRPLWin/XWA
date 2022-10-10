@@ -124,8 +124,6 @@ class Search
     }
     unset($types);
     
-    //Todo get types from param
-
     $mapper->addCondition('txTypes',$txTypes);
 
     //Direction (in|out)
@@ -175,7 +173,6 @@ class Search
     /**
      * Execute counts and get intersection of transaction hits depending on sent conditions.
      */
-    
     $intersected = $mapper->getIntersectedLedgerindexes();
     //dd($intersected);
     /**
