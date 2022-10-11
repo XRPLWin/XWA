@@ -62,7 +62,7 @@ class XwaAccountSync extends Command
      *
      * @var \XRPLWin\XRPL\Client
      */
-    protected readonly Client $XRPLClient;
+    protected Client $XRPLClient;
 
     /**
      * Execute the console command.
