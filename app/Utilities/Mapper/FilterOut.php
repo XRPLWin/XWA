@@ -44,11 +44,11 @@ class FilterOut extends FilterBase {
             'found' => 0,
             'e' => 'eq',
             'first' => $countTotalReduced['first'],
-            'next' => $countTotalReduced['next']
+            'last' => $countTotalReduced['last']
           ];
           if($countTotalReduced['total'] == 0 || $countTotalReduced['found'] == 0) continue; //no transactions here, skip
           $ledgerindexEx = $this->explodeLedgerindex($ledgerindex);
-          $count = $this->fetchCount($ledgerindexEx[0], $ledgerindexEx[1], $txTypeNamepart, $countTotalReduced['first'], $countTotalReduced['next']);
+          $count = $this->fetchCount($ledgerindexEx[0], $ledgerindexEx[1], $txTypeNamepart, $countTotalReduced['first'], $countTotalReduced['last']);
 
           if($count > 0) { //has transactions
             $r[$txTypeNamepart][$ledgerindex] = [
@@ -56,7 +56,7 @@ class FilterOut extends FilterBase {
               'found' => $count,
               'e' => self::calcEqualizer($countTotalReduced['e'], 'eq'),
               'first' => $countTotalReduced['first'],
-              'next' => $countTotalReduced['next']
+              'last' => $countTotalReduced['last']
             ];
           }
           unset($count);
@@ -71,13 +71,20 @@ class FilterOut extends FilterBase {
     return 'dirout';
   }
 
-  private function fetchCount(int $ledgerindex, int $subpage, string $txTypeNamepart, ?string $first_exclusive, ?string $nextSK): int
+  /**
+   * @param int $ledgerindex - local internal LedgerIndex->id
+   * @param int $subpage - subpage within LedgerIndex
+   * @param string $txTypeNamepart
+   * @param ?int $first - SK*10000 (inclusive)
+   * @param ?int $last - SK*10000 (inclusive)
+   */
+  private function fetchCount(int $ledgerindex, int $subpage, string $txTypeNamepart, ?int $first, ?int $last): int
   {
     $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
     $cond = $this->conditionName();
     $cache_key = 'mpr'.$this->address.'_'.$cond.'_'.$ledgerindex.'_'.$subpage.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
-
+    
     if($r === null) {
       $map = Map::select('count_num')
         ->where('address', $this->address)
@@ -86,54 +93,38 @@ class FilterOut extends FilterBase {
         ->where('txtype',$DModelName::TYPE)
         ->where('condition',$cond)
         ->first();
-  
+      
       if(!$map)
       {
-        $li = Ledgerindex::getLedgerindexData($ledgerindex);
-        if(!$li) {
-          //clear cache then then/instead exception?
-          throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
-          //return 0; //something went wrong
+        $model = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
+        if($first == null || $last == null) {
+          //Need to get edges
+          $li = Ledgerindex::getLedgerindexData($ledgerindex);
+          if(!$li) {
+            //clear cache then then/instead exception?
+            throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
+          }
+          $first = $first ?? $li[0];
+          $last = $last ?? $li[1]; 
         }
-        $DModelTxCount = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
 
-        if($li[1] == -1)
-          $DModelTxCount = $DModelTxCount->where('SK','>=',$li[0]);
-        else
-          $DModelTxCount = $DModelTxCount->where('SK','between',[$li[0],$li[1] + 0.9999]);
+        $model = $model->where('SK','between',[ ($first/10000), ($last/10000) ]); //inclusive
+        $model = $this->applyQueryCondition($model); //check value presence (in attribute always true if in)
+        $count = \App\Utilities\PagedCounter::count($model);
 
-        $DModelTxCount = $this->applyQueryCondition($DModelTxCount); //check value presence (in attribute always does not exists if out)
-
-        if($first_exclusive !== null)
-          $DModelTxCount->afterKey(['PK' => $this->address.'-'.$DModelName::TYPE, 'SK' => (float)$first_exclusive]);
-
-        $count = $DModelTxCount->pagedCount();
-
-        # Sanity check start
-        if($count->lastKey) {
-          if($count->lastKey['SK']['N'] != $nextSK)
-            throw new \Exception('Critical error: page count in filter returned lastKey evaluation which does not match inherited next SK');
-        } else {
-          if($nextSK !== null)
-            throw new \Exception('Critical error: page count in filter did not returned lastKey evaluation which does not match inherited next SK');
-        }
-        # Sanity check end
-        
         $map = new Map;
         $map->address = $this->address;
         $map->ledgerindex_id = $ledgerindex;
         $map->txtype = $DModelName::TYPE;
         $map->condition = $cond;
-        $map->count_num = $count->count;
+        $map->count_num = $count;
         $map->page = $subpage;
-        $map->created_at = now();
+        $map->created_at = \date('Y-m-d H:i:s');
         $map->save();
       }
-  
       $r = $map->count_num;
       Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
-    
     return $r;
   }
 

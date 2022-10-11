@@ -184,13 +184,26 @@ if (!function_exists('isValidXRPAddressFormat')) {
       return false;
     return true;
   }
+}
 
-  if (!function_exists('memory_get_usage_formatted')) {
-    function memory_get_usage_formatted()
-    {
-      $size = memory_get_usage(true);
-      $unit=array('b','kb','mb','gb','tb','pb');
-      return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
-    }
+if (!function_exists('memory_get_usage_formatted')) {
+  function memory_get_usage_formatted()
+  {
+    $size = memory_get_usage(true);
+    $unit=array('b','kb','mb','gb','tb','pb');
+    return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+  }
+}
+
+if (!function_exists('stringDecimalX10000')) {
+  /**
+   * Converts 123456.079 to 1234560790
+   */
+  function stringDecimalX10000(string $num): int
+  {
+    $ex = \explode('.',$num);
+    if(!isset($ex[1])) $ex[1] = '0';
+    $r = $ex[0].\str_pad($ex[1],4,'0',STR_PAD_RIGHT);
+    return $r;
   }
 }

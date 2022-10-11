@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Utilities;
-#use XRPLWin\XRPL\Client;
 use App\Models\Map;
 use App\Models\Ledgerindex;
 use Carbon\Carbon;
@@ -121,7 +120,7 @@ class Mapper
       
       $ledgerindex = Ledgerindex::getLedgerindexIdForDay($day);
     
-      dd( $ledgerindex);
+      
       if($ledgerindex) {
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
           $page = 1;
@@ -130,8 +129,15 @@ class Mapper
           while($do) {
             //if($next) dd($ledgerindex, $txTypeNamepart, $page, $next);
             $countWithNext = $this->fetchAllCount($ledgerindex, $txTypeNamepart, $page, $next); //first page
+            //dd( $countWithNext );
             if($countWithNext[0] > 0) { //has transactions
-              $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex.'.'.\str_pad($page,4,'0',STR_PAD_LEFT)] = ['total' => $countWithNext[0], 'found' => $countWithNext[0], 'e' => 'eq', 'first' =>  $countWithNext[1], 'next' => $countWithNext[2]]; //[total, reduced, eq (equalizer eq|lte)]
+              $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex.'.'.\str_pad($page,4,'0',STR_PAD_LEFT)] = [
+                'total' => $countWithNext[0],
+                'found' => $countWithNext[0],
+                'e' => 'eq',
+                'first' => $countWithNext[1],
+                'last' => $countWithNext[2]
+              ];
             } else {
               //Sanity check:
               //if no transactions on first page then wont be on next pages (no next pages)
@@ -163,8 +169,8 @@ class Mapper
     }
     
     # Phase 2 OPTIONAL CONDITIONS REDUCER:
-    //dd($foundLedgerIndexesIds);
     
+    //dd($foundLedgerIndexesIds);
     if(isset($this->conditions['dir']) && $this->conditions['dir'] == 'in') {
       $Filter = new Mapper\FilterIn($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
@@ -178,11 +184,13 @@ class Mapper
       //echo 'DIROUT: ';dump($foundLedgerIndexesIds);
     }
     
+    
     if(isset($this->conditions['token'])) {
       $Filter = new Mapper\FilterToken($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
       //echo 'TOKEN: ';dump($foundLedgerIndexesIds);
+
     }
     
     if(isset($this->conditions['cp'])) {
@@ -190,6 +198,7 @@ class Mapper
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
       //echo 'CP: ';dump($foundLedgerIndexesIds);
+      //dd('stop');
     }
 
     if(isset($this->conditions['dt'])) {
@@ -213,7 +222,7 @@ class Mapper
   public function applyQueryConditions(\BaoPham\DynamoDb\DynamoDbQueryBuilder $query) 
   {
     if(isset($this->conditions['dir']) && $this->conditions['dir'] == 'in') {
-      $Filter = new Mapper\FilterIn($this->address,$this->conditions);
+      $Filter = new Mapper\FilterIn($this->address,$this->conditions,[]);
       $query = $Filter->applyQueryCondition($query);
     }
     elseif(isset($this->conditions['dir']) && $this->conditions['dir'] == 'out') {
@@ -250,50 +259,60 @@ class Mapper
    * Appliable to ALL transaction types.
    * @param int $ledgerindex - id from ledgerindexes table
    * @param string $txTypeNamepart - \App\Models\DTransaction<NAMEPART>
-   * @param ?string $next - latest evaluated SK for building lastKey for DynamoDB iterator
+   * @param ?int $next - latest evaluated SK*10000 for building lastKey for DynamoDB iterator
    * @return array [ int transaction count, string breakpoints ]
    */
-  private function fetchAllCount(int $ledgerindex, string $txTypeNamepart, int $subpage = 1, ?string $nextSK = null): array
+  private function fetchAllCount(int $ledgerindex, string $txTypeNamepart, int $subpage = 1, ?int $nextSK = null): array
   {
    
+    //if($nextSK) dd($nextSK);
     $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
     
     $cache_key = 'mpr'.$this->address.'_all_'.$ledgerindex.'_'.$subpage.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
-    
+    //$r = null;
     if($r === null) {
-      $map = Map::select('count_num','first','next')
+      $map = Map::select('count_num','first','last')
         ->where('address', $this->address)
         ->where('ledgerindex_id',$ledgerindex)
         ->where('txtype',$DModelName::TYPE)
         ->where('condition','all')
         ->where('page', $subpage)
         ->first();
-      
+      //$map = null;
       if(!$map)
       {
         //no records found, query DyDB for this day, for this type and save
         //$li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
         $li = Ledgerindex::getLedgerindexData($ledgerindex);
+        
         if(!$li) {
           //clear cache then then/instead exception?
           throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
           //return 0; //something went wrong
         }
-        $query = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE); //In need of more performance, use this: ->take(2000);
+
+        $query = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE); //In need of more performance (more pages), use this: ->limit(3000);
         if($li[1] == -1) //latest
-          $query = $query->where('SK','>=',$li[0]);
+          $query = $query->where('SK','>=',($li[0]/10000));
         else
-          $query = $query->where('SK','between',[$li[0],$li[1]]);
-        //dd($query);
-        //dump($query->toDynamoDbQuery());
+          $query = $query->where('SK','between',[ ($li[0]/10000), ($li[1]/10000) ]);
+
+         
+        //if($li[0] == 680536350391) {
+        //  dump($li,$query->toDynamoDbQuery());exit;
+        //}
         
+
         if($nextSK !== null) {
-          $query->afterKey(['PK' => $this->address.'-'.$DModelName::TYPE, 'SK' => (float)$nextSK]);
+          $query->afterKey(['PK' => $this->address.'-'.$DModelName::TYPE, 'SK' => ($nextSK/10000)]);
+          //dump($nextSK);
         }
           
         $c = $query->pagedCount();
+        //dd($c);
         $count = $c->count;
+        //dump($c->lastKey['SK']['N'].'--'.(int)($c->lastKey['SK']['N']*10000),stringdecimalX10000($c->lastKey['SK']['N']));
         
         //$countWithBreakpoints = \App\Utilities\PagedCounter::countAndReturnBreakpointsForTransacitons($query);
         //$countWithBreakpoints = \App\Utilities\PagedCounter::countWithBreakpoints($query,null,['SK','N']);
@@ -305,15 +324,19 @@ class Mapper
         $map->condition = 'all';
         $map->count_num = $count;//$countWithBreakpoints['count'];
         $map->page = $subpage;
-        $map->next = $c->lastKey ? ($c->lastKey['SK']['N']-0.0001) : null;
-        $map->first = $nextSK; //(exclusive); If null then use LedgerIndex.ledger_index_first (inclusive)
+        $map->first = $nextSK ? ($nextSK + 1) : null; //nullable
+        $map->last = $c->lastKey ? stringDecimalX10000($c->lastKey['SK']['N']) : null; //nullable
+        
         //$map->last_li = $c->lastKey['SK']['N'];
         //$map->breakpoints = $countWithBreakpoints['breakpoints'];
         //$map->count_indicator = '='; //indicates that count is exact (=)
-        $map->created_at = now(); //TODO do not use now(), use \date() to improve performance
+        $map->created_at = \date('Y-m-d H:i:s');
         $map->save();
       }
-      $r = [$map->count_num, $map->first, $map->next ? ($map->next+0.0001) : null];
+      
+     
+      $r = [$map->count_num, $map->first, $map->last];
+      //dd($r);
       Cache::put($cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     

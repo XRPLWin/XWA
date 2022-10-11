@@ -17,7 +17,6 @@ use App\Models\Ledgerindex;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 use App\Utilities\Scanplan\Parser as ScanplanParser;
 
 class Search
@@ -141,6 +140,7 @@ class Search
         $mapper->addCondition('token','XRP');
       else {
         $param_token_ex = \explode('+',$param_token);
+        if(count($param_token_ex) == 1) $param_token_ex = \explode(' ',$param_token);
         if(count($param_token_ex) == 2) {
           if(isValidXRPAddressFormat($param_token_ex[0])) {
             $mapper->addCondition('token',$param_token);
@@ -180,7 +180,7 @@ class Search
      */
     $scanplan = new ScanplanParser($intersected);
     $scanplan = $scanplan->parse();
-    //dd($scanplan,'AAA');
+    
     //$scanplan = $this->calculateScanPlan($intersected);
     
     //dd($scanplan);
@@ -212,7 +212,7 @@ class Search
     */
     
     $pages_count = count($scanplan);
-    
+    //dd($scanplan);
     if($pages_count == 0) {
       return ['counts' => $resultCounts, 'data' => collect([])];
     }
@@ -241,15 +241,15 @@ class Search
 
       //apply non-definitive conditions to $query
       $query = $mapper->applyQueryConditions($query);
-      
+      //dd(($scanplanTypeData['ledgerindex_first']/10000));
       if($ledgerindex_last_range[1] == -1)
-        $query = $query->where('SK','>=',$scanplanTypeData['ledgerindex_first']);
+        $query = $query->where('SK','>=',($scanplanTypeData['ledgerindex_first']/10000));
       else
-        $query = $query->where('SK','between',[(float)$scanplanTypeData['ledgerindex_first'],(float)$scanplanTypeData['ledgerindex_last']]); //DynamoDB BETWEEN is inclusive
+        $query = $query->where('SK','between',[($scanplanTypeData['ledgerindex_first']/10000),($scanplanTypeData['ledgerindex_last']/10000)]); //DynamoDB BETWEEN is inclusive
       
       //dump($query->toDynamoDbQuery());exit;
       $results = $query->all();
-      //dd($results);
+      //dd($results,$scanplan);
 
      /* $j = 1;
       foreach($results as $r )
@@ -265,8 +265,8 @@ class Search
 
       //$nonDefinitiveResults[$txTypeNamepart] =  $nonDefinitiveResults[$txTypeNamepart]->merge($results);
       $nonDefinitiveResults = $nonDefinitiveResults->merge($results);
-      dump($scanplanTypeData);
-     dump($results->first(),$results->last(),'count: '.$results->count());
+      //dump($scanplanTypeData);
+      //dump('count: '.$results->count());
       //Add total counts
       //foreach($definitiveResults as $v){
       //  $resultCounts['total'] += $v->count();

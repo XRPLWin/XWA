@@ -64,14 +64,9 @@ class Ledgerindex extends Model
 
     $r = \explode(':',$r);
 
-    $r[0] = (int)$r[0];
-    $r[1] = (int)$r[1];
-    $r[2] = ($r[2] === -1) ? -1 : (int)$r[2];
-
-    //if($r[2] === -1) {
-      //$r[2] = Ledger::current();
-      //$r[2] = 9999999999999;      
-    //}
+    $r[0] = (int)$r[0];                       //eg. 3257
+    $r[1] = (int)$r[1];                       //eg. 680464090000
+    $r[2] = ($r[2] === -1) ? -1 : (int)$r[2]; //eg. -1 or 680676479999
 
     return $r;
   }

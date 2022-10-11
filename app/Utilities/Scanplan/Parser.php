@@ -15,16 +15,16 @@ class Parser
 
   public function parse()
   {
+    
     $r = $this->generateDailySubPages();
-    //petljaj ove ledger indexe, unutra su sub-pageovi, mergaj sta se moze mergat i napravi optimalni scanplan
-    //dd($r);
+    
     $breakpoint = config('xwa.paginator_breakpoint');
-
+    //dd($r,$breakpoint);
     $paged_data = [];
     $page = 1;
     $count = 0;
-    foreach($r as $ledgerIndex => $subPages) {
-      foreach($subPages as $subPage => $txs) {
+    foreach($r as $subPages) {
+      foreach($subPages as $txs) {
         foreach($txs as $txType => $data) {
           $count += $data['total']; //total
           $paged_data[$page][$txType][] = $data;
@@ -33,14 +33,15 @@ class Parser
           $page++;
       }
     }
-
-
+    //dd($paged_data);
+   
     //Generate scanplan
     $scanplan = [];
     foreach($paged_data as $page => $txtypes) {
 
       foreach($txtypes as  $txtype => $txtypeSubpages) {
         //set initial values
+        
         $_total = 0;
         $_found = 0;
         $_e = 'eq';
@@ -51,10 +52,10 @@ class Parser
           $_found += $subpageCounts['found'];
           $_e = self::calcSearchEqualizer($_e, $subpageCounts['e']);
           $_ledger_index_firsts[] = $subpageCounts['first2'];
-          $_ledger_index_lasts[] = $subpageCounts['next2'];
+          $_ledger_index_lasts[] = $subpageCounts['last2'];
           $_ledgerindex_last_ids[] = $subpageCounts['li_id'];
         }
-        dump($subpageCounts);
+        //dd($txtypeSubpages,$_ledger_index_firsts,$_ledger_index_lasts,$_ledgerindex_last_ids);
         $scanplan[$page][$txtype] = [
           'total' => $_total,
           'found' => $_found,
@@ -63,6 +64,7 @@ class Parser
           'ledgerindex_last' => \max($_ledger_index_lasts),
           'ledgerindex_last_id' => \max($_ledgerindex_last_ids)
         ];
+        //if($txtype == 'Trustset') dd( $scanplan[$page][$txtype],$txtypeSubpages);
       }
     }
 
@@ -120,12 +122,12 @@ class Parser
       foreach($data as $li_subpage) { //1234.001..9
 
         if(!isset($list[$li_subpage])) continue;
-        
-        $first = $this->firstLi_toLedgerIndex($li_subpage,$list[$li_subpage]['first']);
-        $next = $this->nextLi_toLedgerIndex($li_subpage,$list[$li_subpage]['next']);
-        //dump( $next,$li_subpage, '----'.$list[$li_subpage]['next']);
+        //dd($list[$li_subpage]);
+        $first = $this->firstLi_toLedgerIndex($li_subpage,$list[$li_subpage]['first'] ? ($list[$li_subpage]['first']):null); 
+        $last = $this->nextLi_toLedgerIndex($li_subpage,$list[$li_subpage]['last']) + 1; //start of next "first"
+        //dump( $first.' - '.$last);
         $breakpoints[$first] = true;
-        $breakpoints[$next] = true;
+        $breakpoints[$last] = true;
       }
     }
     \ksort($breakpoints, SORT_NUMERIC);
@@ -136,17 +138,17 @@ class Parser
     foreach($breakpoints as $b => $foo) {
       $breakpoints_values[] = $b;
     }
-    
+
     $pages = [];
     $page = 0;
     foreach($breakpoints_values as $k => $breakpoint) {
-     // dd($k,$breakpoint);
+      //dd($k,$breakpoint,$breakpoints_values);
       if($k > 0) {
-        $pages[$page] = [$breakpoints_values[$k-1],$breakpoint];
+        $pages[$page] = [$breakpoints_values[$k-1],($breakpoint - 1)];
       }
       $page++;
     }
-
+    //dump($breakpoints_values,$pages);
 
     # Loop pages and collect transaction counts
     $collection = [];
@@ -155,32 +157,38 @@ class Parser
       //get all transactions for this breakpoints
       //if next is null then include and pass on
       foreach($this->data as $txType => $list) { //each txtype
-        //dd($this->data);
+        
         foreach($list as $li_subpage => $d) { //1234.001..9
-
+          
           if($d['found'] === 0) continue; //skip zero transactions
           //dd($d, $li_subpage);
+          
           $first = $this->firstLi_toLedgerIndex($li_subpage, $d['first']);
-          $next = $this->nextLi_toLedgerIndex($li_subpage, $d['next']);
+          $last = $this->nextLi_toLedgerIndex($li_subpage, $d['last']);
+          
           $valid = false;
+          $e = $d['e'];
           # EQUAL TO FIRST EDGE OR EQUAL TO LAST EDGE
-          if((string)$p[0] == $first || (string)$p[1] == $next) {
+          //dd($li_subpage,$d,$first,$last,$p);
+          if($p[0] === $first || $p[1] === $last) {
             $valid = true;
           } else {
             # IS SPANNED ACROS MIDDLE PAGES
-            //dump('Page no'.$page.': '.$p[0].' >= '.$first.' && '.$p[1].' <= '.$next.' = ', ($p[0] >= $first && $p[1] <= $next));
-            if($p[0] >= $first && $p[1] <= $next) {
+            //dump('Page no'.$page.': '.$p[0].' >= '.$first.' && '.$p[1].' <= '.$last.' = ', ($p[0] >= $first && $p[1] <= $last));
+            if($p[0] >= $first && $p[1] <= $last) {
               $valid = true;
+              $e = 'lte';
             }
           }
 
           if($valid) {
-            $d['first2'] = (string)$p[0];
-            $d['next2'] = (string)$p[1];
-            $d['li_id'] = $li_subpage;
+            $d['first2'] = $p[0];
+            $d['last2']  = $p[1];
+            $d['li_id']  = $li_subpage;
+            $d['e'] = self::calcSearchEqualizer($d['e'], $e);
             $collection[$page][$txType] = $d;
           }
-          //dd($page,$list,$first,$next);
+          //dd($page,$list,$first,$last);
         }
       }
     }
@@ -190,10 +198,10 @@ class Parser
 
   /**
    * @param string $li_subpage - "1234.001"
-   * @param ?string $first - null or "35475944.029"
+   * @param ?string $first - null or "354759440290"
    * @return int ledger_index
    */
-  private function firstLi_toLedgerIndex(string $li_subpage, ?string $ledger_index): string
+  private function firstLi_toLedgerIndex(string $li_subpage, ?int $ledger_index): int
   {
     if($ledger_index !== null)
       return $ledger_index;
@@ -204,10 +212,10 @@ class Parser
       $li = Ledgerindex::getLedgerindexData(\explode('.',$li_subpage)[0]);
       $this->mem_li[$li_subpage] = $li;
     }
-    return (string)$li[0];
+    return $li[0];
   }
 
-  private function nextLi_toLedgerIndex(string $li_subpage, ?string $ledger_index): string
+  private function nextLi_toLedgerIndex(string $li_subpage, ?int $ledger_index): int
   {
     if($ledger_index !== null)
       return $ledger_index;
@@ -217,10 +225,8 @@ class Parser
     } else {
       $li = Ledgerindex::getLedgerindexData(\explode('.',$li_subpage)[0]);
       $this->mem_li[$li_subpage] = $li;
-      //$li[1] += 0.9999; //due to inclusive between filtering, last edge of LedgerIndex + 0.9999;
-      //dd($li);
     }
-    return (string)$li[1];
+    return $li[1];
   }
 
 
