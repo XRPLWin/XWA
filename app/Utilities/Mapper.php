@@ -292,7 +292,12 @@ class Mapper
           //return 0; //something went wrong
         }
 
-        $query = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE); //In need of more performance (more pages), use this: ->limit(3000);
+        $query = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
+
+        $limit = config('xwa.scan_limit');
+        if($limit)
+          $query = $query->limit($limit);
+        
         if($li[1] == -1) //latest
           $query = $query->where('SK','>=',($li[0]/10000));
         else
