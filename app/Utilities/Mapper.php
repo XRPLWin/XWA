@@ -294,7 +294,7 @@ class Mapper
 
         $query = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
 
-        $limit = config('xwa.scan_limit');
+        $limit = (int)config('xwa.scan_limit');
         if($limit)
           $query = $query->limit($limit);
         

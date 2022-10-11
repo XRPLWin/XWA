@@ -11,6 +11,7 @@ class MainController extends Controller
 {
     public function test()
     {
+        exit;
         /*$model = new \App\Models\DTransactionPayment;
 
         $raw = $model->toDynamoDbQuery(['count(*)']);
