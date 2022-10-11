@@ -17,6 +17,14 @@ class QueueArtisanCommand implements ShouldQueue
     protected $command;
     protected $command_options;
 
+    /**
+     * The number of seconds the job can run before timing out.
+     * 30 min to execute something, if timeouts job can be restarted
+     * (please program jobs to continue where they left of)
+     * @var int
+     */
+    public $timeout = 1800; 
+
     //Additional data for queue table
     public $qtype = '';       //string max 50
     public $qtype_data = '';  //string max 255
