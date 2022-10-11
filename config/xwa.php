@@ -26,7 +26,7 @@ return [
   |--------------------------------------------------------------------------
   | Scan limit
   |--------------------------------------------------------------------------
-  | Default: 5000
+  | Default: 1000
   | How much results maximum DynamoDB Count action will count per query.
   | Put 0 (zero) for no limit - DynamoDB will paginate this when 1MB limit is reached.
   | Smaller limit = more queries and more pages.
@@ -34,7 +34,7 @@ return [
   | per calendar day, eg. over 15k transactions will yield 4 pages of data with 5000 limit.
   | Warning: Changing this value means you need to to clear Redis cache and empty "maps" table.
   */
-  'scan_limit' => env('XWA_SCAN_LIMIT', 0),
+  'scan_limit' => env('XWA_SCAN_LIMIT', 1000),
 
   /*
   |--------------------------------------------------------------------------

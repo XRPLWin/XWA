@@ -214,6 +214,7 @@ class Mapper
       unset($Filter);
       //echo 'ST: ';dump($foundLedgerIndexesIds);
     }
+    
     //echo 'END';
     //dd($foundLedgerIndexesIds);
     return $foundLedgerIndexesIds;
@@ -264,13 +265,11 @@ class Mapper
    */
   private function fetchAllCount(int $ledgerindex, string $txTypeNamepart, int $subpage = 1, ?int $nextSK = null): array
   {
-   
-    //if($nextSK) dd($nextSK);
     $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
     
     $cache_key = 'mpr'.$this->address.'_all_'.$ledgerindex.'_'.$subpage.'_'.$DModelName::TYPE;
     $r = Cache::get($cache_key);
-    //$r = null;
+
     if($r === null) {
       $map = Map::select('count_num','first','last')
         ->where('address', $this->address)
@@ -279,7 +278,7 @@ class Mapper
         ->where('condition','all')
         ->where('page', $subpage)
         ->first();
-      //$map = null;
+
       if(!$map)
       {
         //no records found, query DyDB for this day, for this type and save
@@ -294,33 +293,23 @@ class Mapper
 
         $query = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
 
-        $limit = (int)config('xwa.scan_limit');
+        $limit = config('xwa.scan_limit');
         if($limit)
-          $query = $query->limit($limit);
+          $query = $query->limit((int)$limit);
         
         if($li[1] == -1) //latest
           $query = $query->where('SK','>=',($li[0]/10000));
         else
           $query = $query->where('SK','between',[ ($li[0]/10000), ($li[1]/10000) ]);
 
-         
-        //if($li[0] == 680536350391) {
-        //  dump($li,$query->toDynamoDbQuery());exit;
-        //}
-        
-
         if($nextSK !== null) {
           $query->afterKey(['PK' => $this->address.'-'.$DModelName::TYPE, 'SK' => ($nextSK/10000)]);
-          //dump($nextSK);
         }
           
         $c = $query->pagedCount();
-        //dd($c);
         $count = $c->count;
+
         //dump($c->lastKey['SK']['N'].'--'.(int)($c->lastKey['SK']['N']*10000),stringdecimalX10000($c->lastKey['SK']['N']));
-        
-        //$countWithBreakpoints = \App\Utilities\PagedCounter::countAndReturnBreakpointsForTransacitons($query);
-        //$countWithBreakpoints = \App\Utilities\PagedCounter::countWithBreakpoints($query,null,['SK','N']);
         
         $map = new Map;
         $map->address = $this->address;
@@ -331,17 +320,12 @@ class Mapper
         $map->page = $subpage;
         $map->first = $nextSK ? ($nextSK + 1) : null; //nullable
         $map->last = $c->lastKey ? stringDecimalX10000($c->lastKey['SK']['N']) : null; //nullable
-        
-        //$map->last_li = $c->lastKey['SK']['N'];
-        //$map->breakpoints = $countWithBreakpoints['breakpoints'];
-        //$map->count_indicator = '='; //indicates that count is exact (=)
         $map->created_at = \date('Y-m-d H:i:s');
         $map->save();
       }
       
      
       $r = [$map->count_num, $map->first, $map->last];
-      //dd($r);
       Cache::put($cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     
