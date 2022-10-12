@@ -233,8 +233,8 @@ class Search
       //$resultCounts['total_e'] = self::calcSearchEqualizer($resultCounts['total_e'],$scanplanTypeData['stats']['e']);
       
       //$ledgerindex_first_range = Ledgerindex::getLedgerindexData($scanplanTypeData['data']['ledgerindex_first']);
-      $ledgerindex_last_range = Ledgerindex::getLedgerindexData($scanplanTypeData['ledgerindex_last_id']);
-
+      //$ledgerindex_last_range = Ledgerindex::getLedgerindexData($scanplanTypeData['ledgerindex_last_id']);
+      //dd($ledgerindex_last_range,$scanplanTypeData);
       /** @var \App\Models\DTransaction */
       $DTransactionModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
       $query = $DTransactionModelName::where('PK', $this->address.'-'.$DTransactionModelName::TYPE);
@@ -242,12 +242,13 @@ class Search
       //apply non-definitive conditions to $query
       $query = $mapper->applyQueryConditions($query);
       //dd(($scanplanTypeData['ledgerindex_first']/10000));
-      if($ledgerindex_last_range[1] == -1)
+      //if($ledgerindex_last_range[1] == -1)
+      if($scanplanTypeData['ledgerindex_last'] === -1)
         $query = $query->where('SK','>=',($scanplanTypeData['ledgerindex_first']/10000));
       else
         $query = $query->where('SK','between',[($scanplanTypeData['ledgerindex_first']/10000),($scanplanTypeData['ledgerindex_last']/10000)]); //DynamoDB BETWEEN is inclusive
       
-      //dump($query->toDynamoDbQuery());exit;
+      dump($query->toDynamoDbQuery());exit;
       $results = $query->all();
       //dd($results,$scanplan);
 

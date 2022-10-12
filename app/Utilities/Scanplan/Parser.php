@@ -46,12 +46,15 @@ class Parser
         $_found = 0;
         $_e = 'eq';
         $_ledger_index_firsts = $_ledger_index_lasts = $_ledgerindex_last_ids = [];
+        $_is_current = false; //flag to check if last2 is -1
 
         foreach($txtypeSubpages as $subpageCounts) {
           $_total += $subpageCounts['total'];
           $_found += $subpageCounts['found'];
           $_e = self::calcSearchEqualizer($_e, $subpageCounts['e']);
           $_ledger_index_firsts[] = $subpageCounts['first2'];
+          if($subpageCounts['last2'] === -1)
+            $_is_current = true;
           $_ledger_index_lasts[] = $subpageCounts['last2'];
           $_ledgerindex_last_ids[] = $subpageCounts['li_id'];
         }
@@ -61,9 +64,10 @@ class Parser
           'found' => $_found,
           'e' => $_e,
           'ledgerindex_first' => \min($_ledger_index_firsts),
-          'ledgerindex_last' => \max($_ledger_index_lasts),
+          'ledgerindex_last' => $_is_current ? -1 : \max($_ledger_index_lasts),
           'ledgerindex_last_id' => \max($_ledgerindex_last_ids)
         ];
+        
         //if($txtype == 'Trustset') dd( $scanplan[$page][$txtype],$txtypeSubpages);
       }
     }
@@ -122,38 +126,51 @@ class Parser
       foreach($data as $li_subpage) { //1234.001..9
 
         if(!isset($list[$li_subpage])) continue;
-        //dd($list[$li_subpage]);
-        $first = $this->firstLi_toLedgerIndex($li_subpage,$list[$li_subpage]['first'] ? ($list[$li_subpage]['first']):null); 
-        $last = $this->nextLi_toLedgerIndex($li_subpage,$list[$li_subpage]['last']) + 1; //start of next "first"
-        //dump( $first.' - '.$last);
+
+        $first = $this->firstLi_toLedgerIndex($li_subpage,$list[$li_subpage]['first'] ? ($list[$li_subpage]['first']):null);
         $breakpoints[$first] = true;
-        $breakpoints[$last] = true;
+        $last = $this->nextLi_toLedgerIndex($li_subpage,$list[$li_subpage]['last']); //start of next "first"
+
+        if($last === -1)
+          $breakpoints[$last] = true; //current ledger (-1)
+        else {
+          # Sanity check
+          if($first > $last)
+            throw new \Exception('First greather than last - ledgerindex ranges not correct');
+          $breakpoints[$last+1] = true;
+        }
       }
     }
     \ksort($breakpoints, SORT_NUMERIC);
     # Breakpoints done, how much breakpoint that much sub-pages
-    //dd($breakpoints);
+    
     # Generate pages between breakpoints:
     $breakpoints_values = [];
     foreach($breakpoints as $b => $foo) {
       $breakpoints_values[] = $b;
     }
 
+    //Move -1 to end - this is current ledger_index and it belongs at end of the list
+    if(isset($breakpoints_values[0]) && $breakpoints_values[0] === -1) {
+      unset($breakpoints_values[0]);
+      $breakpoints_values[] = -1;
+      $breakpoints_values = array_values($breakpoints_values);
+    }
+      
     $pages = [];
     $page = 0;
     foreach($breakpoints_values as $k => $breakpoint) {
-      //dd($k,$breakpoint,$breakpoints_values);
       if($k > 0) {
-        $pages[$page] = [$breakpoints_values[$k-1],($breakpoint - 1)];
+        if($breakpoint !== -1)
+          $breakpoint--;
+        $pages[$page] = [$breakpoints_values[$k-1],$breakpoint];
       }
       $page++;
     }
-    //dump($breakpoints_values,$pages);
 
     # Loop pages and collect transaction counts
     $collection = [];
     foreach($pages as $page => $p) {
-      //dd($pages);
       //get all transactions for this breakpoints
       //if next is null then include and pass on
       foreach($this->data as $txType => $list) { //each txtype
@@ -161,21 +178,19 @@ class Parser
         foreach($list as $li_subpage => $d) { //1234.001..9
           
           if($d['found'] === 0) continue; //skip zero transactions
-          //dd($d, $li_subpage);
-          
+  
           $first = $this->firstLi_toLedgerIndex($li_subpage, $d['first']);
           $last = $this->nextLi_toLedgerIndex($li_subpage, $d['last']);
           
           $valid = false;
           $e = $d['e'];
           # EQUAL TO FIRST EDGE OR EQUAL TO LAST EDGE
-          //dd($li_subpage,$d,$first,$last,$p);
           if($p[0] === $first || $p[1] === $last) {
             $valid = true;
           } else {
             # IS SPANNED ACROS MIDDLE PAGES
             //dump('Page no'.$page.': '.$p[0].' >= '.$first.' && '.$p[1].' <= '.$last.' = ', ($p[0] >= $first && $p[1] <= $last));
-            if($p[0] >= $first && $p[1] <= $last) {
+            if($p[0] >= $first && ($last === -1 || $p[1] <= $last)) {
               $valid = true;
               $e = 'lte';
             }
@@ -188,17 +203,15 @@ class Parser
             $d['e'] = self::calcSearchEqualizer($d['e'], $e);
             $collection[$page][$txType] = $d;
           }
-          //dd($page,$list,$first,$last);
         }
       }
     }
-    //dd($collection,$this->data);
     return $collection;
   }
 
   /**
    * @param string $li_subpage - "1234.001"
-   * @param ?string $first - null or "354759440290"
+   * @param ?int $ledger_index - null or "354759440290"
    * @return int ledger_index
    */
   private function firstLi_toLedgerIndex(string $li_subpage, ?int $ledger_index): int
@@ -215,6 +228,11 @@ class Parser
     return $li[0];
   }
 
+  /**
+   * @param string $li_subpage - "1234.001"
+   * @param ?int $ledger_index - null or "354759440290"
+   * @return int ledger_index - can be -1 for current ledger index
+   */
   private function nextLi_toLedgerIndex(string $li_subpage, ?int $ledger_index): int
   {
     if($ledger_index !== null)
