@@ -1,16 +1,16 @@
 <?php
 /**
-* XrplWinAnalyzer (XWA) main config file
-*/
+ * XRPLWinAnalyzer (XWA) main config file.
+ */
 
 return [
 
-  //sync this version with composer.json
+  # Sync this version with composer.json
   'version' => '0.0.1',
 
   /*
   |--------------------------------------------------------------------------
-  | Search cache disk
+  | Search cache disk (deprecated, will be removed)
   |--------------------------------------------------------------------------
   |
   | Where to store serialized search cache dumps.
@@ -32,7 +32,9 @@ return [
   | Smaller limit = more queries and more pages.
   | This is relevant only for rAccount with abnormally large amount of transactions
   | per calendar day, eg. over 15k transactions will yield 4 pages of data with 5000 limit.
-  | Warning: Changing this value means you need to to clear Redis cache and empty "maps" table.
+  | Warning: Changing this value requires clearing Redis cache and empty "maps" table.
+  |   Changing this value requires clearing reverse proxy cache (eg. Varnish, CloudFront ...)
+  |   It is recommended not to change this value on production that is already running.
   */
   'scan_limit' => env('XWA_SCAN_LIMIT', 1000),
 
@@ -40,11 +42,14 @@ return [
   |--------------------------------------------------------------------------
   | Paginator breakpoint
   |--------------------------------------------------------------------------
-  | Default 500
+  | Default: 500
   | How much results one request can pull per txType, before paginating multiple ledger days.
   | This value does not take into account internal per-ledger-day paginating.
+  | Max transactions returned per request can be eg. <paginator_breakpoint>*<number of transaction types>.
+  | Warning: Changing this value requires clearing reverse proxy cache (eg. Varnish, CloudFront ...)
+  |   It is recommended not to change this value on production that is already running.
   */
-  'paginator_breakpoint' => 2000, //500
+  'paginator_breakpoint' => env('XWA_PAGINATIOR_BREAKPOINT', 500),
 
   
 ];
