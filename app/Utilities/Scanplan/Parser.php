@@ -13,6 +13,73 @@ class Parser
     $this->data = $intersectedLedgerIndexes;
   }
 
+  private function mergeItems(array $item1, array $item2)
+  {
+
+  }
+
+  private function mergeSinglePages(array $r)
+  {
+
+    $merged = [];
+    $merge_mode = false;
+    $first2 = null;
+    $last2 = null;
+    
+    # Merge single full-edge pages
+    foreach($r as $k => $subPages) {
+      if(count($subPages) == 1) {
+        //can be merged possibly
+        //check if all are edges and there is only one page if yes then: $merge_mode = true;
+        $is_mergable_with_next = true;
+        foreach($subPages[$k] as $txType => $data) {
+          if($data['last2'] !== null)
+            $is_mergable_with_next = false;
+        }
+        if($is_mergable_with_next) {
+          $merge_mode = true;
+          //$first2 = $data['first2'];
+          $last2 = $data['last2'];
+        }
+          
+        
+        
+        foreach($subPages as $txs) {
+          dd($txs);
+          foreach($txs as $txType => $data) {
+
+
+            
+
+          }
+
+        }
+      } else {
+        //reset trackers:
+        $merge_mode = false;
+        $first2 = $last2 = null;
+        $merged[] = $subPages;
+      }
+      /*foreach($subPages as $txs) {
+        //check if all are edges and there is only one page
+
+        //$merged[][]
+        dd($txs,$r);
+        foreach($txs as $txType => $data) {
+          if($first2 == $data['first2']) {
+
+          }
+          $first2 = $data['first2'];
+          $last2 = $data['last2'];
+          
+        }
+      }*/
+     
+    }
+    dd($r,$merged);
+    return $merged;
+  }
+
   public function parse()
   {
     $r = $this->generateDailySubPages();
@@ -20,6 +87,9 @@ class Parser
     $paged_data = [];
     $page = 1;
     $count = 0;
+
+    $r = $this->mergeSinglePages($r); //todo
+
     foreach($r as $subPages) {
       foreach($subPages as $txs) {
         foreach($txs as $txType => $data) {

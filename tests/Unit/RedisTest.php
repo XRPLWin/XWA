@@ -25,7 +25,6 @@ class RedisTest extends TestCase
 		Cache::forget($cache_key1);
 		Cache::forget($cache_key2);
 
-
 		Cache::put( $cache_key1, $value1, 1000);
 		Cache::put( $cache_key2, $value2, 1000);
 

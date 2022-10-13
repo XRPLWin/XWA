@@ -31,7 +31,8 @@ return [
   | Default: 500
   | How much results one request can pull per txType, before paginating multiple ledger days.
   | This value does not take into account internal per-ledger-day paginating.
-  | Max transactions returned per request can be eg. <paginator_breakpoint>*<number of transaction types>.
+  | Max transactions returned per request can be eg. <paginator_breakpoint>*<number of transaction types>
+  | for internal (ledger-day) paginating - in short when there is large amount of transactions in one day.
   | Warning: Changing this value requires clearing reverse proxy cache (eg. Varnish, CloudFront ...)
   |   It is recommended not to change this value on production that is already running.
   */

@@ -89,6 +89,13 @@ return [
             'sslmode' => 'prefer',
         ],
 
+        // PHPunit testing main connection
+        'testing' => [
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'prefix' => '',
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),

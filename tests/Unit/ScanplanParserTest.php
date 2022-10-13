@@ -4,55 +4,33 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use App\Utilities\Search;
+use App\Utilities\Scanplan\Parser as ScanplanParser;
 
 /**
  * This test assumes $breakpoint is set to 500
  * $breakpoint = Search::getPaginatorBreakpoint();
  */
-class ScanplanTest extends TestCase
+class ScanplanParserTest extends TestCase
 {
+
   protected function setUp(): void
 	{
 		parent::setUp();
 		$this->createApplication();
+    $this->migrateDatabaseLocal();
 	}
-
-  public function test_calculate_scan_plan_inner_explode_pages()
-  {
-    $address = 'rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4';
-    $search = new Search($address);
-
-    $testdata = [
-      'Payment' => ['llist' => [ 
-        ['1854.0001' => ['first' => null, 'next' => 1000.055]], //if part then only one can exist
-      ]],
-      'Trustset' => ['llist' => [ 
-        ['1854.0001' => ['first' => null, 'next' => null]],
-        ['1855.0001' => ['first' => null, 'next' => null]],
-      ]],
-      'Third' => ['llist' => [ 
-        ['1854.0001' => ['first' => null, 'next' => 800.055]], //if part then only one can exist
-      ]],
-
-
-    ];
-
-    
-    $response = $search->calculateScanPlan_InnerExplodePages(1,$testdata);
-    dd('TEST',$response);
-  }
 
   public function test_numeric_ledgerindexes_decimal_sorting()
   {
     $a = [
       '1827' => 1,
       '1827.10' => 1,
-      '1827.11000' => 1,
       '1827.111' => 1,
       '1827.2' => 1,
       '1827.22' => 1,
       '10' => 1,
       '11' => 1,
+      '1827.11000' => 1,
       '111' => 1,
       '2' => 1,
       '22' => 1,
@@ -75,89 +53,130 @@ class ScanplanTest extends TestCase
     ], $a);
   }
 
-  public function test_numeric_ledgerindexes_largedecimal_sorting()
-  {
-    $a = [
-      '2990.0001000000000000000358920530622000' => 1,
-      '1843.0001000000000000000358920530610000' => 1,
-      '1843.0001000000000000000358920530611000' => 1,
-      '1843.0001000000000000000358920530611100' => 1,
-      '1843.0001000000000000000358920530620000' => 1,
-      '1843.0001000000000000000358920530622000' => 1,
-      '2810.0001000000000000000358920530622000' => 1,
-      '2811.0001000000000000000358920530622000' => 1,
-      '2900.0001000000000000000358920530622000' => 1,
-      
-    ];
-
-    \ksort($a,SORT_NUMERIC);
-
-    $this->assertEquals([
-      '2' => 1,
-      '10' => 1,
-      '11' => 1,
-      '22' => 1,
-      '111' => 1,
-      '1827' => 1,
-      '1827.10' => 1,
-      '1827.11000' => 1,
-      '1827.111' => 1,
-      '1827.2' => 1,
-      '1827.22' => 1,
-    ], $a);
-  }
-
-  public function test_scanplan_paginator_single_page(): void
+  public function test_scanplan_empty_yields_empty_array(): void
 	{
-    $address = 'rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4';
-    $search = new Search($address);
+    $scanplan = new ScanplanParser([]);
+    $scanplan = $scanplan->parse();
+    $this->assertEquals([],$scanplan);
+  }
 
+  public function test_scanplan_case_1_single_page(): void
+	{
     $grid = [];
 
-    //Should yield sigle page
-    $grid['3000.0001|null|null_Payment']  = 2;
-    $grid['3002.0001|null|null_Payment']  = 2;
-    $grid['3003.0001|null|null_Payment']  = 49;
-    $grid['3004.0001|null|null_Payment']  = 49;
+    $grid['3000.0001|null|null_Payment']  = [2,1];
+    $grid['3002.0001|null|null_Payment']  = [2,2];
+    $grid['3003.0001|null|null_Payment']  = [49,49];
+    $grid['3004.0001|null|null_Payment']  = [49,49];
+    $intersected = $this->convertGridToIntersected($grid);
+    //dd($intersected);
+    $scanplan = new ScanplanParser($intersected);
+    $scanplan = $scanplan->parse();
+    //dd($scanplan);
 
-    /*
-    $grid['3000.0001|null|2000.05_Payment']  = 2;
-    $grid['3000.0002|2000.05|2100.05_Payment']  = 2;
-    $grid['3000.0003|2100.05|null_Payment']  = 2;
-    $grid['3002.0001|null|null_Payment']  = 2;
-    $grid['3003.0001|null|null_Payment']  = 49;
-    $grid['3004.0001|null|null_Payment']  = 49;
-    */
-
-    $grid['4008.0001|null|null_Trustset'] = 49;
-
-    $seed = $this->convertGridToSeed($grid);
-    
-    $result = $search->calculateScanPlan($seed);
-    
-    $this->assertEquals(1, count($result)); //number of pages = 1
-    
-    $this->assertEquals(102,$result[1]['Payment']['total_rows']);
-    
-    $this->assertEquals(102,$result[1]['Payment']['found']);
     $this->assertEquals([
-        '3000.0001' => [null,null],
-        '3002.0001' => [null,null],
-        '3003.0001' => [null,null],
-        '3004.0001' => [null,null]
-      ],
-      $result[1]['Payment']['llist']
-    );
-    $this->assertEquals('3000.0001',$result[1]['Payment']['ledgerindex_first']);
-    $this->assertEquals('3004.0001',$result[1]['Payment']['ledgerindex_last']);
-    
-    $this->assertEquals(49,$result[1]['Trustset']['total_rows']);
-    $this->assertEquals(49,$result[1]['Trustset']['found']);
-    $this->assertEquals(['4008.0001' => [null,null]],$result[1]['Trustset']['llist']);
-    $this->assertEquals('4008.0001',$result[1]['Trustset']['ledgerindex_first']);
-    $this->assertEquals('4008.0001',$result[1]['Trustset']['ledgerindex_last']);
-    dd($result);
+      1 => [
+        'Payment' => [
+          'total' => 102,
+          'found' => 101,
+          'e' => 'eq',
+          'ledgerindex_first' => 622999900000,
+          'ledgerindex_last' => 624123059999,
+          'ledgerindex_last_id' => '3004.0001',
+        ],
+      ]
+    ], $scanplan);
+
   }
+
+  public function test_scanplan_case_2_two_tx_types(): void
+	{
+    $grid = [];
+
+    $grid['1000.0001|null|null_Payment']  = [2,1];
+    $grid['1002.0001|null|null_Payment']  = [2,2];
+    $grid['1003.0001|null|null_Payment']  = [49,49];
+    $grid['1004.0001|null|null_Payment']  = [49,49];
+    $grid['2008.0001|null|null_Trustset'] = [80,80];
+    $intersected = $this->convertGridToIntersected($grid);
+    //dd($intersected);
+    $scanplan = new ScanplanParser($intersected);
+    $scanplan = $scanplan->parse();
+    //dd($scanplan);
+    $this->assertEquals([
+      1 => [
+        'Payment' => [
+          'total' => 102,
+          'found' => 101,
+          'e' => 'eq',
+          'ledgerindex_first' => 161219700000,
+          'ledgerindex_last' => 162216709999,
+          'ledgerindex_last_id' => '1004.0001',
+        ],
+        'Trustset' => [
+          'total' => 80,
+          'found' => 80,
+          'e' => 'eq',
+          'ledgerindex_first' => 397592310000,
+          'ledgerindex_last' => 397820549999,
+          'ledgerindex_last_id' => '2008.0001',
+        ],
+      ]
+    ], $scanplan);
+  }
+
+  public function test_scanplan_case_3_two_pages(): void
+	{
+    $grid = [];
+
+    //Page 1
+    $grid['1000.0001|null|null_Payment']  = [200,200];
+    $grid['1002.0001|null|null_Payment']  = [299,299];
+    $grid['1002.0001|null|null_Trustset'] = [80,80];
+
+    //Page 2
+    $grid['1003.0001|null|null_Payment']  = [49,49];
+    $grid['1004.0001|null|null_Payment']  = [49,49];
+    
+    $intersected = $this->convertGridToIntersected($grid);
+    //dd($intersected);
+    $scanplan = new ScanplanParser($intersected);
+    $scanplan = $scanplan->parse();
+    dd($scanplan);
+    $this->assertEquals([
+      1 => [ //page 1
+        'Payment' => [
+          'total' => 499,
+          'found' => 499,
+          'e' => 'eq',
+          'ledgerindex_first' => 161219700000,
+          'ledgerindex_last' => 161818769999,
+          'ledgerindex_last_id' => '1002.0001',
+        ],
+        'Trustset' => [
+          'total' => 80,
+          'found' => 80,
+          'e' => 'eq',
+          'ledgerindex_first' => 161617930000,
+          'ledgerindex_last' => 161818769999,
+          'ledgerindex_last_id' => '1002.0001',
+        ],
+      ],
+      2 => [ //page 2
+        'Payment' => [
+          'total' => 98,
+          'found' => 98,
+          'e' => 'eq',
+          'ledgerindex_first' => 161818770000,
+          'ledgerindex_last' => 162216709999,
+          'ledgerindex_last_id' => '1004.0001',
+        ]
+      ]
+    ], $scanplan);
+  }
+
+
+  ### OLD:
 
   public function test_scanplan_paginator_two_pages(): void
 	{
@@ -433,7 +452,15 @@ class ScanplanTest extends TestCase
 
   }
 
-  private function convertGridToSeed(array $grid)
+  /**
+   * @param array $grid
+   * [
+   *  '<LedgerIndexID.<subpage>|<li_first>|<li_next>_<TxType>' =>  [<total>,<found>],
+   *  '3000.0001|null|null_Payment' =>  [2,2],
+   * ]
+   * @return array
+   */
+  private function convertGridToIntersected(array $grid): array
   {
     $seed = [];
 
@@ -441,11 +468,11 @@ class ScanplanTest extends TestCase
     {
       $k_ex = \explode('_',$k);
       $k_li_first_next = \explode('|',$k_ex[0]);
-      $seed[$k_ex[1]][(string)$k_li_first_next[0]]['total'] = $v;
-      $seed[$k_ex[1]][(string)$k_li_first_next[0]]['found'] = $v;
+      $seed[$k_ex[1]][(string)$k_li_first_next[0]]['total'] = $v[0];
+      $seed[$k_ex[1]][(string)$k_li_first_next[0]]['found'] = $v[1];
       $seed[$k_ex[1]][(string)$k_li_first_next[0]]['e'] = 'eq';
       $seed[$k_ex[1]][(string)$k_li_first_next[0]]['first'] = $k_li_first_next[1] == 'null' ? null:$k_li_first_next[1];
-      $seed[$k_ex[1]][(string)$k_li_first_next[0]]['next'] = $k_li_first_next[2] == 'null' ? null:$k_li_first_next[2];
+      $seed[$k_ex[1]][(string)$k_li_first_next[0]]['last'] = $k_li_first_next[2] == 'null' ? null:$k_li_first_next[2];
     }
     return $seed;
   }

@@ -20,14 +20,25 @@
     </coverage>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="DB_CONNECTION" value="testing"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
-        <env name="CACHE_DRIVER" value="array"/>
-        <env name="DYNAMODB_PREFIX" value="testing_"/>
-        <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
-        <!-- <env name="DB_DATABASE" value=":memory:"/> -->
+        <env name="CACHE_DRIVER" value="redis"/>
+        <env name="REDIS_PREFIX" value="rtest"/>
+        <env name="CACHE_PREFIX" value="xwatest"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="QUEUE_DRIVER" value="sync"/>
+
+        <env name="DYNAMODB_CONNECTION" value="local"/>
+        <env name="DYNAMODB_LOCAL_ENDPOINT" value="http://localhost:8000"/>
+        <env name="DYNAMODB_KEY" value="dynamodb_local"/>
+        <env name="DYNAMODB_SECRET" value="secret"/>
+        <env name="DYNAMODB_PREFIX" value="testing_"/>
+
+
+        <env name="XWA_SCAN_LIMIT" value="1000"/>
+        <env name="XWA_PAGINATIOR_BREAKPOINT" value="500"/>
     </php>
 </phpunit>
