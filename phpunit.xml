@@ -7,11 +7,14 @@
 >
     <testsuites>
         <testsuite name="Unit">
-            <directory suffix="Test.php">./tests/Unit</directory>
+            <directory suffix="ParserTest.php">./tests/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
+        <!--<testsuite name="Feature">
+            <directory suffix="Test.php">./tests/Redis</directory>
+        </testsuite>-->
     </testsuites>
     <coverage processUncoveredFiles="true">
         <include>
@@ -20,9 +23,9 @@
     </coverage>
     <php>
         <env name="APP_ENV" value="testing"/>
-        <env name="DB_CONNECTION" value="testing"/>
+        <!--<env name="DB_CONNECTION" value="testing"/>-->
         <env name="BCRYPT_ROUNDS" value="4"/>
-        <env name="CACHE_DRIVER" value="redis"/>
+        <env name="CACHE_DRIVER" value="array"/>
         <env name="REDIS_PREFIX" value="rtest"/>
         <env name="CACHE_PREFIX" value="xwatest"/>
         <env name="MAIL_MAILER" value="array"/>

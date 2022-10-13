@@ -17,8 +17,61 @@ class ScanplanParserTest extends TestCase
 	{
 		parent::setUp();
 		$this->createApplication();
-    $this->migrateDatabaseLocal();
+    //$this->migrateDatabaseLocal();
 	}
+
+  public function test_scanplan_case_4_two_pages(): void
+	{
+    $grid = [];
+
+    //Page 1
+    $grid['1000.0001|null|null_Payment' ] = [400,200]; //400
+    $grid['1002.0001|null|null_Payment' ] = [200,200]; //600 - break
+    
+    $grid['1002.0001|null|null_Trustset'] = [1000,1000]; //80
+    $grid['1002.0002|null|null_Trustset'] = [850,840];   //80
+
+    //Page 2
+    $grid['1004.0001|null|null_Payment']  = [49,49];   //49
+    $grid['1005.0001|null|null_Payment']  = [49,49];   //98
+    
+    $intersected = $this->convertGridToIntersected($grid);
+    //dd($intersected);
+    $scanplan = new ScanplanParser($intersected);
+    $scanplan = $scanplan->parse();
+    //dd($scanplan);
+    $this->assertEquals([
+      1 => [ //page 1
+        'Payment' => [
+          'total' => 600,
+          'found' => 400,
+          'e' => 'eq',
+          'ledgerindex_first' => 161219700000,
+          'ledgerindex_last' => 161818769999,
+          'ledgerindex_last_id' => '1002.0001',
+        ],
+        'Trustset' => [
+          'total' => 80,
+          'found' => 80,
+          'e' => 'eq',
+          'ledgerindex_first' => 161617930000,
+          'ledgerindex_last' => 161818769999,
+          'ledgerindex_last_id' => '1002.0001',
+        ],
+      ],
+      2 => [ //page 2
+        'Payment' => [
+          'total' => 98,
+          'found' => 98,
+          'e' => 'eq',
+          'ledgerindex_first' => 162018960000,
+          'ledgerindex_last' => 162417149999,
+          'ledgerindex_last_id' => '1005.0001',
+        ]
+      ]
+    ], $scanplan);
+  }
+
 
   public function test_numeric_ledgerindexes_decimal_sorting()
   {
@@ -130,24 +183,24 @@ class ScanplanParserTest extends TestCase
     $grid = [];
 
     //Page 1
-    $grid['1000.0001|null|null_Payment']  = [200,200];
-    $grid['1002.0001|null|null_Payment']  = [299,299];
-    $grid['1002.0001|null|null_Trustset'] = [80,80];
+    $grid['1000.0001|null|null_Payment' ] = [400,200]; //400
+    $grid['1002.0001|null|null_Payment' ] = [200,200]; //600 - break
+    $grid['1002.0001|null|null_Trustset'] = [80,80];   //80
 
     //Page 2
-    $grid['1003.0001|null|null_Payment']  = [49,49];
-    $grid['1004.0001|null|null_Payment']  = [49,49];
+    $grid['1004.0001|null|null_Payment']  = [49,49];   //49
+    $grid['1005.0001|null|null_Payment']  = [49,49];   //98
     
     $intersected = $this->convertGridToIntersected($grid);
     //dd($intersected);
     $scanplan = new ScanplanParser($intersected);
     $scanplan = $scanplan->parse();
-    dd($scanplan);
+    //dd($scanplan);
     $this->assertEquals([
       1 => [ //page 1
         'Payment' => [
-          'total' => 499,
-          'found' => 499,
+          'total' => 600,
+          'found' => 400,
           'e' => 'eq',
           'ledgerindex_first' => 161219700000,
           'ledgerindex_last' => 161818769999,
@@ -167,15 +220,15 @@ class ScanplanParserTest extends TestCase
           'total' => 98,
           'found' => 98,
           'e' => 'eq',
-          'ledgerindex_first' => 161818770000,
-          'ledgerindex_last' => 162216709999,
-          'ledgerindex_last_id' => '1004.0001',
+          'ledgerindex_first' => 162018960000,
+          'ledgerindex_last' => 162417149999,
+          'ledgerindex_last_id' => '1005.0001',
         ]
       ]
     ], $scanplan);
   }
 
-
+  
   ### OLD:
 
   public function test_scanplan_paginator_two_pages(): void

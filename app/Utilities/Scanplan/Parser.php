@@ -13,94 +13,119 @@ class Parser
     $this->data = $intersectedLedgerIndexes;
   }
 
-  private function mergeItems(array $item1, array $item2)
+  /*private function reducePages(array $r)
   {
+    //nothing to reduce on zero or one page
+    if(count($r) < 2)
+      return $r;
 
-  }
+    $r = \array_values($r);
+  
+    $reduced = \array_reduce($r, function($carry,$item) {
+      
+      if(count($item) > 1) {
+        //can not be merged - have multi pages
+        $carry[] = $item;
+        return $carry;
+      }
 
-  private function mergeSinglePages(array $r)
-  {
-
-    $merged = [];
-    $merge_mode = false;
-    $first2 = null;
-    $last2 = null;
-    
-    # Merge single full-edge pages
-    foreach($r as $k => $subPages) {
-      if(count($subPages) == 1) {
-        //can be merged possibly
-        //check if all are edges and there is only one page if yes then: $merge_mode = true;
-        $is_mergable_with_next = true;
-        foreach($subPages[$k] as $txType => $data) {
-          if($data['last2'] !== null)
-            $is_mergable_with_next = false;
+      $item_eligible = true;
+      foreach($item[1] as $itemTxType => $itemCounts) {
+        if($itemCounts['first'] !== null) {
+          $item_eligible = false;
         }
-        if($is_mergable_with_next) {
-          $merge_mode = true;
-          //$first2 = $data['first2'];
-          $last2 = $data['last2'];
-        }
-          
-        
-        
-        foreach($subPages as $txs) {
-          dd($txs);
-          foreach($txs as $txType => $data) {
+      }
+      unset($itemTxType);
+      unset($itemCounts);
+
+      if(!$item_eligible) {
+        //can not be merged - one of them or all have partial first edge
+        $carry[] = $item;
+        return $carry;
+      }
+      unset($item_eligible);
 
 
-            
+      # Get previous item
+      $prev = \end($carry);
+      \reset($carry);
+      if(!$prev) {
+        $carry[] = $item;
+        return $carry;
+      }
+      
+      if(count($prev) > 1) {
+        //can not be merged - prev have multi pages
+        $carry[] = $item;
+        return $carry;
+      }
 
+      $merged = [];
+      $is_valid = true;
+      # Merge $item with $prev to $merged
+      foreach($item[1] as $itemTxType => $itemCounts) {
+        # Merge individual tx type
+        if(isset($prev[1][$itemTxType])) {
+         
+          # Merge two counts
+          $prevCounts = $prev[1][$itemTxType];
+          if(($prevCounts['last2']+1) === $itemCounts['first2']) {
+            $merged[$itemTxType] = [
+              'total' => ($prevCounts['total'] + $itemCounts['total']),
+              'found' => ($prevCounts['found'] + $itemCounts['found']),
+              'e' => \App\Utilities\Scanplan\Parser::calcSearchEqualizer($prevCounts['e'], $itemCounts['e']),
+              'first' => $prevCounts['first'],
+              'last' => $itemCounts['last'],
+              'first2' => $prevCounts['first2'],
+              'last2' => $itemCounts['last2'],
+              'li_id' => $itemCounts['li_id']
+            ];
+          } else {
+            //could not stitch together
+            $is_valid = false;
           }
+        } else {
+          $merged[$itemTxType] = $itemCounts;
+         
+        }
+      } //endforeach
+      
+      if($is_valid) {
+        $index = count($carry)-1;
 
+        foreach($merged as $mk => $mv) {
+          $carry[$index][1][$mk] = $mv;
         }
       } else {
-        //reset trackers:
-        $merge_mode = false;
-        $first2 = $last2 = null;
-        $merged[] = $subPages;
+        $carry[] = $item;
       }
-      /*foreach($subPages as $txs) {
-        //check if all are edges and there is only one page
-
-        //$merged[][]
-        dd($txs,$r);
-        foreach($txs as $txType => $data) {
-          if($first2 == $data['first2']) {
-
-          }
-          $first2 = $data['first2'];
-          $last2 = $data['last2'];
-          
-        }
-      }*/
-     
-    }
-    dd($r,$merged);
-    return $merged;
-  }
+      return $carry;
+    },[]);
+    return $reduced;
+  }*/
 
   public function parse()
   {
+    
     $r = $this->generateDailySubPages();
     $breakpoint = config('xwa.paginator_breakpoint');
     $paged_data = [];
     $page = 1;
     $count = 0;
-
-    $r = $this->mergeSinglePages($r); //todo
-
+    //dd($r);
     foreach($r as $subPages) {
       foreach($subPages as $txs) {
         foreach($txs as $txType => $data) {
           $count += $data['total']; //total
           $paged_data[$page][$txType][] = $data;
         }
-        if($this->calcPageShift($count,$breakpoint))
+        if($this->calcPageShift($count,$breakpoint)) {
           $page++;
+          $count = 0;
+        }
       }
     }
-   
+
     //Generate scanplan
     $scanplan = [];
     foreach($paged_data as $page => $txtypes) {
@@ -133,7 +158,7 @@ class Parser
         ];
       }
     }
-
+    //$scanplan = $this->reducePages($scanplan);
     return $scanplan;
   }
 
@@ -221,11 +246,11 @@ class Parser
       //get all transactions for this breakpoints
       //if next is null then include and pass on
       foreach($this->data as $txType => $list) { //each txtype
-        
+        $_d = null;
         foreach($list as $li_subpage => $d) { //1234.001..9
           
           if($d['found'] === 0) continue; //skip zero transactions
-  
+
           $first = $this->firstLi_toLedgerIndex($li_subpage, $d['first']);
           $last = $this->nextLi_toLedgerIndex($li_subpage, $d['last']);
           
@@ -243,13 +268,36 @@ class Parser
             }
           }
           if($valid) {
-            $d['first2'] = $p[0];
-            $d['last2']  = $p[1];
-            $d['li_id']  = $li_subpage;
-            $d['e'] = self::calcSearchEqualizer($d['e'], $e);
-            $collection[$page][$txType] = $d;
+
+            if($_d === null) {
+              //first iteration, create object
+              $_d = [
+                'total' => $d['total'],
+                'found' => $d['found'],
+                'e' => $d['e'],
+                'first' => $d['first'],
+                'last' => null,
+                'first2' => $first,
+                'last2' => null,
+              ];
+            } else {
+              $_d['total'] += $d['total'];
+              $_d['found'] += $d['found'];
+            }
+
+            
+            $_d['last'] = $d['last'];
+            $_d['last2'] = $last; //last iteration will fill this finalized
+            $_d['e'] = self::calcSearchEqualizer($_d['e'], $e);
+            $_d['li_id'] = $li_subpage; //last iteration will fill this finalized
+            
+            //$d['first2'] = $p[0];
+            //$d['last2']  = $p[1];
+            //$d['li_id']  = $li_subpage;
           }
         }
+        if($_d !== null)
+          $collection[$page][$txType] = $_d;
       }
     }
     return $collection;
@@ -294,20 +342,25 @@ class Parser
   }
 
   /**
-   * @return [  "1827.0001" => 1827, ...  ]
+   * @return [  1827 => [ "1827.0001", "1827.0002", ... ], ...  ]
    */
   private function getAllLedgerIndexesIDs()
   {
     $keys = [];
+    
     foreach($this->data as $t => $list)
     {
       foreach($list as $k => $v){
         $keys[(int)$k][] = $k;
       }
     }
+
     foreach($keys as $k => $v) {
       $keys[$k] = \array_unique($keys[$k]);
     }
+
+    \ksort($keys, SORT_NUMERIC);
+
     return $keys;
   }
 

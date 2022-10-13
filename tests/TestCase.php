@@ -31,9 +31,10 @@ abstract class TestCase extends BaseTestCase
 	{
 		$commands = [
 			//'clear-compiled',
+			'config:clear',
 			'cache:clear',
 			//'view:clear',
-			'config:clear',
+			
 			//'route:clear'
 		];
 		foreach ($commands as $command) {
