@@ -12,11 +12,6 @@ use Illuminate\Support\Facades\Cache;
  */
 class Mapper
 {
-  /**
-   * Flag that indicates this search can be cached.
-   * If false that means time range is out of scope or ledger index data is behind on sync.
-   */
-  //public $cacheable = true;
 
   private array $conditions = [
     //from
@@ -78,7 +73,6 @@ class Mapper
    */
   public function getIntersectedLedgerindexes(): array
   {
-    //dump('aa');
     if( !isset($this->conditions['from']) || !isset($this->conditions['to']) || !isset($this->conditions['txTypes']) )
       throw new \Exception('From To and txTypes conditions are not set');
 
@@ -103,8 +97,8 @@ class Mapper
       $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexFirstForDay($to)-1;
     }
 
-    //Check if $this->address is synced within time ranges, if not then disallow search
-    if(($account->l * 10000) < $LedgerIndexLastForDay) {
+    //Check if $this->address eg 75026591*10000 is synced within time ranges, if not then disallow search
+    if(($account->l*10000) < $LedgerIndexLastForDay) {
       throw new \Exception('Account not synced to this ledger index yet ('.($account->l*10000).' < '.$LedgerIndexLastForDay.')');
     }
   
@@ -127,9 +121,7 @@ class Mapper
           $next = null;
           $do = true;
           while($do) {
-            //if($next) dd($ledgerindex, $txTypeNamepart, $page, $next);
             $countWithNext = $this->fetchAllCount($ledgerindex, $txTypeNamepart, $page, $next); //first page
-            //dd( $countWithNext );
             if($countWithNext[0] > 0) { //has transactions
               $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex.'.'.\str_pad($page,4,'0',STR_PAD_LEFT)] = [
                 'total' => $countWithNext[0],
@@ -144,19 +136,14 @@ class Mapper
               if($countWithNext[2] !== null)
                 throw new \Exception('Critical error: page count returned zero results but lastKey is evaluated');
             }
-            //if($page == 4)
-            //  dd($countWithNext);
 
             if($countWithNext[2] === null) {
               //no more next pages
               $do = false;
-              //dump('DO = false');
             } else {
               $page++;
               $next = $countWithNext[2];
-              //dd($countWithNext,$next);
             }
-            
             unset($countWithNext);
           }
           unset($page);
@@ -170,7 +157,6 @@ class Mapper
     
     # Phase 2 OPTIONAL CONDITIONS REDUCER:
     
-    //dd($foundLedgerIndexesIds);
     if(isset($this->conditions['dir']) && $this->conditions['dir'] == 'in') {
       $Filter = new Mapper\FilterIn($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
@@ -183,22 +169,19 @@ class Mapper
       unset($Filter);
       //echo 'DIROUT: ';dump($foundLedgerIndexesIds);
     }
-    
-    
+
     if(isset($this->conditions['token'])) {
       $Filter = new Mapper\FilterToken($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
       //echo 'TOKEN: ';dump($foundLedgerIndexesIds);
-
     }
-    
+
     if(isset($this->conditions['cp'])) {
       $Filter = new Mapper\FilterCounterparty($this->address,$this->conditions,$foundLedgerIndexesIds);
       $foundLedgerIndexesIds = $Filter->reduce();
       unset($Filter);
       //echo 'CP: ';dump($foundLedgerIndexesIds);
-      //dd('stop');
     }
 
     if(isset($this->conditions['dt'])) {
@@ -214,9 +197,6 @@ class Mapper
       unset($Filter);
       //echo 'ST: ';dump($foundLedgerIndexesIds);
     }
-    
-    //echo 'END';
-    //dd($foundLedgerIndexesIds);
     return $foundLedgerIndexesIds;
   }
 
@@ -250,7 +230,6 @@ class Mapper
       $Filter = new Mapper\FilterSourcetag($this->address,$this->conditions,[]);
       $query = $Filter->applyQueryCondition($query, Mapper\FilterSourcetag::parseToNonDefinitiveParam($this->conditions['st']));
     }
-
     return $query;
   }
   
@@ -282,15 +261,11 @@ class Mapper
       if(!$map)
       {
         //no records found, query DyDB for this day, for this type and save
-        //$li = Ledgerindex::select('ledger_index_first','ledger_index_last')->where('id',$ledgerindex)->first();
         $li = Ledgerindex::getLedgerindexData($ledgerindex);
-        
         if(!$li) {
           //clear cache then then/instead exception?
           throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
-          //return 0; //something went wrong
         }
-
         $query = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
 
         $limit = config('xwa.scan_limit');
@@ -305,33 +280,25 @@ class Mapper
         if($nextSK !== null) {
           $query->afterKey(['PK' => $this->address.'-'.$DModelName::TYPE, 'SK' => ($nextSK/10000)]);
         }
-        //dd($query->toDynamoDbQuery());
 
         $c = $query->pagedCount();
         $count = $c->count;
-
-        //dump($c->lastKey['SK']['N'].'--'.(int)($c->lastKey['SK']['N']*10000),stringdecimalX10000($c->lastKey['SK']['N']));
         
         $map = new Map;
         $map->address = $this->address;
         $map->ledgerindex_id = $ledgerindex;
         $map->txtype = $DModelName::TYPE;
         $map->condition = 'all';
-        $map->count_num = $count;//$countWithBreakpoints['count'];
+        $map->count_num = $count;
         $map->page = $subpage;
         $map->first = $nextSK ? ($nextSK + 1) : null; //nullable
         $map->last = $c->lastKey ? stringDecimalX10000($c->lastKey['SK']['N']) : null; //nullable
         $map->created_at = \date('Y-m-d H:i:s');
         $map->save();
       }
-      
-     
       $r = [$map->count_num, $map->first, $map->last];
       Cache::put($cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
-    
     return $r;
   }
-
-
 }

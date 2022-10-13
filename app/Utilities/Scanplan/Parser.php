@@ -15,11 +15,8 @@ class Parser
 
   public function parse()
   {
-    
     $r = $this->generateDailySubPages();
-    
     $breakpoint = config('xwa.paginator_breakpoint');
-    //dd($r,$breakpoint);
     $paged_data = [];
     $page = 1;
     $count = 0;
@@ -33,15 +30,12 @@ class Parser
           $page++;
       }
     }
-    //dd($paged_data);
    
     //Generate scanplan
     $scanplan = [];
     foreach($paged_data as $page => $txtypes) {
-
       foreach($txtypes as  $txtype => $txtypeSubpages) {
         //set initial values
-        
         $_total = 0;
         $_found = 0;
         $_e = 'eq';
@@ -58,7 +52,7 @@ class Parser
           $_ledger_index_lasts[] = $subpageCounts['last2'];
           $_ledgerindex_last_ids[] = $subpageCounts['li_id'];
         }
-        //dd($txtypeSubpages,$_ledger_index_firsts,$_ledger_index_lasts,$_ledgerindex_last_ids);
+
         $scanplan[$page][$txtype] = [
           'total' => $_total,
           'found' => $_found,
@@ -67,8 +61,6 @@ class Parser
           'ledgerindex_last' => $_is_current ? -1 : \max($_ledger_index_lasts),
           'ledgerindex_last_id' => \max($_ledgerindex_last_ids)
         ];
-        
-        //if($txtype == 'Trustset') dd( $scanplan[$page][$txtype],$txtypeSubpages);
       }
     }
 
@@ -82,18 +74,6 @@ class Parser
       
     return $newE;
   }
-
-
-  /**
-   * @return array [ txtype => [ 'stats' => [], 'data' => [] ]]
-   * test: http://analyzer.xrplwin.test/v1/account/search/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?from=2018-01-03&to=2018-01-29&page=1
-   * test: http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31?from=2022-01-01&to=2022-01-29
-   */
-  /*public static function parseOnePage(array $data): array
-  {
-    //TODO merge common txs into one
-    return $data;
-  }*/
 
   private function calcPageShift(int $count, int $breakpoint): int
   {
@@ -114,7 +94,6 @@ class Parser
       //$ledgedIndexSubpages: array of maximum number of successive pages for this specific LedgerIndexID - [ '1827.0001', '1827.0002', '1827.0003', ... ]
       $r[$ledgerIndexID] = $this->runOneIndex($ledgerIndexSubpages);
     }
-    //dd($ledgerIndexIds,$r);
     return $r;
   }
 
@@ -122,9 +101,7 @@ class Parser
   {
     $breakpoints = [];
     foreach($this->data as $txType => $list) { //each txtype
-      
       foreach($data as $li_subpage) { //1234.001..9
-
         if(!isset($list[$li_subpage])) continue;
 
         $first = $this->firstLi_toLedgerIndex($li_subpage,$list[$li_subpage]['first'] ? ($list[$li_subpage]['first']):null);
@@ -195,7 +172,6 @@ class Parser
               $e = 'lte';
             }
           }
-
           if($valid) {
             $d['first2'] = $p[0];
             $d['last2']  = $p[1];
@@ -247,7 +223,6 @@ class Parser
     return $li[1];
   }
 
-
   /**
    * @return [  "1827.0001" => 1827, ...  ]
    */
@@ -260,7 +235,6 @@ class Parser
         $keys[(int)$k][] = $k;
       }
     }
-
     foreach($keys as $k => $v) {
       $keys[$k] = \array_unique($keys[$k]);
     }

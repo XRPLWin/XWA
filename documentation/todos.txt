@@ -36,3 +36,16 @@ check Iripplepay (1) on this ledger: https://xrpscan.com/ledger/73618219
   
 # source tag and destination tag in one tx
 https://xrpscan.com/tx/F24027A8B4EF3BE5C68F83042BAC52DFC06A25A6CCB4D2D73EE8852B6C93DF01
+
+
+# testing
+   /*
+
+    http://analyzer.xrplwin.test/v1/account/search/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?from=2017-12-01&to=2017-12-07&types[0]=Payment&page=2
+    http://xlanalyzer-ui.test/account/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh/search?types%5B%5D=Payment&from=2016-01-01&to=2018-02-28&st=&dt=&cp=&token=&dir=
+    http://analyzer.xrplwin.test/v1/account/search/rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31?from=2021-12-01&to=2021-12-31
+
+    /v1/account/search/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?from=2018-01-01&to=2018-01-31&dir=in&page=1&cp=rJb5KsHsDHF1YS5B5DU6QCkH5NsPaKQTcy
+
+
+    */

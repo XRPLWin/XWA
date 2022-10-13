@@ -29,7 +29,7 @@ class PagedCounter
      * @param ?array $pk_map ['PK','S'] Will map value of Partition key to breakpoint
      * @param ?array $sk_map ['SK','N'] Will map value of Sort key to breakpoint
      */
-    public static function countWithBreakpoints(DynamoDbQueryBuilder $queryBuilder, ?array $pk_map = null, ?array $sk_map = null): array
+    /*public static function countWithBreakpoints(DynamoDbQueryBuilder $queryBuilder, ?array $pk_map = null, ?array $sk_map = null): array
     {
       $do = true;
       $count = 0;
@@ -45,19 +45,16 @@ class PagedCounter
           $breakpoints[] = $bp;
           unset($bp);
         }
-          
         $count += $c->count;
-        //dump($c);
       }
-      //dd($count,$breakpoints);
       return ['count' => $count, 'breakpoints' => $breakpoints];
-    }
+    }*/
 
     /**
      * Specific function for counting dynamodb XRPL Transactions.
      * @deprecated
      */
-    public static function countAndReturnBreakpointsForTransacitons(DynamoDbQueryBuilder $queryBuilder): array
+    /*public static function countAndReturnBreakpointsForTransacitons(DynamoDbQueryBuilder $queryBuilder): array
     {
       $r = self::countWithBreakpoints($queryBuilder,null,['SK','N']);
       $breakpoints = '';
@@ -69,5 +66,5 @@ class PagedCounter
       $breakpoints = \rtrim($breakpoints,'|');
 
       return ['count' => $r['count'], 'breakpoints' => $breakpoints];
-    }
+    }*/
 }
