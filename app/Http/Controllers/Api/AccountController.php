@@ -52,7 +52,7 @@ class AccountController extends Controller
     $search->buildFromRequest($request); 
     $search->execute();
     if($search->hasErrors()) {
-      return response()->json(['success' => false, 'errors' => $search->getErrors()],422);
+      return response()->json(['success' => false, 'error_code' => $search->getErrorCode(), 'errors' => $search->getErrors()],422);
     }
 
 
@@ -60,7 +60,7 @@ class AccountController extends Controller
     $result = array_merge($result, $search->result());
 
 
-    $ttl = 1209600; //1209600 = 14 days
+    $ttl = 5259487; //5 259 487 = 2 months
     //dd(memory_get_usage_formatted()); //120 MB
     //if end date is today we will set low ttl, since new data can come in at any time
     if($request->input('to') == \date('Y-m-d'))

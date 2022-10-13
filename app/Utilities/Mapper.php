@@ -297,7 +297,7 @@ class Mapper
         if($limit)
           $query = $query->limit((int)$limit);
         
-        if($li[1] == -1) //latest
+        if($li[1] === -1) //latest
           $query = $query->where('SK','>=',($li[0]/10000));
         else
           $query = $query->where('SK','between',[ ($li[0]/10000), ($li[1]/10000) ]);
@@ -305,7 +305,8 @@ class Mapper
         if($nextSK !== null) {
           $query->afterKey(['PK' => $this->address.'-'.$DModelName::TYPE, 'SK' => ($nextSK/10000)]);
         }
-          
+        //dd($query->toDynamoDbQuery());
+
         $c = $query->pagedCount();
         $count = $c->count;
 

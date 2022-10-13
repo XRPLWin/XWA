@@ -108,7 +108,11 @@ class FilterOut extends FilterBase {
           $last = $last ?? $li[1]; 
         }
 
-        $model = $model->where('SK','between',[ ($first/10000), ($last/10000) ]); //inclusive
+        if($last === -1)
+          $model = $model->where('SK','>=',($first/10000));
+        else
+          $model = $model->where('SK','between',[($first/10000),($last/10000)]); //DynamoDB BETWEEN is inclusive
+        
         $model = $this->applyQueryCondition($model); //check value presence (in attribute always true if in)
         $count = \App\Utilities\PagedCounter::count($model);
 

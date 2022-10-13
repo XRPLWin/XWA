@@ -18,9 +18,7 @@ class PagedCounter
         if(!$c->lastKey)
           $do = false;
         $count += $c->count;
-        //dump($c);
       }
-      //dd($count);
       return $count;
     }
 

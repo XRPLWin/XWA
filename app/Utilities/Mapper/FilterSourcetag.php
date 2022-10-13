@@ -120,7 +120,11 @@ class FilterSourcetag extends FilterBase {
           $first = $first ?? $li[0];
           $last = $last ?? $li[1]; 
         }
-        $model = $model->where('SK','between',[ ($first/10000), ($last/10000) ]); //inclusive
+        if($last === -1)
+          $model = $model->where('SK','>=',($first/10000));
+        else
+          $model = $model->where('SK','between',[($first/10000),($last/10000)]); //DynamoDB BETWEEN is inclusive
+        
         $model = $this->applyQueryCondition($model, $FirstFewLetters);
         //dd($model);
         $count = \App\Utilities\PagedCounter::count($model);

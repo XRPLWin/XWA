@@ -9,11 +9,7 @@
 
 namespace App\Utilities;
 
-#use App\Models\Ledgerindex;
-#use App\Utilities\Mapper;
-#use XRPLWin\XRPL\Client;
 use Illuminate\Support\Facades\Cache;
-use App\Models\Ledgerindex;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -28,6 +24,7 @@ class Search
   //private readonly array $definitive_params;
   private bool $isExecuted = false;
   private array $errors = [];
+  private int $last_error_code = 0; //0 - no error
   private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','types','page'];
   private array $txTypes = [
     // App\Models\DTransaction<VALUE_BELOW>::TYPE => App\Models\DTransaction<VALUE_BELOW>
@@ -58,7 +55,11 @@ class Search
     return $this->buildFromArray($request->only($this->parametersWhitelist));
   }
 
-  private function buildNonDefinitiveParams(array $params)
+  /**
+   * Only non-definitive filters go here.
+   * @return array
+   */
+  private function buildNonDefinitiveParams(array $params): array
   {
     $r = [];
     foreach($params as $k => $v)
@@ -76,6 +77,10 @@ class Search
     return $r;
   }
 
+  /**
+   * If any errors collected this will return true.
+   * @return bool
+   */
   public function hasErrors(): bool
   {
     if(count($this->errors))
@@ -83,6 +88,19 @@ class Search
     return false;
   }
 
+  /**
+   * Last error's error code.
+   * @return int
+   */
+  public function getErrorCode(): int
+  {
+    return $this->last_error_code;
+  }
+
+  /**
+   * Collected error messages
+   * @return array
+   */
   public function getErrors(): array
   {
     return $this->errors;
@@ -248,7 +266,7 @@ class Search
       else
         $query = $query->where('SK','between',[($scanplanTypeData['ledgerindex_first']/10000),($scanplanTypeData['ledgerindex_last']/10000)]); //DynamoDB BETWEEN is inclusive
       
-      dump($query->toDynamoDbQuery());exit;
+      //dump($query->toDynamoDbQuery());exit;
       $results = $query->all();
       //dd($results,$scanplan);
 
@@ -331,7 +349,7 @@ class Search
   {
     $page = $this->param('page');
     
-    try{
+    try {
       $data = $this->_execute_real($page);
     } catch (\Throwable $e) {
       if(config('app.debug')) {
@@ -340,6 +358,8 @@ class Search
       }
       else
         $this->errors[] = $e->getMessage();
+
+      $this->last_error_code = 2;
       return $this;
     }
     
@@ -349,12 +369,24 @@ class Search
     $definitiveResults = $definitiveResults->sortByDesc('SK')->values();
     $this->result = $definitiveResults;
 
+    
+
     $result_counts = [
       'filtered' => $definitiveResults->count(),
       'scanned' => $data['counts']['total_scanned'],
       'page' => $data['counts']['page'],
       'pages' => $data['counts']['total_pages'],
     ];
+
+    # Sanity check
+    if($result_counts['filtered'] > $result_counts['scanned']) {
+      $this->errors[] = 'Sanity check failed, filtered results count more than scanned results count: '.$result_counts['filtered'].' > '.$result_counts['scanned'];
+      if(config('app.debug'))
+        \Log::debug($this->getErrors());
+      
+      $this->last_error_code = 1;
+      return $this;
+    }
 
     if($result_counts['pages'] > $result_counts['page']) {
       $result_counts['next'] = true;
