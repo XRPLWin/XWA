@@ -233,7 +233,7 @@ class Search
     if($param_st && is_numeric($param_st)) 
       $mapper->addCondition('st',$param_st);
     unset($param_st);
-    
+ 
     /**
      * Execute counts and get intersection of transaction hits depending on sent conditions.
      */
@@ -244,7 +244,7 @@ class Search
      */
     $scanplan = new ScanplanParser($intersected);
     $scanplan = $scanplan->parse();
-
+    
     /**
      * Query the DyDB using $scanplan
      */

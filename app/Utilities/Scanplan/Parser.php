@@ -106,13 +106,12 @@ class Parser
 
   public function parse()
   {
-    
     $r = $this->generateDailySubPages();
     $breakpoint = config('xwa.paginator_breakpoint');
     $paged_data = [];
     $page = 1;
     $count = 0;
-    //dd($r);
+    
     foreach($r as $subPages) {
       foreach($subPages as $txs) {
         foreach($txs as $txType => $data) {
@@ -125,7 +124,6 @@ class Parser
         }
       }
     }
-
     //Generate scanplan
     $scanplan = [];
     foreach($paged_data as $page => $txtypes) {
@@ -145,7 +143,7 @@ class Parser
           if($subpageCounts['last2'] === -1)
             $_is_current = true;
           $_ledger_index_lasts[] = $subpageCounts['last2'];
-          $_ledgerindex_last_ids[] = $subpageCounts['li_id'];
+          $_ledgerindex_last_ids[] = $subpageCounts['li_id']; //not needed
         }
 
         $scanplan[$page][$txtype] = [
@@ -154,7 +152,7 @@ class Parser
           'e' => $_e,
           'ledgerindex_first' => \min($_ledger_index_firsts),
           'ledgerindex_last' => $_is_current ? -1 : \max($_ledger_index_lasts),
-          'ledgerindex_last_id' => \max($_ledgerindex_last_ids)
+          'ledgerindex_last_id' => \max($_ledgerindex_last_ids) //not needed
         ];
       }
     }
@@ -192,7 +190,7 @@ class Parser
     return $r;
   }
 
-  private function runOneIndex(array $data)
+  public function runOneIndex(array $data)
   {
     $breakpoints = [];
     foreach($this->data as $txType => $list) { //each txtype
@@ -202,7 +200,7 @@ class Parser
         $first = $this->firstLi_toLedgerIndex($li_subpage,$list[$li_subpage]['first'] ? ($list[$li_subpage]['first']):null);
         $breakpoints[$first] = true;
         $last = $this->nextLi_toLedgerIndex($li_subpage,$list[$li_subpage]['last']); //start of next "first"
-
+        
         if($last === -1)
           $breakpoints[$last] = true; //current ledger (-1)
         else {
@@ -221,14 +219,14 @@ class Parser
     foreach($breakpoints as $b => $foo) {
       $breakpoints_values[] = $b;
     }
-
+    
     //Move -1 to end - this is current ledger_index and it belongs at end of the list
     if(isset($breakpoints_values[0]) && $breakpoints_values[0] === -1) {
       unset($breakpoints_values[0]);
       $breakpoints_values[] = -1;
       $breakpoints_values = array_values($breakpoints_values);
     }
-      
+    
     $pages = [];
     $page = 0;
     foreach($breakpoints_values as $k => $breakpoint) {
@@ -239,7 +237,7 @@ class Parser
       }
       $page++;
     }
-
+    
     # Loop pages and collect transaction counts
     $collection = [];
     foreach($pages as $page => $p) {
@@ -258,10 +256,15 @@ class Parser
           $e = $d['e'];
           # EQUAL TO FIRST EDGE OR EQUAL TO LAST EDGE
           if($p[0] === $first || $p[1] === $last) {
+            //if(count($data) == 2) dump('Page no'.$page.': '.$p[0].' == '.$first.' || '.$p[1].' == '.$last.' = '. (int)($p[0] == $first && $p[1] == $last));
             $valid = true;
+            if($p[0] !== $first || $p[1] !== $last) {
+              $e = 'lte';
+            }
+              
           } else {
             # IS SPANNED ACROS MIDDLE PAGES
-            //dump('Page no'.$page.': '.$p[0].' >= '.$first.' && '.$p[1].' <= '.$last.' = ', ($p[0] >= $first && $p[1] <= $last));
+            //if(count($data) == 2) dump('Page no'.$page.': '.$p[0].' >= '.$first.' && '.$p[1].' <= '.$last.' = '. (int)($p[0] >= $first && $p[1] <= $last));
             if($p[0] >= $first && ($last === -1 || $p[1] <= $last)) {
               $valid = true;
               $e = 'lte';
@@ -290,15 +293,43 @@ class Parser
             $_d['last2'] = $last; //last iteration will fill this finalized
             $_d['e'] = self::calcSearchEqualizer($_d['e'], $e);
             $_d['li_id'] = $li_subpage; //last iteration will fill this finalized
-            
+
             //$d['first2'] = $p[0];
             //$d['last2']  = $p[1];
             //$d['li_id']  = $li_subpage;
           }
         }
-        if($_d !== null)
+        if($_d !== null) {
+          $collection[$page]['_edges'] = $p;
           $collection[$page][$txType] = $_d;
+        }
+          
       }
+    }
+
+    unset($page);
+    # STEP 2
+    # For type counters that can overflow to next sub-pages - equilize their 
+    # first2, last2 edges by using "_edges" limits.
+
+    foreach($collection as $page => $pagedata) {
+      $edges = $pagedata['_edges'];
+      unset($pagedata['_edges']);
+
+      foreach($pagedata as $txtype => $counts)
+      {
+        # fix first2
+        if($counts['first2'] < $edges[0])
+          $collection[$page][$txtype]['first2'] = $edges[0];
+
+        # fix last2
+        if($counts['last2'] > $edges[1])
+          $collection[$page][$txtype]['last2'] = $edges[1];
+
+        unset($collection[$page][$txtype]['first']);
+        unset($collection[$page][$txtype]['last']);
+      }
+      unset($collection[$page]['_edges']);
     }
     return $collection;
   }

@@ -22,6 +22,13 @@ class Ledgerindex extends Model
   ];
 
   /**
+   * The attributes that are mass assignable.
+   *
+   * @var array
+   */
+  protected $fillable = ['ledger_index_first', 'ledger_index_last', 'day'];
+
+  /**
    * The "booted" method of the model.
    *
    * @return void
