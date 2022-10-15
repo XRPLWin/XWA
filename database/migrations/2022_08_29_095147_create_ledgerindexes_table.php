@@ -16,16 +16,16 @@ return new class extends Migration
     {
         Schema::create('ledgerindexes', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('ledger_index_first'); //first ledger index of 'day' - for Postgres this is int8 with 64 length
+            $table->bigInteger('ledger_index_first'); //first ledger index of 'day' - for Postgres this is int8 with 64 length
             $table->bigInteger('ledger_index_last');  //last ledger index of 'day' - can be -1 for current day - for Postgres this is int8 with 64 length
             $table->date('day')->unique();
             //$table->timestamps();
         });
 
-        /*Artisan::call('db:seed', [
+        Artisan::call('db:seed', [
             '--class' => 'LedgerIndexesSeeder',
             '--force' => true
-        ]);*/
+        ]);
     }
 
     /**

@@ -20,7 +20,6 @@ class Search
   private readonly Collection $result;
   private readonly array $result_counts;
   private readonly array $params;
-  //private readonly array $definitive_params;
   private bool $isExecuted = false;
   private array $errors = [];
   private int $last_error_code = 0; //0 - no error
@@ -402,22 +401,5 @@ class Search
   private function param($name)
   {
     return isset($this->params[$name]) ? $this->params[$name]:null;
-  }
-
-  /**
-   * Used to determine which equilizer is prominent when analyzing returned resultset counts.
-   * Return eq or lte depending of parameters
-   * @param string $existingE eq|lte
-   * @param string $newE eq|lte
-   * @return string eq|lte
-   * 
-   * @deprecated
-   */
-  public static function calcSearchEqualizer(string $existingE, string $newE): string
-  {
-    if($existingE == 'lte')
-      return 'lte';
-      
-    return $newE;
   }
 }
