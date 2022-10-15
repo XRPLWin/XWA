@@ -160,7 +160,7 @@ class ScanplanParserTest extends TestCase
 
     //Page 1
     $grid['1.0001|null|null_Payment' ] = [400,200]; //400
-    $grid['2.0001|null|null_Payment' ] = [200,200]; //600 - break
+    $grid['2.0001|null|null_Payment' ] = [200,200]; //600 - breakpoint trigger
     $grid['2.0001|null|null_Trustset'] = [80,80];   //80
 
     //Page 2
@@ -274,7 +274,7 @@ class ScanplanParserTest extends TestCase
   /**
    * =--111111---
    */
-  public function test_scanplan_paginator_1_1(): void
+  public function test_scanplan_simple_paginator_1_1(): void
 	{
     $grid = [];
 
@@ -308,7 +308,7 @@ class ScanplanParserTest extends TestCase
   /**
    * =--1111122333---
    */
-  public function test_scanplan_paginator_1_2(): void
+  public function test_scanplan_simple_paginator_1_2(): void
 	{
 
     $grid = [];
@@ -317,9 +317,9 @@ class ScanplanParserTest extends TestCase
     $grid['2.0001|null|null_Payment'] = [10,10];
     $grid['4.0001|null|null_Payment'] = [10,10];
     $grid['5.0001|null|null_Payment'] = [10,10];
-    $grid['6.0001|null|null_Payment'] = [1250,1]; //breakpoint
+    $grid['6.0001|null|null_Payment'] = [1250,1]; //breakpoint trigger
     $grid['7.0001|null|73000_Payment'] = [10,10];
-    $grid['7.0002|73001|74000_Payment'] = [9000,1]; //breakpoint
+    $grid['7.0002|73001|74000_Payment'] = [9000,1]; //breakpoint trigger
     $grid['7.0004|74001|null_Payment'] = [100,100];
     $grid['8.0001|null|null_Payment'] = [10,10];
     $grid['9.0001|null|null_Payment'] = [10,10];
@@ -373,7 +373,7 @@ class ScanplanParserTest extends TestCase
    * ---1111222---
    * =--1111222---
    */
-  public function test_scanplan_paginator_2_2(): void
+  public function test_scanplan_simple_paginator_2_2(): void
 	{
     $grid = [];
 
@@ -466,7 +466,7 @@ class ScanplanParserTest extends TestCase
    * -------12------
    * =--111112222---
    */
-  public function test_scanplan_paginator_2_3(): void
+  public function test_scanplan_simple_paginator_2_3(): void
 	{
     $grid = [];
 
@@ -521,76 +521,166 @@ class ScanplanParserTest extends TestCase
   }
 
  
-/**
+  /**
    * ---011111----11110---
    * ----------12---------
    * =---11111-12-2222----
    */
-  public function test_scanplan_paginator_2_4(): void
+  public function test_scanplan_simple_paginator_2_4(): void
 	{
-
     $grid = [];
 
-    $grid['1.0001|null|null_Payment'] = [10,10];
+    $grid['1.0001|null|null_Payment'] = [10,0];      //(ejected)
     $grid['2.0001|null|null_Payment'] = [10,10];
     $grid['3.0001|null|null_Payment'] = [10,10];
-    $grid['4.0001|null|null_Payment'] = [10,10];
-    $grid['5.0001|null|null_Trustset'] = [900,900];
-    $grid['6.0001|null|null_Payment'] = [10,10];
-    $grid['7.0001|null|null_Payment'] = [10,10];
+
+    $grid['5.0001|null|null_Trustset'] = [900,900]; //breakpoint trigger
+    $grid['6.0001|null|null_Trustset'] = [10,10];   //page 2
+
     $grid['8.0001|null|null_Payment'] = [10,10];
     $grid['9.0001|null|null_Payment'] = [10,10];
+    $grid['10.0001|null|null_Payment'] = [10,10];
+    $grid['11.0001|null|null_Payment'] = [2,0];     //(ejected)
 
     $intersected = $this->convertGridToIntersected($grid);
     //dd($intersected);
-    //dd(var_export($intersected));
     $scanplan = new ScanplanParser($intersected);
     $scanplan = $scanplan->parse();
-    dd($scanplan);
 
+    $this->assertEquals([
+      1 => [
+        'Payment' => [
+          'total' => 20,
+          'found' => 20,
+          'e' => 'eq',
+          'ledgerindex_first' => 20000,
+          'ledgerindex_last' => 39999,
+          'ledgerindex_last_id' => '3.0001',
+        ],
+        'Trustset' => [
+          'total' => 900,
+          'found' => 900,
+          'e' => 'eq',
+          'ledgerindex_first' => 50000,
+          'ledgerindex_last' => 59999,
+          'ledgerindex_last_id' => '5.0001',
+        ],
+      ],
+      2 => [
+        'Trustset' => [
+          'total' => 10,
+          'found' => 10,
+          'e' => 'eq',
+          'ledgerindex_first' => 60000,
+          'ledgerindex_last' => 69999,
+          'ledgerindex_last_id' => '6.0001',
+        ],
+        'Payment' => [
+          'total' => 30,
+          'found' => 30,
+          'e' => 'eq',
+          'ledgerindex_first' => 80000,
+          'ledgerindex_last' => 109999,
+          'ledgerindex_last_id' => '10.0001',
+        ],
+      ]
+    ], $scanplan);
+  }
 
-
-
-
-    $address = 'rhotcWYdfn6qxhVMbPKGDF3XCKqwXar5J4';
-    $search = new Search($address);
-
+  /**
+   * Visualized:
+   * x--12345678901--x
+   * P--11-----2-2----
+   * O1---1-----2-----
+   * O2---0-------2---
+   * T------12--------
+   * =--111-12-2222--=
+   */
+  public function test_scanplan_simple_paginator_2_5(): void
+	{
     $grid = [];
 
-    $grid['1_Payment']  = 0;   //(ejected)
-    $grid['2_Payment']  = 10;  //(page 1)
-    $grid['3_Payment']  = 10;  //(page 1)
-    $grid['4_Payment']  = 0;   //(page 1)
-    $grid['5_Payment']  = 10;  //(page 1)
-    $grid['10_Payment']  = 10; //(page 1)
-    $grid['11_Payment']  = 10; //(page 1)
-    $grid['12_Payment']  = 10; //(page 1)
-    $grid['13_Payment']  = 10; //(page 1)
-    $grid['14_Payment']  = 10; //(page 1)
-    $grid['15_Payment']  = 0;  //(ejected)
+    $grid['1.0001|null|null_Payment'] = [10,1];
+    $grid['2.0001|null|null_Payment'] = [10,10];
+    $grid['3.0001|null|null_Other1'] = [10,10];
+    $grid['3.0001|null|null_Other2'] = [10,0];      // (ejected)
 
-    $grid['7_Trustset']  = 900; //(page 1)
-    $grid['8_Trustset']  = 900; //(page 2)
-    $grid['9_Trustset']  = 0;   //(ejected)
+    $grid['5.0001|null|null_Trustset'] = [900,900]; //breakpoint trigger
+    $grid['6.0001|null|null_Trustset'] = [10,10];   //page 2
 
+    $grid['8.0001|null|null_Payment'] = [10,10];
+    $grid['9.0001|null|null_Other1'] = [10,10];
+    $grid['10.0001|null|null_Payment'] = [10,10];
+    $grid['11.0001|null|null_Other2'] = [2,2];
 
-    $seed = $this->convertGridToSeed($grid);
-    $result = $search->calculateScanPlan($seed);
+    $intersected = $this->convertGridToIntersected($grid);
+    //dd($intersected);
+    $scanplan = new ScanplanParser($intersected);
+    $scanplan = $scanplan->parse();
+    //dd($scanplan);
 
-    $this->assertEquals(2, count($result)); //number of pages
-    $this->assertEquals([2,3,4,5],$result[1]['Payment']['data']['llist']);
-    $this->assertEquals([10,11,12,13,14],$result[2]['Payment']['data']['llist']);
-    $this->assertEquals(10,$result[2]['Payment']['data']['ledgerindex_first']);
-    $this->assertEquals(14,$result[2]['Payment']['data']['ledgerindex_last']);
-
-    $this->assertEquals([7],$result[1]['Trustset']['data']['llist']);
-    $this->assertEquals(7, $result[1]['Trustset']['data']['ledgerindex_first']);
-    $this->assertEquals(7, $result[1]['Trustset']['data']['ledgerindex_last']);
-
-    $this->assertEquals([8],$result[2]['Trustset']['data']['llist']);
-    $this->assertEquals(8, $result[2]['Trustset']['data']['ledgerindex_first']);
-    $this->assertEquals(8, $result[2]['Trustset']['data']['ledgerindex_last']);
-
+    $this->assertEquals([
+      1 => [
+        'Payment' => [
+          'total' => 20,
+          'found' => 11,
+          'e' => 'eq',
+          'ledgerindex_first' => 10000,
+          'ledgerindex_last' => 29999,
+          'ledgerindex_last_id' => '2.0001',
+        ],
+        'Other1' => [
+          'total' => 10,
+          'found' => 10,
+          'e' => 'eq',
+          'ledgerindex_first' => 30000,
+          'ledgerindex_last' => 39999,
+          'ledgerindex_last_id' => '3.0001',
+        ],
+        'Trustset' => [
+          'total' => 900,
+          'found' => 900,
+          'e' => 'eq',
+          'ledgerindex_first' => 50000,
+          'ledgerindex_last' => 59999,
+          'ledgerindex_last_id' => '5.0001',
+        ],
+      ],
+      2 => [
+        'Trustset' => [
+          'total' => 10,
+          'found' => 10,
+          'e' => 'eq',
+          'ledgerindex_first' => 60000,
+          'ledgerindex_last' => 69999,
+          'ledgerindex_last_id' => '6.0001',
+        ],
+        'Payment' => [
+          'total' => 20,
+          'found' => 20,
+          'e' => 'eq',
+          'ledgerindex_first' => 80000,
+          'ledgerindex_last' => 109999,
+          'ledgerindex_last_id' => '10.0001',
+        ],
+        'Other1' => [
+          'total' => 10,
+          'found' => 10,
+          'e' => 'eq',
+          'ledgerindex_first' => 90000,
+          'ledgerindex_last' => 99999,
+          'ledgerindex_last_id' => '9.0001',
+        ],
+        'Other2' => [
+          'total' => 2,
+          'found' => 2,
+          'e' => 'eq',
+          'ledgerindex_first' => 110000,
+          'ledgerindex_last' => 119999,
+          'ledgerindex_last_id' => '11.0001',
+        ],
+      ]
+    ], $scanplan);
   }
 
   /**
