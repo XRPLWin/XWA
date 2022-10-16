@@ -132,6 +132,7 @@ class ScanplanParserTest extends TestCase
     $scanplan = new ScanplanParser($intersected);
     $scanplan = $scanplan->parse();
     //dd($scanplan);
+
     $this->assertEquals([
       1 => [
         'Payment' => [
@@ -172,6 +173,7 @@ class ScanplanParserTest extends TestCase
     $scanplan = new ScanplanParser($intersected);
     $scanplan = $scanplan->parse();
     //dd($scanplan);
+
     $this->assertEquals([
       1 => [ //page 1
         'Payment' => [
@@ -681,6 +683,184 @@ class ScanplanParserTest extends TestCase
         ],
       ]
     ], $scanplan);
+  }
+
+  /**
+   * This sample demonstrates internal 3.x pagination with very small XWA_SCAN_LIMIT.
+   * Internal paginator limit is 10, external is 500
+   * (not enough results to paginate externally)
+   */
+  public function test_scanplan_inner_paginator_1(): void
+	{
+    $grid = [];
+
+    $grid['1.0001|null|null_Payment'] = [10,1];
+    $grid['2.0001|null|null_Payment'] = [10,10];
+
+    $grid['3.0001|null|31000_Payment'] = [10,10];
+    $grid['3.0002|31001|35000_Payment'] = [10,10];
+    $grid['3.0003|35001|38000_Payment'] = [10,10];
+    $grid['3.0004|38001|null_Payment'] = [10,10];
+
+    $grid['10.0001|null|null_Payment'] = [10,10];
+
+    $intersected = $this->convertGridToIntersected($grid);
+    //dd($intersected);
+    $scanplan = new ScanplanParser($intersected);
+    $scanplan = $scanplan->parse();
+    //dd($scanplan);
+
+    $this->assertEquals([
+      1 => [
+        'Payment' => [
+          'total' => 70,
+          'found' => 61,
+          'e' => 'eq',
+          'ledgerindex_first' => 10000,
+          'ledgerindex_last' => 109999,
+          'ledgerindex_last_id' => '10.0001',
+        ]
+      ]
+    ],$scanplan);
+
+  }
+
+  /**
+   * Visualized:
+   * 30000┌───┐          ┌───┐
+   * 31000├───┤          ├───┤ --p1
+   *      │   │          │   │
+   *      │   │    32000 ├───┤ --p2
+   *      │   │          │   │
+   *      │   │          │   │
+   * 35000├───┤          │   │ --p3
+   *      │   │    36000 ├───┤ --p4
+   *      │   │          │   │
+   * 38000├───┤          │ 0 │ --p5
+   *      │   │          │   │
+   * 40000└───┘          └───┘
+   */
+  public function test_scanplan_inner_paginator_2(): void
+	{
+    $grid = [];
+
+    $grid['1.0001|null|null_Payment'] = [10,1];
+    $grid['2.0001|null|null_Payment'] = [10,10];
+
+    $grid['3.0001|null|31000_Payment'] = [1000,1000];  // breakpoint trigger
+    $grid['3.0002|31001|35000_Payment'] = [1000,1000]; // breakpoint trigger
+    $grid['3.0003|35001|38000_Payment'] = [1000,1000]; // breakpoint trigger
+    $grid['3.0004|38001|null_Payment'] = [60,60];
+
+    $grid['3.0001|null|31000_Activation'] = [1000,1000];  // breakpoint trigger
+    $grid['3.0002|31001|32000_Activation'] = [1000,1000]; // breakpoint trigger
+    $grid['3.0003|32001|36000_Activation'] = [1000,1000]; // breakpoint trigger
+    $grid['3.0004|36001|null_Activation'] = [20,0];
+
+
+    $grid['10.0001|null|null_Payment'] = [10,10];
+
+    $intersected = $this->convertGridToIntersected($grid);
+    //dd($intersected);
+    $scanplan = new ScanplanParser($intersected);
+    $scanplan = $scanplan->parse();
+    //dd($scanplan);
+
+    $this->assertEquals([
+      1 => [
+        'Payment' => [
+          'total' => 1020,
+          'found' => 1011,
+          'e' => 'eq',
+          'ledgerindex_first' => 10000,
+          'ledgerindex_last' => 31000,
+          'ledgerindex_last_id' => '3.0001',
+        ],
+        'Activation' => [
+          'total' => 1000,
+          'found' => 1000,
+          'e' => 'eq',
+          'ledgerindex_first' => 30000,
+          'ledgerindex_last' => 31000,
+          'ledgerindex_last_id' => '3.0001',
+        ]
+      ],
+      2 => [
+        'Payment' => [
+          "total" => 1000,
+          "found" => 1000,
+          "e" => "lte",
+          "ledgerindex_first" => 31001,
+          "ledgerindex_last" => 32000,
+          "ledgerindex_last_id" => "3.0002",
+        ],
+        'Activation' => [
+          "total" => 1000,
+          "found" => 1000,
+          "e" => "eq",
+          "ledgerindex_first" => 31001,
+          "ledgerindex_last" => 32000,
+          "ledgerindex_last_id" => "3.0002",
+        ]
+      ],
+      3 => [
+        'Payment' => [
+          "total" => 1000,
+          "found" => 1000,
+          "e" => "lte",
+          "ledgerindex_first" => 32001,
+          "ledgerindex_last" => 35000,
+          "ledgerindex_last_id" => "3.0002",
+        ],
+        'Activation' => [
+          "total" => 1000,
+          "found" => 1000,
+          "e" => "lte",
+          "ledgerindex_first" => 32001,
+          "ledgerindex_last" => 35000,
+          "ledgerindex_last_id" => "3.0003",
+        ]
+      ],
+      4 => [
+        'Payment' => [
+          "total" => 1000,
+          "found" => 1000,
+          "e" => "lte",
+          "ledgerindex_first" => 35001,
+          "ledgerindex_last" => 36000,
+          "ledgerindex_last_id" => "3.0003",
+        ],
+        'Activation' => [
+          "total" => 1000,
+          "found" => 1000,
+          "e" => "lte",
+          "ledgerindex_first" => 35001,
+          "ledgerindex_last" => 36000,
+          "ledgerindex_last_id" => "3.0003",
+        ]
+      ],
+      5 => [
+        'Payment' => [
+          "total" => 1000,
+          "found" => 1000,
+          "e" => "lte",
+          "ledgerindex_first" => 36001,
+          "ledgerindex_last" => 38000,
+          "ledgerindex_last_id" => "3.0003",
+        ],
+      ],
+      6 => [
+        'Payment' => [
+          "total" => 70,
+          "found" => 70,
+          "e" => "eq",
+          "ledgerindex_first" => 38001,
+          "ledgerindex_last" => 109999,
+          "ledgerindex_last_id" => "10.0001",
+        ]
+      ]
+    ],$scanplan);
+
   }
 
   /**
