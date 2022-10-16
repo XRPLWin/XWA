@@ -19,7 +19,7 @@ class AccountLoader
     {
       $Account = new DAccount();
       $Account->PK = $address; // @phpstan-ignore-line
-      $Account->SK = 0; // @phpstan-ignore-line
+      //$Account->SK = 0; // @phpstan-ignore-line
       // Ledger index this account is scanned to.
       $Account->l = config('xrpl.genesis_ledger');  // @phpstan-ignore-line
       //$Account->t = <INT>; //account type: undefined (default) - normal, 1 - issuer
@@ -40,7 +40,7 @@ class AccountLoader
     $AccountArray = Cache::get('daccount_'.$address);
    
     if(!$AccountArray) {
-      $Account = DAccount::find(['PK' => $address, 'SK' => 0]);
+    $Account = DAccount::find(['PK' => $address/*, 'SK' => 0*/]);
 
       if(!$Account)
         return null;

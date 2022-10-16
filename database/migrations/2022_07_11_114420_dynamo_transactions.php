@@ -27,8 +27,9 @@ return new class extends Migration
    */
   public function up()
   {
+    $model = new \App\Models\DTransaction;
     $schema = [
-      'TableName' => config('dynamodb.prefix').'transactions',
+      'TableName' => $model->getTable(),
       'AttributeDefinitions' => [
         [
           'AttributeName' => 'PK', //rAccount
@@ -38,10 +39,6 @@ return new class extends Migration
           'AttributeName' => 'SK', //ledger index
           'AttributeType' => 'N'
         ],
-        /*[
-          'AttributeName' => 'TType', //1,2,3...
-          'AttributeType' => 'N'
-        ],*/
       ],
       'KeySchema' => [
         [
@@ -53,9 +50,7 @@ return new class extends Migration
           'KeyType' => 'RANGE',
         ]
       ],
-
       # Optional:
-
       //'BillingMode' => 'PROVISIONED',
       /*'GlobalSecondaryIndexes' => [
         [
@@ -78,20 +73,15 @@ return new class extends Migration
             'ReadCapacityUnits' => 1,  //TODO test ProvisionedThroughputExceededException's
             'WriteCapacityUnits' => 1, //TODO test ProvisionedThroughputExceededException's
           ],
-
         ]
-
       ],*/
       //'LocalSecondaryIndexes' => [],
       'ProvisionedThroughput' => [
         'ReadCapacityUnits' => 1,  //TODO test ProvisionedThroughputExceededException's
         'WriteCapacityUnits' => 1, //TODO test ProvisionedThroughputExceededException's
       ],
-
-
     ];
-
-    $table = $this->client->createTable($schema);
+    $this->client->createTable($schema);
   }
 
   /**
@@ -101,8 +91,9 @@ return new class extends Migration
    */
   public function down()
   {
+    $model = new \App\Models\DTransaction;
     $this->client->deleteTable([
-      'TableName' => config('dynamodb.prefix').'transactions',
+      'TableName' => $model->getTable(),
     ]);
   }
 };

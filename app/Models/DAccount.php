@@ -13,14 +13,26 @@ use XRPLWin\XRPL\Client as XRPLWinApiClient;
  */
 final class DAccount extends DTransaction
 {
+  protected $primaryKey = 'PK';
+
   //No TYPE
   public $fillable = [
     'PK', //Primary Key
-    'SK', //Sort Key
+    //'SK', //Sort Key
     'l',  //Last synced ledger_index
     'by', //Activated by
     't',  //account internal type, undefined - normal, 1 - issuer
   ];
+
+  /**
+   * Get the table associated with the model.
+   *
+   * @return string
+   */
+  public function getTable()
+  {
+    return config('dynamodb.prefix').'accounts';
+  }
 
   public static function boot()
   {

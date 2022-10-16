@@ -116,7 +116,7 @@ class Parser
    * @param array $data [ <LedgerindexID> => '<LedgerindexID>.<SubPage>, 1234.0001, 1234.0002, ... ]
    * @return array [ <page> => [ <Txtypenamepart> => [ (int)total, (int)found, (string)e, (int)first2, (int)last2, (string)li_id ], ... ], ... ]
    */
-  public function runOneIndex(array $data) : array
+  private function runOneIndex(array $data) : array
   {
     $breakpoints = [];
     foreach($this->data as $txType => $list) { //each txtype
