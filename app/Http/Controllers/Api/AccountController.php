@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Utilities\Search;
 use XRPLWin\XRPL\Api\Methods\LedgerCurrent;
+use Illuminate\Support\Facades\DB;
 
 #use App\Statics\XRPL;
 #use App\Statics\Account as StaticAccount;
@@ -92,7 +93,8 @@ class AccountController extends Controller
 
       if(!$acct->isSynced())
       {
-        $r['queued'] = true;
+        $queuedJobsCount = DB::table('jobs')->where('qtype_data',$acct->address)->where('attempts',0)->count();
+        $r['queued'] = $queuedJobsCount?true:false;
         $r['synced'] = false;
       }
 
