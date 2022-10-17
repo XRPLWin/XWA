@@ -23,7 +23,7 @@ class QueueArtisanCommand implements ShouldQueue
      * (please program jobs to continue where they left of)
      * @var int
      */
-    public $timeout = 1800; 
+    public $timeout = 600;  //1800
 
     //Additional data for queue table
     public $qtype = '';       //string max 50
