@@ -8,6 +8,8 @@ use XRPLWin\XRPL\Client as XRPLWinApiClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Utilities\Search;
+use XRPLWin\XRPL\Api\Methods\LedgerCurrent;
+
 #use App\Statics\XRPL;
 #use App\Statics\Account as StaticAccount;
 #use App\Loaders\AccountLoader;
@@ -65,6 +67,41 @@ class AccountController extends Controller
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$ttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $ttl))
     ;
+  }
+
+
+  public function syncinfo(string $address): JsonResponse
+  {
+    $ttl = 5; //5 seconds (review this)
+
+    validateXRPAddressOrFail($address);
+  
+    $r = [
+      'synced' => false,   // bool
+      'queued' => false, //bool
+      'progress_current' => 0,
+      'progress_total' => 0
+    ];
+
+    $acct = AccountLoader::getOrCreate($address);
+    
+    if($acct) {
+
+      $r['progress_current'] = $acct->l;
+      $r['progress_total'] = \App\Utilities\Ledger::current();
+
+      if(!$acct->isSynced())
+      {
+        $r['queued'] = true;
+        $r['synced'] = false;
+      }
+
+
+    }
+   
+    return response()->json($r)
+      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$ttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $ttl));
   }
 
 
