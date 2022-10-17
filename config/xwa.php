@@ -55,7 +55,7 @@ $r = [
 ];
 
 //generate transaction_types
-$dir = __DIR__.'/../app/models';
+$dir = __DIR__.'/../app/Models';
 $dirlist = \scandir($dir);
 foreach($dirlist as $v) {
   if(\str_starts_with($v,'DTransaction') && $v !== 'DTransaction.php' && \str_ends_with($v,'.php')) {
