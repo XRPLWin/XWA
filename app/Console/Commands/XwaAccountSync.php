@@ -306,7 +306,7 @@ class XwaAccountSync extends Command
 
     private function processTransaction_OfferCancel(DAccount $account, \stdClass $transaction)
     {
-      return;
+      return null; //TODO
     }
 
     private function processTransaction_TrustSet(DAccount $account, \stdClass $transaction)
@@ -369,6 +369,22 @@ class XwaAccountSync extends Command
       return;
     }
 
+    private function processTransaction_CheckCancel(DAccount $account, \stdClass $transaction)
+    {
+      return;
+    }
+
+    private function processTransaction_CheckCash(DAccount $account, \stdClass $transaction)
+    {
+      return;
+    }
+
+    private function processTransaction_CheckCreate(DAccount $account, \stdClass $transaction)
+    {
+      return;
+    }
+
+
     private function processTransaction_EscrowCreate(DAccount $account, \stdClass $transaction)
     {
       return;
@@ -403,4 +419,35 @@ class XwaAccountSync extends Command
     {
       return;
     }
+
+    private function processTransaction_TicketCreate(DAccount $account, \stdClass $transaction)
+    {
+      return;
+    }
+
+    private function processTransaction_NFTokenAcceptOffer(DAccount $account, \stdClass $transaction)
+    {
+      return;
+    }
+
+    private function processTransaction_NFTokenBurn(DAccount $account, \stdClass $transaction)
+    {
+      return;
+    }
+
+    private function processTransaction_NFTokenCancelOffer(DAccount $account, \stdClass $transaction)
+    {
+      return;
+    }
+
+    private function processTransaction_NFTokenCreateOffer(DAccount $account, \stdClass $transaction)
+    {
+      return;
+    }
+
+    private function processTransaction_NFTokenMint(DAccount $account, \stdClass $transaction)
+    {
+      return;
+    }
+    
 }

@@ -52,3 +52,6 @@ https://xrpscan.com/tx/F24027A8B4EF3BE5C68F83042BAC52DFC06A25A6CCB4D2D73EE8852B6
 
 # deleted scam account - handle it
 http://xlanalyzer-ui.test/account/rhXrLZcXDF1WcULu7xSottKinbDvYG4cFQ/search
+
+# has ticket transaction type
+raXEyUbatmefE6uccyFcpyVkaRYuC1LaGq
