@@ -135,7 +135,7 @@ class Search
     }
 
     $definitiveResults = $this->applyDefinitiveFilters($data['data']);
-    $definitiveResults = $definitiveResults->sortByDesc('SK')->values();
+    $definitiveResults = $definitiveResults->values();
     $this->result = $definitiveResults;
 
     $result_counts = [
@@ -208,10 +208,9 @@ class Search
     if($firstTxInfo['first'] === null) {
       throw new \Exception('No synced transactions found');
     }
-    $c1 = Carbon::createFromFormat('Y-m-d H:i:s',$mapper->getCondition('from').' 10:00:00');
-    //
-    $c3 = Carbon::createFromFormat('Y-m-d H:i:s',$firstTxInfo['first'].' 10:00:00');
-    if($c1->lessThan($c3))
+    $c1 = Carbon::createFromFormat('Y-m-d H:i:s',$mapper->getCondition('to').' 10:00:00');
+    $c2 = Carbon::createFromFormat('Y-m-d H:i:s',$firstTxInfo['first'].' 10:00:00');
+    if($c1->lessThan($c2))
       throw new \Exception('No synced transactions found to requested date');
 
 
@@ -221,8 +220,8 @@ class Search
       $c2 = Carbon::createFromFormat('Y-m-d H:i:s',$mapper->getCondition('to').' 10:00:00');
       foreach($mapper->getCondition('txTypes') as $k => $v) {
         if($firstTxInfo['first_per_types'][$k] && $firstTxInfo['first_per_types'][$k]['date']) {
-          $c3 = Carbon::createFromFormat('Y-m-d H:i:s',$firstTxInfo['first_per_types'][$k]['date'].' 10:00:00');
-          if($c2->greaterThanOrEqualTo($c3))
+          $c2 = Carbon::createFromFormat('Y-m-d H:i:s',$firstTxInfo['first_per_types'][$k]['date'].' 10:00:00');
+          if($c1->greaterThanOrEqualTo($c2))
             $_txtypesrangeisvalid = true; //found one
         }
       }
@@ -342,7 +341,9 @@ class Search
     }
 
     //sort by SK
-    $nonDefinitiveResults = $nonDefinitiveResults->sortByDesc('SK');
+   
+    $nonDefinitiveResults = $nonDefinitiveResults->sortBy('SK');
+    //dd($nonDefinitiveResults->pluck('SK') );
     $resultCounts['page'] = $page;
     $resultCounts['total_pages'] = $pages_count;
     return ['counts' => $resultCounts, 'data' => $nonDefinitiveResults];
