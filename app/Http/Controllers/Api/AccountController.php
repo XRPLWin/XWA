@@ -80,6 +80,7 @@ class AccountController extends Controller
         'first_per_types' => [],   //times of first transaction per types
       ],
       'type' => 'normal', // normal|issuer|exchange
+      'deleted' => false
     ];
 
     $acct = AccountLoader::getOrCreate($address);
@@ -98,17 +99,30 @@ class AccountController extends Controller
             'account' => $address,
             'strict' => true
         ])
-        ->send()
-        ->finalResult();
-
-    $r['Balance'] = $account_data->Balance;
-    $r['Flags'] = $account_data->Flags;
-    if(isset($account_data->RegularKey))
-      $r['RegularKey'] = $account_data->RegularKey;
-    if(isset($account_data->Domain))
-      $r['Domain'] = $account_data->Domain;
-    if(isset($account_data->EmailHash))
-      $r['EmailHash'] = $account_data->EmailHash;
+        ->send();
+    
+    
+    if(!$account_data->isSuccess()) {
+      if($account_data->result()->result->error == 'actNotFound') {
+        $result = (object)[
+          'Balance' => 0,
+          'Flags' => null
+        ];
+        $r['deleted'] = true;
+      }
+    } else {
+      $result = $account_data->finalResult();
+    }
+    
+    
+    $r['Balance'] = $result->Balance;
+    $r['Flags'] = $result->Flags;
+    if(isset($result->RegularKey))
+      $r['RegularKey'] = $result->RegularKey;
+    if(isset($result->Domain))
+      $r['Domain'] = $result->Domain;
+    if(isset($result->EmailHash))
+      $r['EmailHash'] = $result->EmailHash;
 
     //get if this account is issuer or not by checking obligations
     if($acct->t === 1)
