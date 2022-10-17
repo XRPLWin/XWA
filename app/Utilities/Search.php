@@ -119,7 +119,7 @@ class Search
     }
     
     $page = $this->param('page');
-    
+
     try {
       $data = $this->_execute_real($page, $acct);
     } catch (\Throwable $e) {
@@ -209,12 +209,12 @@ class Search
       throw new \Exception('No synced transactions found');
     }
     $c1 = Carbon::createFromFormat('Y-m-d H:i:s',$mapper->getCondition('from').' 10:00:00');
+    $c2 = Carbon::createFromFormat('Y-m-d H:i:s',$firstTxInfo['first'].' 10:00:00');
+    if($c1->lessThan($c2))
+      throw new \Exception('No synced transactions found to requested date');
 
-    if($typesIsAll) { //all types are requested
-      $c2 = Carbon::createFromFormat('Y-m-d H:i:s',$firstTxInfo['first'].' 10:00:00');
-      if($c1->lessThan($c2))
-        throw new \Exception('No synced transactions found to requested date');
-    } else {
+
+    if(!$typesIsAll) {
       //only specific types are requested
       $_txtypesrangeisvalid = false;
       foreach($mapper->getCondition('txTypes') as $k => $v) {
@@ -224,8 +224,19 @@ class Search
             $_txtypesrangeisvalid = true; //found one
         }
       }
-      if(!$_txtypesrangeisvalid)
-        throw new \Exception('No synced specific transactions found to requested date');
+      if(!$_txtypesrangeisvalid) {
+        //throw new \Exception('No synced specific transactions found to requested date');
+        //return sucessfull response
+        return [
+          'counts' => [
+            'total_filtered' => 0,
+            'total_scanned' => 0,
+            'page' => 0,
+            'total_pages' => 0
+          ],
+          'data' => collect([])
+        ];
+      } 
     }
     unset($c1);
     unset($c2);
