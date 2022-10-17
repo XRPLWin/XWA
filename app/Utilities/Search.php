@@ -218,7 +218,7 @@ class Search
       //only specific types are requested
       $_txtypesrangeisvalid = false;
       foreach($mapper->getCondition('txTypes') as $k => $v) {
-        if($firstTxInfo['first_per_types'][$k]['date']) {
+        if($firstTxInfo['first_per_types'][$k] && $firstTxInfo['first_per_types'][$k]['date']) {
           $c2 = Carbon::createFromFormat('Y-m-d H:i:s',$firstTxInfo['first_per_types'][$k]['date'].' 10:00:00');
           if($c1->greaterThanOrEqualTo($c2))
             $_txtypesrangeisvalid = true; //found one
