@@ -343,7 +343,6 @@ class Search
     //sort by SK
    
     $nonDefinitiveResults = $nonDefinitiveResults->sortBy('SK');
-    //dd($nonDefinitiveResults->pluck('SK') );
     $resultCounts['page'] = $page;
     $resultCounts['total_pages'] = $pages_count;
     return ['counts' => $resultCounts, 'data' => $nonDefinitiveResults];
