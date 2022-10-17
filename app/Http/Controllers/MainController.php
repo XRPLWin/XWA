@@ -12,6 +12,15 @@ class MainController extends Controller
     public function test()
     {
         exit;
+        $model = new \App\Models\DTransactionPayment;
+
+
+        //$r = $model::find(['PK' => 'rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31-1','SK' => 0]);
+        $r = $model->where('PK',  'rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31-1')->where('SK', '>', 0)->take(1)->get(['SK']);
+        dd($r,'rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31-1');
+    //dd($r->toDynamoDbQuery());
+    // $r = $r->find($this->PK.'-'.$DTransactionModelName::TYPE);
+        exit;
         /*$model = new \App\Models\DTransactionPayment;
 
         $raw = $model->toDynamoDbQuery(['count(*)']);

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Redis;
 
 #use PHPUnit\Framework\TestCase;
 use Tests\TestCase;

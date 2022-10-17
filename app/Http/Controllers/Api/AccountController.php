@@ -75,6 +75,10 @@ class AccountController extends Controller
     $r = [
       'synced' => false,   // bool
       'sync_queued' => false, //bool
+      'synced_info' => [
+        'first' => null, //time of first transaciton
+        'first_per_types' => [],   //times of first transaction per types
+      ],
       'type' => 'normal', // normal|issuer|exchange
     ];
 
@@ -86,6 +90,8 @@ class AccountController extends Controller
       $r['sync_queued'] = true;
       $r['synced'] = false;
     }
+
+    $r['synced_info'] = $acct->getFirstTransactionAllInfo();
 
     $account_data = app(XRPLWinApiClient::class)->api('account_info')
         ->params([

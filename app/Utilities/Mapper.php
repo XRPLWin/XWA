@@ -32,6 +32,11 @@ class Mapper
     return $this;
   }
 
+  public function getCondition(string $condition)
+  {
+    return isset($this->conditions[$condition]) ? $this->conditions[$condition]:null;
+  }
+
   /**
    * Check if dates are correct
    * 1. From is less or equal to to
@@ -62,7 +67,7 @@ class Mapper
     $to = Carbon::createFromFormat('Y-m-d', $this->conditions['to']);
     if($to->isFuture())
       return false;
-    
+
     return true;
   }
 

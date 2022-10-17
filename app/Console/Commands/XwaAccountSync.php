@@ -13,18 +13,6 @@ use App\Models\DTransactionActivation;
 use App\Models\DTransactionTrustset;
 use App\XRPLParsers\Parser;
 
-
-//old below - todo delete
-use App\Statics\XRPL;
-use App\Statics\Account as StaticAccount;
-use App\Models\Account;
-use App\Models\Activation;
-
-use App\Models\TransactionPayment;
-use App\Models\TransactionTrustset;
-use App\Models\TransactionAccountset;
-use App\Models\TransactionOffer;
-
 class XwaAccountSync extends Command
 {
     /**

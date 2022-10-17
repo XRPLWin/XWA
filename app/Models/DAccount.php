@@ -14,11 +14,11 @@ use XRPLWin\XRPL\Client as XRPLWinApiClient;
 final class DAccount extends DTransaction
 {
   protected $primaryKey = 'PK';
+  protected $compositeKey = null;
 
   //No TYPE
   public $fillable = [
     'PK', //Primary Key
-    //'SK', //Sort Key
     'l',  //Last synced ledger_index
     'by', //Activated by
     't',  //account internal type, undefined - normal, 1 - issuer
@@ -47,7 +47,8 @@ final class DAccount extends DTransaction
 
   public function flushCache()
   {
-    Cache::forget('daccount_'.$this->PK); // @phpstan-ignore-line
+    Cache::forget('daccount:'.$this->PK);
+    Cache::forget('daccount_fti:'.$this->PK);
   }
 
   /**
@@ -81,7 +82,7 @@ final class DAccount extends DTransaction
   public function isSynced($leeway_ledgers = 1)
   {
     $current_ledger = Ledger::current();
-    $l = (int)$this->l; // @phpstan-ignore-line
+    $l = (int)$this->l;
     $check = $l + $leeway_ledgers;
     if($check <= $current_ledger)
       return false;
@@ -118,6 +119,67 @@ final class DAccount extends DTransaction
       return true;
 
     return false;
+  }
+
+  /**
+   * @return ?array [ 'repoch' => <ripple epoch>, 'date' => YYYY-MM-DD, 'li' => SK ]
+   */
+  private function getFirstTransactionInfo(string $txTypeNamepart): ?array
+  {
+    
+
+
+    $result = null;
+    $DTransactionModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
+    $r = $DTransactionModelName::where('PK', $this->PK.'-'.$DTransactionModelName::TYPE)->where('SK', '>', 0)->take(1)->get(['t'])->first(); //['PK','SK','t']
+    if($r) {
+      $result = [
+        'repoch' => $r->t, //ripple epoch
+        'date' => ripple_epoch_to_carbon($r->t)->format('Y-m-d'),
+        'li' => $r->SK
+      ];
+    }
+      
+    return $result;
+  }
+
+  /**
+   * Cached
+   * @return [ 'first' => YYYY-MM-DD, 'first_per_types' => [ <DTransaction::TYPE> =>  [ repoch, date, li ], ... ] ]
+   */
+  public function getFirstTransactionAllInfo(): array
+  {
+    $cache_key = 'daccount_fti:'.$this->PK;
+    $r = Cache::get($cache_key);
+
+    if($r === null) {
+      $typeList = config('xwa.transaction_types');
+      $repoch_tracker = null;
+  
+      $r = [
+        'first' => null, //time of first transaciton
+        'first_per_types' => [],   //times of first transaction per types
+      ];
+  
+      foreach($typeList as $typeIdentifier => $typeName) {
+        $t = $this->getFirstTransactionInfo($typeName);
+        $r['first_per_types'][$typeIdentifier] = $t;
+        if($t !== null) {
+          if($repoch_tracker  === null) {  //initial
+            $repoch_tracker = $t['repoch'];
+            $r['first'] = $t['date'];
+          }
+          if($t['repoch'] < $repoch_tracker) { //check is lesser
+            $repoch_tracker = $t['repoch'];
+            $r['first'] = $t['date'];
+          }
+        }
+        unset($t);
+      }
+      unset($repoch_tracker);
+      Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
+    }
+    return $r;
   }
 
 }

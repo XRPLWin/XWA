@@ -9,10 +9,15 @@
 
 namespace App\Utilities;
 
-use Illuminate\Support\Collection;
-use Illuminate\Http\Request;
+use App\Models\DAccount;
 use App\Utilities\Scanplan\Parser as ScanplanParser;
+use App\Utilities\AccountLoader;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
+
 
 class Search
 {
@@ -106,10 +111,17 @@ class Search
 
   public function execute(): self
   {
+    $acct = AccountLoader::get($this->address);
+    if(!$acct) {
+      $this->errors[] = 'Account not synced yet';
+      $this->last_error_code = 3;
+      return $this;
+    }
+    
     $page = $this->param('page');
     
     try {
-      $data = $this->_execute_real($page);
+      $data = $this->_execute_real($page, $acct);
     } catch (\Throwable $e) {
       if(config('app.debug')) {
         $this->errors[] = $e->getMessage().' on line '.$e->getLine().' on line '.$e->getLine(). ' in file '.$e->getFile();
@@ -157,7 +169,7 @@ class Search
    * @throws \Exception
    * @return array ['counts' => $resultCounts, 'data' => $nonDefinitiveResults]
    */
-  private function _execute_real(int $page = 1)
+  private function _execute_real(int $page = 1, DAccount $acct)
   {
     $mapper = new Mapper();
     $mapper->setAddress($this->address);
@@ -171,8 +183,10 @@ class Search
 
     //$txTypes = $this->txTypes; //these are all types
     $types = $this->param('types');
+    $typesIsAll = true;
     $txTypes = [];
     if($types) {
+      $typesIsAll = false;
       $txTypesFlipped = \array_flip($this->txTypes);
       foreach($types as $type) {
         if(isset($txTypesFlipped[$type])) {
@@ -187,6 +201,34 @@ class Search
     unset($types);
     
     $mapper->addCondition('txTypes',$txTypes);
+
+    # Now we have requested types
+    # Check if current requested start date is equal or larger than first available txtype
+    $firstTxInfo = $acct->getFirstTransactionAllInfo();
+    if($firstTxInfo['first'] === null) {
+      throw new \Exception('No synced transactions found');
+    }
+    $c1 = Carbon::createFromFormat('Y-m-d H:i:s',$mapper->getCondition('from').' 10:00:00');
+
+    if($typesIsAll) { //all types are requested
+      $c2 = Carbon::createFromFormat('Y-m-d H:i:s',$firstTxInfo['first'].' 10:00:00');
+      if($c1->lessThan($c2))
+        throw new \Exception('No synced transactions found to requested date');
+    } else {
+      //only specific types are requested
+      $_txtypesrangeisvalid = false;
+      foreach($mapper->getCondition('txTypes') as $k => $v) {
+        if($firstTxInfo['first_per_types'][$k]['date']) {
+          $c2 = Carbon::createFromFormat('Y-m-d H:i:s',$firstTxInfo['first_per_types'][$k]['date'].' 10:00:00');
+          if($c1->greaterThanOrEqualTo($c2))
+            $_txtypesrangeisvalid = true; //found one
+        }
+      }
+      if(!$_txtypesrangeisvalid)
+        throw new \Exception('No synced specific transactions found to requested date');
+    }
+    unset($c1);
+    unset($c2);
 
     //Direction (in|out)
     $param_dir = $this->param('dir');

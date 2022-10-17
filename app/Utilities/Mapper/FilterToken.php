@@ -146,7 +146,7 @@ class FilterToken extends FilterBase {
         $map->condition = $cond;
         $map->count_num = $count;
         $map->page = $subpage;
-        $map->created_at = \date('Y-m-d H:i:s');
+        $map->created_at = now();
         $map->save();
       }
   
