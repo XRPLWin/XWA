@@ -46,12 +46,25 @@ $r = [
   | List of transaction types, keyed by type integer.
   */
   'transaction_types' => [
-    
     //<DTransaction::TYPE> => Typenamepart,
     //1 => 'Payment',
     //2 => 'Activation',
     //...
-  ]
+  ],
+  
+  /*
+  |--------------------------------------------------------------------------
+  | XRPL Address characters
+  |--------------------------------------------------------------------------
+  | Characters that can be in address.
+  | DynamoDB transaction databases are created according to thiese characters.
+  */
+  'address_characters' => [
+    //letters lowercase:
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    //numbers:
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+  ],
 ];
 
 //generate transaction_types

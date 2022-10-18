@@ -27,9 +27,34 @@ return new class extends Migration
    */
   public function up()
   {
+    $address_characters = config('xwa.address_characters');
+    foreach($address_characters as $char) {
+      $schema = $this->getCreationShema($char);
+      $this->client->createTable($schema);
+    }
+  }
+
+  /**
+   * Reverse the migrations.
+   *
+   * @return void
+   */
+  public function down()
+  {
+    $model = new \App\Models\DTransaction;
+    $address_characters = config('xwa.address_characters');
+    foreach($address_characters as $char) {
+      $this->client->deleteTable([
+        'TableName' => $model->getTable($char),
+      ]);
+    }
+  }
+
+  private function getCreationShema(string $char): array
+  {
     $model = new \App\Models\DTransaction;
     $schema = [
-      'TableName' => $model->getTable(),
+      'TableName' => $model->getTable($char),
       'AttributeDefinitions' => [
         [
           'AttributeName' => 'PK', //rAccount
@@ -77,23 +102,10 @@ return new class extends Migration
       ],*/
       //'LocalSecondaryIndexes' => [],
       'ProvisionedThroughput' => [
-        'ReadCapacityUnits' => 1,  //TODO test ProvisionedThroughputExceededException's
-        'WriteCapacityUnits' => 1, //TODO test ProvisionedThroughputExceededException's
+        'ReadCapacityUnits' => 20,
+        'WriteCapacityUnits' => 20,
       ],
     ];
-    $this->client->createTable($schema);
-  }
-
-  /**
-   * Reverse the migrations.
-   *
-   * @return void
-   */
-  public function down()
-  {
-    $model = new \App\Models\DTransaction;
-    $this->client->deleteTable([
-      'TableName' => $model->getTable(),
-    ]);
+    return $schema;
   }
 };

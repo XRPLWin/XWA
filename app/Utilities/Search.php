@@ -111,7 +111,9 @@ class Search
 
   public function execute(): self
   {
+    
     $acct = AccountLoader::get($this->address);
+   
     if(!$acct) {
       $this->errors[] = 'Account not synced yet';
       $this->last_error_code = 3;
@@ -158,7 +160,7 @@ class Search
     if($result_counts['pages'] > $result_counts['page']) {
       $result_counts['next'] = true;
     }
-
+ 
     $this->result_counts = $result_counts;
 
     $this->isExecuted = true;
@@ -171,6 +173,7 @@ class Search
    */
   private function _execute_real(int $page = 1, DAccount $acct)
   {
+    
     $mapper = new Mapper();
     $mapper->setAddress($this->address);
 
@@ -180,7 +183,7 @@ class Search
 
     if(!$mapper->dateRangeIsValid())
       throw new \Exception('From and to params spans more than allowed 31 days and *from* has to be before *to*. Dates must not be in future');
-
+    
     //$txTypes = $this->txTypes; //these are all types
     $types = $this->param('types');
     $typesIsAll = true;
@@ -201,7 +204,7 @@ class Search
     unset($types);
     
     $mapper->addCondition('txTypes',$txTypes);
-
+    
     # Now we have requested types
     # Check if current requested start date is equal or larger than first available txtype
     $firstTxInfo = $acct->getFirstTransactionAllInfo();
@@ -241,7 +244,7 @@ class Search
     }
     unset($c1);
     unset($c2);
-
+    
     //Direction (in|out)
     $param_dir = $this->param('dir');
     
@@ -286,12 +289,12 @@ class Search
     if($param_st && is_numeric($param_st)) 
       $mapper->addCondition('st',$param_st);
     unset($param_st);
- 
+
     /**
      * Execute counts and get intersection of transaction hits depending on sent conditions.
      */
     $intersected = $mapper->getIntersectedLedgerindexes();
-
+    
     /**
      * Caculate optimal SCAN plan
      */
@@ -324,7 +327,7 @@ class Search
 
       /** @var \App\Models\DTransaction */
       $DTransactionModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
-      $query = $DTransactionModelName::where('PK', $this->address.'-'.$DTransactionModelName::TYPE);
+      $query = $DTransactionModelName::createContextInstance($this->address)->where('PK', $this->address.'-'.$DTransactionModelName::TYPE);
 
       //apply non-definitive conditions to $query
       $query = $mapper->applyQueryConditions($query);

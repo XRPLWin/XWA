@@ -119,7 +119,7 @@ class FilterToken extends FilterBase {
       
       if(!$map)
       {
-        $model = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
+        $model = $DModelName::createContextInstance($this->address)->where('PK',$this->address.'-'.$DModelName::TYPE);
         if($first == null || $last == null) {
           //Need to get edges
           $li = Ledgerindex::getLedgerindexData($ledgerindex);

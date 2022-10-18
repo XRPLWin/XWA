@@ -12,6 +12,19 @@ class MainController extends Controller
     public function test()
     {
         exit;
+        $DTransactionModelName = '\\App\\Models\\DTransactionPayment';
+        $DTransactionModel = $DTransactionModelName::createContextInstance('rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31');
+        //$test = new $DTransactionModelName;
+        //dd($DTransactionModel);
+        //$query = $DTransactionModelName::accountContext('rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31')
+        $r = $DTransactionModel->where('PK', 'rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31-'.$DTransactionModelName::TYPE)
+            ->where('SK', '>', 0)
+            ->take(1)
+            ;
+        $res = null;
+        $res = $r->get(['t'])->first(); //['PK','SK','t']
+        dd($r,$res);
+        exit;
         $model = new \App\Models\DTransactionPayment;
 
 

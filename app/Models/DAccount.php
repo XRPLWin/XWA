@@ -29,7 +29,7 @@ final class DAccount extends DTransaction
    *
    * @return string
    */
-  public function getTable()
+  public function getTable(?string $char = null)
   {
     return config('dynamodb.prefix').'accounts';
   }
@@ -66,13 +66,17 @@ final class DAccount extends DTransaction
     
     if($check)
       return false;
-    
-    QueueArtisanCommand::dispatch(
-      'xwa:accountsync',
-      ['address' => $this->address, '--recursiveaccountqueue' => $recursive ],
-      'account',
-      $this->address
-    )->onQueue('default'); //todo replace default with sync
+
+    $char = \strtolower(\substr($this->address,1,1)); //rAcct... = 'a', xAcct... = 'a', ...
+    if($char !== '') {
+      QueueArtisanCommand::dispatch(
+        'xwa:accountsync',
+        ['address' => $this->address, '--recursiveaccountqueue' => $recursive ],
+        'account',
+        $this->address
+      )->onQueue('q'.$char);
+    }
+   
     return true;
   }
 
@@ -126,12 +130,9 @@ final class DAccount extends DTransaction
    */
   private function getFirstTransactionInfo(string $txTypeNamepart): ?array
   {
-    
-
-
     $result = null;
     $DTransactionModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
-    $r = $DTransactionModelName::where('PK', $this->PK.'-'.$DTransactionModelName::TYPE)->where('SK', '>', 0)->take(1)->get(['t'])->first(); //['PK','SK','t']
+    $r = $DTransactionModelName::createContextInstance($this->PK)->where('PK', $this->PK.'-'.$DTransactionModelName::TYPE)->where('SK', '>', 0)->take(1)->get(['t'])->first(); //['PK','SK','t']
     if($r) {
       $result = [
         'repoch' => $r->t, //ripple epoch

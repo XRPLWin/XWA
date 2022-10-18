@@ -101,24 +101,24 @@ class Mapper
       //Viewing current day, account should be synced to today atleast
       $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexFirstForDay($to)-1;
     }
-
+  
     //Check if $this->address eg 75026591*10000 is synced within time ranges, if not then disallow search
     if(($account->l*10000) < $LedgerIndexLastForDay) {
       throw new \Exception('Account not synced to this ledger index yet ('.($account->l*10000).' < '.$LedgerIndexLastForDay.')');
     }
-  
+    
     $period = CarbonPeriod::since($from)->until($to);
 
     $foundLedgerIndexesIds = [];
     foreach($this->conditions['txTypes'] as $txTypeNamepart) {
       $foundLedgerIndexesIds[$txTypeNamepart] = [];
     }
-
+    
     # Phase 1 ALL days per Tx Type
     foreach($period as $day) {
       
       $ledgerindex = Ledgerindex::getLedgerindexIdForDay($day);
-    
+      
       
       if($ledgerindex) {
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
@@ -271,7 +271,7 @@ class Mapper
           //clear cache then then/instead exception?
           throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
         }
-        $query = $DModelName::where('PK',$this->address.'-'.$DModelName::TYPE);
+        $query = $DModelName::createContextInstance($this->address)->where('PK',$this->address.'-'.$DModelName::TYPE);
 
         $limit = config('xwa.scan_limit');
         if($limit)

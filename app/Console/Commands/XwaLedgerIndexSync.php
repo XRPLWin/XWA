@@ -88,7 +88,7 @@ class XwaLedgerIndexSync extends Command
         if($startCarbon->isToday()) {
           $this->updateTodayRecord();
           $this->info('All days synced');
-          return 0;
+          return Command::SUCCESS;
         }
       }
 
@@ -109,7 +109,7 @@ class XwaLedgerIndexSync extends Command
       }
       $bar->finish();
       $this->updateTodayRecord();
-      
+      return Command::SUCCESS;
     }
 
     private function updateTodayRecord(): void

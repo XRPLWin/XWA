@@ -2,12 +2,33 @@
 
 XRP Ledger Analyzer (WORK IN PROGRESS)
 
-# Installation
+## Installation
 
 Set permissions:
 ```
 find storage/ -type d -exec chmod 770 {} \;
 find storage/ -type f -exec chmod 760 {} \;
+```
+
+## Supervisor
+
+### Swoole worker
+Customize depending of your needs.  
+Copy `/documentation/supervisor/octane.ini` to `/etc/supervisor.d/octane.ini`  
+
+### Account sync queue workers
+Customize depending of your needs.  
+Copy `/documentation/supervisor/queue.ini` to `/etc/supervisor.d/queue.ini`
+
+```
+# Inform supervisor to read workers again.
+sudo supervisorctl reread
+
+# Tell supervisor to bring the changes into effect
+sudo supervisorctl update
+
+# Restart supervisor service
+sudo supervisorctl restart all
 ```
 
 ## Tests
