@@ -77,8 +77,8 @@ return new class extends Migration
       ],*/
       //'LocalSecondaryIndexes' => [],
       'ProvisionedThroughput' => [
-        'ReadCapacityUnits' => 1,  //TODO test ProvisionedThroughputExceededException's
-        'WriteCapacityUnits' => 1, //TODO test ProvisionedThroughputExceededException's
+        'ReadCapacityUnits' => 5,
+        'WriteCapacityUnits' => 5,
       ],
     ];
     $this->client->createTable($schema);
