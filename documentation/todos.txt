@@ -55,3 +55,6 @@ http://xlanalyzer-ui.test/account/rhXrLZcXDF1WcULu7xSottKinbDvYG4cFQ/search
 
 # has ticket transaction type
 raXEyUbatmefE6uccyFcpyVkaRYuC1LaGq
+
+# unfunded payments
+https://xrpscan.com/account/rGnYFRoNMdBLRVBr7kCt13U6aKWwePR7UT
