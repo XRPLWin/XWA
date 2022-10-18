@@ -28,20 +28,20 @@ class XwaGenerateQueueSupervisorconf extends Command
      */
     public function handle()
     {
-        $chars = config('xwa.address_characters');
         $str = '';
-        foreach($chars as $char)
-        {
+
+        $groups = config('xwa.queue_groups');
+        foreach($groups as $name => $v) {
             $str .= '
-[program:queue-worker-'.$char.']
+[program:queue-worker-'.$name.']
 process_name=%(program_name)s_%(process_num)02d
-command=php /opt/nginx/htdocs/xwa/artisan queue:work --queue=q'.$char.' --sleep=5 --tries=1
+command=php /opt/nginx/htdocs/xwa/artisan queue:work --queue='.$name.' --sleep=5 --tries=1
 autostart=true
 autorestart=true
 user=daemon
 numprocs=1
 redirect_stderr=true
-stdout_logfile=var/log/supervisor/xwa-queue-worker-'.$char.'.log​
+stdout_logfile=var/log/supervisor/xwa-queue-worker-'.$name.'.log​
 ';
         }
         Storage::disk('private')->put('queue.ini', $str);

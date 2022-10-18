@@ -69,12 +69,17 @@ final class DAccount extends DTransaction
 
     $char = \strtolower(\substr($this->address,1,1)); //rAcct... = 'a', xAcct... = 'a', ...
     if($char !== '') {
-      QueueArtisanCommand::dispatch(
-        'xwa:accountsync',
-        ['address' => $this->address, '--recursiveaccountqueue' => $recursive ],
-        'account',
-        $this->address
-      )->onQueue('q'.$char);
+      foreach(config('xwa.queue_groups') as $qg => $v) {
+        if(in_array($char,$v)) {
+          QueueArtisanCommand::dispatch(
+            'xwa:accountsync',
+            ['address' => $this->address, '--recursiveaccountqueue' => $recursive ],
+            'account',
+            $this->address
+          )->onQueue($qg);
+          break;
+        }
+      }
     }
    
     return true;
