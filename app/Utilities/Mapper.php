@@ -104,7 +104,7 @@ class Mapper
   
     //Check if $this->address eg 75026591*10000 is synced within time ranges, if not then disallow search
     if(($account->l*10000) < $LedgerIndexLastForDay) {
-      throw new \Exception('Account not synced to this ledger index yet ('.($account->l*10000).' < '.$LedgerIndexLastForDay.')');
+      throw new \Exception('Account not synced to this ledger yet ('.($account->l*10000).' < '.$LedgerIndexLastForDay.')');
     }
     
     $period = CarbonPeriod::since($from)->until($to);
