@@ -22,7 +22,8 @@ class XwaAccountSync extends Command
      */
     protected $signature = 'xwa:accountsync
                             {address : XRP account address}
-                            {--recursiveaccountqueue : Enable to create additional queues for other accounts}';
+                            {--recursiveaccountqueue : Enable to create additional queues for other accounts}
+                            {--limit=0 : Limit batch jobs, if limit is set after x batch jobs new queue job will be created, leave empty for no limit}';
 
     /**
      * The console command description.
@@ -37,6 +38,21 @@ class XwaAccountSync extends Command
      * @var bool
      */
     protected bool $recursiveaccountqueue = false;
+
+    /**
+     * How much batch jobs will be executed before requeuing
+     * Requeuing will move job to end of queue.
+     * 
+     * @var bool
+     */
+    protected int $batchlimit = 0;
+
+    /**
+     * Current batch being executed.
+     *
+     * @var bool
+     */
+    protected int $batch_current = 0;
 
     /**
      * Current ledger being scanned.
@@ -64,6 +80,8 @@ class XwaAccountSync extends Command
       //dd('test',config_static('xrpl.address_ignore.rBKPS4oLSaV2KVVuHH8EpQqMGgGefGFQs72'));
       $address = $this->argument('address');
       $this->recursiveaccountqueue = $this->option('recursiveaccountqueue'); //bool
+      $this->batchlimit = (int)$this->option('limit'); //int
+      
       //$this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
       
       $this->ledger_current = Ledger::current();
@@ -124,7 +142,10 @@ class XwaAccountSync extends Command
       );
           
       $do = true;
+      
       while($do) {
+
+        $this->batch_current++;
 
         try {
           $account_tx->send();
@@ -169,6 +190,14 @@ class XwaAccountSync extends Command
           }
           else
             $do = false;
+        }
+
+        if($this->batch_current >= $this->batchlimit) {
+          if($do) {
+            $this->info('Batch limit ('.$this->batch_current.') reached, requeuing job');
+            dd($account);
+          }
+          $do = false;
         }
         
       }
