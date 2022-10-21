@@ -200,7 +200,7 @@ class XwaAccountSync extends Command
               $isLast = false; //flat it is not last run
               $this->info('');
               $this->info('Batch limit ('.$this->batch_current.') reached, requeuing job');
-              $account->sync($this->recursiveaccountqueue,true);
+              $account->sync($this->recursiveaccountqueue, true, $this->batchlimit);
               sleep(1);
             }
           }
@@ -335,7 +335,11 @@ class XwaAccountSync extends Command
           $this->info('Queued account: '.$activatedByAddress. ' on index '.$parser->SK());
           //$source_account->sync(true);
           $newAccount = AccountLoader::getOrCreate($activatedByAddress);
-          $newAccount->sync(true);
+          $newAccount->sync(
+            $this->recursiveaccountqueue,
+            false,
+            $this->batchlimit
+          );
         }
       }
     }

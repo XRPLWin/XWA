@@ -53,9 +53,10 @@ final class DAccount extends DTransaction
 
   /**
    * Synces job if not already synced
+   * @param bool $recursive - if true it will queue parent address
    * @return bool True if added to sync queue (queued)
    */
-  public function sync(bool $recursive = true, bool $skipcheck = false): bool
+  public function sync(bool $recursive = true, bool $skipcheck = false, int $limit = 0): bool
   {
     if(!$skipcheck) {
       //check if already synced
@@ -76,7 +77,7 @@ final class DAccount extends DTransaction
         if(in_array($char,$v)) {
           QueueArtisanCommand::dispatch(
             'xwa:accountsync',
-            ['address' => $this->address, '--recursiveaccountqueue' => $recursive ],
+            ['address' => $this->address, '--recursiveaccountqueue' => $recursive, '--limit' => $limit ],
             'account',
             $this->address
           )->onQueue($qg);
