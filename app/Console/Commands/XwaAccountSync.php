@@ -142,10 +142,10 @@ class XwaAccountSync extends Command
       );
           
       $do = true;
-      
+      $isLast = true;
       while($do) {
 
-        $this->batch_current++;
+        
 
         try {
           $account_tx->send();
@@ -168,6 +168,7 @@ class XwaAccountSync extends Command
         }
         else
         {
+          $this->batch_current++;
           //dd($account_tx);
           $txs = $account_tx->finalResult();
           $this->info('');
@@ -185,27 +186,33 @@ class XwaAccountSync extends Command
           if($account_tx = $account_tx->next()) {
             //update last synced ledger index to account metadata
             $account->l = $tx->tx->ledger_index;
+            //$this->info($tx->tx->ledger_index.' is last ledger');
             $account->save();
             //continuing to next page
           }
           else
             $do = false;
-        }
 
-        if($this->batch_current >= $this->batchlimit) {
           if($do) {
-            $this->info('Batch limit ('.$this->batch_current.') reached, requeuing job');
-            dd($account);
+            if($this->batchlimit > 0 && $this->batch_current >= $this->batchlimit) {
+              # batch limit reached
+              $do = false; //stop
+              $isLast = false; //flat it is not last run
+              $this->info('');
+              $this->info('Batch limit ('.$this->batch_current.') reached, requeuing job');
+              $account->sync($this->recursiveaccountqueue,true);
+              sleep(1);
+            }
           }
-          $do = false;
         }
-        
       }
 
       # Save last scanned ledger index
-      $account->l = $this->ledger_current;
-      $account->save();
-
+      if($isLast) {
+        $account->l = $this->ledger_current;
+        $account->save();
+      }
+      
       //TODO start data analysis
       //$analyzed = StaticAccount::analyzeData($account);
 

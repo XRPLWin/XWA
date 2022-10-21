@@ -55,17 +55,20 @@ final class DAccount extends DTransaction
    * Synces job if not already synced
    * @return bool True if added to sync queue (queued)
    */
-  public function sync(bool $recursive = true): bool
+  public function sync(bool $recursive = true, bool $skipcheck = false): bool
   {
-    //check if already synced
-    $check = DB::connection(config('database.default'))
-      ->table('jobs')
-      ->where('qtype','account')
-      ->where('qtype_data',$this->address)
-      ->count();
-    
-    if($check)
-      return false;
+    if(!$skipcheck) {
+      //check if already synced
+      $check = DB::connection(config('database.default'))
+        ->table('jobs')
+        ->where('qtype','account')
+        ->where('qtype_data',$this->address)
+        ->count();
+
+      if($check)
+        return false;
+    }
+  
 
     $char = \strtolower(\substr($this->address,1,1)); //rAcct... = 'a', xAcct... = 'a', ...
     if($char !== '') {
