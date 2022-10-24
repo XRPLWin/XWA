@@ -126,7 +126,7 @@ class AccountController extends Controller
    
     if(!$acct->isSynced())
     {
-      $acct->sync(false,false,2400);
+      $acct->sync(false,false,1500);
       $r['sync_queued'] = true;
       $r['synced'] = false;
     }
