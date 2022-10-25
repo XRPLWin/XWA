@@ -4,7 +4,7 @@ namespace App\Models;
 
 /**
  * DynamoDB Transaction model of type Payment.
- * PK: rAcct-1 SK: <INT> (Ledger index)
+ * PK: rAcct-2 SK: <INT> (Ledger index)
  */
 final class DTransactionActivation extends DTransaction
 {

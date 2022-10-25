@@ -11,6 +11,7 @@ use App\Models\DAccount;
 use App\Models\DTransactionPayment;
 use App\Models\DTransactionActivation;
 use App\Models\DTransactionTrustset;
+use App\Models\DTransactionAccountDelete;
 use App\Models\Ledgerindex;
 use App\Models\Map;
 use App\XRPLParsers\Parser;
@@ -149,9 +150,6 @@ class XwaAccountSync extends Command
       $isLast = true;
       $dayToFlush = null;
       while($do) {
-
-        
-
         try {
           $account_tx->send();
         } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
@@ -349,6 +347,7 @@ class XwaAccountSync extends Command
         $this->info('');
         $this->info('Activation: Activated by '.$activatedByAddress. ' on index '.$parser->SK());
         $account->by = $activatedByAddress;
+        unset($account->deleted); //remove deleted flag, in case it is reactivated
         $account->save();
 
         if($this->recursiveaccountqueue)
@@ -420,7 +419,30 @@ class XwaAccountSync extends Command
 
     private function processTransaction_AccountDelete(DAccount $account, \stdClass $transaction): array
     {
-      return [];
+      /** @var \App\XRPLParsers\Types\AccountDelete */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+
+      $parsedData = $parser->toDArray();
+
+      $model = new DTransactionAccountDelete();
+      $model->PK = $account->address.'-'.DTransactionAccountDelete::TYPE;
+      $model->SK = $parser->SK();
+      foreach($parsedData as $key => $value) {
+        $model->{$key} = $value;
+      }
+      $model->save();
+
+      if(isset($parsedData['in']) && $parsedData['in']) {
+        //incomming xrp
+      } else {
+        //outgoing, this is deleted account, flag account deleted
+        $this->info('');
+        $this->info('Deleted');
+        $account->deleted = true;
+        $account->save();
+      }
+
+      return $parsedData;
     }
 
     private function processTransaction_SetRegularKey(DAccount $account, \stdClass $transaction): array

@@ -34,6 +34,7 @@ class Search
     1 => 'Payment',
     2 => 'Activation',
     3 => 'Trustset',
+    4 => 'AccountDelete',
     // ...todo
   ];
 
