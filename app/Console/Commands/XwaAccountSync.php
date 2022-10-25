@@ -11,7 +11,11 @@ use App\Models\DAccount;
 use App\Models\DTransactionPayment;
 use App\Models\DTransactionActivation;
 use App\Models\DTransactionTrustset;
+use App\Models\Ledgerindex;
+use App\Models\Map;
 use App\XRPLParsers\Parser;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class XwaAccountSync extends Command
 {
@@ -143,6 +147,7 @@ class XwaAccountSync extends Command
           
       $do = true;
       $isLast = true;
+      $dayToFlush = null;
       while($do) {
 
         
@@ -177,8 +182,25 @@ class XwaAccountSync extends Command
           $bar->start();
 
           //Do the logic here
+          
           foreach($txs as $tx) {
-            $this->processTransaction($account,$tx);
+            //dd($tx);
+            $parsedData = $this->processTransaction($account,$tx);
+            if(!empty($parsedData)) {
+              if($dayToFlush === null) {
+                $dayToFlush = ripple_epoch_to_carbon($parsedData['t'])->format('Y-m-d');
+                $this->info('Flushing day (initial) '.$dayToFlush);
+                $this->flushDayCache($account->address,$dayToFlush);
+              } else {
+                $txDayToFlush = ripple_epoch_to_carbon($parsedData['t'])->format('Y-m-d');
+                if($dayToFlush !== $txDayToFlush) {
+                  $this->info('Flushing day '.$dayToFlush);
+                  $this->flushDayCache($account->address,$dayToFlush);
+                  
+                  $dayToFlush = $txDayToFlush;
+                }
+              }
+            }
             $bar->advance();
           }
           $bar->finish();
@@ -222,9 +244,9 @@ class XwaAccountSync extends Command
 
     /**
      * Calls appropriate method.
-     * @return Callable
+     * @return ?array
      */
-    private function processTransaction(DAccount $account, \stdClass $transaction)
+    private function processTransaction(DAccount $account, \stdClass $transaction): ?array
     {
       $type = $transaction->tx->TransactionType;
       $method = 'processTransaction_'.$type;
@@ -233,15 +255,15 @@ class XwaAccountSync extends Command
         return null; //do not log failed transactions
 
       //this is faster than call_user_func()
-      $this->{$method}($account, $transaction);
+      return $this->{$method}($account, $transaction);
     }
 
     /**
     * Executed offer
     */
-    private function processTransaction_OfferCreate(DAccount $account, \stdClass $transaction)
+    private function processTransaction_OfferCreate(DAccount $account, \stdClass $transaction): array
     {
-      return null; //TODO
+      return  []; //TODO
       $txhash = $tx['hash'];
 
       $TransactionOfferCheck = TransactionTrustset::where('txhash',$txhash)->count();
@@ -293,7 +315,7 @@ class XwaAccountSync extends Command
     * @modifies DTransaction $account
     * @return void
     */
-    private function processTransaction_Payment(DAccount $account, \stdClass $transaction)
+    private function processTransaction_Payment(DAccount $account, \stdClass $transaction):array
     {
       /** @var \App\XRPLParsers\Types\Payment */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
@@ -342,14 +364,15 @@ class XwaAccountSync extends Command
           );
         }
       }
+      return $parsedData;
     }
 
-    private function processTransaction_OfferCancel(DAccount $account, \stdClass $transaction)
+    private function processTransaction_OfferCancel(DAccount $account, \stdClass $transaction): array
     {
-      return null; //TODO
+      return []; //TODO
     }
 
-    private function processTransaction_TrustSet(DAccount $account, \stdClass $transaction)
+    private function processTransaction_TrustSet(DAccount $account, \stdClass $transaction): array
     {
       /** @var \App\XRPLParsers\Types\TrustSet */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
@@ -363,16 +386,17 @@ class XwaAccountSync extends Command
         $model->{$key} = $value;
       }
       $model->save();
+      return $parsedData;
     }
 
-    private function processTransaction_AccountSet(DAccount $account, \stdClass $transaction)
+    private function processTransaction_AccountSet(DAccount $account, \stdClass $transaction): array
     {
-      return; //not used yet
+      return []; //not used yet
 
       $txhash = $tx['hash'];
       $TransactionAccountsetCheck = TransactionAccountset::where('txhash',$txhash)->count();
       if($TransactionAccountsetCheck)
-        return; //nothing to do, already stored
+        return []; //nothing to do, already stored
 
       $TransactionAccountset = new TransactionAccountset;
       $TransactionAccountset->txhash = $txhash;
@@ -391,103 +415,121 @@ class XwaAccountSync extends Command
 
 
 
-      return;
+      return [];
     }
 
-    private function processTransaction_AccountDelete(DAccount $account, \stdClass $transaction)
+    private function processTransaction_AccountDelete(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_SetRegularKey(DAccount $account, \stdClass $transaction)
+    private function processTransaction_SetRegularKey(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_SignerListSet(DAccount $account, \stdClass $transaction)
+    private function processTransaction_SignerListSet(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_CheckCancel(DAccount $account, \stdClass $transaction)
+    private function processTransaction_CheckCancel(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_CheckCash(DAccount $account, \stdClass $transaction)
+    private function processTransaction_CheckCash(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_CheckCreate(DAccount $account, \stdClass $transaction)
+    private function processTransaction_CheckCreate(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
 
-    private function processTransaction_EscrowCreate(DAccount $account, \stdClass $transaction)
+    private function processTransaction_EscrowCreate(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_EscrowFinish(DAccount $account, \stdClass $transaction)
+    private function processTransaction_EscrowFinish(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_EscrowCancel(DAccount $account, \stdClass $transaction)
+    private function processTransaction_EscrowCancel(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_PaymentChannelCreate(DAccount $account, \stdClass $transaction)
+    private function processTransaction_PaymentChannelCreate(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_PaymentChannelFund(DAccount $account, \stdClass $transaction)
+    private function processTransaction_PaymentChannelFund(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_PaymentChannelClaim(DAccount $account, \stdClass $transaction)
+    private function processTransaction_PaymentChannelClaim(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_DepositPreauth(DAccount $account, \stdClass $transaction)
+    private function processTransaction_DepositPreauth(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_TicketCreate(DAccount $account, \stdClass $transaction)
+    private function processTransaction_TicketCreate(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_NFTokenAcceptOffer(DAccount $account, \stdClass $transaction)
+    private function processTransaction_NFTokenAcceptOffer(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_NFTokenBurn(DAccount $account, \stdClass $transaction)
+    private function processTransaction_NFTokenBurn(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_NFTokenCancelOffer(DAccount $account, \stdClass $transaction)
+    private function processTransaction_NFTokenCancelOffer(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_NFTokenCreateOffer(DAccount $account, \stdClass $transaction)
+    private function processTransaction_NFTokenCreateOffer(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
 
-    private function processTransaction_NFTokenMint(DAccount $account, \stdClass $transaction)
+    private function processTransaction_NFTokenMint(DAccount $account, \stdClass $transaction): array
     {
-      return;
+      return [];
     }
-    
+
+    /**
+     * Flush account maps and cache for this day.
+     */
+    private function flushDayCache(string $address, string $day)
+    {
+      $carbon = Carbon::createFromFormat('Y-m-d',$day);
+      $liId = Ledgerindex::getLedgerindexIdForDay($carbon);
+      if($liId) {
+        //flush from cache
+        $search = Map::select('page','condition','txtype')->where('address',$address)->where('ledgerindex_id',$liId)->get();
+        foreach($search as $v) {
+          $cache_key = 'mpr'.$address.'_'.$v->condition.'_'.$liId.'_'.$v->page.'_'.$v->txtype;
+          Cache::forget($cache_key);
+        }
+        //flush from maps table
+        Map::where('address',$address)->where('ledgerindex_id',$liId)->delete();
+      }
+    }
 }
