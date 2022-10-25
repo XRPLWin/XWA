@@ -62,7 +62,7 @@ class AccountController extends Controller
     
     //if end date is today we will set low ttl, since new data can come in at any time
     if($request->input('to') == \date('Y-m-d'))
-      $ttl = 120;
+      $ttl = 120; //2 mins
 
     return response()->json($result)
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$ttl)
