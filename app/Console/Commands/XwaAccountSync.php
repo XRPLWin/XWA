@@ -306,11 +306,17 @@ class XwaAccountSync extends Command
       }
     }
 
+    private function processTransaction_OfferCancel(DAccount $account, \stdClass $transaction): array
+    {
+      return []; //TODO
+    }
+
     /**
     * Payment to or from in any currency.
     * @modifies DTransaction $account
     * @return void
     */
+    //OK
     private function processTransaction_Payment(DAccount $account, \stdClass $transaction):array
     {
       /** @var \App\XRPLParsers\Types\Payment */
@@ -364,11 +370,7 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
-    private function processTransaction_OfferCancel(DAccount $account, \stdClass $transaction): array
-    {
-      return []; //TODO
-    }
-
+    //OK
     private function processTransaction_TrustSet(DAccount $account, \stdClass $transaction): array
     {
       /** @var \App\XRPLParsers\Types\TrustSet */
@@ -415,6 +417,7 @@ class XwaAccountSync extends Command
       return [];
     }
 
+    //OK
     private function processTransaction_AccountDelete(DAccount $account, \stdClass $transaction): array
     {
       /** @var \App\XRPLParsers\Types\AccountDelete */
