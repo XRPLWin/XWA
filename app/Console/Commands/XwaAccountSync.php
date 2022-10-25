@@ -103,9 +103,7 @@ class XwaAccountSync extends Command
       //dd($account);
       
       //Test only start (comment this)
-      //$account->l = 29810490; //1
-      //$account->save();
-      //exit;
+      //$account->l = 73806934;$account->save();exit;
       //Test only end
 
       //$this->ledger_current = 66055480;
@@ -347,7 +345,7 @@ class XwaAccountSync extends Command
         $this->info('');
         $this->info('Activation: Activated by '.$activatedByAddress. ' on index '.$parser->SK());
         $account->by = $activatedByAddress;
-        unset($account->deleted); //remove deleted flag, in case it is reactivated
+        unset($account->del); //remove deleted flag, in case it is reactivated
         $account->save();
 
         if($this->recursiveaccountqueue)
@@ -438,8 +436,10 @@ class XwaAccountSync extends Command
         //outgoing, this is deleted account, flag account deleted
         $this->info('');
         $this->info('Deleted');
-        $account->deleted = true;
+        $account->del = true;
         $account->save();
+        //dd($account);
+        
       }
 
       return $parsedData;

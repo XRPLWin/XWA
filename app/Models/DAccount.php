@@ -22,6 +22,7 @@ final class DAccount extends DTransaction
     'l',  //Last synced ledger_index
     'by', //Activated by
     't',  //account internal type, undefined - normal, 1 - issuer
+    'del', //true if deleted, null or false not deleted
   ];
 
   /**
