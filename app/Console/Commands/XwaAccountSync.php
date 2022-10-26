@@ -98,12 +98,12 @@ class XwaAccountSync extends Command
       if($account->checkIsIssuer())
         $account->t = 1;
       else
-        unset($account->t);
+        unset($account->t); //this will remove field on model save
 
       //dd($account);
       
       //Test only start (comment this)
-      //$account->l = 73806934;$account->save();exit;
+      //$account->l = 73806933;$account->save();exit;
       //Test only end
 
       //$this->ledger_current = 66055480;
@@ -321,7 +321,8 @@ class XwaAccountSync extends Command
     {
       /** @var \App\XRPLParsers\Types\Payment */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
-
+      //if($transaction->tx->hash == '9E7D83EF9968AE0493E8328F23F01DF87C1D1BA709A9AD2BC4479C1943C4CD57')
+      //  dd($transaction->tx, $transaction->meta);
       $parsedData = $parser->toDArray();
 
       $model = new DTransactionPayment();
@@ -351,7 +352,7 @@ class XwaAccountSync extends Command
         $this->info('');
         $this->info('Activation: Activated by '.$activatedByAddress. ' on index '.$parser->SK());
         $account->by = $activatedByAddress;
-        unset($account->del); //remove deleted flag, in case it is reactivated
+        unset($account->del); //remove deleted flag, in case it is reactivated, this will remove field on model save
         $account->save();
 
         if($this->recursiveaccountqueue)

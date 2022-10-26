@@ -23,14 +23,29 @@ final class Payment extends XRPLParserBase
 
     $this->data['Issuer'] = $this->data['Currency'] = null;
 
+    $this->data['IsPartialPayment'] = false;
+    
 
     if(is_object($this->tx->Amount)) { //it is payment specific currency (token)
-      $this->data['Amount'] = $this->meta->delivered_amount->value; //base-10 representation of double number
+      $this->data['RequestedAmount'] = $this->tx->Amount->value;    //(string) base-10 representation of double number
+      $this->data['Amount'] = $this->meta->delivered_amount->value; //(string) base-10 representation of double number
       $this->data['Issuer'] = $this->tx->Amount->issuer;
       $this->data['Currency'] = $this->meta->delivered_amount->currency;
-    }
-    else
+    } else {
+      $this->data['RequestedAmount'] = drops_to_xrp((int)$this->tx->Amount); //test this
       $this->data['Amount'] = drops_to_xrp((int)$this->meta->delivered_amount);
+    }
+
+    # Check if this is partial payment
+    if($this->data['Amount'] !== $this->data['RequestedAmount']) {
+      $this->data['IsPartialPayment'] = true;
+    }
+
+    /*if($this->data['hash'] != '9E7D83EF9968AE0493E8328F23F01DF87C1D1BA709A9AD2BC4479C1943C4CD57')
+    {
+      dd($this->data);
+    }*/
+      
   }
 
 
@@ -47,11 +62,14 @@ final class Payment extends XRPLParserBase
       //'in' => $this->data['In'],
       'r' => $this->data['Counterparty'],
       'h' => $this->data['hash'],
-      'a' => $this->data['Amount'],
+      'a' => $this->data['Amount']
     ];
 
     if($this->data['In']) //to save space we only store true value
       $r['in'] = true;
+
+    if($this->data['IsPartialPayment'])
+      $r['rqa'] = $this->data['RequestedAmount']; //rqa - requested amount - this field only exists when there is partial payment
 
     /**
      * dt - destination tag, stored as string
