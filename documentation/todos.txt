@@ -58,3 +58,6 @@ raXEyUbatmefE6uccyFcpyVkaRYuC1LaGq
 
 # unfunded payments
 https://xrpscan.com/account/rGnYFRoNMdBLRVBr7kCt13U6aKWwePR7UT
+
+# Ledger parsers
+https://github.com/ripple/rippled-historical-database/tree/master/lib/ledgerParser
