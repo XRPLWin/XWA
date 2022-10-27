@@ -25,27 +25,46 @@ return new class extends Migration
    *
    * @return void
    */
-  public function up()
+  /*public function up()
   {
     $address_characters = config('xwa.address_characters');
     foreach($address_characters as $char) {
       $schema = $this->getCreationShema($char);
       $this->client->createTable($schema);
     }
+  }*/
+  public function up()
+  {
+    $groups = config('xwa.queue_groups');
+    foreach($groups as $name => $v) {
+      $schema = $this->getCreationShema($v[0]);
+      $this->client->createTable($schema);
+    }
   }
+
 
   /**
    * Reverse the migrations.
    *
    * @return void
    */
-  public function down()
+  /*public function down()
   {
     $model = new \App\Models\DTransaction;
     $address_characters = config('xwa.address_characters');
     foreach($address_characters as $char) {
       $this->client->deleteTable([
         'TableName' => $model->getTable($char),
+      ]);
+    }
+  }*/
+  public function down()
+  {
+    $model = new \App\Models\DTransaction;
+    $groups = config('xwa.queue_groups');
+    foreach($groups as $name => $v) {
+      $this->client->deleteTable([
+        'TableName' => $model->getTable($v[0]),
       ]);
     }
   }

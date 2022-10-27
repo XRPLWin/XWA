@@ -51,7 +51,8 @@ class DTransaction extends XWDynamoDbModel
         throw new \Exception('Unable to extract character from context address: '.$contextAddress);
     }
 
-    return config('dynamodb.prefix').'transactions_'.$char;
+    $q = config('xwa.queue_groups_reversed')[$char];
+    return config('dynamodb.prefix').'transactions_'.$q;
   }
 
   /**
