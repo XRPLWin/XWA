@@ -161,7 +161,7 @@ final class BalanceChanges
       $node->FinalFields = isset($node->FinalFields) ? $node->FinalFields : null;
       $node->PreviousFields = isset($node->PreviousFields) ? $node->PreviousFields : null;
       $node->PreviousTxnID = isset($node->PreviousTxnID) ? $node->PreviousTxnID : null;
-      $node->PreviousTxnLgrSeq = isset($node->PreviouTxnLgrSeq) ? $node->PreviouTxnLgrSeq : null; //artefact?
+      $node->PreviousTxnLgrSeq = isset($node->PreviousTxnLgrSeq) ? $node->PreviousTxnLgrSeq : null;
       $r[] = $node;
     }
     return $r;
