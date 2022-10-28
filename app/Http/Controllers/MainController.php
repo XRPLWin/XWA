@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Account;
+use Brick\Math\BigDecimal;
 use XRPLWin\XRPL\Client;
 use XRPLWin\XRPLOrderbookReader\LiquidityCheck;
 
@@ -11,6 +12,40 @@ class MainController extends Controller
 {
     public function test()
     {
+        exit;
+
+        $client = app(\XRPLWin\XRPL\Client::class);
+
+
+        $account_tx = $client->api('account_tx')
+          ->params([
+            'account' => 'rhXrLZcXDF1WcULu7xSottKinbDvYG4cFQ',
+            'ledger_index' => 'current',
+            'ledger_index_min' => 74139050, //Ledger index this account is scanned to.
+            'ledger_index_max' => 74139050,
+            'binary' => false,
+            'forward' => true,
+            'limit' => 20, //400
+          ]);
+
+          $account_tx->send();
+          $txs = $account_tx->finalResult();
+
+          foreach($txs as $tx) {
+            if($tx->tx->hash == 'E0382D408F1BD7835E86336B43EBD43C7543779BDECD406B0BC00BA7CB86CE13')
+            {
+
+                $parser = new \App\XRPLParsers\Utils\BalanceChanges($tx->meta);
+                $result = $parser->result();
+                dd($parser,$result);
+
+                exit;
+            }
+          }
+
+
+        //dd($txs);
+
         exit;
         $DTransactionModelName = '\\App\\Models\\DTransactionPayment';
         $DTransactionModel = $DTransactionModelName::createContextInstance('rsmYqAFi4hQtTY6k6S3KPJZh7axhUwxT31');

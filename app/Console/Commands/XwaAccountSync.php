@@ -118,7 +118,7 @@ class XwaAccountSync extends Command
       $account_tx = $this->XRPLClient->api('account_tx')
           ->params([
             'account' => $account->address,
-            'ledger_index' => 'current',
+            //'ledger_index' => 'current',
             'ledger_index_min' => (int)$account->l, //Ledger index this account is scanned to.
             'ledger_index_max' => $this->ledger_current,
             'binary' => false,
