@@ -11,7 +11,7 @@ final class BalanceChanges
   private array $result = [];
 
   /**
-   * @param \stdClass $metadata - Payment transaction metadata
+   * @param \stdClass $metadata - Transaction metadata
    */
   public function __construct(\stdClass $metadata)
   {
