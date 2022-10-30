@@ -2,6 +2,8 @@
 
 namespace App\XRPLParsers;
 
+use App\XRPLParsers\Utils\BalanceChanges;
+
 /**
  * This class takes full Transaction object returned from XRPL and parses it.
  */
@@ -17,6 +19,11 @@ abstract class XRPLParserBase implements XRPLParserInterface
   ];
 
   /**
+   * Eg. Payment for DTransactionPayment, or Payment_BalanceChange for DTransactionPayment_BalanceChange ...
+   */
+  protected string $transaction_type_class;
+
+  /**
    * Constructor
    * @param \stdClass $tx
    * @param string $reference_address
@@ -26,7 +33,33 @@ abstract class XRPLParserBase implements XRPLParserInterface
     $this->tx = $tx;
     $this->meta = $meta;
     $this->reference_address = $reference_address;
+
+    /**
+     * Modifies $this->data
+     * @createsKey array AllBalanceChanges
+     * @createsKey array AccountBalanceChanges
+     */
+    $this->parseBalanceChanges();
+
+    /**
+     * Modifies $this->data
+     * @createsKey int TransactionIndex
+     * @createsKey int Date - XRPL Epoch time
+     */
     $this->parseCommonFields();
+
+    /**
+     * Modifies $this->data
+     * @createsKey bool|null In
+     * @createsKey int Fee (optional)
+     * Fills $this->transaction_type_class
+     */
+    $this->parseType();
+
+    /**
+     * Modifies $this->data
+     * @see underlying classes
+     */
     $this->parseTypeFields();
   }
 
@@ -38,6 +71,37 @@ abstract class XRPLParserBase implements XRPLParserInterface
   public function toDArray(): array
   {
     throw new \Exception('toDArray Not implemented in final class');
+  }
+
+  /**
+   * Parses and decides which type of transaction is this.
+   * For Payment it can be sub-type of payment depending on reference account.
+   */
+  protected function parseType()
+  {
+    # In (?bool)
+    # Compare reference address to check if this is incoming or outgoing transaction
+    # Note: when reference_address is only participant of this tx then In will be false, 
+    # in that case this can be overriden via parseType() via balance changes state.
+    //$this->data['In'] = $this->reference_address != $this->tx->Account;
+
+    $this->data['In'] = null; //niether, reference account is only participant
+
+    if( $this->tx->Destination == $this->reference_address)
+      $this->data['In'] = true;
+    elseif( $this->tx->Account == $this->reference_address )
+      $this->data['In'] = false;
+
+    # Fee (int)
+    # Fees are only recorded if referenced account sent this transaction
+    if($this->data['In'] === false) {
+      if(!\is_numeric($this->tx->Fee))
+        throw new \Exception('Fee not a number for transaction hash: '.$this->tx->hash);
+
+      $this->data['Fee'] = (int)$this->tx->Fee;
+    }
+
+    $this->transaction_type_class = $this->tx->TransactionType;
   }
 
   /**
@@ -58,17 +122,6 @@ abstract class XRPLParserBase implements XRPLParserInterface
    */
   protected function parseCommonFields(): void
   {
-    
-    # Fee (int)
-    if(!\is_numeric($this->tx->Fee))
-      throw new \Exception('Fee not a number for transaction hash: '.$this->tx->hash);
-
-    $this->data['Fee'] = (int)$this->tx->Fee;
-
-    # In (bool)
-    # Compare reference address to check if this is incoming or outgoing transaction
-    $this->data['In'] = $this->reference_address != $this->tx->Account;
-
     # TransactionIndex (int)
     if(!is_int($this->meta->TransactionIndex))
       throw new \Exception('TransactionIndex not integer for transaction hash: '.$this->tx->hash);
@@ -79,6 +132,22 @@ abstract class XRPLParserBase implements XRPLParserInterface
     if(!isset($this->tx->date))
       throw new \Exception('date not found for transaction hash: '.$this->tx->hash);
 
+  }
+
+  /**
+   * Get balance changes. This is used to build aggregated value over time.
+   * This function fills array of balance changes to $this->data['AllBalanceChanges'] and 
+   * $this->data['AccountBalanceChanges'] for referenced account.
+   * XRP +-Value, also returns token currency +-Value
+   * @modifies $this->data
+   * @return void
+   */
+  protected function parseBalanceChanges(): void
+  {
+    $bc = new BalanceChanges($this->meta);
+    $balanceChanges = $bc->result(true);
+    $this->data['AllBalanceChanges'] = $balanceChanges;
+    $this->data['AccountBalanceChanges'] = isset($balanceChanges[$this->reference_address]['balances']) ? $balanceChanges[$this->reference_address]['balances'] : [];
   }
 
   /**
@@ -156,18 +225,6 @@ abstract class XRPLParserBase implements XRPLParserInterface
   public function getActivated(): ?string
   {
     return $this->activations['reference_activated'];
-  }
-
-  /**
-   * Get balance changes. This is used to build aggregated value over time.
-   * This funciton returns array of balance changes, XRP +-Value
-   * Also returns token currency +-Value
-   * -Fee
-   * @return array ['Fee' => NUM, 'Value' => NUM, Currency => string 'XRP' or array [issuer, currency]]
-   */
-  public function balanceChanges(): array
-  {
-    throw new \Exception('balanceChanges Not implemented in final class');
   }
   
   public function getTx()

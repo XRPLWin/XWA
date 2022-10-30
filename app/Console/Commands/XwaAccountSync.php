@@ -104,6 +104,7 @@ class XwaAccountSync extends Command
       
       //Test only start (comment this)
       //$account->l = 73806933;$account->save();exit;
+      //$account->l = 74139050;$account->save();exit;
       //Test only end
 
       //$this->ledger_current = 66055480;
@@ -321,9 +322,9 @@ class XwaAccountSync extends Command
     {
       /** @var \App\XRPLParsers\Types\Payment */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
-      //if($transaction->tx->hash == '9E7D83EF9968AE0493E8328F23F01DF87C1D1BA709A9AD2BC4479C1943C4CD57')
-      //  dd($transaction->tx, $transaction->meta);
       $parsedData = $parser->toDArray();
+
+      
 
       $model = new DTransactionPayment();
       $model->PK = $account->address.'-'.DTransactionPayment::TYPE;

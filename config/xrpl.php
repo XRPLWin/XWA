@@ -5,9 +5,9 @@
 */
 return [
 
-  'net' => env('XRPL_NET', 'livenet'),
+  'net' => env('XRPL_NET', 'mainnet'),
 
-  'livenet' => [
+  'mainnet' => [
     //for connection via php GuzzleHttp (reporting server)
     'rippled_server_uri' => 'http://s1.ripple.com:51234',
     //for connection via php GuzzleHttp (full history server)

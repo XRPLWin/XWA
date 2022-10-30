@@ -4,9 +4,12 @@ namespace App\XRPLParsers\Utils;
 
 use Brick\Math\BigDecimal;
 
+/**
+ * Retrieves list of balance changes for all involving accounts in provided XRPL transaction metadata.
+ * @see https://github.com/XRPLF/xrpl.js/blob/main/packages/xrpl/src/utils/getBalanceChanges.ts
+ */
 final class BalanceChanges
 {
-
   private readonly \stdClass $meta;
   private array $result = [];
 
@@ -51,7 +54,8 @@ final class BalanceChanges
         $final[$account]['balances'][] = $value['balance'];
       }
     }
-    $this->result = \array_values($final);
+    
+    $this->result = $final;
   }
 
   /**
@@ -168,10 +172,14 @@ final class BalanceChanges
   }
 
   /**
-   * @return array [ [ 'account' => string, 'balances' => [ ['currency', 'issuer', 'value' ], ... ] ], ... ]
+   * @param bool $withKeys If true it will return account as Key in array, false (default) will return un-keyed array.
+   * @return array [ ?'rAccount1' => [ 'account' => string, 'balances' => [ ['currency', 'issuer', 'value' ], ... ] ], ... ]
    */
-  public function result(): array
+  public function result(bool $withKeys = false): array
   {
-    return $this->result;
+    if($withKeys)
+      return $this->result;
+    
+    return \array_values($this->result);
   }
 }
