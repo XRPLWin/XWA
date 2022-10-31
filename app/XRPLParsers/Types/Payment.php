@@ -57,7 +57,7 @@ final class Payment extends XRPLParserBase
     $isPartialPayment = xrpl_has_flag($this->tx->Flags, 131072);
     
     //https://github.com/ripple/rippled-historical-database/blob/d20ab42fc983cd394bc0dcca27a6ae3bdedaa891/lib/hbase/hbase-thrift/data.js
-    napravi ovu logiku u posebnoj funkciji:
+    //napravi ovu logiku u posebnoj funkciji:
     if($this->data['In'] !== null) { //in or out
       if(is_object($this->tx->Amount)) { //it is payment specific currency (token)
         $this->data['RequestedAmount'] = $this->tx->Amount->value;    //(string) base-10 representation of double number

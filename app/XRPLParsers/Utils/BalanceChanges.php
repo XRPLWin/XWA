@@ -35,7 +35,7 @@ final class BalanceChanges
         $trustlineQuantity = $this->getTrustlineQuantity($node);
         if($trustlineQuantity !== null) {
           $quantities[$trustlineQuantity[0]['account']][] = $trustlineQuantity[0];
-          $quantities[$trustlineQuantity[1]['account']][] = $trustlineQuantity[1];
+          $quantities[$trustlineQuantity[1]['account']][] = $trustlineQuantity[1]; //flipped
         }
       }
     }

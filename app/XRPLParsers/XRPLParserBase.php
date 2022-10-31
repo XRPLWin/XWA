@@ -13,6 +13,12 @@ abstract class XRPLParserBase implements XRPLParserInterface
   protected readonly \stdClass $meta;
   protected array $data = [];
   protected readonly string $reference_address;
+  /**
+   * If false this tx will not store to db for reference_address perspective.
+   * Example: token exchange trough issuer, issuer will not have this record in db, 
+   * since its balance did not change. +party1 -party2 => issuer is unchanged.
+   */
+  protected bool $is_relevant_for_reference_address = true;
   protected array $activations = [
     'reference_activated_by' => null,
     'reference_activated' => null,
@@ -53,6 +59,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
      * @createsKey bool|null In
      * @createsKey int Fee (optional)
      * Fills $this->transaction_type_class
+     * Modifies $this->is_relevant_for_reference_address
      */
     $this->parseType();
 
@@ -85,12 +92,21 @@ abstract class XRPLParserBase implements XRPLParserInterface
     # in that case this can be overriden via parseType() via balance changes state.
     //$this->data['In'] = $this->reference_address != $this->tx->Account;
 
-    $this->data['In'] = null; //niether, reference account is only participant
+    $this->data['In'] = null; //niether, reference account is participant only
 
     if( $this->tx->Destination == $this->reference_address)
       $this->data['In'] = true;
     elseif( $this->tx->Account == $this->reference_address )
       $this->data['In'] = false;
+
+    dd($this->data['AccountBalanceChanges'],$this);
+
+    if($this->data['In'] === null) {
+      //check if something changes to reference account
+      foreach($this->data['AccountBalanceChanges'] as $v) {
+       // if($v['issuer'])
+      }
+    }
 
     # Fee (int)
     # Fees are only recorded if referenced account sent this transaction

@@ -63,3 +63,12 @@ https://xrpscan.com/account/rGnYFRoNMdBLRVBr7kCt13U6aKWwePR7UT
 # Ledger parsers
 https://github.com/ripple/rippled-historical-database/tree/master/lib/ledgerParser
 
+# Ripplings offers furfilled
+https://xrpscan.com/account/rrpNnNLKrartuEqfJGpqyDwPj1AFPg9vn1
+
+- rippling different sender reciever
+using paths trough: rrpNnNLKrartuEqfJGpqyDwPj1AFPg9vn1, rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B
+https://xrpscan.com/tx/8073358737415A3639FC10E9F0752027202F1667FEB7C0D2082560EFA60F58D7 
+
+https://xrpintel.com/
+https://data.ripple.com/
