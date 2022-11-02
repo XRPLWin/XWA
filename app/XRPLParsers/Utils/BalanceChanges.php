@@ -11,14 +11,17 @@ use Brick\Math\BigDecimal;
 final class BalanceChanges
 {
   private readonly \stdClass $meta;
+  private readonly \stdClass $tx;
   private array $result = [];
 
   /**
    * @param \stdClass $metadata - Transaction metadata
+   * @param \stdClass $tx - Transaction
    */
-  public function __construct(\stdClass $metadata)
+  public function __construct(\stdClass $metadata, \stdClass $tx)
   {
     $this->meta = $metadata;
+    $this->tx = $tx;
 
     # Parse start
     $normalized = $this->normalizeNodes();
@@ -39,7 +42,6 @@ final class BalanceChanges
         }
       }
     }
-
     # Reorganize quantities array
     $final = [];
     foreach($quantities as $account => $values) {
@@ -59,6 +61,80 @@ final class BalanceChanges
   }
 
   /**
+   * @see https://github.com/ripple/rippled-historical-database/blob/1ada26fa83ebc5a224e01ff49ccb95c5ac453827/lib/ledgerParser/balanceChanges.js#L23
+   */
+  private function computeBalanceChangeType(array $computedData): ?string
+  {
+    $tx = $this->tx;
+
+    // exchange issuer/intermediary
+    if($tx->TransactionType == 'OfferCreate' && BigDecimal::of($computedData['balance']['value'])->isLessThan(0))
+      return 'intermediary';
+
+    // offer creates are all exchanges
+    if($tx->TransactionType == 'OfferCreate')
+      return 'exchange';
+
+    if($tx->TransactionType == 'Payment') {
+
+      // not a real payment issuer on exchange
+      if($tx->Account === $tx->Destination && BigDecimal::of($computedData['balance']['value'])->isLessThan(0)) {
+        return 'intermediary';
+      }
+
+      // not a real payment just an exchange
+      if($tx->Account === $tx->Destination)
+        return 'exchange';
+  
+      // payment currency and destination account
+      if($computedData['account'] === $tx->Destination && isset($tx->Amount->currency) && $tx->Amount->currency === $computedData['balance']['currency'])
+        return 'payment_destination';
+
+      // payment currency = XRP and destination account
+      if($computedData['account'] === $tx->Destination && !isset($tx->Amount->currency) && $computedData['balance']['currency'] === 'XRP')
+        return 'payment_destination';
+
+      // source currency and source account
+      if($computedData['account'] === $tx->Account && 
+        isset($tx->SendMax->currency) && 
+        $tx->SendMax->currency === $computedData['balance']['currency']
+      )
+        return 'payment_source';
+
+      // source currency = XRP and source account
+      if($computedData['account'] === $tx->Account && 
+        isset($tx->SendMax) &&  //TODO check this!
+        $computedData['balance']['currency'] === 'XRP'
+      )
+        return 'payment_source';
+
+      // source account and destination currency
+      if($computedData['account'] === $tx->Account && 
+        isset($tx->Amount->currency) &&
+        $tx->Amount->currency === $computedData['balance']['currency']
+      )
+        return 'payment_source';
+      
+      // source account and destination currency
+      if($computedData['account'] === $tx->Account && 
+        !isset($tx->Amount->currency) &&
+        $computedData['balance']['currency'] === 'XRP'
+      )
+        return 'payment_source';
+
+      // issuer
+      if(BigDecimal::of($computedData['balance']['value'])->isLessThan(0))
+        return 'intermediary';
+
+      // not sender, receiver, or different currency
+      return 'exchange';
+
+    }
+    
+    return null;
+  }
+
+  /**
    * @return ?array [ 'account', 'balance' ]
    */
   private function getXRPQuantity(\stdClass $node): ?array
@@ -73,13 +149,17 @@ final class BalanceChanges
     elseif($node->NewFields && $node->NewFields->Account)
       $account = $node->NewFields->Account;
 
-    return [
+    $result =  [
       'account' => (string)$account,
       'balance' => [
         'currency' => 'XRP',
-        'value' => (string)BigDecimal::of(drops_to_xrp($value->toInt()))->stripTrailingZeros()
+        'value' => (string)BigDecimal::of(drops_to_xrp($value->toInt()))->stripTrailingZeros(),
+        'type' => null,
       ]
     ];
+    //dump($value->toInt());
+    $result['balance']['type'] = $this->computeBalanceChangeType($result);
+    return $result;
   }
 
   private function getTrustlineQuantity(\stdClass $node): ?array
@@ -102,9 +182,13 @@ final class BalanceChanges
       'balance' => [
         'issuer' => (isset($fields->HighLimit->issuer)) ? $fields->HighLimit->issuer : '',
         'currency' => (isset($fields->Balance)) ? $fields->Balance->currency : '',
-        'value' => (string)$value->stripTrailingZeros()
+        'value' => (string)$value->stripTrailingZeros(),
+        'type' => null,
       ]
     ];
+
+    $result['balance']['type'] = $this->computeBalanceChangeType($result);
+
     return [$result,  $this->flipTrustlinePerspective($result)];
   }
 
@@ -123,7 +207,11 @@ final class BalanceChanges
 
     if($value->isEqualTo(0))
       return null;
-    
+
+      /*if((string)$value == 184) {
+        dd($node);
+      }*/
+
     return $value;
   }
 
@@ -137,14 +225,19 @@ final class BalanceChanges
   private function flipTrustlinePerspective(array $balanceChange): array
   {
     $negatedBalance = BigDecimal::of($balanceChange['balance']['value'])->negated();
-    return [
+    $result = [
       'account' => $balanceChange['balance']['issuer'],
       'balance' => [
         'issuer' => $balanceChange['account'],
         'currency' => $balanceChange['balance']['currency'],
-        'value' => (string)$negatedBalance->stripTrailingZeros()
+        'value' => (string)$negatedBalance->stripTrailingZeros(),
+        'type' => null,
       ]
     ];
+    
+    $result['balance']['type'] = $this->computeBalanceChangeType($result);
+
+    return $result;
   }
 
   /**

@@ -13,6 +13,35 @@ class MainController extends Controller
     public function test()
     {
 
+      
+      $client = app(\XRPLWin\XRPL\Client::class);
+
+
+      $account_tx = $client->api('account_tx')
+        ->params([
+          'account' => 'rEsCYHcMpr5M4Knd9iPWF8oUaHkMEZ1r3a',
+          'ledger_index' => 'current',
+          'ledger_index_min' => 41275088, //Ledger index this account is scanned to.
+          'ledger_index_max' => 41275088,
+          'binary' => false,
+          'forward' => true,
+          'limit' => 20, //400
+        ]);
+      $account_tx->send();
+      $txs = $account_tx->finalResult();
+      
+      foreach($txs as $transaction) {
+        //dd($txs);
+          if($transaction->tx->TransactionType == 'Payment') {
+              $parser = \App\XRPLParsers\Parser::get($transaction->tx, $transaction->meta, 'rEsCYHcMpr5M4Knd9iPWF8oUaHkMEZ1r3a');
+              $parsedData = $parser->toDArray();
+              dd($parsedData);
+          }
+          
+      }
+
+      exit;
+
       $client = app(\XRPLWin\XRPL\Client::class);
 
 

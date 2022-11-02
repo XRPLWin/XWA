@@ -99,7 +99,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
     elseif( $this->tx->Account == $this->reference_address )
       $this->data['In'] = false;
 
-    dd($this->data['AccountBalanceChanges'],$this);
+    dd($this->data['AccountBalanceChanges'],$this,123);
 
     if($this->data['In'] === null) {
       //check if something changes to reference account
@@ -160,8 +160,16 @@ abstract class XRPLParserBase implements XRPLParserInterface
    */
   protected function parseBalanceChanges(): void
   {
-    $bc = new BalanceChanges($this->meta);
+    $bc = new BalanceChanges($this->meta, $this->tx);
     $balanceChanges = $bc->result(true);
+
+    //Find type of balance change if possible and append 'bc_type' (balance change type)
+
+    //foreach($balanceChanges as $address => $data) {
+      //dd($data);
+    //}
+    dd($this,$balanceChanges);
+
     $this->data['AllBalanceChanges'] = $balanceChanges;
     $this->data['AccountBalanceChanges'] = isset($balanceChanges[$this->reference_address]['balances']) ? $balanceChanges[$this->reference_address]['balances'] : [];
   }
