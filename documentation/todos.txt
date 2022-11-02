@@ -54,6 +54,8 @@ https://xrpscan.com/tx/F24027A8B4EF3BE5C68F83042BAC52DFC06A25A6CCB4D2D73EE8852B6
 http://xlanalyzer-ui.test/account/rhXrLZcXDF1WcULu7xSottKinbDvYG4cFQ/search
 https://bithomp.com/explorer/E0382D408F1BD7835E86336B43EBD43C7543779BDECD406B0BC00BA7CB86CE13  -flag descriptions and related offer furfilled
 
+
+
 # has ticket transaction type
 raXEyUbatmefE6uccyFcpyVkaRYuC1LaGq
 
@@ -63,7 +65,7 @@ https://xrpscan.com/account/rGnYFRoNMdBLRVBr7kCt13U6aKWwePR7UT
 # Ledger parsers
 https://github.com/ripple/rippled-historical-database/tree/master/lib/ledgerParser
 
-# Ripplings offers furfilled
+# Ripplings offers fulfilled
 https://xrpscan.com/account/rrpNnNLKrartuEqfJGpqyDwPj1AFPg9vn1
 
 - rippling different sender reciever
@@ -72,3 +74,8 @@ https://xrpscan.com/tx/8073358737415A3639FC10E9F0752027202F1667FEB7C0D2082560EFA
 
 https://xrpintel.com/
 https://data.ripple.com/
+
+#already parsed
+https://hash.xrp.fans/4773A9C49E3056646AA326F144977C7D6147A250ECAAF4535705B7A3C1D42EF5/json
+
+xls-14d value to nft and reverse here: https://github.com/XRPL-Labs/TxMutationParser/blob/main/src/ext-dependencies/utils.ts#L77

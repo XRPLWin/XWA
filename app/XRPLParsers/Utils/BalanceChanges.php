@@ -7,6 +7,7 @@ use Brick\Math\BigDecimal;
 /**
  * Retrieves list of balance changes for all involving accounts in provided XRPL transaction metadata.
  * @see https://github.com/XRPLF/xrpl.js/blob/main/packages/xrpl/src/utils/getBalanceChanges.ts
+ * @see https://www.npmjs.com/package/tx-mutation-parser
  */
 final class BalanceChanges
 {
@@ -143,11 +144,14 @@ final class BalanceChanges
     if($value === null)
       return null;
 
-    $account = '';
+    $account = null;
     if($node->FinalFields && $node->FinalFields->Account)
       $account = $node->FinalFields->Account;
     elseif($node->NewFields && $node->NewFields->Account)
       $account = $node->NewFields->Account;
+
+    if($account === null)
+      return null;
 
     $result =  [
       'account' => (string)$account,
@@ -157,7 +161,7 @@ final class BalanceChanges
         'type' => null,
       ]
     ];
-    //dump($value->toInt());
+
     $result['balance']['type'] = $this->computeBalanceChangeType($result);
     return $result;
   }
@@ -176,12 +180,11 @@ final class BalanceChanges
     $fields = ($node->NewFields === null) ? $node->FinalFields : $node->NewFields;
 
     //the balance is always from low node's perspective
-
     $result = [
       'account' => (isset($fields->LowLimit->issuer)) ? $fields->LowLimit->issuer : '',
       'balance' => [
         'issuer' => (isset($fields->HighLimit->issuer)) ? $fields->HighLimit->issuer : '',
-        'currency' => (isset($fields->Balance)) ? $fields->Balance->currency : '',
+        'currency' => (isset($fields->Balance->currency)) ? $fields->Balance->currency : '',
         'value' => (string)$value->stripTrailingZeros(),
         'type' => null,
       ]
