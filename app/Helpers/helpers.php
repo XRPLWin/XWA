@@ -65,6 +65,7 @@ if (!function_exists('drops_to_xrp')) {
   }
 }
 
+//TODO: https://github.com/XRPLF/xrpl-dev-portal/blob/master/content/_code-samples/normalize-currency-codes/js/normalize-currency-code.js
 if (!function_exists('xrp_currency_to_symbol')) {
   /**
   * Decode HEX XRPL currency to symbol.
