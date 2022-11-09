@@ -2,7 +2,7 @@
 
 namespace App\XRPLParsers;
 
-use App\XRPLParsers\Utils\BalanceChanges;
+use XRPLWin\XRPLTxMutatationParser\TxMutationParser;
 
 /**
  * This class takes full Transaction object returned from XRPL and parses it.
@@ -42,10 +42,10 @@ abstract class XRPLParserBase implements XRPLParserInterface
 
     /**
      * Modifies $this->data
-     * @createsKey array AllBalanceChanges
-     * @createsKey array AccountBalanceChanges
+     * @createsKey array eventList [primary, ?secondary]
+     * @createsKey string txcontext
      */
-    $this->parseBalanceChanges();
+    $this->parseMutations();
 
     /**
      * Modifies $this->data
@@ -99,13 +99,11 @@ abstract class XRPLParserBase implements XRPLParserInterface
     elseif( $this->tx->Account == $this->reference_address )
       $this->data['In'] = false;
 
-    dd($this->data['AccountBalanceChanges'],$this,123);
+    dd($this->tx->hash,$this->data);
 
     if($this->data['In'] === null) {
-      //check if something changes to reference account
-      foreach($this->data['AccountBalanceChanges'] as $v) {
-       // if($v['issuer'])
-      }
+      //check eventList.primary.value, if is negative it is out, if is positive it is in
+      dd('TODO 1231234');
     }
 
     # Fee (int)
@@ -158,9 +156,20 @@ abstract class XRPLParserBase implements XRPLParserInterface
    * @modifies $this->data
    * @return void
    */
-  protected function parseBalanceChanges(): void
+  protected function parseMutations(): void
   {
-    $bc = new BalanceChanges($this->meta, $this->tx);
+    $tx = $this->tx;
+    $tx->meta = $this->meta;
+    $mp = new TxMutationParser($this->reference_address, $tx);
+    $parsed = $mp->result();
+
+    $this->data['eventList'] = $parsed['eventList'];
+    $this->data['txcontext'] = $parsed['type'];
+    
+    //dd($parsed);
+
+
+    /*
     $balanceChanges = $bc->result(true);
 
     //Find type of balance change if possible and append 'bc_type' (balance change type)
@@ -171,7 +180,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
     dd($this,$balanceChanges);
 
     $this->data['AllBalanceChanges'] = $balanceChanges;
-    $this->data['AccountBalanceChanges'] = isset($balanceChanges[$this->reference_address]['balances']) ? $balanceChanges[$this->reference_address]['balances'] : [];
+    $this->data['AccountBalanceChanges'] = isset($balanceChanges[$this->reference_address]['balances']) ? $balanceChanges[$this->reference_address]['balances'] : [];*/
   }
 
   /**

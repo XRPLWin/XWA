@@ -79,3 +79,7 @@ https://data.ripple.com/
 https://hash.xrp.fans/4773A9C49E3056646AA326F144977C7D6147A250ECAAF4535705B7A3C1D42EF5/json
 
 xls-14d value to nft and reverse here: https://github.com/XRPL-Labs/TxMutationParser/blob/main/src/ext-dependencies/utils.ts#L77
+
+
+### NFTokenAcceptOffer mutation parser UNKNOWN
+http://playground.test/play/xrpl-transaction-mutation-parser?hash=1C480B388ECADC1AED30161F9F50B72B5A5A86894480B3B2B2AFCD056EBF097F&ref1=rBLadExFZKY7AqpTDxqSoWJgmgVZyA6wcX
