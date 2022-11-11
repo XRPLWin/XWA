@@ -19,7 +19,7 @@
         "league/flysystem-aws-s3-v3": "^3.0",
         "xrplwin/xrpl": ">=0.0.10",
         "xrplwin/xrpl-orderbook-reader": "^1.0.4",
-        "xrplwin/xrpl-txmutationparser": "^0.0.4"
+        "xrplwin/xrpl-txmutationparser": "^0.0.5"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
