@@ -83,3 +83,6 @@ xls-14d value to nft and reverse here: https://github.com/XRPL-Labs/TxMutationPa
 
 ### NFTokenAcceptOffer mutation parser UNKNOWN
 http://playground.test/play/xrpl-transaction-mutation-parser?hash=1C480B388ECADC1AED30161F9F50B72B5A5A86894480B3B2B2AFCD056EBF097F&ref1=rBLadExFZKY7AqpTDxqSoWJgmgVZyA6wcX
+
+
+## create opanapi definition "3.0.0" like this https://demo.webpower.eu/admin/api/swagger.php

@@ -46,7 +46,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
      * @createsKey string txcontext
      */
     $this->parseMutations();
-
+    
     /**
      * Modifies $this->data
      * @createsKey int TransactionIndex
@@ -92,19 +92,26 @@ abstract class XRPLParserBase implements XRPLParserInterface
     # in that case this can be overriden via parseType() via balance changes state.
     //$this->data['In'] = $this->reference_address != $this->tx->Account;
 
-    $this->data['In'] = null; //niether, reference account is participant only
+    $this->data['In'] = null;
 
-    if( $this->tx->Destination == $this->reference_address)
+    if(isset($this->tx->Destination) && $this->tx->Destination == $this->reference_address) //todo makni provjeru destination jer nekad destination ne postoji, koristi txcontext umjesto toga za calc in/out
       $this->data['In'] = true;
     elseif( $this->tx->Account == $this->reference_address )
       $this->data['In'] = false;
 
-    dd($this->tx->hash,$this->data);
+    if($this->data['In'] === null) { //unable determine direction via Account or Destination fields
+      $this->data['In'] = false;
 
-    if($this->data['In'] === null) {
-      //check eventList.primary.value, if is negative it is out, if is positive it is in
-      dd('TODO 1231234');
+      if($this->data['txcontext'] === 'RECEIVED' || $this->data['txcontext'] == 'ACCEPT') {
+        //If context is RECEIVED or ACCEPT then this is incomming transaction for reference account
+        $this->data['In'] = true;
+      }
     }
+
+    // Did reference account pay for fee? If yes then include Fee
+
+
+    dd($this->tx->hash,$this->data,$this->reference_address);
 
     # Fee (int)
     # Fees are only recorded if referenced account sent this transaction
@@ -164,6 +171,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
     $parsed = $mp->result();
 
     $this->data['eventList'] = $parsed['eventList'];
+    $this->data['balanceChanges'] = $parsed['self']['balanceChanges'];
     $this->data['txcontext'] = $parsed['type'];
     
     //dd($parsed);
