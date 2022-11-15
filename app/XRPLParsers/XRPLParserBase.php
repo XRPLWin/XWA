@@ -12,6 +12,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
   protected readonly \stdClass $tx;
   protected readonly \stdClass $meta;
   protected array $data = [];
+  protected array $parsedData = [];
   protected readonly string $reference_address;
   /**
    * If false this tx will not store to db for reference_address perspective.
@@ -51,20 +52,21 @@ abstract class XRPLParserBase implements XRPLParserInterface
      * Modifies $this->data
      * @createsKey int TransactionIndex
      * @createsKey int Date - XRPL Epoch time
+     * @fills $this->transaction_type_class
      */
     $this->parseCommonFields();
 
     /**
      * Modifies $this->data
-     * @createsKey bool|null In
+     * @createsKey bool In
      * @createsKey int Fee (optional)
-     * Fills $this->transaction_type_class
      * Modifies $this->is_relevant_for_reference_address
      */
     $this->parseType();
 
     /**
      * Modifies $this->data
+     * @fills (maybe) $this->transaction_type_class
      * @see underlying classes
      */
     $this->parseTypeFields();
@@ -86,7 +88,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
    */
   protected function parseType()
   {
-    # In (?bool)
+    # In (bool)
     # Compare reference address to check if this is incoming or outgoing transaction
     # Note: when reference_address is only participant of this tx then In will be false, 
     # in that case this can be overriden via parseType() via balance changes state.
@@ -108,21 +110,13 @@ abstract class XRPLParserBase implements XRPLParserInterface
       }
     }
 
-    // Did reference account pay for fee? If yes then include Fee
-
-
-    dd($this->tx->hash,$this->data,$this->reference_address);
-
-    # Fee (int)
-    # Fees are only recorded if referenced account sent this transaction
-    if($this->data['In'] === false) {
-      if(!\is_numeric($this->tx->Fee))
-        throw new \Exception('Fee not a number for transaction hash: '.$this->tx->hash);
-
+    # Fee (int) (optional)
+    # Did reference account pay for fee? If yes then include Fee
+    if(isset($this->parsedData['PaysFee']) && $this->parsedData['PaysFee'] === true)
       $this->data['Fee'] = (int)$this->tx->Fee;
-    }
 
-    $this->transaction_type_class = $this->tx->TransactionType;
+    
+    
   }
 
   /**
@@ -152,14 +146,13 @@ abstract class XRPLParserBase implements XRPLParserInterface
     $this->data['Date'] = $this->tx->date;
     if(!isset($this->tx->date))
       throw new \Exception('date not found for transaction hash: '.$this->tx->hash);
-
+    
+    # this value can be overriden in ->parseTypeFields()
+    $this->transaction_type_class = $this->tx->TransactionType;
   }
 
   /**
-   * Get balance changes. This is used to build aggregated value over time.
-   * This function fills array of balance changes to $this->data['AllBalanceChanges'] and 
-   * $this->data['AccountBalanceChanges'] for referenced account.
-   * XRP +-Value, also returns token currency +-Value
+   * @fills $this->parserData
    * @modifies $this->data
    * @return void
    */
@@ -168,27 +161,11 @@ abstract class XRPLParserBase implements XRPLParserInterface
     $tx = $this->tx;
     $tx->meta = $this->meta;
     $mp = new TxMutationParser($this->reference_address, $tx);
-    $parsed = $mp->result();
+    $this->parsedData = $mp->result();
 
-    $this->data['eventList'] = $parsed['eventList'];
-    $this->data['balanceChanges'] = $parsed['self']['balanceChanges'];
-    $this->data['txcontext'] = $parsed['type'];
-    
-    //dd($parsed);
-
-
-    /*
-    $balanceChanges = $bc->result(true);
-
-    //Find type of balance change if possible and append 'bc_type' (balance change type)
-
-    //foreach($balanceChanges as $address => $data) {
-      //dd($data);
-    //}
-    dd($this,$balanceChanges);
-
-    $this->data['AllBalanceChanges'] = $balanceChanges;
-    $this->data['AccountBalanceChanges'] = isset($balanceChanges[$this->reference_address]['balances']) ? $balanceChanges[$this->reference_address]['balances'] : [];*/
+    $this->data['eventList'] = $this->parsedData['eventList'];
+    $this->data['balanceChanges'] = $this->parsedData['self']['balanceChanges'];
+    $this->data['txcontext'] = $this->parsedData['type'];
   }
 
   /**

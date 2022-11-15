@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6f04ea44b22db3d132a08f647db4c661",
+    "content-hash": "04848250cc92debeede76bf97cc6de16",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -58,16 +58,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.242.0",
+            "version": "3.242.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "cab6d4f830ce275a1742a3e35e2625917b006dd2"
+                "reference": "9bfd85f696fff6a9b7810f1361751ad33a9b23d1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/cab6d4f830ce275a1742a3e35e2625917b006dd2",
-                "reference": "cab6d4f830ce275a1742a3e35e2625917b006dd2",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/9bfd85f696fff6a9b7810f1361751ad33a9b23d1",
+                "reference": "9bfd85f696fff6a9b7810f1361751ad33a9b23d1",
                 "shasum": ""
             },
             "require": {
@@ -146,9 +146,9 @@
             "support": {
                 "forum": "https://forums.aws.amazon.com/forum.jspa?forumID=80",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.242.0"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.242.1"
             },
-            "time": "2022-11-10T19:15:37+00:00"
+            "time": "2022-11-11T19:59:24+00:00"
         },
         {
             "name": "baopham/dynamodb",
@@ -1216,16 +1216,16 @@
         },
         {
             "name": "laminas/laminas-diactoros",
-            "version": "2.20.0",
+            "version": "2.21.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laminas/laminas-diactoros.git",
-                "reference": "10696c809866bebd9d71dca14de6c0d6c1cac2f8"
+                "reference": "e5b6419fea007b8b4a71034edc8ec96c88d4c57d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laminas/laminas-diactoros/zipball/10696c809866bebd9d71dca14de6c0d6c1cac2f8",
-                "reference": "10696c809866bebd9d71dca14de6c0d6c1cac2f8",
+                "url": "https://api.github.com/repos/laminas/laminas-diactoros/zipball/e5b6419fea007b8b4a71034edc8ec96c88d4c57d",
+                "reference": "e5b6419fea007b8b4a71034edc8ec96c88d4c57d",
                 "shasum": ""
             },
             "require": {
@@ -1248,9 +1248,9 @@
                 "http-interop/http-factory-tests": "^0.9.0",
                 "laminas/laminas-coding-standard": "^2.4.0",
                 "php-http/psr7-integration-tests": "^1.1.1",
-                "phpunit/phpunit": "^9.5.25",
-                "psalm/plugin-phpunit": "^0.17.0",
-                "vimeo/psalm": "^4.28"
+                "phpunit/phpunit": "^9.5.26",
+                "psalm/plugin-phpunit": "^0.18.0",
+                "vimeo/psalm": "^4.29.0"
             },
             "type": "library",
             "extra": {
@@ -1309,7 +1309,7 @@
                     "type": "community_bridge"
                 }
             ],
-            "time": "2022-10-25T13:35:54+00:00"
+            "time": "2022-11-11T09:01:24+00:00"
         },
         {
             "name": "laravel/framework",
@@ -6125,16 +6125,16 @@
         },
         {
             "name": "xrplwin/xrpl-txmutationparser",
-            "version": "v0.0.4",
+            "version": "v0.0.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/XRPLWin/XRPL-TxMutationParser.git",
-                "reference": "4a8b95bd8801f1b0683f1df62feb725c3517208f"
+                "reference": "0de3b7126ac1965ca7255745b0183af41e4bf8bc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/XRPLWin/XRPL-TxMutationParser/zipball/4a8b95bd8801f1b0683f1df62feb725c3517208f",
-                "reference": "4a8b95bd8801f1b0683f1df62feb725c3517208f",
+                "url": "https://api.github.com/repos/XRPLWin/XRPL-TxMutationParser/zipball/0de3b7126ac1965ca7255745b0183af41e4bf8bc",
+                "reference": "0de3b7126ac1965ca7255745b0183af41e4bf8bc",
                 "shasum": ""
             },
             "require": {
@@ -6179,9 +6179,9 @@
             ],
             "support": {
                 "issues": "https://github.com/XRPLWin/XRPL-TxMutationParser/issues",
-                "source": "https://github.com/XRPLWin/XRPL-TxMutationParser/tree/v0.0.4"
+                "source": "https://github.com/XRPLWin/XRPL-TxMutationParser/tree/v0.0.8"
             },
-            "time": "2022-11-10T15:21:14+00:00"
+            "time": "2022-11-11T18:07:41+00:00"
         }
     ],
     "packages-dev": [

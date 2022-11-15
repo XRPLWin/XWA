@@ -13,6 +13,12 @@ final class Payment extends XRPLParserBase
    */
   protected function parseTypeFields(): void
   {
+
+    # $this->data['In'] is bool
+    dd($this);
+
+    $parsedType = $this->parsedData['type'];
+    if($parsedType == )
     
     //Special transaction_type_class handling:
     if($this->data['In'] === null) {
