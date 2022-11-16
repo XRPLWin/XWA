@@ -15,31 +15,34 @@ final class Payment extends XRPLParserBase
   {
 
     # $this->data['In'] is bool
-    dd($this);
+    //dd($this);
 
     $parsedType = $this->parsedData['type'];
-    if($parsedType == )
     
-    //Special transaction_type_class handling:
-    if($this->data['In'] === null) {
-      //referenced address only participates in this transaction
+    if($parsedType == 'SET') { //own balance change is fee only
+      throw new \Exception('Unhandled SET parsed type on Payment');
+    }
+
+    if($parsedType == 'TRADE') {
+
+      //Eg. Trade based on offer, or self to self, trustline shift, ...
+
       $this->transaction_type_class = 'Payment_BalanceChange';
-    } else {
-      //destination or source address is equal to reference address
+
       if($this->tx->Account == $this->tx->Destination) {
         /**
-         * Source and destination are the same, this is exchange
+         * Source and destination are the same, this is exchange within TRADE context.
          * A payment can have the same account as both the source and destination, 
          * which allows account's to utilize pathfinding to convert from one currency to another.
          */
         $this->transaction_type_class = 'Payment_Exchange';
       }
-    }
-    
+
+    } 
 
     $this->data['hash'] = $this->tx->hash;
 
-    //OK
+    # OLD BELOW ##########################################
 
     //get counterparty
     $this->data['CounterpartyDestination'] = null;

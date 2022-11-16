@@ -114,9 +114,6 @@ abstract class XRPLParserBase implements XRPLParserInterface
     # Did reference account pay for fee? If yes then include Fee
     if(isset($this->parsedData['PaysFee']) && $this->parsedData['PaysFee'] === true)
       $this->data['Fee'] = (int)$this->tx->Fee;
-
-    
-    
   }
 
   /**
