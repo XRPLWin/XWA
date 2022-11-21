@@ -324,10 +324,11 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       $parsedData = $parser->toDArray();
 
-      
-
-      $model = new DTransactionPayment();
-      $model->PK = $account->address.'-'.DTransactionPayment::TYPE;
+      $DTransactionClassName = '\\App\\Models\\DTransaction'.$parser->getTransactionTypeClass();
+      $model = new $DTransactionClassName();
+ 
+      $model->PK = $account->address.'-'.$DTransactionClassName::TYPE;
+      $this->info($DTransactionClassName.':'.$model->PK);
       $model->SK = $parser->SK();
       foreach($parsedData as $key => $value) {
         $model->{$key} = $value;
@@ -380,8 +381,9 @@ class XwaAccountSync extends Command
 
       $parsedData = $parser->toDArray();
 
-      $model = new DTransactionTrustset();
-      $model->PK = $account->address.'-'.DTransactionTrustset::TYPE;
+      $DTransactionClassName = '\\App\\Models\\DTransaction'.$parser->getTransactionTypeClass();
+      $model = new $DTransactionClassName();
+      $model->PK = $account->address.'-'.$DTransactionClassName::TYPE;
       $model->SK = $parser->SK();
       foreach($parsedData as $key => $value) {
         $model->{$key} = $value;
@@ -427,8 +429,9 @@ class XwaAccountSync extends Command
 
       $parsedData = $parser->toDArray();
 
-      $model = new DTransactionAccountDelete();
-      $model->PK = $account->address.'-'.DTransactionAccountDelete::TYPE;
+      $DTransactionClassName = '\\App\\Models\\DTransaction'.$parser->getTransactionTypeClass();
+      $model = new $DTransactionClassName();
+      $model->PK = $account->address.'-'.$DTransactionClassName::TYPE;
       $model->SK = $parser->SK();
       foreach($parsedData as $key => $value) {
         $model->{$key} = $value;

@@ -112,7 +112,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
 
     # Fee (int) (optional)
     # Did reference account pay for fee? If yes then include Fee
-    if(isset($this->parsedData['PaysFee']) && $this->parsedData['PaysFee'] === true)
+    if(isset($this->parsedData['feePayer']) && $this->parsedData['feePayer'] === true)
       $this->data['Fee'] = (int)$this->tx->Fee;
   }
 
@@ -143,6 +143,9 @@ abstract class XRPLParserBase implements XRPLParserInterface
     $this->data['Date'] = $this->tx->date;
     if(!isset($this->tx->date))
       throw new \Exception('date not found for transaction hash: '.$this->tx->hash);
+
+    # Hash
+    $this->data['hash'] = $this->tx->hash;
     
     # this value can be overriden in ->parseTypeFields()
     $this->transaction_type_class = $this->tx->TransactionType;
@@ -260,5 +263,10 @@ abstract class XRPLParserBase implements XRPLParserInterface
   public function getDataField($key)
   {
     return $this->data[$key];
+  }
+
+  public function getTransactionTypeClass()
+  {
+    return $this->transaction_type_class;
   }
 }

@@ -35,6 +35,8 @@ class Search
     2 => 'Activation',
     3 => 'Trustset',
     4 => 'AccountDelete',
+    5 => 'Payment_BalanceChange',
+    6 => 'Payment_Exchange'
     // ...todo
   ];
 

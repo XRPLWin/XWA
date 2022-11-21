@@ -13,7 +13,6 @@ final class AccountDelete extends XRPLParserBase
    */
   protected function parseTypeFields(): void
   {
-    $this->data['hash'] = $this->tx->hash;
     
     //dd($this->tx,$this->data);
 
@@ -32,14 +31,17 @@ final class AccountDelete extends XRPLParserBase
   {
     $r = [
       't' => $this->data['Date'],
-      'fe' => $this->data['Fee'],
+      //'fe' => $this->data['Fee'],
       //'in' => $this->data['In'],
       'r' => $this->data['Counterparty'],
       'h' => $this->data['hash'],
       'a' => $this->data['Amount'],
     ];
 
-    if($this->data['In']) //to save space we only store true value
+    if(\array_key_exists('Fee', $this->data))
+      $r['fe'] = $this->data['Fee'];
+
+    if($this->data['In'] === true) //to save space we only store true value
       $r['in'] = true;
 
     /**

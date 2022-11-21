@@ -6,8 +6,10 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class Payment extends XRPLParserBase
 {
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','SET','TRADE'];
   /**
    * Parses Payment type fields and maps them to $this->data
+   * Accepted parsedType: SENT|RECEIVED|TRADE
    * @see https://xrpl.org/transaction-types.html
    * @return void
    */
@@ -17,13 +19,12 @@ final class Payment extends XRPLParserBase
     # $this->data['In'] is bool
     //dd($this);
 
-    $parsedType = $this->parsedData['type'];
-    
-    if($parsedType == 'SET') { //own balance change is fee only
-      throw new \Exception('Unhandled SET parsed type on Payment');
-    }
+    $parsedType = $this->data['txcontext'];
+    if(!in_array($parsedType, $this->acceptedParsedTypes))
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].']');
 
-    if($parsedType == 'TRADE') {
+    # Sub-Type
+    if($parsedType === 'TRADE') {
 
       //Eg. Trade based on offer, or self to self, trustline shift, ...
 
@@ -37,94 +38,54 @@ final class Payment extends XRPLParserBase
          */
         $this->transaction_type_class = 'Payment_Exchange';
       }
-
-    } 
-
-    $this->data['hash'] = $this->tx->hash;
-
-    # OLD BELOW ##########################################
-
-    //get counterparty
-    $this->data['CounterpartyDestination'] = null;
-
-    if($this->data['In'] === true)
-      $this->data['Counterparty'] = $this->tx->Account;
-    elseif($this->data['In'] === false)
-      $this->data['Counterparty'] = $this->tx->Destination;
-    else {
-      $this->data['Counterparty'] = $this->tx->Account; // for participating in transactions counterparty is transaction initiator
-      $this->data['CounterpartyDestination'] = $this->tx->Destination;
     }
-      
 
-    // source and destination tags
+
+    # Counterparty
+    if($parsedType === 'SENT') {
+      // Counterparty is destination
+      $this->data['Counterparty'] = $this->tx->Destination;
+    } elseif( $parsedType === 'RECEIVED' ) {
+      //Counterparty is source
+      $this->data['Counterparty'] = $this->tx->Account;
+    } elseif( $parsedType === 'TRADE' ) {
+      $this->data['Counterparty'] = $this->tx->Account;
+    } else {
+      //todo get counterparty from $this->tx->Account if this is intermediate - check this
+      throw new \Exception('Unhandled Counterparty for parsedtype ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].']');
+    }
+
+
+    # Source and destination tags
     $this->data['DestinationTag'] = isset($this->tx->DestinationTag) ? $this->tx->DestinationTag:null;
     $this->data['SourceTag'] = isset($this->tx->SourceTag) ? $this->tx->SourceTag:null;
 
-    //TODO CHECK FLAGS FOR PARTIAL PAYMENT
     //@see https://xrpl.org/payment.html#payment-flags
-    $isPartialPayment = xrpl_has_flag($this->tx->Flags, 131072);
-    
-    //https://github.com/ripple/rippled-historical-database/blob/d20ab42fc983cd394bc0dcca27a6ae3bdedaa891/lib/hbase/hbase-thrift/data.js
-    //napravi ovu logiku u posebnoj funkciji:
-    if($this->data['In'] !== null) { //in or out
-      if(is_object($this->tx->Amount)) { //it is payment specific currency (token)
-        $this->data['RequestedAmount'] = $this->tx->Amount->value;    //(string) base-10 representation of double number
-        $this->data['Amount'] = isset($this->meta->delivered_amount->value) ? $this->meta->delivered_amount->value : $this->tx->Amount->value; //(string) base-10 representation of double number ("unavailable" possible for transactions before 2014-01-20 for partial payments)
-        $this->data['Issuer'] = $this->tx->Amount->issuer;
-        $this->data['Currency'] = $this->meta->delivered_amount->currency;
-      } else {
-        $this->data['RequestedAmount'] = drops_to_xrp((int)$this->tx->Amount); //test this
-        $this->data['Amount'] = drops_to_xrp((int)$this->meta->delivered_amount);
+    //$isPartialPayment = xrpl_has_flag($this->tx->Flags, 131072);
+
+    # Balance changes from eventList (primary/secondary, both, one, or none)
+    if(isset($this->data['eventList']['primary'])) {
+      $this->data['Amount'] = $this->data['eventList']['primary']['value'];
+      if($this->data['eventList']['primary']['currency'] !== 'XRP') {
+        $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
+        $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
       }
     }
-    ########## OLD
-
-    $this->data['Counterparty'] = ($this->data['In'] === true) ? $this->tx->Account:$this->tx->Destination;
-    $this->data['DestinationTag'] = isset($this->tx->DestinationTag) ? $this->tx->DestinationTag:null;
-    $this->data['SourceTag'] = isset($this->tx->SourceTag) ? $this->tx->SourceTag:null;
-
-    $this->data['Issuer'] = $this->data['Currency'] = null;
-
-    if(is_object($this->tx->Amount)) { //it is payment specific currency (token)
-      $this->data['RequestedAmount'] = $this->tx->Amount->value;    //(string) base-10 representation of double number
-      $this->data['Amount'] = $this->meta->delivered_amount->value; //(string) base-10 representation of double number ("unavailable" possible for transactions before 2014-01-20 for partial payments)
-      $this->data['Issuer'] = $this->tx->Amount->issuer;
-      $this->data['Currency'] = $this->meta->delivered_amount->currency;
-    } else {
-      $this->data['RequestedAmount'] = drops_to_xrp((int)$this->tx->Amount); //test this
-      $this->data['Amount'] = drops_to_xrp((int)$this->meta->delivered_amount);
+    if(isset($this->data['eventList']['secondary'])) {
+      $this->data['Amount2'] = $this->data['eventList']['secondary']['value'];
+      if($this->data['eventList']['secondary']['currency'] !== 'XRP') {
+        if(is_array($this->data['eventList']['secondary']['counterparty'])) {
+          //Secondary counterparty is rippled trough reference account
+          //Counterparty is list of counterparty participants, and value is SUM of balance changes
+          throw new \Exception('Unhandled Counterparty Array for parsedtype ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].'] for perspective ['.$this->reference_address.']');
+        } else {
+          $this->data['Issuer2'] = $this->data['eventList']['secondary']['counterparty'];
+          $this->data['Currency2'] = $this->data['eventList']['secondary']['currency'];
+        }
+        
+      }
     }
 
-    dd($this);
-
-
-
-    //TODO REMOVE BELOW (DEPRECATED):
-
-    $this->data['IsPartialPayment'] = false;
-    
-    
-    if(is_object($this->tx->Amount)) { //it is payment specific currency (token)
-      $this->data['RequestedAmount'] = $this->tx->Amount->value;    //(string) base-10 representation of double number
-      $this->data['Amount'] = $this->meta->delivered_amount->value; //(string) base-10 representation of double number ("unavailable" possible for transactions before 2014-01-20 for partial payments)
-      $this->data['Issuer'] = $this->tx->Amount->issuer;
-      $this->data['Currency'] = $this->meta->delivered_amount->currency;
-    } else {
-      $this->data['RequestedAmount'] = drops_to_xrp((int)$this->tx->Amount); //test this
-      $this->data['Amount'] = drops_to_xrp((int)$this->meta->delivered_amount);
-    }
-
-    # Check if this is partial payment
-    if($this->data['Amount'] !== $this->data['RequestedAmount']) {
-      $this->data['IsPartialPayment'] = true;
-    }
-    
-    /*if($this->data['hash'] != '9E7D83EF9968AE0493E8328F23F01DF87C1D1BA709A9AD2BC4479C1943C4CD57')
-    {
-      dd($this->data);
-    }*/
-      
   }
 
 
@@ -135,28 +96,41 @@ final class Payment extends XRPLParserBase
    */
   public function toDArray(): array
   {
+    //dd($this->data);
     $r = [
       't' => $this->data['Date'],
-      'fe' => $this->data['Fee'],
+      //'fe' => $this->data['Fee'], //now optional
       //'in' => $this->data['In'],
-      'r' => $this->data['Counterparty'],
-      'h' => $this->data['hash'],
-      'a' => $this->data['Amount']
+      'r' => (string)$this->data['Counterparty'], //OK
+      'h' => (string)$this->data['hash'],
+      //'a' => $this->data['Amount'] //now optional
     ];
 
-    if($this->data['CounterpartyDestination'] !== null)
-      $r['rd'] = (string)$this->data['CounterpartyDestination']; //this is filled when referenced account is participating in tx only
 
-    //if($this->data['Counterparty'] !== null)
-    //  $r['r'] = (string)$this->data['Counterparty'];
+    if(\array_key_exists('Amount', $this->data))
+      $r['a'] = $this->data['Amount'];
+    if(\array_key_exists('Amount2', $this->data))
+      $r['a2'] = $this->data['Amount2'];
+
+    if(\array_key_exists('Issuer', $this->data))
+      $r['i'] = $this->data['Issuer'];
+    if(\array_key_exists('Issuer2', $this->data))
+      $r['i2'] = $this->data['Issuer2'];
+
+    if(\array_key_exists('Currency', $this->data))
+      $r['c'] = $this->data['Currency'];
+    if(\array_key_exists('Currency2', $this->data))
+      $r['c2'] = $this->data['Currency2'];
+
+
+    if(\array_key_exists('Fee', $this->data))
+      $r['fe'] = $this->data['Fee'];
 
     if($this->data['In'] === true) //to save space we only store true value
       $r['in'] = true;
-    elseif($this->data['In'] === null)
-      $r['in'] = null; //for participating in transaction we will put NULL until decided otherwise, mapper will validate this as IN
 
-    if($this->data['IsPartialPayment'])
-      $r['rqa'] = $this->data['RequestedAmount']; //rqa - requested amount - this field only exists when there is partial payment
+    //if($this->data['IsPartialPayment'])
+    //  $r['rqa'] = $this->data['RequestedAmount']; //rqa - requested amount - this field only exists when there is partial payment
 
     /**
      * dt - destination tag, stored as string
@@ -170,10 +144,10 @@ final class Payment extends XRPLParserBase
     if($this->data['SourceTag'] !== null)
       $r['st'] = (string)$this->data['SourceTag'];
 
-    if($this->data['Issuer'] !== null) { //it is payment specific currency (token)
-      $r['i'] = $this->data['Issuer'];
-      $r['c'] = $this->data['Currency'];
-    }
+    //if($this->data['Issuer'] !== null) { //it is payment specific currency (token)
+    //  $r['i'] = $this->data['Issuer'];
+    //  $r['c'] = $this->data['Currency'];
+    //}
 
     return $r;
   }

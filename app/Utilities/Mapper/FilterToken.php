@@ -11,7 +11,7 @@ class FilterToken extends FilterBase {
   private readonly string $address;
   private readonly array $foundLedgerIndexesIds;
   private readonly array $conditions;
-  private array $allowedTxTypes = ['Payment','Trustset','AccountDelete'];
+  private array $allowedTxTypes = ['Payment','Payment_Exchange','Payment_BalanceChange','Trustset','AccountDelete'];
   private readonly array $txTypes;
 
   public function __construct(string $address, array $conditions, array $foundLedgerIndexesIds)

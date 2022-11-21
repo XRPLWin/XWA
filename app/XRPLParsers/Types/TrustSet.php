@@ -13,7 +13,6 @@ final class TrustSet extends XRPLParserBase
    */
   protected function parseTypeFields(): void
   {
-    $this->data['hash'] = $this->tx->hash;
     # StateCreated - true if trustline created, false if deleted
     $this->data['StateCreated'] = !($this->tx->LimitAmount->value == 0);
 
@@ -31,17 +30,20 @@ final class TrustSet extends XRPLParserBase
   {
     $r = [
       't' => $this->data['Date'],
-      'fe' => $this->data['Fee'],
+      //'fe' => $this->data['Fee'],
       //'in' => $this->data['In'],
       's' => $this->data['StateCreated'],
       'a' => $this->data['Amount'],
       'c' => $this->data['Currency'],
-      'r' => $this->data['Issuer'],
-      'i' => $this->data['Issuer'],
+      'r' => $this->data['Issuer'], //counterparty =
+      'i' => $this->data['Issuer'], //= issuer
       'h' => $this->data['hash'],
     ];
 
-    if($this->data['In']) //to save space we only store true value
+    if(\array_key_exists('Fee', $this->data))
+      $r['fe'] = $this->data['Fee'];
+
+    if($this->data['In'] === true) //to save space we only store true value
       $r['in'] = true;
 
     return $r;
