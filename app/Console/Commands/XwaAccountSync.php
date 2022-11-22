@@ -8,10 +8,7 @@ use XRPLWin\XRPL\Client;
 use App\Utilities\AccountLoader;
 use App\Utilities\Ledger;
 use App\Models\DAccount;
-use App\Models\DTransactionPayment;
 use App\Models\DTransactionActivation;
-use App\Models\DTransactionTrustset;
-use App\Models\DTransactionAccountDelete;
 use App\Models\Ledgerindex;
 use App\Models\Map;
 use App\XRPLParsers\Parser;
@@ -328,7 +325,7 @@ class XwaAccountSync extends Command
       $model = new $DTransactionClassName();
  
       $model->PK = $account->address.'-'.$DTransactionClassName::TYPE;
-      $this->info($DTransactionClassName.':'.$model->PK);
+      //$this->info($DTransactionClassName.':'.$model->PK);
       $model->SK = $parser->SK();
       foreach($parsedData as $key => $value) {
         $model->{$key} = $value;

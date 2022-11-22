@@ -14,10 +14,12 @@ class DTransactionPayment extends DTransaction
   {
     $array = ['type' => $this::TYPE];
     $array = \array_merge(parent::toArray(),$array);
-    if(isset($array['i'])){
-      //it is issued currency
+    if(isset($array['c']))
       $array['c_formatted'] = xrp_currency_to_symbol($array['c']);
-    }
+    
+    if(isset($array['c2']))
+      $array['c2_formatted'] = xrp_currency_to_symbol($array['c2']);
+    
     return $array;
   }
 
