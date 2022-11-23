@@ -166,9 +166,20 @@ class FilterToken extends FilterBase {
     $issuerAndToken = self::extractIssuerAndToken($params[0]);
     if($issuerAndToken['issuer'] == 'XRP' && $issuerAndToken['currency'] == 'XRP') {
       //i and c must not exist
-      $query = $query->whereNull('i')->whereNull('c'); //check value presence (in attribute always does not exists if out)
+      //$query = $query->whereNull('i')->whereNull('c'); //check value presence (in attribute always does not exists if out)
+      $query = $query->where(function ($q) {
+        $q->whereNull('i')->whereNull('c')->orWhere(function ($q) {
+          $q->whereNull('i2')->whereNull('c2');
+        });
+      });
     } else {
-      $query = $query->where('i', '=',$issuerAndToken['issuer'])->where('c', '=', $issuerAndToken['currency']);
+      //$query = $query->where('i', '=',$issuerAndToken['issuer'])->where('c', '=', $issuerAndToken['currency']);
+      $query = $query->where(function ($q) use ($issuerAndToken) {
+        $q->where('i', '=',$issuerAndToken['issuer'])->where('c', '=', $issuerAndToken['currency'])->orWhere(function ($q) use ($issuerAndToken) {
+          $q->where('i2', '=',$issuerAndToken['issuer'])->where('c2', '=', $issuerAndToken['currency']);
+        });
+      });
+
     }
     return $query;
   }
@@ -180,18 +191,30 @@ class FilterToken extends FilterBase {
    */
   public static function itemHasFilter(\App\Models\DTransaction $item, string|int|float|bool $value): bool
   {
+
     if($value == 'XRP') {
-      if(!isset($item->i) && !isset($item->c))
+      if(!isset($item->i) && !isset($item->c) && isset($item->a))
         return true;
+
+      if(!isset($item->i2) && !isset($item->c2) && isset($item->a2))
+        return true;
+
       return false;
     }
-
-    if(isset($item->i) && isset($item->c)) {
+    
+    if(isset($item->i) && isset($item->c) && isset($item->a)) {
       $issuerAndToken = self::extractIssuerAndToken($value);
       if((string)$item->i == (string)$issuerAndToken['issuer'] && (string)$item->c == (string)$issuerAndToken['currency'])
         return true;
     }
-    return false;
+    
+    if(isset($item->i2) && isset($item->c2) && isset($item->a2)) {
+      $issuerAndToken = self::extractIssuerAndToken($value);
+      if((string)$item->i2 == (string)$issuerAndToken['issuer'] && (string)$item->c2 == (string)$issuerAndToken['currency'])
+      return true;
+    }
+    
+    return false; //nothing passed
   }
   
 
