@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 use XRPLWin\XRPL\Client;
 use App\Utilities\AccountLoader;
 use App\Utilities\Ledger;
-use App\Models\DAccount;
+use App\Models\BAccount;
 use App\Models\DTransactionActivation;
 use App\Models\Ledgerindex;
 use App\Models\Map;
@@ -92,10 +92,10 @@ class XwaAccountSync extends Command
       $account = AccountLoader::getOrCreate($address);
       //dd($account);
       //If this account is issuer (by checking obligations) set t field to 1.
-      if($account->checkIsIssuer())
-        $account->t = 1;
-      else
-        unset($account->t); //this will remove field on model save
+      //if($account->checkIsIssuer())
+      //  $account->t = 1;
+      //else
+      //  unset($account->t); //this will remove field on model save
 
       //dd($account);
       
@@ -240,11 +240,11 @@ class XwaAccountSync extends Command
      * Calls appropriate method.
      * @return ?array
      */
-    private function processTransaction(DAccount $account, \stdClass $transaction): ?array
+    private function processTransaction(BAccount $account, \stdClass $transaction): ?array
     {
       $type = $transaction->tx->TransactionType;
       $method = 'processTransaction_'.$type;
-
+      dd($method);
       if($transaction->meta->TransactionResult != 'tesSUCCESS')
         return null; //do not log failed transactions
 
@@ -317,6 +317,7 @@ class XwaAccountSync extends Command
     //OK
     private function processTransaction_Payment(DAccount $account, \stdClass $transaction):array
     {
+      dd('test');
       /** @var \App\XRPLParsers\Types\Payment */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       $parsedData = $parser->toDArray();
