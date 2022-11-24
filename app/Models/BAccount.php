@@ -17,10 +17,20 @@ class BAccount extends Model
   protected $table = 'accounts';
   protected $primaryKey = 'address';
   protected $keyType = 'string';
+  public $timestamps = false;
 
   public $fillable = [
     'address', //Primary Key
-    'l'
+    'l',
+    'activatedBy',
+    'isdeleted'
+  ];
+
+  const BQCASTS = [
+    'address' => 'STRING',
+    'l'       => 'INTEGER',
+    'activatedBy' => 'STRING',
+    'isdeleted' => 'BOOLEAN'
   ];
 
   public static function find(string $address): ?self
@@ -44,7 +54,7 @@ class BAccount extends Model
     $data = $this->toArray();
 
     if($this->exists) {
-      throw new \Exception('Update Not implemented');
+      throw new \Exception('Update not implemented');
     }
 
     return AccountsRepository::insert($data);

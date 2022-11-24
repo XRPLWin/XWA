@@ -32,6 +32,18 @@ return new class extends Migration
         'mode' => 'REQUIRED',
         'description' => 'Last synced ledger index'
       ],
+      [
+        'name' => 'activatedBy',
+        'type' => 'STRING',
+        'mode' => 'NULLABLE',
+        'description' => 'rAddress which activated this account'
+      ],
+      [
+        'name' => 'isdeleted',
+        'type' => 'BOOLEAN',
+        'mode' => 'REQUIRED',
+        'description' => 'Is this account deleted (yes or no)'
+      ],
     ];
 
     \BigQuery::dataset('xwa')->createTable('accounts', ['schema' => [ 'fields' => $fields ]]);
@@ -44,22 +56,16 @@ return new class extends Migration
     
     $fields = [
       [
-          'name' => 'address',
-          'type' => 'STRING',
-          'mode' => 'REQUIRED',
-          'description' => 'rAddress'
-      ],
-      [
-        'name' => 'type',
-        'type' => 'INTEGER',
+        'name' => 'SK',
+        'type' => 'FLOAT',
         'mode' => 'REQUIRED',
-        'description' => 'XWA specific Transaction Type'
+        'description' => 'LedgerIndex.TxSequence'
       ],
       [
-          'name' => 'txindex',
-          'type' => 'FLOAT',
-          'mode' => 'REQUIRED',
-          'description' => 'LedgerIndex.TxSequence'
+        'name' => 'PK',
+        'type' => 'STRING',
+        'mode' => 'REQUIRED',
+        'description' => 'rAddress-XWTxType'
       ],
       [
         'name' => 'h',
@@ -69,9 +75,9 @@ return new class extends Migration
       ],
       [
         'name' => 't',
-        'type' => 'TIMESTAMP',
+        'type' => 'INTEGER',
         'mode' => 'REQUIRED',
-        'description' => 'Transaction time'
+        'description' => 'Ripple epoch transaction time'
       ],
       [
         'name' => 'r',
@@ -80,16 +86,16 @@ return new class extends Migration
         'description' => 'Counterparty'
       ],
       [
-        'name' => 'in',
+        'name' => 'isin',
         'type' => 'BOOLEAN',
         'mode' => 'REQUIRED',
         'description' => 'Direction (in or out)'
       ],
       [
-        'name' => 'fe',
+        'name' => 'fee',
         'type' => 'INTEGER',
         'mode' => 'NULLABLE',
-        'description' => 'Fee'
+        'description' => 'Fee in drops'
       ],
       [
         'name' => 'a',

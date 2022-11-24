@@ -32,17 +32,14 @@ final class AccountDelete extends XRPLParserBase
     $r = [
       't' => $this->data['Date'],
       //'fe' => $this->data['Fee'],
-      //'in' => $this->data['In'],
+      'isin' => $this->data['In'],
       'r' => $this->data['Counterparty'],
       'h' => $this->data['hash'],
       'a' => $this->data['Amount'],
     ];
 
     if(\array_key_exists('Fee', $this->data))
-      $r['fe'] = $this->data['Fee'];
-
-    if($this->data['In'] === true) //to save space we only store true value
-      $r['in'] = true;
+      $r['fee'] = $this->data['Fee'];
 
     /**
      * dt - destination tag, stored as string

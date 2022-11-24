@@ -2,20 +2,10 @@
 
 namespace App\Repository;
 
-use App\Models\BAccount;
+use App\Models\BTransaction;
 
-class AccountsRepository extends Repository
+class TransactionsRepository extends Repository
 {
-  /**
-   * Load account data by address.
-   * @see https://github.com/GoogleCloudPlatform/php-docs-samples/tree/master/bigquery/api/src
-   * @return ?array
-   */
-  public static function fetchByAddress(string $address): ?array
-  {
-    return self::fetchOne('address = "'.$address.'"');
-  }
-
   /**
    * Fetches one record from database.
    * @return ?array
@@ -23,7 +13,7 @@ class AccountsRepository extends Repository
   public static function fetchOne($where): ?array
   {
     $bq = app('bigquery');
-    $query = 'SELECT address,l FROM `'.config('bigquery.project_id').'.xwa.accounts` WHERE '.$where.' LIMIT 1';
+    $query = 'SELECT address,l FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE '.$where.' LIMIT 1';
     $results = $bq->runQuery($bq->query($query));
     $r = null;
     foreach ($results as $row) {
@@ -42,11 +32,11 @@ class AccountsRepository extends Repository
     if(!count($values))
       throw new \Exception('Values missing');
 
-    $insert ='INSERT INTO `'.config('bigquery.project_id').'.xwa.accounts` ('.\implode(',',\array_keys($values)).') VALUES (';
-    $castedValues = self::valuesToCastedValues(BAccount::BQCASTS, $values);
+
+    $insert ='INSERT INTO `'.config('bigquery.project_id').'.xwa.transactions` ('.\implode(',',\array_keys($values)).') VALUES (';
+    $castedValues = self::valuesToCastedValues(BTransaction::BQCASTS, $values);
     $insert .= \implode(',',$castedValues);
     $insert .= ')';
-    
     $bq = app('bigquery');
     $dataset = $bq->dataset('xwa');
     $query = $bq->query($insert)->defaultDataset($dataset);

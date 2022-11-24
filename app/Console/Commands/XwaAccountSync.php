@@ -8,7 +8,7 @@ use XRPLWin\XRPL\Client;
 use App\Utilities\AccountLoader;
 use App\Utilities\Ledger;
 use App\Models\BAccount;
-use App\Models\DTransactionActivation;
+use App\Models\BTransactionActivation;
 use App\Models\Ledgerindex;
 use App\Models\Map;
 use App\XRPLParsers\Parser;
@@ -244,7 +244,7 @@ class XwaAccountSync extends Command
     {
       $type = $transaction->tx->TransactionType;
       $method = 'processTransaction_'.$type;
-      dd($method);
+      
       if($transaction->meta->TransactionResult != 'tesSUCCESS')
         return null; //do not log failed transactions
 
@@ -255,7 +255,7 @@ class XwaAccountSync extends Command
     /**
     * Executed offer
     */
-    private function processTransaction_OfferCreate(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_OfferCreate(BAccount $account, \stdClass $transaction): array
     {
       return  []; //TODO
       $txhash = $tx['hash'];
@@ -304,7 +304,7 @@ class XwaAccountSync extends Command
       }
     }
 
-    private function processTransaction_OfferCancel(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_OfferCancel(BAccount $account, \stdClass $transaction): array
     {
       return []; //TODO
     }
@@ -315,24 +315,18 @@ class XwaAccountSync extends Command
     * @return void
     */
     //OK
-    private function processTransaction_Payment(DAccount $account, \stdClass $transaction):array
+    private function processTransaction_Payment(BAccount $account, \stdClass $transaction):array
     {
-      dd('test');
       /** @var \App\XRPLParsers\Types\Payment */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       $parsedData = $parser->toDArray();
 
-      $DTransactionClassName = '\\App\\Models\\DTransaction'.$parser->getTransactionTypeClass();
-      $model = new $DTransactionClassName();
- 
-      $model->PK = $account->address.'-'.$DTransactionClassName::TYPE;
-      //$this->info($DTransactionClassName.':'.$model->PK);
-      $model->SK = $parser->SK();
-      foreach($parsedData as $key => $value) {
-        $model->{$key} = $value;
-      }
-      $model->save();
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
       
+      $model->PK = $account->address.'-'.$TransactionClassName::TYPE;
+      $model->SK = $parser->SK();
+      $model->save();
       
       # Activations by payment:
       $parser->detectActivations();
@@ -340,19 +334,20 @@ class XwaAccountSync extends Command
       if($activatedAddress = $parser->getActivated()) {
         //$this->info('');
         //$this->info('Activation: '.$activatedAddress. ' on index '.$parser->SK());
-        $Activation = new DTransactionActivation;
-        $Activation->PK = $account->address.'-'.DTransactionActivation::TYPE;
-        $Activation->SK = $parser->SK();
-        $Activation->t = $parser->getDataField('Date');
-        $Activation->r = $activatedAddress;
+        $Activation = new BTransactionActivation([
+          'PK' => $account->address.'-'.BTransactionActivation::TYPE,
+          'SK' => $parser->SK(),
+          't' => $parser->getDataField('Date'),
+          'r' => $activatedAddress,
+        ]);
         $Activation->save();
       }
 
       if($activatedByAddress = $parser->getActivatedBy()) {
         $this->info('');
         $this->info('Activation: Activated by '.$activatedByAddress. ' on index '.$parser->SK());
-        $account->by = $activatedByAddress;
-        unset($account->del); //remove deleted flag, in case it is reactivated, this will remove field on model save
+        $account->activatedBy = $activatedByAddress;
+        unset($account->isdeleted); //remove deleted flag, in case it is reactivated, this will remove field on model save
         $account->save();
 
         if($this->recursiveaccountqueue)
@@ -372,7 +367,7 @@ class XwaAccountSync extends Command
     }
 
     //OK
-    private function processTransaction_TrustSet(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_TrustSet(BAccount $account, \stdClass $transaction): array
     {
       /** @var \App\XRPLParsers\Types\TrustSet */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
@@ -390,7 +385,7 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
-    private function processTransaction_AccountSet(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_AccountSet(BAccount $account, \stdClass $transaction): array
     {
       return []; //not used yet
 
@@ -420,20 +415,17 @@ class XwaAccountSync extends Command
     }
 
     //OK
-    private function processTransaction_AccountDelete(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_AccountDelete(BAccount $account, \stdClass $transaction): array
     {
       /** @var \App\XRPLParsers\Types\AccountDelete */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
 
       $parsedData = $parser->toDArray();
 
-      $DTransactionClassName = '\\App\\Models\\DTransaction'.$parser->getTransactionTypeClass();
-      $model = new $DTransactionClassName();
-      $model->PK = $account->address.'-'.$DTransactionClassName::TYPE;
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->PK = $account->address.'-'.$TransactionClassName::TYPE;
       $model->SK = $parser->SK();
-      foreach($parsedData as $key => $value) {
-        $model->{$key} = $value;
-      }
       $model->save();
 
       if(isset($parsedData['in']) && $parsedData['in']) {
@@ -442,7 +434,7 @@ class XwaAccountSync extends Command
         //outgoing, this is deleted account, flag account deleted
         $this->info('');
         $this->info('Deleted');
-        $account->del = true;
+        $account->isdeleted = true;
         $account->save();
         //dd($account);
         
@@ -451,93 +443,93 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
-    private function processTransaction_SetRegularKey(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_SetRegularKey(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_SignerListSet(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_SignerListSet(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_CheckCancel(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_CheckCancel(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_CheckCash(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_CheckCash(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_CheckCreate(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_CheckCreate(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
 
-    private function processTransaction_EscrowCreate(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_EscrowCreate(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_EscrowFinish(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_EscrowFinish(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_EscrowCancel(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_EscrowCancel(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_PaymentChannelCreate(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_PaymentChannelCreate(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_PaymentChannelFund(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_PaymentChannelFund(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_PaymentChannelClaim(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_PaymentChannelClaim(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_DepositPreauth(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_DepositPreauth(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_TicketCreate(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_TicketCreate(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_NFTokenAcceptOffer(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenAcceptOffer(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_NFTokenBurn(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenBurn(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_NFTokenCancelOffer(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenCancelOffer(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_NFTokenCreateOffer(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenCreateOffer(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_NFTokenMint(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenMint(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }

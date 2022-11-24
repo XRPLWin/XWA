@@ -20,7 +20,8 @@ class AccountLoader
     {
       $Account = new BAccount([
         'address' => $address,
-        'l' => (int)config('xrpl.genesis_ledger') //initial
+        'l' => (int)config('xrpl.genesis_ledger'), //initial
+        'isdeleted' => false,
       ]);
       
       $Account->save();

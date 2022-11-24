@@ -31,7 +31,7 @@ final class TrustSet extends XRPLParserBase
     $r = [
       't' => $this->data['Date'],
       //'fe' => $this->data['Fee'],
-      //'in' => $this->data['In'],
+      'isin' => $this->data['In'],
       's' => $this->data['StateCreated'],
       'a' => $this->data['Amount'],
       'c' => $this->data['Currency'],
@@ -41,10 +41,7 @@ final class TrustSet extends XRPLParserBase
     ];
 
     if(\array_key_exists('Fee', $this->data))
-      $r['fe'] = $this->data['Fee'];
-
-    if($this->data['In'] === true) //to save space we only store true value
-      $r['in'] = true;
+      $r['fee'] = $this->data['Fee'];
 
     return $r;
   }
