@@ -10,7 +10,7 @@ class Repository
    * @see https://cloud.google.com/bigquery/docs/reference/standard-sql/lexical
    * @return array
    */
-  protected static function valuesToCastedValues(array $definition, array $values): array
+  public static function valuesToCastedValues(array $definition, array $values, bool $escapeStrings = true): array
   {
     $r = [];
     foreach($values as $k => $v) {
@@ -21,7 +21,10 @@ class Repository
           $r[$k] = \BigQuery::bigNumeric($v);
           break;
         case 'STRING':
-          $r[$k] =  '"""'.$v.'"""'; //tripple quote escape
+          if($escapeStrings)
+            $r[$k] =  '"""'.$v.'"""'; //tripple quote escape
+          else
+            $r[$k] = $v;
           break;
         case 'BOOLEAN':
           $r[$k] = $v?'true':'false';

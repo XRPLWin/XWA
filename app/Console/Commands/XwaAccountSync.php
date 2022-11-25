@@ -14,6 +14,7 @@ use App\Models\Map;
 use App\XRPLParsers\Parser;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use App\Repository\Batch;
 
 class XwaAccountSync extends Command
 {
@@ -175,10 +176,41 @@ class XwaAccountSync extends Command
           $bar = $this->output->createProgressBar(count($txs));
           $bar->start();
 
-          //Do the logic here
-          
+          $parsedDatas = []; //list of sub-method results (parsed transactions)
+
+          # Prepare Batch instance which will hold list of queries to be executed at once to BigQuery
+          $batch = new Batch;
+
+          # Parse each transaction and prepare batch execution queries
+          foreach($txs as $tx) {
+            $parsedDatas[] = $this->processTransaction($account,$tx, $batch);
+          }
+
+          # Execute batch queries
+          $batch->execute();
+
+          # Post processing results (flush cache)
+          foreach($parsedDatas as $parsedData) {
+            if(!empty($parsedData)) {
+              if($dayToFlush === null) {
+                $dayToFlush = ripple_epoch_to_carbon($parsedData['t'])->format('Y-m-d');
+                $this->info('Flushing day (initial) '.$dayToFlush);
+                $this->flushDayCache($account->address,$dayToFlush);
+              } else {
+                $txDayToFlush = ripple_epoch_to_carbon($parsedData['t'])->format('Y-m-d');
+                if($dayToFlush !== $txDayToFlush) {
+                  $this->info('Flushing day '.$dayToFlush);
+                  $this->flushDayCache($account->address,$dayToFlush);
+                  $dayToFlush = $txDayToFlush;
+                }
+              }
+            }
+          }
+          exit; //old below
           foreach($txs as $tx) {
             //dd($tx);
+            
+
             $parsedData = $this->processTransaction($account,$tx);
             if(!empty($parsedData)) {
               if($dayToFlush === null) {
@@ -240,7 +272,7 @@ class XwaAccountSync extends Command
      * Calls appropriate method.
      * @return ?array
      */
-    private function processTransaction(BAccount $account, \stdClass $transaction): ?array
+    private function processTransaction(BAccount $account, \stdClass $transaction, Batch $batch): ?array
     {
       $type = $transaction->tx->TransactionType;
       $method = 'processTransaction_'.$type;
@@ -249,7 +281,7 @@ class XwaAccountSync extends Command
         return null; //do not log failed transactions
 
       //this is faster than call_user_func()
-      return $this->{$method}($account, $transaction);
+      return $this->{$method}($account, $transaction, $batch);
     }
 
     /**
@@ -315,7 +347,7 @@ class XwaAccountSync extends Command
     * @return void
     */
     //OK
-    private function processTransaction_Payment(BAccount $account, \stdClass $transaction):array
+    private function processTransaction_Payment(BAccount $account, \stdClass $transaction, Batch $batch):array
     {
       /** @var \App\XRPLParsers\Types\Payment */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
@@ -326,7 +358,8 @@ class XwaAccountSync extends Command
       
       $model->PK = $account->address.'-'.$TransactionClassName::TYPE;
       $model->SK = $parser->SK();
-      $model->save();
+      $batch->queueModelChanges($model);
+      //$model->save();
       
       # Activations by payment:
       $parser->detectActivations();
@@ -340,15 +373,17 @@ class XwaAccountSync extends Command
           't' => $parser->getDataField('Date'),
           'r' => $activatedAddress,
         ]);
-        $Activation->save();
+        $batch->queueModelChanges($Activation);
+        //$Activation->save();
       }
 
       if($activatedByAddress = $parser->getActivatedBy()) {
         $this->info('');
         $this->info('Activation: Activated by '.$activatedByAddress. ' on index '.$parser->SK());
         $account->activatedBy = $activatedByAddress;
-        unset($account->isdeleted); //remove deleted flag, in case it is reactivated, this will remove field on model save
-        $account->save();
+        $account->isdeleted = false; //in case it is reactivated, this will remove field on model save
+        $batch->queueModelChanges($account);
+        //$account->save();
 
         if($this->recursiveaccountqueue)
         {
@@ -367,21 +402,19 @@ class XwaAccountSync extends Command
     }
 
     //OK
-    private function processTransaction_TrustSet(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_TrustSet(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       /** @var \App\XRPLParsers\Types\TrustSet */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
 
       $parsedData = $parser->toDArray();
 
-      $DTransactionClassName = '\\App\\Models\\DTransaction'.$parser->getTransactionTypeClass();
-      $model = new $DTransactionClassName();
-      $model->PK = $account->address.'-'.$DTransactionClassName::TYPE;
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->PK = $account->address.'-'.$TransactionClassName::TYPE;
       $model->SK = $parser->SK();
-      foreach($parsedData as $key => $value) {
-        $model->{$key} = $value;
-      }
-      $model->save();
+      $batch->queueModelChanges($model);
+      //$model->save();
       return $parsedData;
     }
 
@@ -415,7 +448,7 @@ class XwaAccountSync extends Command
     }
 
     //OK
-    private function processTransaction_AccountDelete(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_AccountDelete(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       /** @var \App\XRPLParsers\Types\AccountDelete */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
@@ -426,7 +459,8 @@ class XwaAccountSync extends Command
       $model = new $TransactionClassName($parsedData);
       $model->PK = $account->address.'-'.$TransactionClassName::TYPE;
       $model->SK = $parser->SK();
-      $model->save();
+      $batch->queueModelChanges($model);
+      //$model->save();
 
       if(isset($parsedData['in']) && $parsedData['in']) {
         //incomming xrp
@@ -435,7 +469,8 @@ class XwaAccountSync extends Command
         $this->info('');
         $this->info('Deleted');
         $account->isdeleted = true;
-        $account->save();
+        $batch->queueModelChanges($account);
+        //$account->save();
         //dd($account);
         
       }

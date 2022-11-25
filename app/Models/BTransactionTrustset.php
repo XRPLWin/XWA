@@ -3,10 +3,10 @@
 namespace App\Models;
 
 /**
- * DynamoDB Transaction model of type Payment.
+ * Transaction model of type TrustSet.
  * PK: rAcct-3 SK: <INT> (Ledger index)
  */
-final class DTransactionTrustset extends DTransaction
+final class BTransactionTrustset extends BTransaction
 {
   const TYPE = 3;
   const CONTEXT_ADDTRUSTLINE = 'addtrustline';

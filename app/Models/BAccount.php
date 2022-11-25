@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Repository\AccountsRepository;
 
 
@@ -12,7 +11,7 @@ use App\Utilities\Ledger;
 use Illuminate\Support\Facades\Cache;
 use XRPLWin\XRPL\Client as XRPLWinApiClient;
 
-class BAccount extends Model
+class BAccount extends B
 {
   protected $table = 'accounts';
   protected $primaryKey = 'address';

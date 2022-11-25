@@ -10,7 +10,7 @@ class DTransactionPayment extends DTransaction
 {
   const TYPE = 1;
 
-  public function toArray()
+  public function toFinalArray()
   {
     $array = ['type' => $this::TYPE];
     $array = \array_merge(parent::toArray(),$array);
