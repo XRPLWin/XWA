@@ -8,7 +8,8 @@ return new class extends Migration
 {
   /**
    * Run the migrations.
-   *
+   * Note: BigQuery tables are not instantly available, it takes about 10 seconds to be available.
+   * @see https://github.com/prologuetech/laravel-big/blob/master/src/Big.php
    * @return void
    */
   public function up()
@@ -99,7 +100,7 @@ return new class extends Migration
       ],
       [
         'name' => 'a',
-        'type' => 'BIGNUMERIC',
+        'type' => 'STRING',
         'mode' => 'NULLABLE',
         'description' => 'Amount'
       ],
@@ -117,7 +118,7 @@ return new class extends Migration
       ],
       [
         'name' => 'a2',
-        'type' => 'BIGNUMERIC',
+        'type' => 'STRING',
         'mode' => 'NULLABLE',
         'description' => 'Amount (secondary)'
       ],

@@ -15,7 +15,6 @@ class AccountLoader
   public static function getOrCreate(string $address): BAccount
   {
     $Account = self::get($address);
-    
     if(!$Account)
     {
       $Account = new BAccount([
@@ -39,7 +38,7 @@ class AccountLoader
     validateXRPAddressOrFail($address);
 
     $AccountArray = Cache::get('daccount:'.$address);
-    $AccountArray = null; //remove this
+    //$AccountArray = null; //remove this
 
     if(!$AccountArray) {
       $Account = BAccount::find($address);
@@ -47,8 +46,7 @@ class AccountLoader
         return null;
       Cache::put('daccount:'.$address, $Account->toArray(), 86400); //86400 seconds = 24 hours
     } else {
-      $Account = new BAccount($AccountArray);
-      $Account->exists = true;
+      $Account = BAccount::hydrate([$AccountArray])->first();
     }
     return $Account;
   }

@@ -122,7 +122,7 @@ class XwaAccountSync extends Command
             'ledger_index_max' => $this->ledger_current,
             'binary' => false,
             'forward' => true,
-            'limit' => 400, //400
+            'limit' => 10, //400
           ]);
 
       $account_tx->setCooldownHandler(
@@ -184,6 +184,7 @@ class XwaAccountSync extends Command
           # Parse each transaction and prepare batch execution queries
           foreach($txs as $tx) {
             $parsedDatas[] = $this->processTransaction($account,$tx, $batch);
+            $bar->advance();
           }
 
           # Execute batch queries
@@ -206,29 +207,7 @@ class XwaAccountSync extends Command
               }
             }
           }
-          exit; //old below
-          foreach($txs as $tx) {
-            //dd($tx);
-            
-
-            $parsedData = $this->processTransaction($account,$tx);
-            if(!empty($parsedData)) {
-              if($dayToFlush === null) {
-                $dayToFlush = ripple_epoch_to_carbon($parsedData['t'])->format('Y-m-d');
-                $this->info('Flushing day (initial) '.$dayToFlush);
-                $this->flushDayCache($account->address,$dayToFlush);
-              } else {
-                $txDayToFlush = ripple_epoch_to_carbon($parsedData['t'])->format('Y-m-d');
-                if($dayToFlush !== $txDayToFlush) {
-                  $this->info('Flushing day '.$dayToFlush);
-                  $this->flushDayCache($account->address,$dayToFlush);
-                  
-                  $dayToFlush = $txDayToFlush;
-                }
-              }
-            }
-            $bar->advance();
-          }
+          
           $bar->finish();
 
           if($account_tx = $account_tx->next()) {
@@ -370,8 +349,10 @@ class XwaAccountSync extends Command
         $Activation = new BTransactionActivation([
           'PK' => $account->address.'-'.BTransactionActivation::TYPE,
           'SK' => $parser->SK(),
+          'h' => $parsedData['h'],
           't' => $parser->getDataField('Date'),
           'r' => $activatedAddress,
+          'isin' => true,
         ]);
         $batch->queueModelChanges($Activation);
         //$Activation->save();

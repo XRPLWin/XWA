@@ -36,4 +36,30 @@ class Repository
     
     return $r;
   }
+
+  public static function update(string $table, string $conditions, array $modelandfields): ?bool
+  {
+    if(empty($modelandfields['fields']))
+      return null;
+
+    $q ='UPDATE `'.config('bigquery.project_id').'.xwa.'.$table.'` SET';
+    $i = 0;
+    foreach($modelandfields['fields'] as $k => $v) {
+      if($i > 0) $q .= ',';
+      $q .= ' '.$k.' = '.$v;
+      $i++;
+    }
+    $q .= ' WHERE '.$conditions;
+    $bq = app('bigquery');
+    $query = $bq->query($q)->defaultDataset($bq->dataset('xwa'));
+    try {
+      $bq->runQuery($query);
+    } catch (\Throwable $e) {
+      //dd($e->getMessage());
+      throw $e;
+      return false;
+    }
+    return true;
+  }
+
 }

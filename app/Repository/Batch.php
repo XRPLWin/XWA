@@ -19,7 +19,6 @@ class Batch
   public function queueModelChanges(B $model): void
   {
     $changes = $model->extractPreparedDatabaseChanges();
-    //dd($changes);
     $this->queue[] = $changes;
 
   }
@@ -37,24 +36,75 @@ class Batch
     if(!count($this->queue))
       return;
 
-    //Group by table
+    //Group by table and method
     $q = [];
     foreach($this->queue as $data) {
-      $q[$data['table']][] = $data['fields'];
+      $q[$data['table']][$data['method']][] = ['fields' => $data['fields'], 'model' => $data['model']];
     }
     unset($data);
-
-    $rows = [];
-    //Create query for each table
-    foreach($q as $table => $data) {
-      $list[] = $this->executeInsert($table,$data);
-    }
-    dd($list);
-
     # Execute
+    foreach($q as $table => $methods) {
+      foreach($methods as $method => $data) { //insert|update => []
+        if($method === 'insert') {
+          $executeResult = $this->executeInsert($table,$data);
+          if(!$executeResult['success']) {
+            throw new \Exception('Unsuccessful executeInsert with errors: '.\implode('; ',$executeResult['errors']));
+          }
+        }
+        elseif($method == 'update') {
+          $executeResult = $this->executeUpdate($table,$data);
+          if(!$executeResult['success']) {
+            throw new \Exception('Unsuccessful executeUpdate with errors: '.\implode('; ',$executeResult['errors']));
+          }
+        }
+        else
+          throw new \Exception('Unhadled save method ['.$method.']');
+      }
+    }
   }
 
-  private function executeInsert($table, $data): string
+  /**
+   * If one fails then every row is rolled back (stopped )
+   * @return array ['success' => BOOL, 'errors' => ARRAY ]
+   */
+  private function executeUpdate($table, $data)
+  {
+    $success = true;
+
+    if($table == 'transactions') {
+      foreach($data as $v) {
+        $conditions = 'PK = """'.$v['model']->PK.'""" AND SK = '.$v['model']->SK;
+        unset($v['fields']['PK']);
+        unset($v['fields']['SK']);
+        $result = AccountsRepository::update($table, $conditions, $v);
+        if($result === false) {
+          $success = false;
+          break;
+        }
+      }
+    }
+    elseif($table == 'accounts') {
+      foreach($data as $v) {
+        $conditions = 'address = """'.$v['model']->address.'"""';
+        unset($v['fields']['address']);
+        $result = TransactionsRepository::update($table, $conditions, $v);
+        if($result === false) {
+          $success = false;
+          break;
+        }
+      }
+    }
+    else
+      throw new \Exception('Not implemented repo for ['.$table.']');
+    
+    return ['success' => $success, 'errors' => []];
+  }
+
+  /**
+   * If one fails then every row is rolled back (stopped )
+   * @return array ['success' => BOOL, 'errors' => ARRAY ]
+   */
+  private function executeInsert($table, $data): array
   {
     $bq = app('bigquery');
     $table = $bq->dataset('xwa')->table($table);
@@ -62,28 +112,26 @@ class Batch
     $id = 1;
     $rows = [];
     foreach($data as $v) {
-      $rows[] = ['insertId' => $id, 'data' => $v];
+      $rows[] = ['insertId' => $id, 'data' => $v['fields']];
       $id++;
     }
-    dump('flag');
+
+    //Testing invalid row:
+    //$rows[] = ['insertId' => $id+1, 'data' => ['foo' => 'bar']];
+
+    $success = true;
+    $errors = [];
+    //dd(collect($rows)->pluck('data.h')->toArray(),collect($rows)->pluck('data.PK')->toArray());
     $insertResponse = $table->insertRows($rows, ['retries' => 5]);
     if (!$insertResponse->isSuccessful()) {
+      $success = false;
       foreach ($insertResponse->failedRows() as $row) {
-        print_r($row['rowData']);
-
         foreach ($row['errors'] as $error) {
-          echo $error['reason'] . ': ' . $error['message'] . PHP_EOL;
+          $errors[] = $error['reason'] . ': ' . $error['message'];
         }
       }
     }
-    dd('done');
-    dd($rows);
-    //$table->insertRows([])
-    dd($table);
 
-
-    //$query = 'INSERT INTO '
-    //dd('test');
-    //$r = 'MERGE INTO `'.config('bigquery.project_id').'.xwa.'.$table.'` as T USING ';
+    return ['success' => $success, 'errors' => $errors];
   }
 }

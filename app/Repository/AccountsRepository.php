@@ -23,7 +23,7 @@ class AccountsRepository extends Repository
   public static function fetchOne($where): ?array
   {
     $bq = app('bigquery');
-    $query = 'SELECT address,l FROM `'.config('bigquery.project_id').'.xwa.accounts` WHERE '.$where.' LIMIT 1';
+    $query = 'SELECT address,l,activatedBy,isdeleted FROM `'.config('bigquery.project_id').'.xwa.accounts` WHERE '.$where.' LIMIT 1';
     $results = $bq->runQuery($bq->query($query));
     $r = null;
     foreach ($results as $row) {
