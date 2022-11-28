@@ -122,7 +122,7 @@ class XwaAccountSync extends Command
             'ledger_index_max' => $this->ledger_current,
             'binary' => false,
             'forward' => true,
-            'limit' => 10, //400
+            'limit' => 400, //400
           ]);
 
       $account_tx->setCooldownHandler(
@@ -188,7 +188,10 @@ class XwaAccountSync extends Command
           }
 
           # Execute batch queries
+          $this->info('');
+          $this->info('Executing batch of queries...');
           $batch->execute();
+          $this->info('- DONE');
 
           # Post processing results (flush cache)
           foreach($parsedDatas as $parsedData) {

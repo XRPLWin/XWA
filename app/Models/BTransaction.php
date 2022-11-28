@@ -23,6 +23,7 @@ class BTransaction extends B
   protected $primaryKey = 'sk';
   protected $keyType = 'string';
   public $timestamps = false;
+  protected $repositoryclass = TransactionsRepository::class;
 
   protected $fillable = [
     'SK',
@@ -60,6 +61,11 @@ class BTransaction extends B
     'st'    => 'INTEGER'
   ];
 
+  protected function bqPrimaryKeyCondition(): string
+  {
+    return 'PK = """'.$this->PK.'""" AND SK = '.$this->SK;
+  }
+
   /**
    * ->address
    * Extracts rAddress from PK
@@ -79,17 +85,6 @@ class BTransaction extends B
       'context' => $this::CONTEXT_DEFAULT
     ];
     return \array_merge(parent::toArray(),$array);
-  }
-
-  public function save(array $options = [])
-  {
-    $data = parent::toArray();
-
-    if($this->exists) {
-      throw new \Exception('Update not implemented');
-    }
-
-    return TransactionsRepository::insert($data);
   }
 
 }

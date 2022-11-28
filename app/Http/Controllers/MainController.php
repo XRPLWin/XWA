@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Account;
+use App\Models\BAccount;
 use Brick\Math\BigDecimal;
 use XRPLWin\XRPL\Client;
 use XRPLWin\XRPLOrderbookReader\LiquidityCheck;
@@ -12,7 +12,20 @@ class MainController extends Controller
 {
     public function test()
     {
-
+      exit;
+      $i = new BAccount([
+        'address' => 'testtesttesttest',
+        'l' => 123,
+        'activatedBy' => 'bbbbbbbbbbb',
+        'isdeleted' => false,
+      ]);
+      $i->save();
+      dd($i);
+      $a = BAccount::find('r38UeRHhNLnprf1CjJ3ts4y1TuGCSSY3hL');
+      //dd($a);
+      $a->activatedBy = 'asdb32';
+      $a->save();
+      dd($a);
       //$dataset = \BigQuery::createDataset('myNewDataSet');
       exit;
       $client = app(\XRPLWin\XRPL\Client::class);

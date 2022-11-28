@@ -50,6 +50,8 @@ class Repository
       $i++;
     }
     $q .= ' WHERE '.$conditions;
+    //if($limit)
+    //  $q .= ' LIMIT '.$limit;
     $bq = app('bigquery');
     $query = $bq->query($q)->defaultDataset($bq->dataset('xwa'));
     try {

@@ -73,10 +73,9 @@ class Batch
 
     if($table == 'transactions') {
       foreach($data as $v) {
-        $conditions = 'PK = """'.$v['model']->PK.'""" AND SK = '.$v['model']->SK;
         unset($v['fields']['PK']);
         unset($v['fields']['SK']);
-        $result = AccountsRepository::update($table, $conditions, $v);
+        $result = AccountsRepository::update($table, $v['model']->bqPrimaryKeyCondition(), $v);
         if($result === false) {
           $success = false;
           break;
@@ -85,9 +84,8 @@ class Batch
     }
     elseif($table == 'accounts') {
       foreach($data as $v) {
-        $conditions = 'address = """'.$v['model']->address.'"""';
         unset($v['fields']['address']);
-        $result = TransactionsRepository::update($table, $conditions, $v);
+        $result = TransactionsRepository::update($table, $v['model']->bqPrimaryKeyCondition(), $v);
         if($result === false) {
           $success = false;
           break;
