@@ -23,7 +23,7 @@ class BTransaction extends B
   protected $primaryKey = 'sk';
   protected $keyType = 'string';
   public $timestamps = false;
-  protected $repositoryclass = TransactionsRepository::class;
+  public string $repositoryclass = TransactionsRepository::class;
 
   protected $fillable = [
     'SK',

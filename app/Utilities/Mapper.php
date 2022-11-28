@@ -6,6 +6,7 @@ use App\Models\Ledgerindex;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Cache;
+use App\Repository\TransactionsRepository;
 
 /**
  * Maps transactions to local DB for search and calculates intersected Ledgerindex-es.
@@ -94,6 +95,7 @@ class Mapper
       
     $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to); //10k
     
+    
     if($LedgerIndexLastForDay === null)
       throw new \Exception('Ledger index for end day is not yet synced');
 
@@ -101,7 +103,7 @@ class Mapper
       //Viewing current day, account should be synced to today atleast
       $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexFirstForDay($to)-1;
     }
-  
+    
     //Check if $this->address eg 75026591*10000 is synced within time ranges, if not then disallow search
     if(($account->l*10000) < $LedgerIndexLastForDay) {
       throw new \Exception('Account not synced to this ledger yet ('.($account->l*10000).' < '.$LedgerIndexLastForDay.')');
@@ -122,11 +124,13 @@ class Mapper
       
       if($ledgerindex) {
         foreach($this->conditions['txTypes'] as $txTypeNamepart) {
+          
           $page = 1;
           $next = null;
           $do = true;
           while($do) {
             $countWithNext = $this->fetchAllCount($ledgerindex, $txTypeNamepart, $page, $next); //first page
+            
             if($countWithNext[0] > 0) { //has transactions
               $foundLedgerIndexesIds[$txTypeNamepart][$ledgerindex.'.'.\str_pad($page,4,'0',STR_PAD_LEFT)] = [
                 'total' => $countWithNext[0],
@@ -249,29 +253,44 @@ class Mapper
    */
   private function fetchAllCount(int $ledgerindex, string $txTypeNamepart, int $subpage = 1, ?int $nextSK = null): array
   {
-    $DModelName = '\\App\\Models\\DTransaction'.$txTypeNamepart;
+    $BModelName = '\\App\\Models\\BTransaction'.$txTypeNamepart;
     
-    $cache_key = 'mpr'.$this->address.'_all_'.$ledgerindex.'_'.$subpage.'_'.$DModelName::TYPE;
+    $cache_key = 'mpr'.$this->address.'_all_'.$ledgerindex.'_'.$subpage.'_'.$BModelName::TYPE;
+    
     $r = Cache::get($cache_key);
 
     if($r === null) {
       $map = Map::select('count_num','first','last')
         ->where('address', $this->address)
         ->where('ledgerindex_id',$ledgerindex)
-        ->where('txtype',$DModelName::TYPE)
+        ->where('txtype',$BModelName::TYPE)
         ->where('condition','all')
         ->where('page', $subpage)
         ->first();
 
       if(!$map)
       {
-        //no records found, query DyDB for this day, for this type and save
+        //no records found, query BQ for this day, for this type and save
         $li = Ledgerindex::getLedgerindexData($ledgerindex);
+        
         if(!$li) {
           //clear cache then then/instead exception?
           throw new \Exception('Unable to fetch Ledgerindex of ID (previously cached): '.$ledgerindex);
         }
-        $query = $DModelName::createContextInstance($this->address)->where('PK',$this->address.'-'.$DModelName::TYPE);
+
+
+        $_WHERE = 'PK = """'.$this->address.'-'.$BModelName::TYPE.'"""';
+        if($li[1] === -1) //latest
+          $_WHERE .= ' AND SK >= '.($li[0]/10000); //INCLUSIVE
+        else
+          $_WHERE .= ' AND SK BETWEEN  '.($li[0]/10000).' AND '.($li[1]/10000); //INCLUSIVE per Documentation
+
+
+        $r = TransactionsRepository::fetchOne($_WHERE,'COUNT(*) as C','');
+    
+        dd($r,config('xwa.scan_limit'));
+        ##############################
+        $query = $BModelName::createContextInstance($this->address)->where('PK',$this->address.'-'.$BModelName::TYPE);
 
         $limit = config('xwa.scan_limit');
         if($limit)
@@ -283,7 +302,7 @@ class Mapper
           $query = $query->where('SK','between',[ ($li[0]/10000), ($li[1]/10000) ]);
 
         if($nextSK !== null) {
-          $query->afterKey(['PK' => $this->address.'-'.$DModelName::TYPE, 'SK' => ($nextSK/10000)]);
+          $query->afterKey(['PK' => $this->address.'-'.$BModelName::TYPE, 'SK' => ($nextSK/10000)]);
         }
 
         $c = $query->pagedCount();
@@ -292,7 +311,7 @@ class Mapper
         $map = new Map;
         $map->address = $this->address;
         $map->ledgerindex_id = $ledgerindex;
-        $map->txtype = $DModelName::TYPE;
+        $map->txtype = $BModelName::TYPE;
         $map->condition = 'all';
         $map->count_num = $count;
         $map->page = $subpage;

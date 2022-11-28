@@ -46,8 +46,9 @@ class AccountController extends Controller
     validateXRPAddressOrFail($address);
     $search = new Search($address);
     
+    
     //dd($request->input());
-    $search->buildFromRequest($request); 
+    $search->buildFromRequest($request);
     $search->execute();
     if($search->hasErrors()) {
       return response()->json(['success' => false, 'error_code' => $search->getErrorCode(), 'errors' => $search->getErrors()],422);

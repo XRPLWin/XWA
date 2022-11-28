@@ -9,7 +9,7 @@
 
 namespace App\Utilities;
 
-use App\Models\DAccount;
+use App\Models\BAccount;
 use App\Utilities\Scanplan\Parser as ScanplanParser;
 use App\Utilities\AccountLoader;
 
@@ -174,7 +174,7 @@ class Search
    * @throws \Exception
    * @return array ['counts' => $resultCounts, 'data' => $nonDefinitiveResults]
    */
-  private function _execute_real(int $page = 1, DAccount $acct)
+  private function _execute_real(int $page = 1, BAccount $acct)
   {
     
     $mapper = new Mapper();
@@ -211,6 +211,7 @@ class Search
     # Now we have requested types
     # Check if current requested start date is equal or larger than first available txtype
     $firstTxInfo = $acct->getFirstTransactionAllInfo();
+    
     if($firstTxInfo['first'] === null) {
       throw new \Exception('No synced transactions found');
     }
@@ -218,7 +219,6 @@ class Search
     $c2 = Carbon::createFromFormat('Y-m-d H:i:s',$firstTxInfo['first'].' 10:00:00');
     if($c1->lessThan($c2))
       throw new \Exception('No synced transactions found to requested date');
-
 
     if(!$typesIsAll) {
       //only specific types are requested
@@ -293,11 +293,12 @@ class Search
       $mapper->addCondition('st',$param_st);
     unset($param_st);
 
+    
     /**
      * Execute counts and get intersection of transaction hits depending on sent conditions.
      */
     $intersected = $mapper->getIntersectedLedgerindexes();
-    
+    dd($intersected);
     /**
      * Caculate optimal SCAN plan
      */

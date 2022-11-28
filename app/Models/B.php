@@ -13,6 +13,13 @@ abstract class B extends Model
   //protected $connection = 'bigquery';
   const BQCASTS = []; //This const is overriden in extended classes
 
+  public string $repositoryclass;
+
+  /*public function test()
+  {
+    return new $this->repositoryclass;
+  }*/
+
   /**
    * Extract changes, all fields must be present for insert, part can be present onl for update.
    * @return array [ 'table' => <tablename>, 'method' => <update|insert> 'fields' => [ <Fieldname> => <Parsed prepared value for BigQuery>, ... ], 'model' => MODEL ]

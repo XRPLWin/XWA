@@ -8,19 +8,29 @@ class TransactionsRepository extends Repository
 {
   /**
    * Fetches one record from database.
-   * @return ?array
+   * @return ?\stdClass
    */
-  public static function fetchOne($where): ?array
+  public static function fetchOne(string $where, ?string $columns = null, string $orderBy = ''): ?\stdClass
   {
-    $bq = app('bigquery');
-    $query = 'SELECT address,l FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE '.$where.' LIMIT 1';
-    $results = $bq->runQuery($bq->query($query));
+    $results = self::fetchMany($where, $columns, $orderBy, 1);
     $r = null;
     foreach ($results as $row) {
-      $r = $row;
+      $r = (object)$row;
       break;
     }
     return $r;
+  }
+
+  public static function fetchMany(string $where, ?string $columns = null, string $orderBy = '', int $limit): \Google\Cloud\BigQuery\QueryResults
+  {
+    if($columns === null)
+      $columns = 'SK,PK,h,t,r,isin,fee,a,i,c,a2,i2,c2,dt,st';
+    if($orderBy !== '')
+      $orderBy = ' ORDER BY '.$orderBy;
+    $bq = app('bigquery');
+    
+    $query = 'SELECT '.$columns.' FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE '.$where.''.$orderBy.' LIMIT '.$limit;;
+    return $bq->runQuery($bq->query($query));
   }
 
   /**
