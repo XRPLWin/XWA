@@ -20,8 +20,10 @@ class AccountLoader
       $Account = new BAccount([
         'address' => $address,
         'l' => (int)config('xrpl.genesis_ledger'), //initial
+        'activatedBy' => null,
         'isdeleted' => false,
       ]);
+      
       
       $Account->save();
     }
@@ -38,10 +40,10 @@ class AccountLoader
     validateXRPAddressOrFail($address);
 
     $AccountArray = Cache::get('daccount:'.$address);
-    //$AccountArray = null; //remove this
-
+    
     if(!$AccountArray) {
       $Account = BAccount::find($address);
+      
       if(!$Account)
         return null;
       Cache::put('daccount:'.$address, $Account->toArray(), 86400); //86400 seconds = 24 hours

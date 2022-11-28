@@ -13,7 +13,7 @@ class AccountsRepository extends Repository
    */
   public static function fetchByAddress(string $address): ?array
   {
-    return self::fetchOne('address = "'.$address.'"');
+    return self::fetchOne('address = """'.$address.'"""');
   }
 
   /**
@@ -46,7 +46,7 @@ class AccountsRepository extends Repository
     $castedValues = self::valuesToCastedValues(BAccount::BQCASTS, $values);
     $insert .= \implode(',',$castedValues);
     $insert .= ')';
-    
+    //dd($insert,$values);
     $bq = app('bigquery');
     $dataset = $bq->dataset('xwa');
     $query = $bq->query($insert)->defaultDataset($dataset);

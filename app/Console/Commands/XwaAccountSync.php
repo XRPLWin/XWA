@@ -89,8 +89,12 @@ class XwaAccountSync extends Command
       
       $this->ledger_current = Ledger::current();
       
-      
+      //clear account cache
+      Cache::forget('daccount:'.$address);
+      Cache::forget('daccount_fti:'.$address);
+
       $account = AccountLoader::getOrCreate($address);
+      //dd($account);
       //dd($account);
       //If this account is issuer (by checking obligations) set t field to 1.
       //if($account->checkIsIssuer())
@@ -186,12 +190,13 @@ class XwaAccountSync extends Command
             $parsedDatas[] = $this->processTransaction($account,$tx, $batch);
             $bar->advance();
           }
+          //exit;
 
           # Execute batch queries
           $this->info('');
           $this->info('Executing batch of queries...');
-          $batch->execute();
-          $this->info('- DONE');
+          $processed_rows = $batch->execute();
+          $this->info('- DONE (processed '.$processed_rows.' rows)');
 
           # Post processing results (flush cache)
           foreach($parsedDatas as $parsedData) {
@@ -258,6 +263,7 @@ class XwaAccountSync extends Command
     {
       $type = $transaction->tx->TransactionType;
       $method = 'processTransaction_'.$type;
+      
       
       if($transaction->meta->TransactionResult != 'tesSUCCESS')
         return null; //do not log failed transactions

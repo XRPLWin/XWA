@@ -14,17 +14,25 @@ class Repository
   {
     $r = [];
     foreach($values as $k => $v) {
+      
+      if(!$escapeStrings) {
+        $r[$k] = $v;
+        continue;
+      }
+        
       $cast = $definition[$k];
-
       switch ($cast) {
-        case 'BIGNUMERIC':
-          $r[$k] = \BigQuery::bigNumeric($v);
+        //case 'BIGNUMERIC':
+        //  $r[$k] = \BigQuery::bigNumeric($v);
+        //  break;
+        case 'NULLABLE INTEGER':
+          $r[$k] = ($v === null) ? 'NULL':$v;
           break;
         case 'STRING':
-          if($escapeStrings)
-            $r[$k] =  '"""'.$v.'"""'; //tripple quote escape
-          else
-            $r[$k] = $v;
+          $r[$k] =  '"""'.$v.'"""'; //tripple quote escape
+          break;
+        case 'NULLABLE STRING':
+          $r[$k] = ($v === null) ? 'NULL':'"""'.$v.'"""';
           break;
         case 'BOOLEAN':
           $r[$k] = $v?'true':'false';

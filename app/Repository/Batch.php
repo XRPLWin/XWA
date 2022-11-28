@@ -9,6 +9,7 @@ use App\Models\B;
  */
 class Batch
 {
+  /** List of models in queue to save (update or insert) */
   private array $queue = [];
 
   /**
@@ -20,7 +21,6 @@ class Batch
   {
     $changes = $model->extractPreparedDatabaseChanges();
     $this->queue[] = $changes;
-
   }
 
   /**
@@ -29,12 +29,12 @@ class Batch
    * @see https://github.com/GoogleCloudPlatform/php-docs-samples/blob/master/bigquery/api/src/import_from_storage_json.php
    * @see https://github.com/googleapis/google-cloud-php-bigquery/blob/main/src/Table.php#L654
    * @throws \Exception
-   * @return void
+   * @return int num processed rows
    */
-  public function execute(): void
+  public function execute(): int
   {
     if(!count($this->queue))
-      return;
+      return 0;
 
     //Group by table and method
     $q = [];
@@ -43,6 +43,7 @@ class Batch
     }
     unset($data);
     # Execute
+    $processed_rows = 0;
     foreach($q as $table => $methods) {
       foreach($methods as $method => $data) { //insert|update => []
         if($method === 'insert') {
@@ -50,28 +51,37 @@ class Batch
           if(!$executeResult['success']) {
             throw new \Exception('Unsuccessful executeInsert with errors: '.\implode('; ',$executeResult['errors']));
           }
+          $processed_rows += $executeResult['processed_rows'];
         }
         elseif($method == 'update') {
-          $executeResult = $this->executeUpdate($table,$data);
+          $executeResult = $this->executeUpdate($data);
           if(!$executeResult['success']) {
             throw new \Exception('Unsuccessful executeUpdate with errors: '.\implode('; ',$executeResult['errors']));
           }
+          $processed_rows += $executeResult['processed_rows'];
         }
         else
           throw new \Exception('Unhadled save method ['.$method.']');
       }
     }
+
+    return $processed_rows;
   }
 
   /**
    * If one fails then every row is rolled back (stopped )
    * @return array ['success' => BOOL, 'errors' => ARRAY ]
    */
-  private function executeUpdate($table, $data)
+  private function executeUpdate(array $data)
   {
     $success = true;
+    foreach($data as $v) {
+      if(!$v['model']->save())
+        $success = false;
+    }
+    return ['success' => $success, 'errors' => []]; //todo collect errors
 
-    if($table == 'transactions') {
+    /*if($table == 'transactions') {
       foreach($data as $v) {
         unset($v['fields']['PK']);
         unset($v['fields']['SK']);
@@ -95,7 +105,7 @@ class Batch
     else
       throw new \Exception('Not implemented repo for ['.$table.']');
     
-    return ['success' => $success, 'errors' => []];
+    return ['success' => $success, 'errors' => []];*/
   }
 
   /**
@@ -106,12 +116,13 @@ class Batch
   {
     $bq = app('bigquery');
     $table = $bq->dataset('xwa')->table($table);
-    
+    $processed_rows = 0;
     $id = 1;
     $rows = [];
     foreach($data as $v) {
       $rows[] = ['insertId' => $id, 'data' => $v['fields']];
       $id++;
+      $processed_rows++;
     }
 
     //Testing invalid row:
@@ -122,6 +133,7 @@ class Batch
     //dd(collect($rows)->pluck('data.h')->toArray(),collect($rows)->pluck('data.PK')->toArray());
     $insertResponse = $table->insertRows($rows, ['retries' => 5]);
     if (!$insertResponse->isSuccessful()) {
+      $processed_rows = 0;
       $success = false;
       foreach ($insertResponse->failedRows() as $row) {
         foreach ($row['errors'] as $error) {
@@ -130,6 +142,11 @@ class Batch
       }
     }
 
-    return ['success' => $success, 'errors' => $errors];
+    //All models inserted, execute model events.
+    foreach($data as $v) {
+      $v['model']->applyInsertedEvent();
+    }
+
+    return ['success' => $success, 'errors' => $errors, 'processed_rows' => $processed_rows];
   }
 }

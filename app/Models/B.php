@@ -38,12 +38,23 @@ abstract class B extends Model
       }
     }
     
-    return ['table' => $this->table, 'method' => $this->exists ? 'update':'insert', 'fields' => $r, 'model' => $this];
+    return ['table' => $this->getTable(), 'method' => $this->exists ? 'update':'insert', 'fields' => $r, 'model' => $this];
   }
 
   protected function bqPrimaryKeyCondition(): string
   {
     throw new \Exception('Not implemented');
+  }
+
+  /**
+   * Row is inserted to database, apply changes to this model.
+   * Saving event wont trigger when batch inserting only finishSave
+   * Called from Repository/Batch
+   */
+  public function applyInsertedEvent($options = [])
+  {
+    $this->mergeAttributesFromCachedCasts();
+    $this->finishSave($options);
   }
 
   /**
@@ -55,52 +66,52 @@ abstract class B extends Model
   public function save(array $options = [])
   {
   
-      $this->mergeAttributesFromCachedCasts();
-      
+    $this->mergeAttributesFromCachedCasts();
+    
 
-      //$query = $this->newModelQuery();
+    //$query = $this->newModelQuery();
 
-      // If the "saving" event returns false we'll bail out of the save and return
-      // false, indicating that the save failed. This provides a chance for any
-      // listeners to cancel save operations if validations fail or whatever.
-      if ($this->fireModelEvent('saving') === false) {
-          return false;
-      }
+    // If the "saving" event returns false we'll bail out of the save and return
+    // false, indicating that the save failed. This provides a chance for any
+    // listeners to cancel save operations if validations fail or whatever.
+    if ($this->fireModelEvent('saving') === false) {
+        return false;
+    }
 
-      $data = $this->extractPreparedDatabaseChanges();
-      //dd($data);
-      
-      // If the model already exists in the database we can just update our record
-      // that is already in this database using the current IDs in this "where"
-      // clause to only update this model. Otherwise, we'll just insert them.
-      if ($this->exists) {
-        $saved = $this->isDirty() ?
-          $this->performBQUpdate($data) : true;
-      }
+    $data = $this->extractPreparedDatabaseChanges();
+    //dd($data);
+    
+    // If the model already exists in the database we can just update our record
+    // that is already in this database using the current IDs in this "where"
+    // clause to only update this model. Otherwise, we'll just insert them.
+    if ($this->exists) {
+      $saved = $this->isDirty() ?
+        $this->performBQUpdate($data) : true;
+    }
 
-      // If the model is brand new, we'll insert it into our database and set the
-      // ID attribute on the model to the value of the newly inserted row's ID
-      // which is typically an auto-increment value managed by the database.
-      else {
+    // If the model is brand new, we'll insert it into our database and set the
+    // ID attribute on the model to the value of the newly inserted row's ID
+    // which is typically an auto-increment value managed by the database.
+    else {
 
-        //do update and set $saved = bool
+      //do update and set $saved = bool
 
-        $saved = $this->performBQInsert($data);
+      $saved = $this->performBQInsert($data);
 
-        //if (! $this->getConnectionName() &&
-        //    $connection = $query->getConnection()) {
-        //    $this->setConnection($connection->getName());
-        //}
-      }
+      //if (! $this->getConnectionName() &&
+      //    $connection = $query->getConnection()) {
+      //    $this->setConnection($connection->getName());
+      //}
+    }
 
-      // If the model is successfully saved, we need to do a few more things once
-      // that is done. We will call the "saved" method here to run any actions
-      // we need to happen after a model gets successfully saved right here.
-      if ($saved) {
-        $this->finishSave($options);
-      }
+    // If the model is successfully saved, we need to do a few more things once
+    // that is done. We will call the "saved" method here to run any actions
+    // we need to happen after a model gets successfully saved right here.
+    if ($saved) {
+      $this->finishSave($options);
+    }
 
-      return $saved;
+    return $saved;
   }
 
   /**
@@ -133,7 +144,7 @@ abstract class B extends Model
 
       if (count($dirty) > 0) {
           //$this->setKeysForSaveQuery($query)->update($dirty);
-
+        
           $saved = $this->repositoryclass::update(
             $data['table'],
             $this->bqPrimaryKeyCondition(),
@@ -170,7 +181,7 @@ abstract class B extends Model
         //    $this->updateTimestamps();
         //}
 
-
+       
         $saved = $this->repositoryclass::insert($data['fields']);
         if(!$saved)
           return false;

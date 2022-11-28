@@ -29,7 +29,7 @@ class BAccount extends B
   const BQCASTS = [
     'address' => 'STRING',
     'l'       => 'INTEGER',
-    'activatedBy' => 'STRING',
+    'activatedBy' => 'NULLABLE STRING',
     'isdeleted' => 'BOOLEAN'
   ];
 

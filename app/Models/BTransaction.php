@@ -50,15 +50,15 @@ class BTransaction extends B
     't'     => 'INTEGER',
     'r'     => 'STRING',
     'isin'  => 'BOOLEAN',
-    'fee'   => 'INTEGER',
-    'a'     => 'STRING',
-    'i'     => 'STRING',
-    'c'     => 'STRING',
-    'a2'    => 'STRING',
-    'i2'    => 'STRING',
-    'c2'    => 'STRING',
-    'dt'    => 'INTEGER',
-    'st'    => 'INTEGER'
+    'fee'   => 'NULLABLE INTEGER',
+    'a'     => 'NULLABLE STRING',
+    'i'     => 'NULLABLE STRING',
+    'c'     => 'NULLABLE STRING',
+    'a2'    => 'NULLABLE STRING',
+    'i2'    => 'NULLABLE STRING',
+    'c2'    => 'NULLABLE STRING',
+    'dt'    => 'NULLABLE INTEGER',
+    'st'    => 'NULLABLE INTEGER'
   ];
 
   protected function bqPrimaryKeyCondition(): string
