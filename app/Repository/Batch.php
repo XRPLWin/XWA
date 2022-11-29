@@ -79,7 +79,7 @@ class Batch
       if(!$v['model']->save())
         $success = false;
     }
-    return ['success' => $success, 'errors' => []]; //todo collect errors
+    return ['success' => $success, 'errors' => [], 'processed_rows' => $success ? 1:0]; //todo collect errors
 
     /*if($table == 'transactions') {
       foreach($data as $v) {
@@ -146,7 +146,7 @@ class Batch
     foreach($data as $v) {
       $v['model']->applyInsertedEvent();
     }
-
+    //dd($insertResponse);
     return ['success' => $success, 'errors' => $errors, 'processed_rows' => $processed_rows];
   }
 }

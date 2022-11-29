@@ -115,10 +115,10 @@ class Mapper
     foreach($this->conditions['txTypes'] as $txTypeNamepart) {
       $foundLedgerIndexesIds[$txTypeNamepart] = [];
     }
-    
+
     # Phase 1 ALL days per Tx Type
     foreach($period as $day) {
-      
+      dump('a');
       $ledgerindex = Ledgerindex::getLedgerindexIdForDay($day);
       
       
@@ -244,12 +244,13 @@ class Mapper
   
   /**
    * Fetches list of indexes for time range and types
-   * From cache first, then from db, else generate from DyDB.
+   * From cache first, then from db, else get from BQ.
    * Appliable to ALL transaction types.
    * @param int $ledgerindex - id from ledgerindexes table
-   * @param string $txTypeNamepart - \App\Models\DTransaction<NAMEPART>
+   * @param string $txTypeNamepart - \App\Models\BTransaction<NAMEPART>
    * @param ?int $next - latest evaluated SK*10000 for building lastKey for DynamoDB iterator
    * @return array [ int transaction count, string breakpoints ]
+   * http://xlanalyzer.test/v1/account/search/r4GBuaRNykmkg5kZkVxnsERBVcJjYNb7Hx?from=2016-02-01&to=2016-02-28
    */
   private function fetchAllCount(int $ledgerindex, string $txTypeNamepart, int $subpage = 1, ?int $nextSK = null): array
   {
@@ -283,10 +284,14 @@ class Mapper
         if($li[1] === -1) //latest
           $_WHERE .= ' AND SK >= '.($li[0]/10000); //INCLUSIVE
         else
-          $_WHERE .= ' AND SK BETWEEN  '.($li[0]/10000).' AND '.($li[1]/10000); //INCLUSIVE per Documentation
+          $_WHERE .= ' AND SK BETWEEN  '.($li[0]/10000).' AND '.($li[1]/10000); //INCLUSIVE
+
+dd($_WHERE);
+        $r = TransactionsRepository::fetchOne($_WHERE,'COUNT(*) as c','');
+
+        //get Last evaluated key
 
 
-        $r = TransactionsRepository::fetchOne($_WHERE,'COUNT(*) as C','');
     
         dd($r,config('xwa.scan_limit'));
         ##############################
