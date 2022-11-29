@@ -76,9 +76,9 @@ return new class extends Migration
       ],
       [
         'name' => 't',
-        'type' => 'INTEGER',
+        'type' => 'TIMESTAMP',
         'mode' => 'REQUIRED',
-        'description' => 'Ripple epoch transaction time'
+        'description' => 'Timestamp', //ex repoch
       ],
       [
         'name' => 'r',
@@ -164,7 +164,14 @@ return new class extends Migration
       ],*/
     ];
 
-    \BigQuery::dataset('xwa')->createTable('transactions', ['schema' => [ 'fields' => $fields ]]);
+    \BigQuery::dataset('xwa')->createTable('transactions', [
+      'schema' => [ 'fields' => $fields ],
+      'timePartitioning' => [
+        'type' => 'MONTH',
+        //'expirationMs' => '',
+        'field' => 't'
+      ]
+    ]);
   }
 
   /**

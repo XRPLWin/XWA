@@ -84,7 +84,7 @@ class BAccount extends B
     if($r !== null) {
       $result = [
         'repoch' => $r->t, //ripple epoch
-        'date' => ripple_epoch_to_carbon($r->t)->format('Y-m-d'),
+        'date' => bqtimestamp_to_carbon($r->t)->format('Y-m-d'),
         'li' => $r->SK
       ];
     }

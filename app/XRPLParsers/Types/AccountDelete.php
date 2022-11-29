@@ -30,7 +30,7 @@ final class AccountDelete extends XRPLParserBase
   public function toDArray(): array
   {
     $r = [
-      't' => $this->data['Date'],
+      't' => ripple_epoch_to_carbon((int)$this->data['Date'])->format('Y-m-d H:i:s.uP'),
       //'fe' => $this->data['Fee'],
       'isin' => $this->data['In'],
       'r' => $this->data['Counterparty'],

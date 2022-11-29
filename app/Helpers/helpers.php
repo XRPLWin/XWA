@@ -33,6 +33,12 @@ if (!function_exists('ripple_epoch_to_carbon')) {
   }
 }
 
+if (!function_exists('bqtimestamp_to_carbon')) {
+  function bqtimestamp_to_carbon(string $timestamp) {
+    return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s.uP',$timestamp);
+  }
+}
+
 if (!function_exists('xrpl_has_flag')) {
   /**
    * Check if $check is included in $flags using bitwise-and operator.

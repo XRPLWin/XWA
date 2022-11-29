@@ -202,11 +202,12 @@ class XwaAccountSync extends Command
           foreach($parsedDatas as $parsedData) {
             if(!empty($parsedData)) {
               if($dayToFlush === null) {
-                $dayToFlush = ripple_epoch_to_carbon($parsedData['t'])->format('Y-m-d');
+                
+                $dayToFlush = bqtimestamp_to_carbon($parsedData['t'])->format('Y-m-d');
                 $this->info('Flushing day (initial) '.$dayToFlush);
                 $this->flushDayCache($account->address,$dayToFlush);
               } else {
-                $txDayToFlush = ripple_epoch_to_carbon($parsedData['t'])->format('Y-m-d');
+                $txDayToFlush = bqtimestamp_to_carbon($parsedData['t'])->format('Y-m-d');
                 if($dayToFlush !== $txDayToFlush) {
                   $this->info('Flushing day '.$dayToFlush);
                   $this->flushDayCache($account->address,$dayToFlush);
@@ -359,7 +360,7 @@ class XwaAccountSync extends Command
           'PK' => $account->address.'-'.BTransactionActivation::TYPE,
           'SK' => $parser->SK(),
           'h' => $parsedData['h'],
-          't' => $parser->getDataField('Date'),
+          't' => ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('Y-m-d H:i:s.uP'),
           'r' => $activatedAddress,
           'isin' => true,
         ]);

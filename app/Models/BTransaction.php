@@ -47,7 +47,7 @@ class BTransaction extends B
     'SK'    => 'FLOAT',
     'PK'    => 'STRING',
     'h'     => 'STRING',
-    't'     => 'INTEGER',
+    't'     => 'TIMESTAMP',
     'r'     => 'STRING',
     'isin'  => 'BOOLEAN',
     'fee'   => 'NULLABLE INTEGER',

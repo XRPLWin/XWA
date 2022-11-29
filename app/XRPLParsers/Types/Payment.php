@@ -98,14 +98,13 @@ final class Payment extends XRPLParserBase
   {
     //dd($this->data);
     $r = [
-      't' => $this->data['Date'],
+      't' => ripple_epoch_to_carbon((int)$this->data['Date'])->format('Y-m-d H:i:s.uP'),
       //'fe' => $this->data['Fee'], //now optional
       'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'], //OK
       'h' => (string)$this->data['hash'],
       //'a' => $this->data['Amount'] //now optional
     ];
-
 
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];

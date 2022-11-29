@@ -118,7 +118,7 @@ class Mapper
 
     # Phase 1 ALL days per Tx Type
     foreach($period as $day) {
-      dump('a');
+      
       $ledgerindex = Ledgerindex::getLedgerindexIdForDay($day);
       
       
@@ -254,6 +254,7 @@ class Mapper
    */
   private function fetchAllCount(int $ledgerindex, string $txTypeNamepart, int $subpage = 1, ?int $nextSK = null): array
   {
+    dd('test');
     $BModelName = '\\App\\Models\\BTransaction'.$txTypeNamepart;
     
     $cache_key = 'mpr'.$this->address.'_all_'.$ledgerindex.'_'.$subpage.'_'.$BModelName::TYPE;
