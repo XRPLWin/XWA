@@ -80,11 +80,12 @@ class BAccount extends B
   
 
     //$repository = new $Model->repositoryclass;
-    $r = $Model->repositoryclass::fetchOne('PK = """'.$this->address.'-'.$TransactionModelName::TYPE.'""" AND SK > 0','SK,t','SK ASC');
+    $r = $Model->repositoryclass::fetchOne('PK = """'.$this->address.'-'.$TransactionModelName::TYPE.'"""','SK,t','SK ASC');
     if($r !== null) {
+      $t = bqtimestamp_to_carbon($r->t);
       $result = [
-        'repoch' => $r->t, //ripple epoch
-        'date' => bqtimestamp_to_carbon($r->t)->format('Y-m-d'),
+        'timestamp' => $t->timestamp, //unix timestamp
+        'date' => $t->format('Y-m-d'),
         'li' => $r->SK
       ];
     }
@@ -120,7 +121,7 @@ class BAccount extends B
     if($r === null) {
       $typeList = config('xwa.transaction_types');
       
-      $repoch_tracker = null;
+      $timestamp_tracker = null;
   
       $r = [
         'first' => null, //time of first transaciton
@@ -131,18 +132,18 @@ class BAccount extends B
         $t = $this->getFirstTransactionInfo($typeName);
         $r['first_per_types'][$typeIdentifier] = $t;
         if($t !== null) {
-          if($repoch_tracker  === null) {  //initial
-            $repoch_tracker = $t['repoch'];
+          if($timestamp_tracker  === null) {  //initial
+            $timestamp_tracker = $t['timestamp'];
             $r['first'] = $t['date'];
           }
-          if($t['repoch'] < $repoch_tracker) { //check is lesser
-            $repoch_tracker = $t['repoch'];
+          if($t['timestamp'] < $timestamp_tracker) { //check is lesser
+            $timestamp_tracker = $t['timestamp'];
             $r['first'] = $t['date'];
           }
         }
         unset($t);
       }
-      unset($repoch_tracker);
+      unset($timestamp_tracker);
       Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     return $r;

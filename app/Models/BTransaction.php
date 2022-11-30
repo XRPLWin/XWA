@@ -26,10 +26,10 @@ class BTransaction extends B
   public string $repositoryclass = TransactionsRepository::class;
 
   protected $fillable = [
-    'SK',
-    'PK',
-    'h',
     't',
+    'address',
+    'xwatype',
+    'h',
     'r',
     'isin',
     'fee',
@@ -44,26 +44,26 @@ class BTransaction extends B
   ];
 
   const BQCASTS = [
-    'SK'    => 'FLOAT',
-    'PK'    => 'STRING',
-    'h'     => 'STRING',
-    't'     => 'TIMESTAMP',
-    'r'     => 'STRING',
-    'isin'  => 'BOOLEAN',
-    'fee'   => 'NULLABLE INTEGER',
-    'a'     => 'NULLABLE STRING',
-    'i'     => 'NULLABLE STRING',
-    'c'     => 'NULLABLE STRING',
-    'a2'    => 'NULLABLE STRING',
-    'i2'    => 'NULLABLE STRING',
-    'c2'    => 'NULLABLE STRING',
-    'dt'    => 'NULLABLE INTEGER',
-    'st'    => 'NULLABLE INTEGER'
+    't'       => 'TIMESTAMP',
+    'address' => 'STRING',
+    'xwatype' => 'INTEGER',
+    'h'       => 'STRING',
+    'r'       => 'STRING',
+    'isin'    => 'BOOLEAN',
+    'fee'     => 'NULLABLE INTEGER',
+    'a'       => 'NULLABLE STRING',
+    'i'       => 'NULLABLE STRING',
+    'c'       => 'NULLABLE STRING',
+    'a2'      => 'NULLABLE STRING',
+    'i2'      => 'NULLABLE STRING',
+    'c2'      => 'NULLABLE STRING',
+    'dt'      => 'NULLABLE INTEGER',
+    'st'      => 'NULLABLE INTEGER'
   ];
 
   protected function bqPrimaryKeyCondition(): string
   {
-    return 'PK = """'.$this->PK.'""" AND SK = '.$this->SK;
+    return 'address = """'.$this->address.'""" AND t = '.$this->t;
   }
 
   /**

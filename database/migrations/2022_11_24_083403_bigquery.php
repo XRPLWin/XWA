@@ -57,16 +57,28 @@ return new class extends Migration
     
     $fields = [
       [
+        'name' => 't',
+        'type' => 'TIMESTAMP',
+        'mode' => 'REQUIRED',
+        'description' => 'Timestamp', //ex repoch
+      ],
+      /*[
         'name' => 'SK',
         'type' => 'FLOAT',
         'mode' => 'REQUIRED',
         'description' => 'LedgerIndex.TxSequence'
-      ],
+      ],*/
       [
-        'name' => 'PK',
+        'name' => 'address',
         'type' => 'STRING',
         'mode' => 'REQUIRED',
         'description' => 'rAddress-XWTxType'
+      ],
+      [
+        'name' => 'xwatype',
+        'type' => 'INTEGER',
+        'mode' => 'REQUIRED',
+        'description' => 'XWA Transaction Type'
       ],
       [
         'name' => 'h',
@@ -74,12 +86,7 @@ return new class extends Migration
         'mode' => 'REQUIRED',
         'description' => 'Transaction HASH'
       ],
-      [
-        'name' => 't',
-        'type' => 'TIMESTAMP',
-        'mode' => 'REQUIRED',
-        'description' => 'Timestamp', //ex repoch
-      ],
+      
       [
         'name' => 'r',
         'type' => 'STRING',

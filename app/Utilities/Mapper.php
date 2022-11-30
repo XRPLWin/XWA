@@ -94,7 +94,7 @@ class Mapper
       throw new \Exception('Invalid account or account address format');
       
     $LedgerIndexLastForDay = Ledgerindex::getLedgerIndexLastForDay($to); //10k
-    
+    dd($LedgerIndexLastForDay);
     
     if($LedgerIndexLastForDay === null)
       throw new \Exception('Ledger index for end day is not yet synced');
