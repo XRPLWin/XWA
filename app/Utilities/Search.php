@@ -222,17 +222,22 @@ class Search
     # Build query for BQ
   
     $SQL = 'SELECT '.\implode(',',\array_keys(BTransaction::BQCASTS)).' FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
+    $SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
     $SQL .= $mapper->generateTConditionSQL().' AND address = """'.$this->address.'"""';
+    $SQL .= ' LIMIT 5';
     //dd($SQL);
 
     //https://github.com/googleapis/google-cloud-php-bigquery/blob/main/tests/Snippet/CopyJobConfigurationTest.php
     ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2014-08-15&to=2017-08-15&types[0]=Payment
     ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2016-09-06&to=2016-09-06&types[0]=Payment&dir=in
     $bq = app('bigquery');
-    $configuration = []; //TODO
-    $query = $bq->query($SQL,$configuration);//->defaultDataset($bq->dataset('xwa'));
-    dd($query);
+    $query = $bq->query($SQL)
+      ->useQueryCache(true)
+    ;
+    //dd($query);
+    //dd($query);
     $job = $bq->runQuery($query);
+    dd($job);
     $rows = iterator_to_array($job->rows());
     dd ($rows);
     //$jobs = $bq->jobs();
