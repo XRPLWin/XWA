@@ -78,6 +78,7 @@ class Batch
     foreach($data as $v) {
       if(!$v['model']->save())
         $success = false;
+      //unset($v['model']);
     }
     return ['success' => $success, 'errors' => [], 'processed_rows' => $success ? 1:0]; //todo collect errors
 
@@ -120,7 +121,9 @@ class Batch
     $id = 1;
     $rows = [];
     foreach($data as $v) {
+      
       $rows[] = ['insertId' => $id, 'data' => $v['fields']];
+      //unset($v['model']);
       $id++;
       $processed_rows++;
     }

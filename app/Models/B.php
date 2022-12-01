@@ -72,7 +72,6 @@ abstract class B extends Model
    */
   public function save(array $options = [])
   {
-  
     $this->mergeAttributesFromCachedCasts();
     
 

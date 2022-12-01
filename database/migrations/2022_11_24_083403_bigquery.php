@@ -60,7 +60,7 @@ return new class extends Migration
         'name' => 't',
         'type' => 'TIMESTAMP',
         'mode' => 'REQUIRED',
-        'description' => 'Timestamp', //ex repoch
+        'description' => 'Timestamp (Y-m-d H:i:s.uP)',
       ],
       /*[
         'name' => 'SK',
@@ -72,7 +72,7 @@ return new class extends Migration
         'name' => 'address',
         'type' => 'STRING',
         'mode' => 'REQUIRED',
-        'description' => 'rAddress-XWTxType'
+        'description' => 'rAddress'
       ],
       [
         'name' => 'xwatype',
@@ -175,7 +175,6 @@ return new class extends Migration
       'schema' => [ 'fields' => $fields ],
       'timePartitioning' => [
         'type' => 'MONTH',
-        //'expirationMs' => '',
         'field' => 't'
       ]
     ]);

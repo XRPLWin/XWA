@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Repository\AccountsRepository;
-
+use App\Repository\TransactionsRepository;
 
 use App\Jobs\QueueArtisanCommand;
 use Illuminate\Support\Facades\DB;
@@ -70,47 +70,9 @@ class BAccount extends B
   }
 
   /**
-   * @return ?array [ 'repoch' => <ripple epoch>, 'date' => YYYY-MM-DD, 'li' => SK ]
-   */
-  private function getFirstTransactionInfo(string $txTypeNamepart): ?array
-  {
-    $result = null;
-    $TransactionModelName = '\\App\\Models\\BTransaction'.$txTypeNamepart;
-    $Model = new $TransactionModelName;
-  
-
-    //$repository = new $Model->repositoryclass;
-    $r = $Model->repositoryclass::fetchOne('PK = """'.$this->address.'-'.$TransactionModelName::TYPE.'"""','SK,t','SK ASC');
-    if($r !== null) {
-      $t = bqtimestamp_to_carbon($r->t);
-      $result = [
-        'timestamp' => $t->timestamp, //unix timestamp
-        'date' => $t->format('Y-m-d'),
-        'li' => $r->SK
-      ];
-    }
-    return $result;
-    /*dd($result);
-
-
-    dd($txTypeNamepart);
-    $result = null;
-    $TransactionModelName = '\\App\\Models\\BTransaction'.$txTypeNamepart;
-    $r = $TransactionModelName::createContextInstance($this->PK)->where('PK', $this->PK.'-'.$TransactionModelName::TYPE)->where('SK', '>', 0)->take(1)->get(['t'])->first(); //['PK','SK','t']
-    if($r) {
-      $result = [
-        'repoch' => $r->t, //ripple epoch
-        'date' => ripple_epoch_to_carbon($r->t)->format('Y-m-d'),
-        'li' => $r->SK
-      ];
-    }
-      
-    return $result;*/
-  }
-
-  /**
    * Cached
-   * @return [ 'first' => YYYY-MM-DD, 'first_per_types' => [ <DTransaction::TYPE> =>  [ repoch, date, li ], ... ] ]
+   * Syntax: SELECT xwatype,t FROM `TABLE` WHERE TRUE QUALIFY ROW_NUMBER() OVER (PARTITION BY xwatype ORDER BY t ASC) = 1
+   * @return [ 'first' => UNIXTIMESTAMP, 'first_per_types' => [ <DTransaction::TYPE> =>  UNIXTIMESTAMP, ... ] ]
    */
   public function getFirstTransactionAllInfo(): array
   {
@@ -119,31 +81,37 @@ class BAccount extends B
     $r = Cache::get($cache_key);
 
     if($r === null) {
+
+      $results = TransactionsRepository::query(
+        'SELECT xwatype,t FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE TRUE QUALIFY ROW_NUMBER() OVER (PARTITION BY xwatype ORDER BY t ASC) = 1'
+      );
+
+      $collection = [];
+      foreach($results as $row) {
+        $collection[$row['xwatype']] = (int)$row['t']->get()->format('U');
+      }
+
       $typeList = config('xwa.transaction_types');
-      
       $timestamp_tracker = null;
-  
+
       $r = [
         'first' => null, //time of first transaciton
         'first_per_types' => [],   //times of first transaction per types
       ];
   
-      foreach($typeList as $typeIdentifier => $typeName) {
-        $t = $this->getFirstTransactionInfo($typeName);
-        $r['first_per_types'][$typeIdentifier] = $t;
-        if($t !== null) {
-          if($timestamp_tracker  === null) {  //initial
-            $timestamp_tracker = $t['timestamp'];
-            $r['first'] = $t['date'];
+      foreach($typeList as $typeIdentifier => $foo) {
+        $r['first_per_types'][$typeIdentifier] = isset($collection[$typeIdentifier]) ? $collection[$typeIdentifier]:null;
+        if($r['first_per_types'][$typeIdentifier] !== null) {
+          if($timestamp_tracker === null) {  //initial
+            $timestamp_tracker = $r['first_per_types'][$typeIdentifier];
+            $r['first'] = $r['first_per_types'][$typeIdentifier];
           }
-          if($t['timestamp'] < $timestamp_tracker) { //check is lesser
-            $timestamp_tracker = $t['timestamp'];
-            $r['first'] = $t['date'];
+          if($r['first_per_types'][$typeIdentifier] < $timestamp_tracker) { //check is lesser
+            $timestamp_tracker = $r['first_per_types'][$typeIdentifier];
+            $r['first'] = $r['first_per_types'][$typeIdentifier];
           }
         }
-        unset($t);
       }
-      unset($timestamp_tracker);
       Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
     return $r;

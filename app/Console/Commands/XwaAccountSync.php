@@ -150,7 +150,9 @@ class XwaAccountSync extends Command
       $do = true;
       $isLast = true;
       $dayToFlush = null;
+      $i = 0;
       while($do) {
+        
         try {
           $account_tx->send();
         } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
@@ -174,29 +176,36 @@ class XwaAccountSync extends Command
         {
           $this->batch_current++;
           //dd($account_tx);
+          
           $txs = $account_tx->finalResult();
           $this->info('');
           $this->info('Starting batch of '.count($txs).' transactions: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
           $bar = $this->output->createProgressBar(count($txs));
           $bar->start();
+     
 
           $parsedDatas = []; //list of sub-method results (parsed transactions)
 
           # Prepare Batch instance which will hold list of queries to be executed at once to BigQuery
           $batch = new Batch;
 
+         
           # Parse each transaction and prepare batch execution queries
           foreach($txs as $tx) {
             $parsedDatas[] = $this->processTransaction($account,$tx, $batch);
             $bar->advance();
           }
+         
+          unset($txs);
           //exit;
 
           # Execute batch queries
           $this->info('');
           $this->info('Executing batch of queries...');
           $processed_rows = $batch->execute();
+          unset($batch);
           $this->info('- DONE (processed '.$processed_rows.' rows)');
+          $this->info('Memory: '.memory_get_usage());
 
           # Post processing results (flush cache)
           foreach($parsedDatas as $parsedData) {
@@ -211,13 +220,16 @@ class XwaAccountSync extends Command
                 if($dayToFlush !== $txDayToFlush) {
                   $this->info('Flushing day '.$dayToFlush);
                   $this->flushDayCache($account->address,$dayToFlush);
+                  unset($dayToFlush);
                   $dayToFlush = $txDayToFlush;
                 }
               }
             }
           }
+          unset($parsedDatas);
           
           $bar->finish();
+          unset($bar);
 
           if($account_tx = $account_tx->next()) {
             //update last synced ledger index to account metadata
@@ -344,9 +356,8 @@ class XwaAccountSync extends Command
 
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
-      
-      $model->PK = $account->address.'-'.$TransactionClassName::TYPE;
-      $model->SK = $parser->SK();
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
       $batch->queueModelChanges($model);
       //$model->save();
       
@@ -357,8 +368,8 @@ class XwaAccountSync extends Command
         //$this->info('');
         //$this->info('Activation: '.$activatedAddress. ' on index '.$parser->SK());
         $Activation = new BTransactionActivation([
-          'PK' => $account->address.'-'.BTransactionActivation::TYPE,
-          'SK' => $parser->SK(),
+          'address' => $account->address,//.'-'.BTransactionActivation::TYPE,
+          'xwatype' => BTransactionActivation::TYPE,
           'h' => $parsedData['h'],
           't' => ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('Y-m-d H:i:s.uP'),
           'r' => $activatedAddress,
@@ -370,7 +381,7 @@ class XwaAccountSync extends Command
 
       if($activatedByAddress = $parser->getActivatedBy()) {
         $this->info('');
-        $this->info('Activation: Activated by '.$activatedByAddress. ' on index '.$parser->SK());
+        $this->info('Activation: Activated by '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
         $account->activatedBy = $activatedByAddress;
         $account->isdeleted = false; //in case it is reactivated, this will remove field on model save
         $batch->queueModelChanges($account);
@@ -379,7 +390,7 @@ class XwaAccountSync extends Command
         if($this->recursiveaccountqueue)
         {
           //parent created this account, queue parent
-          $this->info('Queued account: '.$activatedByAddress. ' on index '.$parser->SK());
+          $this->info('Queued account: '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
           //$source_account->sync(true);
           $newAccount = AccountLoader::getOrCreate($activatedByAddress);
           $newAccount->sync(
@@ -402,8 +413,8 @@ class XwaAccountSync extends Command
 
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
-      $model->PK = $account->address.'-'.$TransactionClassName::TYPE;
-      $model->SK = $parser->SK();
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
       $batch->queueModelChanges($model);
       //$model->save();
       return $parsedData;
@@ -448,8 +459,8 @@ class XwaAccountSync extends Command
 
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
-      $model->PK = $account->address.'-'.$TransactionClassName::TYPE;
-      $model->SK = $parser->SK();
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
       $batch->queueModelChanges($model);
       //$model->save();
 
@@ -562,9 +573,11 @@ class XwaAccountSync extends Command
 
     /**
      * Flush account maps and cache for this day.
+     * @deprecated
      */
     private function flushDayCache(string $address, string $day)
     {
+      /*
       $carbon = Carbon::createFromFormat('Y-m-d',$day);
       $liId = Ledgerindex::getLedgerindexIdForDay($carbon);
       if($liId) {
@@ -576,6 +589,6 @@ class XwaAccountSync extends Command
         }
         //flush from maps table
         Map::where('address',$address)->where('ledgerindex_id',$liId)->delete();
-      }
+      }*/
     }
 }

@@ -72,4 +72,22 @@ class Repository
     return true;
   }
 
+  /**
+   * Executes query.
+   */
+  public static function query(string $q, array $options = []): ?\Google\Cloud\BigQuery\QueryResults
+  {
+    $results = null;
+    $bq = app('bigquery');
+
+    $query = $bq->query($q);//->defaultDataset($bq->dataset('xwa'));
+    try {
+      $results = $bq->runQuery($query);
+    } catch (\Throwable $e) {
+      //dd($e->getMessage());
+      throw $e;
+    }
+    return $results;
+  }
+
 }
