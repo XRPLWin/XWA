@@ -19,7 +19,7 @@ final class BTransactionTrustset extends BTransaction
       'context' => $this::CONTEXT_ADDTRUSTLINE
     ];
     $array = \array_merge(parent::toArray(),$array);
-    if(isset($array['i'])){
+    if(isset($array['i']) && $array['i'] !== null && isset($array['c']) && $array['c'] !== null){
       //it is issued currency
       $array['c_formatted'] = xrp_currency_to_symbol($array['c']);
     }

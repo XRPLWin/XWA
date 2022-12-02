@@ -57,6 +57,8 @@ class Mapper
     return isset($this->conditions[$condition]) ? $this->conditions[$condition]:null;
   }
 
+
+
   /**
    * Check if dates are correct
    * 1. From is less or equal to to
@@ -108,9 +110,78 @@ class Mapper
   /**
    * @return string t > x AND t < y (this is inclusive)
    */
-  public function generateTConditionSQL()
+  public function generateTConditionSQL(): string
   {
     return 't BETWEEN "'.$this->conditions['from'].' 00:00:00" AND "'.$this->conditions['to'].' 23:59:59"';
+  }
+
+  public function generateConditionsSQL(): string
+  {
+    # (required) address and time range: t > x AND t < y (this is inclusive)
+    $SQL = 'address = """'.$this->address.'""" AND t BETWEEN "'.$this->conditions['from'].' 00:00:00" AND "'.$this->conditions['to'].' 23:59:59"';
+    //unset($conditions['from']);
+    //unset($conditions['to']);
+
+    # (optional) xwatype - Transaction types
+    if(count($this->conditions['txTypes']) > 0) {
+      $SQL .= ' AND xwatype IN ('.\implode(',',\array_keys($this->conditions['txTypes'])).')';
+    }
+
+    # (optional) isin - Direction
+    if(isset($this->conditions['dir'])) {
+      if($this->conditions['dir'] == 'in')
+        $SQL .= ' AND isin = true';
+      else
+        $SQL .= ' AND isin = false';
+    }
+
+    # (optional) r - Counterparty
+    if(isset($this->conditions['cp'])) {
+      $SQL .= ' AND r = """'.$this->conditions['cp'].'"""';
+    }
+
+    # (optional) st - Source tag
+    if(isset($this->conditions['st'])) {
+      $SQL .= ' AND st = '.$this->conditions['st'];
+    }
+
+    # (optional) dt - Destination tag
+    if(isset($this->conditions['dt'])) {
+      $SQL .= ' AND dt = '.$this->conditions['dt'];
+    }
+
+    # (optional) Token (ISSUER+CURRENCY or XRP)
+    if(isset($this->conditions['token'])) {
+      $issuerAndToken = self::extractIssuerAndToken($this->conditions['token']);
+      if($issuerAndToken['issuer'] == 'XRP' && $issuerAndToken['currency'] == 'XRP') {
+        $SQL .= ' AND ( (a IS NOT NULL AND i IS NULL AND c IS NULL) OR (a2 IS NOT NULL AND i2 IS NULL AND c2 IS NULL) )';
+      } else {
+        $SQL .= ' AND ( (a IS NOT NULL AND i = """'.$issuerAndToken['issuer'].'""" AND c = """'.$issuerAndToken['currency'].'""") OR (a2 IS NOT NULL AND i2 = """'.$issuerAndToken['issuer'].'""" AND c2 = """'.$issuerAndToken['currency'].'""") )';
+      }
+    }
+
+    //dd($SQL);
+    //dd($this);
+
+
+
+
+
+
+    //dd($this->conditions);
+    return $SQL;
+  }
+
+  public static function extractIssuerAndToken(string $param): array
+  {
+    if($param == 'XRP')
+      return ['issuer' => 'XRP', 'currency' => 'XRP']; 
+
+    $param_ex = explode('+', $param);
+    if(count($param_ex) == 1) $param_ex = \explode(' ',$param);
+    if(count($param_ex) != 2 )
+      throw new \Exception('Invalid token parameter');
+    return ['issuer' => $param_ex[0], 'currency' => $param_ex[1]]; 
   }
 
 }

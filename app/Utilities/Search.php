@@ -129,8 +129,8 @@ class Search
       }
       unset($txTypesFlipped);
     } else {
-      //use all types
-      $txTypes = $this->txTypes;
+      //to use all types leave empty
+      //$txTypes = $this->txTypes;
     }
     unset($types);
     
@@ -233,18 +233,19 @@ class Search
     
     $SQL = 'SELECT '.\implode(',',\array_keys(BTransaction::BQCASTS)).' FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
     //$SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
-    $SQL .= $mapper->generateTConditionSQL().' AND address = """'.$this->address.'"""';
-    //todo add other conditions
-
+    
+    # Add all conditions
+    $SQL .= $mapper->generateConditionsSQL();
     # Limit and offset, always get +1 result to see if there are more pages
-    $SQL .= ' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
+    $SQL .= ' ORDER BY t ASC LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
+    dd($SQL);
     //dump(' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset());
 
     //https://github.com/googleapis/google-cloud-php-bigquery/blob/main/tests/Snippet/CopyJobConfigurationTest.php
     ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2014-08-15&to=2017-08-15&types[0]=Payment
     ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2016-09-06&to=2016-09-06&types[0]=Payment&dir=in
     $bq = app('bigquery');
-    $query = $bq->query($SQL)->useQueryCache(true);
+    $query = $bq->query($SQL)->useQueryCache(false);
 
     # Run query and wait for results
     $results = $bq->runQuery($query); //run query
