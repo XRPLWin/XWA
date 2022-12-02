@@ -42,6 +42,9 @@ class Search
     // ...todo
   ];
 
+  private readonly array $result;
+  private readonly array $result_counts;
+
 
   public function __construct(string $address)
   {
@@ -76,9 +79,9 @@ class Search
 
     $page = $this->param('page');
     
-    //try {
+    try {
       $data = $this->_execute_real($page, $acct);
-    /*} catch (\Throwable $e) {
+    } catch (\Throwable $e) {
       if(config('app.debug')) {
         $this->errors[] = $e->getMessage().' on line '.$e->getLine().' on line '.$e->getLine(). ' in file '.$e->getFile();
         Log::debug($e);
@@ -87,9 +90,12 @@ class Search
         $this->errors[] = $e->getMessage();
 
       $this->last_error_code = 2;
-      
-    }*/
-    dd($data);
+      return $this;
+    }
+
+    $this->result = $data['data'];
+    $this->result_counts = ['page' => $data['page'], 'more' => $data['hasmorepages']];
+    $this->isExecuted = true;
     return $this;
   }
 
@@ -107,8 +113,8 @@ class Search
     ->addCondition('from',$this->param('from'))
     ->addCondition('to',$this->param('to'));
 
-    //if(!$mapper->dateRangeIsValid())
-    //  throw new \Exception('From and to params spans more than allowed 31 days and *from* has to be before *to*. Dates must not be in future');
+    if(!$mapper->dateRangeIsValid())
+      throw new \Exception('From and to params spans more than allowed 31 days and *from* has to be before *to*. Dates must not be in future');
 
     $types = $this->param('types');
     $typesIsAll = true;
@@ -157,13 +163,15 @@ class Search
         //throw new \Exception('No synced specific transactions found to requested date');
         //return sucessfull response
         return [
-          'counts' => [
+          /*'counts' => [
             'total_filtered' => 0,
             'total_scanned' => 0,
             'page' => 0,
             'total_pages' => 0
-          ],
-          'data' => collect([])
+          ],*/
+          'page' => 0,
+          'hasmorepages' => false,
+          'data' => []
         ];
       } 
     }
@@ -229,8 +237,8 @@ class Search
     //todo add other conditions
 
     # Limit and offset, always get +1 result to see if there are more pages
-    //$SQL .= ' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
-    //dd($SQL);
+    $SQL .= ' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
+    //dump(' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset());
 
     //https://github.com/googleapis/google-cloud-php-bigquery/blob/main/tests/Snippet/CopyJobConfigurationTest.php
     ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2014-08-15&to=2017-08-15&types[0]=Payment
@@ -269,24 +277,47 @@ class Search
 
       $collection[] = $this->mutateRowToModel($row);
 
-      echo $i.') '.$row['h'].'<br>';
+      //echo $i.') '.$row['h'].'<br>';
       //if($i == 12) dd($job->rows() );
       $i++;
     }
-    exit;
     
-    $results = TransactionsRepository::query($SQL);
-
-
-    dd($results,123);
-    dd($mapper);
-
+    return ['page' => $page, 'hasmorepages' => $hasMorePages, 'data' => $collection];
   }
 
 
   private function param($name)
   {
     return isset($this->params[$name]) ? $this->params[$name]:null;
+  }
+
+  /**
+   * If any errors collected this will return true.
+   * @return bool
+   */
+  public function hasErrors(): bool
+  {
+    if(count($this->errors))
+      return true;
+    return false;
+  }
+
+  /**
+   * Last error's error code.
+   * @return int
+   */
+  public function getErrorCode(): int
+  {
+    return $this->last_error_code;
+  }
+
+  /**
+   * Collected error messages
+   * @return array
+   */
+  public function getErrors(): array
+  {
+    return $this->errors;
   }
 
   /**
@@ -297,11 +328,26 @@ class Search
   {
     if(!isset($this->txTypes[$row['xwatype']]))
       throw new \Exception('Unsupported xwatype ['.$row['xwatype'].'] returned from BQ');
-
     $modelName = '\\App\\Models\\BTransaction'.$this->txTypes[$row['xwatype']];
-    $model = new $modelName($row);
-    dd(json_encode($model->toFinalArray()));
-    dd($this->txTypes,$row,$this->txTypes[$row['xwatype']]);
-    dd($row);
+    return $modelName::hydrate([ $row ])->first();
+  }
+
+  /**
+   * Returns array of count statistics and results by type.
+   * This is used as public api output.
+   * @return array [page => INT, mode => BOOL, data => ARRAY]
+   */
+  public function result(): array
+  {
+    if(!$this->isExecuted)
+      throw new \Exception('Search::result() called before execute()');
+
+    $r = $this->result_counts;
+    $r['data'] = [];
+    foreach($this->result as $v) {
+      //cast BTransaction model to Final array
+      $r['data'][] = $v->toFinalArray();
+    }
+    return $r;
   }
 }

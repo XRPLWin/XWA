@@ -15,7 +15,7 @@ $r = [
   | Default: 1000
   | How much results to pull before paginating.
   */
-  'limit_per_page' => env('XWA_SEARCH_LIMIT', 1000),
+  'limit_per_page' => env('XWA_SEARCH_LIMIT', 1000), //1000
 
   /*
   |--------------------------------------------------------------------------

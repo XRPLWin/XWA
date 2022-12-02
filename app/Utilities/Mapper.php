@@ -41,7 +41,9 @@ class Mapper
 
   public function getOffset(): int
   {
-    return 0;
+    if($this->page <= 1)
+      return 0;
+    return $this->getLimit() * ($this->page - 1);
   }
 
   public function addCondition(string $condition, mixed $value): self

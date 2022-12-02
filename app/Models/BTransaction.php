@@ -43,6 +43,10 @@ class BTransaction extends B
     'st'
   ];
 
+  protected $casts = [
+    't' => 'datetime',
+  ];
+
   const BQCASTS = [
     't'       => 'TIMESTAMP',
     'address' => 'STRING',
