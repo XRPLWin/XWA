@@ -10,19 +10,12 @@ $r = [
 
   /*
   |--------------------------------------------------------------------------
-  | Scan limit
+  | Search limit per page
   |--------------------------------------------------------------------------
   | Default: 1000
-  | How much results maximum DynamoDB Count action will count per query.
-  | Put 0 (zero) for no limit - DynamoDB will paginate this when 1MB limit is reached.
-  | Smaller limit = more queries and more pages.
-  | This is relevant only for rAccount with abnormally large amount of transactions
-  | per calendar day, eg. over 15k transactions will yield 4 pages of data with 5000 limit.
-  | Warning: Changing this value requires clearing Redis cache and empty "maps" table.
-  |   Changing this value requires clearing reverse proxy cache (eg. Varnish, CloudFront ...)
-  |   It is recommended not to change this value on production that is already running.
+  | How much results to pull before paginating.
   */
-  'scan_limit' => env('XWA_SCAN_LIMIT', 1000),
+  'limit_per_page' => env('XWA_SEARCH_LIMIT', 1000),
 
   /*
   |--------------------------------------------------------------------------
@@ -36,7 +29,7 @@ $r = [
   | Warning: Changing this value requires clearing reverse proxy cache (eg. Varnish, CloudFront ...)
   |   It is recommended not to change this value on production that is already running.
   */
-  'paginator_breakpoint' => env('XWA_PAGINATIOR_BREAKPOINT', 500),
+  //'paginator_breakpoint' => env('XWA_PAGINATIOR_BREAKPOINT', 500),
 
   /*
   |--------------------------------------------------------------------------

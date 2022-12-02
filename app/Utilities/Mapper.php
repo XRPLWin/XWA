@@ -20,11 +20,28 @@ class Mapper
     //...
   ];
   private readonly string $address;
+  private int $page = 1;
 
   public function setAddress(string $address): self
   {
     $this->address = $address;
     return $this;
+  }
+
+  public function setPage(int $page): self
+  {
+    $this->page = $page;
+    return $this;
+  }
+
+  public function getLimit(): int
+  {
+    return (int)config('xwa.limit_per_page');
+  }
+
+  public function getOffset(): int
+  {
+    return 0;
   }
 
   public function addCondition(string $condition, mixed $value): self

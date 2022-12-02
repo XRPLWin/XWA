@@ -66,18 +66,6 @@ class BTransaction extends B
     return 'address = """'.$this->address.'""" AND t = '.$this->t;
   }
 
-  /**
-   * ->address
-   * Extracts rAddress from PK
-   * @return string rAddress
-   */
-  public function getAddressAttribute(): string
-  {
-    throw new \Exception('Not implemented');
-    //TODO: explode and remove -<INT> part for Items with transaction type designation
-    return $this->PK; // @phpstan-ignore-line
-  }
-
   public function toFinalArray()
   {
     $array = [

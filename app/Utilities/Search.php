@@ -101,6 +101,7 @@ class Search
   {
     $mapper = new Mapper();
     $mapper->setAddress($this->address);
+    $mapper->setPage($page);
 
     $mapper
     ->addCondition('from',$this->param('from'))
@@ -220,43 +221,59 @@ class Search
     //Now the fun part.
 
     # Build query for BQ
-  
+    $limit = $mapper->getLimit();
+    
     $SQL = 'SELECT '.\implode(',',\array_keys(BTransaction::BQCASTS)).' FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
-    $SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
+    //$SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
     $SQL .= $mapper->generateTConditionSQL().' AND address = """'.$this->address.'"""';
-    $SQL .= ' LIMIT 5';
+    //todo add other conditions
+
+    # Limit and offset, always get +1 result to see if there are more pages
+    //$SQL .= ' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
     //dd($SQL);
 
     //https://github.com/googleapis/google-cloud-php-bigquery/blob/main/tests/Snippet/CopyJobConfigurationTest.php
     ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2014-08-15&to=2017-08-15&types[0]=Payment
     ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2016-09-06&to=2016-09-06&types[0]=Payment&dir=in
     $bq = app('bigquery');
-    $query = $bq->query($SQL)
-      ->useQueryCache(true)
-    ;
-    //dd($query);
-    //dd($query);
-    $job = $bq->runQuery($query);
-    dd($job);
-    $rows = iterator_to_array($job->rows());
-    dd ($rows);
-    //$jobs = $bq->jobs();
-    dd($job,$job->id());
+    $query = $bq->query($SQL)->useQueryCache(true);
 
+    # Run query and wait for results
+    $results = $bq->runQuery($query); //run query
 
-/*
-    $dataset = $bq->dataset('xwa');
-    $table = $dataset->table($tableId);
-    $numRows = 0;
-    foreach ($table->rows($options) as $row) {
-        print('---');
-        foreach ($row as $column => $value) {
-            printf('%s: %s' . PHP_EOL, $column, $value);
+    $backoff = new \Google\Cloud\Core\ExponentialBackoff(8);
+    $backoff->execute(function () use ($results) {
+        $results->reload();
+
+        if (!$results->isComplete()) {
+            throw new \Exception();
         }
-        $numRows++;
+    });
+
+    if (!$results->isComplete()) {
+      throw new \Exception('Query did not complete within the allotted time');
     }
-*/
-    
+
+    // All results are loaded at this point
+
+    # Loop raw results and create models
+    $i = 1;
+    $hasMorePages = false;
+    $collection = [];
+    foreach($results->rows(['returnRawResults' => false]) as $row) {
+      
+      if($i > $limit) {
+        $hasMorePages = true;
+        break;
+      }
+
+      $collection[] = $this->mutateRowToModel($row);
+
+      echo $i.') '.$row['h'].'<br>';
+      //if($i == 12) dd($job->rows() );
+      $i++;
+    }
+    exit;
     
     $results = TransactionsRepository::query($SQL);
 
@@ -270,5 +287,21 @@ class Search
   private function param($name)
   {
     return isset($this->params[$name]) ? $this->params[$name]:null;
+  }
+
+  /**
+   * @param array $row - BigQuery Row Result
+   * @return BTransaction
+   */
+  private function mutateRowToModel(array $row): BTransaction
+  {
+    if(!isset($this->txTypes[$row['xwatype']]))
+      throw new \Exception('Unsupported xwatype ['.$row['xwatype'].'] returned from BQ');
+
+    $modelName = '\\App\\Models\\BTransaction'.$this->txTypes[$row['xwatype']];
+    $model = new $modelName($row);
+    dd(json_encode($model->toFinalArray()));
+    dd($this->txTypes,$row,$this->txTypes[$row['xwatype']]);
+    dd($row);
   }
 }
