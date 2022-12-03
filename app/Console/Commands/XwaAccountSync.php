@@ -129,7 +129,7 @@ class XwaAccountSync extends Command
             'ledger_index_max' => $this->ledger_current,
             'binary' => false,
             'forward' => true,
-            'limit' => 400, //400
+            'limit' => 2, //400
           ]);
          
       $account_tx->setCooldownHandler(
@@ -155,7 +155,7 @@ class XwaAccountSync extends Command
       $dayToFlush = null;
       $i = 0;
       while($do) {
-        
+        $i++;
         try {
           $account_tx->send();
         } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
@@ -164,7 +164,8 @@ class XwaAccountSync extends Command
           $this->info('Error catched: '.$e->getMessage());
           //throw $e;
         }
-        
+        if($i ==8)
+        dd($account_tx);
         //Handles sucessful response from ledger with unsucessful message.
         //Hanldes rate limited responses.
         $is_success = $account_tx->isSuccess();
@@ -234,7 +235,12 @@ class XwaAccountSync extends Command
           $bar->finish();
           unset($bar);
 
-          if($account_tx = $account_tx->next()) {
+          $next = $account_tx->next();
+          unset($account_tx);
+         
+          if($next !== null) {
+            $account_tx = $next;
+            unset($next);
             //update last synced ledger index to account metadata
             $account->l = $tx->tx->ledger_index;
             $account->lt = ripple_epoch_to_carbon($tx->tx->date)->format('Y-m-d H:i:s.uP');
