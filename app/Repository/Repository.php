@@ -37,6 +37,9 @@ class Repository
         case 'BOOLEAN':
           $r[$k] = $v?'true':'false';
           break;
+        case 'TIMESTAMP':
+          $r[$k] = '\''.$v.'\'';
+          break;
         default:
           $r[$k] = $v;
       }

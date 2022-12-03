@@ -22,13 +22,19 @@ class BAccount extends B
   public $fillable = [
     'address', //Primary Key
     'l',
+    'lt',
     'activatedBy',
     'isdeleted'
+  ];
+
+  protected $casts = [
+    'lt' => 'datetime',
   ];
 
   const BQCASTS = [
     'address' => 'STRING',
     'l'       => 'INTEGER',
+    'lt'      => 'TIMESTAMP',
     'activatedBy' => 'NULLABLE STRING',
     'isdeleted' => 'BOOLEAN'
   ];

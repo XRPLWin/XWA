@@ -121,13 +121,12 @@ class Batch
     $id = 1;
     $rows = [];
     foreach($data as $v) {
-      
-      $rows[] = ['insertId' => $id, 'data' => $v['fields']];
+      $rows[] = ['insertId' => $v['fields']['h'].'-'.$id, 'data' => $v['fields']];
       //unset($v['model']);
       $id++;
       $processed_rows++;
     }
-
+    //dd($rows);
     //Testing invalid row:
     //$rows[] = ['insertId' => $id+1, 'data' => ['foo' => 'bar']];
 

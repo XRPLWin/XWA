@@ -20,6 +20,7 @@ class AccountLoader
       $Account = new BAccount([
         'address' => $address,
         'l' => (int)config('xrpl.genesis_ledger'), //initial
+        'lt' => ripple_epoch_to_carbon(config('xrpl.genesis_ledger_close_time'))->format('Y-m-d H:i:s.uP'),
         'activatedBy' => null,
         'isdeleted' => false,
       ]);
@@ -43,7 +44,6 @@ class AccountLoader
     
     if(!$AccountArray) {
       $Account = BAccount::find($address);
-      
       if(!$Account)
         return null;
       Cache::put('daccount:'.$address, $Account->toArray(), 86400); //86400 seconds = 24 hours

@@ -63,34 +63,36 @@ class Mapper
    * Check if dates are correct
    * 1. From is less or equal to to
    * 2. Do not span more than 31 days
-   * @return bool
+   * @return ?array null if invalid or [Carbon $from, Carbon $to] 
    */
-  public function dateRangeIsValid(): bool
+  public function parseDateRanges(): ?array
   {
     if(!isset($this->conditions['from']) || !isset($this->conditions['to']))
-      return false;
+      return null;
 
-    if($this->conditions['from'] == $this->conditions['to'])
-      return true;
+    if($this->conditions['from'] === $this->conditions['to']) {
+      $from = Carbon::createFromFormat('Y-m-d', $this->conditions['from']);
+      return [$from, clone $from];
+    }
 
     $from = Carbon::createFromFormat('Y-m-d', $this->conditions['from']);
     //check if days between dates do not exceed 31 days
     if($from->diffInDays($this->conditions['to']) > 31)
-      return false;
+      return null;
 
     //'from' has to be before 'to'
     if(!$from->isBefore($this->conditions['to']))
-      return false;
+      return null;
 
     //from and to needs to be current date or past
     if($from->isFuture())
-      return false;
+      return null;
 
     $to = Carbon::createFromFormat('Y-m-d', $this->conditions['to']);
     if($to->isFuture())
-      return false;
+      return null;
 
-    return true;
+    return [$from,$to];
   }
 
   /**

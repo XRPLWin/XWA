@@ -62,7 +62,8 @@ class XwaAccountSync extends Command
      *
      * @var bool
      */
-    private int $ledger_current = -1;
+    private int     $ledger_current = -1;
+    private string  $ledger_current_time = '';
 
     /**
      * XRPL API Client instance
@@ -88,12 +89,14 @@ class XwaAccountSync extends Command
       //$this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
       
       $this->ledger_current = Ledger::current();
-      
+      $this->ledger_current_time = \Carbon\Carbon::now()->format('Y-m-d H:i:s.uP');
+     
       //clear account cache
       Cache::forget('daccount:'.$address);
       Cache::forget('daccount_fti:'.$address);
-
+      
       $account = AccountLoader::getOrCreate($address);
+      
       //dd($account);
       //dd($account);
       //If this account is issuer (by checking obligations) set t field to 1.
@@ -128,7 +131,7 @@ class XwaAccountSync extends Command
             'forward' => true,
             'limit' => 400, //400
           ]);
-
+         
       $account_tx->setCooldownHandler(
         /**
          * @param int $current_try Current try 1 to max
@@ -234,6 +237,7 @@ class XwaAccountSync extends Command
           if($account_tx = $account_tx->next()) {
             //update last synced ledger index to account metadata
             $account->l = $tx->tx->ledger_index;
+            $account->lt = ripple_epoch_to_carbon($tx->tx->date)->format('Y-m-d H:i:s.uP');
             //$this->info($tx->tx->ledger_index.' is last ledger');
             $account->save();
             //continuing to next page
@@ -258,6 +262,8 @@ class XwaAccountSync extends Command
       # Save last scanned ledger index
       if($isLast) {
         $account->l = $this->ledger_current;
+        $account->lt = $this->ledger_current_time;
+        //dd($account);
         $account->save();
       }
       

@@ -34,6 +34,12 @@ return new class extends Migration
         'description' => 'Last synced ledger index'
       ],
       [
+        'name' => 'lt',
+        'type' => 'TIMESTAMP',
+        'mode' => 'REQUIRED',
+        'description' => 'Last synced ledger timestamp (Y-m-d H:i:s.uP)',
+      ],
+      [
         'name' => 'activatedBy',
         'type' => 'STRING',
         'mode' => 'NULLABLE',

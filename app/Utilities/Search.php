@@ -113,8 +113,15 @@ class Search
     ->addCondition('from',$this->param('from'))
     ->addCondition('to',$this->param('to'));
 
-    if(!$mapper->dateRangeIsValid())
+    $dateRanges = $mapper->parseDateRanges();
+    if($dateRanges === null)
       throw new \Exception('From and to params spans more than allowed 31 days and *from* has to be before *to*. Dates must not be in future');
+
+    # Check if $acct is synced to "To"
+    $lt = clone $acct->lt;
+    $lt->addMinutes(10); //10 min leeway time (eg sync can be 10 min stale)
+    if($dateRanges[1]->greaterThan($lt))
+      throw new \Exception('Account not synced to this date yet');
 
     $types = $this->param('types');
     $typesIsAll = true;
@@ -142,7 +149,7 @@ class Search
     if($firstTxInfo['first'] === null) {
       throw new \Exception('No synced transactions found');
     }
-    $c1 = Carbon::createFromFormat('Y-m-d H:i:s',$mapper->getCondition('to').' 10:00:00');
+    $c1 = $dateRanges[1]->setTimeFromTimeString('10:00:00');
     $c2 = Carbon::createFromFormat('U',$firstTxInfo['first'])->setTimeFromTimeString('10:00:00');
     
     if($c1->lessThan($c2))
@@ -151,7 +158,7 @@ class Search
     if(!$typesIsAll) {
       //only specific types are requested
       $_txtypesrangeisvalid = false;
-      $c2 = Carbon::createFromFormat('Y-m-d H:i:s',$mapper->getCondition('to').' 10:00:00');
+      $c2 = $c1;
       foreach($mapper->getCondition('txTypes') as $k => $v) {
         if($firstTxInfo['first_per_types'][$k] !== null) {
           $c2 = Carbon::createFromFormat('U',$firstTxInfo['first_per_types'][$k])->setTimeFromTimeString('10:00:00');
@@ -238,14 +245,15 @@ class Search
     $SQL .= $mapper->generateConditionsSQL();
     # Limit and offset, always get +1 result to see if there are more pages
     $SQL .= ' ORDER BY t ASC LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
-    dd($SQL);
+    //dd($SQL);
     //dump(' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset());
 
     //https://github.com/googleapis/google-cloud-php-bigquery/blob/main/tests/Snippet/CopyJobConfigurationTest.php
     ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2014-08-15&to=2017-08-15&types[0]=Payment
     ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2016-09-06&to=2016-09-06&types[0]=Payment&dir=in
+    //https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert
     $bq = app('bigquery');
-    $query = $bq->query($SQL)->useQueryCache(false);
+    $query = $bq->query($SQL)->useQueryCache($dateRanges[1]->isToday() ? false:true); //we do not use cache on queries that envelop today
 
     # Run query and wait for results
     $results = $bq->runQuery($query); //run query
