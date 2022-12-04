@@ -129,7 +129,7 @@ class XwaAccountSync extends Command
             'ledger_index_max' => $this->ledger_current,
             'binary' => false,
             'forward' => true,
-            'limit' => 2, //400
+            'limit' => 400, //400
           ]);
          
       $account_tx->setCooldownHandler(
@@ -164,8 +164,7 @@ class XwaAccountSync extends Command
           $this->info('Error catched: '.$e->getMessage());
           //throw $e;
         }
-        if($i ==8)
-        dd($account_tx);
+        //if($i ==8) dd($account_tx);
         //Handles sucessful response from ledger with unsucessful message.
         //Hanldes rate limited responses.
         $is_success = $account_tx->isSuccess();
@@ -186,28 +185,33 @@ class XwaAccountSync extends Command
           $this->info('Starting batch of '.count($txs).' transactions: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
           $bar = $this->output->createProgressBar(count($txs));
           $bar->start();
-     
-
+          
           $parsedDatas = []; //list of sub-method results (parsed transactions)
 
           # Prepare Batch instance which will hold list of queries to be executed at once to BigQuery
           $batch = new Batch;
 
-         
+          
           # Parse each transaction and prepare batch execution queries
+          $this->info('Memory1: '.memory_get_usage());
           foreach($txs as $tx) {
             $parsedDatas[] = $this->processTransaction($account,$tx, $batch);
+            
             $bar->advance();
           }
-         
+          $this->info('Memory2: '.memory_get_usage());
           unset($txs);
           //exit;
+          
 
           # Execute batch queries
           $this->info('');
           $this->info('Executing batch of queries...');
+          $this->info('Memory3: '.memory_get_usage());
           $processed_rows = $batch->execute();
+          $this->info('Memory4: '.memory_get_usage());
           unset($batch);
+
           $this->info('- DONE (processed '.$processed_rows.' rows)');
           $this->info('Memory: '.memory_get_usage());
 
