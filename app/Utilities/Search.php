@@ -104,10 +104,12 @@ class Search
       throw new \Exception('From and to params spans more than allowed 31 days and *from* has to be before *to*. Dates must not be in future');
 
     # Check if $acct is synced to "To"
-    $lt = clone $acct->lt;
-    $lt->addMinutes(10); //10 min leeway time (eg sync can be 10 min stale)
-    if($dateRanges[1]->greaterThan($lt))
+    if($acct->isSynced(10,$dateRanges[1]))
       throw new \Exception('Account not synced to this date yet');
+    //$lt = clone $acct->lt;
+    //$lt->addMinutes(10); //10 min leeway time (eg sync can be 10 min stale)
+    //if($dateRanges[1]->greaterThan($lt))
+    //  throw new \Exception('Account not synced to this date yet');
 
     $types = $this->param('types');
     $typesIsAll = true;

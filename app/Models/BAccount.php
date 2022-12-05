@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Utilities\Ledger;
 use Illuminate\Support\Facades\Cache;
 use XRPLWin\XRPL\Client as XRPLWinApiClient;
+use Carbon\Carbon;
 
 class BAccount extends B
 {
@@ -145,4 +146,57 @@ class BAccount extends B
 
     return false;
   }*/
+
+  /**
+   * Synces job if not already synced
+   * @param bool $recursive - if true it will queue parent address
+   * @return bool True if added to sync queue (queued)
+   */
+  public function sync(bool $recursive = true, bool $skipcheck = false, int $limit = 0): bool
+  {
+    if(!$skipcheck) {
+      //check if already synced
+      $check = DB::connection(config('database.default'))
+        ->table('jobs')
+        ->where('qtype','account')
+        ->where('qtype_data',$this->address)
+        ->count();
+
+      if($check)
+        return false;
+    }
+  
+
+    $char = \strtolower(\substr($this->address,1,1)); //rAcct... = 'a', xAcct... = 'a', ...
+    if($char !== '') {
+      foreach(config('xwa.queue_groups') as $qg => $v) {
+        if(in_array($char,$v)) {
+          QueueArtisanCommand::dispatch(
+            'xwa:accountsync',
+            ['address' => $this->address, '--recursiveaccountqueue' => $recursive, '--limit' => $limit ],
+            'account',
+            $this->address
+          )->onQueue($qg);
+          break;
+        }
+      }
+    }
+   
+    return true;
+  }
+
+  /**
+   * Is account synced or not depending of input parameters.
+   * @return bool
+   */
+  public function isSynced($leeway_minutes = 1, ?Carbon $referenceTime = null): bool
+  {
+    if($referenceTime === null)
+      $referenceTime = now();
+    $lt = clone $this->lt;
+    $lt->addMinutes(10); //10 min leeway time (eg sync can be 10 min stale)
+    if($referenceTime->greaterThan($lt))
+      return true;
+    return false;
+  }
 }

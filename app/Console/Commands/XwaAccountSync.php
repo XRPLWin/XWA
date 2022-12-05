@@ -21,6 +21,7 @@ class XwaAccountSync extends Command
     /**
      * The name and signature of the console command.
      * @sample php artisan xwa:accountsync rAcct...
+     * @sample php artisan xwa:accountsync rAcct... --limit=3
      * @var string
      */
     protected $signature = 'xwa:accountsync
@@ -231,18 +232,21 @@ class XwaAccountSync extends Command
           
           $bar->finish();
           unset($bar);
-
-          $next = $account_tx->next();
-          unset($account_tx);
          
-          if($next !== null) {
-            $account_tx = $next;
-            unset($next);
+          if($account_tx = $account_tx->next()) {
+            
             //update last synced ledger index to account metadata
             $account->l = $tx->tx->ledger_index;
             $account->lt = ripple_epoch_to_carbon($tx->tx->date)->format('Y-m-d H:i:s.uP');
             //$this->info($tx->tx->ledger_index.' is last ledger');
-            $account->save();
+
+            # Commit changes to $account every 20th iteration (for improved performace)
+            if($i % 20 === 0) {
+              $this->info('Committing to account...');
+              $account->save();
+              
+            }
+              
             //continuing to next page
           }
           else
@@ -253,6 +257,8 @@ class XwaAccountSync extends Command
               # batch limit reached
               $do = false; //stop
               $isLast = false; //flat it is not last run
+              $this->info('Committing to account in preparation to requeue...');
+              $account->save();
               $this->info('');
               $this->info('Batch limit ('.$this->batch_current.') reached, requeuing job');
               $account->sync($this->recursiveaccountqueue, true, $this->batchlimit);
@@ -267,6 +273,7 @@ class XwaAccountSync extends Command
         $account->l = $this->ledger_current;
         $account->lt = $this->ledger_current_time;
         //dd($account);
+        $this->info('Committing to account (last)...');
         $account->save();
       }
       
