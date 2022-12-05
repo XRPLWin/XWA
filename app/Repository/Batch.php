@@ -92,7 +92,7 @@ class Batch
     $processed_rows = 0;
     $rows = [];
     foreach($data as $v) {
-      $rows[] = ['insertId' => $v['fields']['h'].'-'.$v['model']::TYPE, 'data' => $v['fields']];
+      $rows[] = ['insertId' => $v['model']->address.'-'.$v['fields']['h'].'-'.$v['model']::TYPE, 'data' => $v['fields']];
       //unset($v['model']);
       $processed_rows++;
     }

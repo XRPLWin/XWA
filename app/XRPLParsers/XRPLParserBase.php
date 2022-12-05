@@ -178,15 +178,15 @@ abstract class XRPLParserBase implements XRPLParserInterface
   }
 
   /**
-   * Returns SK (Sort Key), <ledger_indes>.<transaction_index> float number.
-   * This is used as Sort key in DynamoDB table.
+   * Returns SK (Sort Key), <ledger_index>.<transaction_index> float number.
+   * This is used as check for last inserted transaction to database.
    * @return float
    */
   /*public function SK(): float
   {
     $ti = (string)$this->getTransactionIndex();
     if(\strlen($ti) >= 4)
-      throw new \Exception('Transaction index of 4 or more characters detected: '.$ti. ' Db adjust required');
+      throw new \Exception('Transaction index of 4 or more characters detected: '.$ti. ' DB adjust required');
     return (float)($this->tx->ledger_index.'.'.\str_pad($ti,3,'0',STR_PAD_LEFT));
   }*/
 

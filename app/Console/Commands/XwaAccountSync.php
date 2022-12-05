@@ -9,12 +9,11 @@ use App\Utilities\AccountLoader;
 use App\Utilities\Ledger;
 use App\Models\BAccount;
 use App\Models\BTransactionActivation;
-use App\Models\Ledgerindex;
-use App\Models\Map;
 use App\XRPLParsers\Parser;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use App\Repository\Batch;
+use App\Repository\TransactionsRepository;
 
 class XwaAccountSync extends Command
 {
@@ -121,6 +120,18 @@ class XwaAccountSync extends Command
         //modify $account todo
         return 0;
       }*/
+
+      # Find last inserted transaction in transactions table for check to prevent duplicates
+      $last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""', 't,xwatype,h','t DESC'); //{t,xwatype,h}
+      if($last_inserted_tx !== null) {
+        if($account->lt->lessThanOrEqualTo($last_inserted_tx->t->get())) {
+          //Transaction in 
+        } else {
+          $last_inserted_tx = null;
+        }
+        ///->format('Y-m-d H:i:s.uP')
+      }
+      //dd($last_inserted_tx,$account->lt);
 
       $account_tx = $this->XRPLClient->api('account_tx')
           ->params([
