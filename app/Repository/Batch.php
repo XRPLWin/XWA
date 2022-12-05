@@ -78,35 +78,8 @@ class Batch
     foreach($data as $v) {
       if(!$v['model']->save())
         $success = false;
-      //unset($v['model']);
     }
     return ['success' => $success, 'errors' => [], 'processed_rows' => $success ? 1:0]; //todo collect errors
-
-    /*if($table == 'transactions') {
-      foreach($data as $v) {
-        unset($v['fields']['PK']);
-        unset($v['fields']['SK']);
-        $result = AccountsRepository::update($table, $v['model']->bqPrimaryKeyCondition(), $v);
-        if($result === false) {
-          $success = false;
-          break;
-        }
-      }
-    }
-    elseif($table == 'accounts') {
-      foreach($data as $v) {
-        unset($v['fields']['address']);
-        $result = TransactionsRepository::update($table, $v['model']->bqPrimaryKeyCondition(), $v);
-        if($result === false) {
-          $success = false;
-          break;
-        }
-      }
-    }
-    else
-      throw new \Exception('Not implemented repo for ['.$table.']');
-    
-    return ['success' => $success, 'errors' => []];*/
   }
 
   /**
