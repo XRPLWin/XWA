@@ -193,27 +193,20 @@ class XwaAccountSync extends Command
 
           
           # Parse each transaction and prepare batch execution queries
-          $this->info('Memory1: '.memory_get_usage());
           foreach($txs as $tx) {
             $parsedDatas[] = $this->processTransaction($account,$tx, $batch);
-            
             $bar->advance();
           }
-          $this->info('Memory2: '.memory_get_usage());
           unset($txs);
-          //exit;
-          
 
           # Execute batch queries
           $this->info('');
           $this->info('Executing batch of queries...');
-          $this->info('Memory3: '.memory_get_usage());
           $processed_rows = $batch->execute();
-          $this->info('Memory4: '.memory_get_usage());
           unset($batch);
 
           $this->info('- DONE (processed '.$processed_rows.' rows)');
-          $this->info('Memory: '.memory_get_usage());
+          //$this->info('Process memory usage: '.memory_get_usage_formatted());
 
           # Post processing results (flush cache)
           foreach($parsedDatas as $parsedData) {

@@ -11,12 +11,9 @@ namespace App\Utilities;
 
 use App\Models\BAccount;
 use App\Models\BTransaction;
-use App\Repository\TransactionsRepository;
-use App\Utilities\Scanplan\Parser as ScanplanParser;
 use App\Utilities\AccountLoader;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
@@ -26,28 +23,17 @@ class Search
   private string $address;
   private readonly array $params;
   private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','types','page'];
-
   private bool $isExecuted = false;
   private array $errors = [];
   private int $last_error_code = 0; //0 - no error
-
-  private array $txTypes = [
-    // App\Models\DTransaction<VALUE_BELOW>::TYPE => App\Models\DTransaction<VALUE_BELOW>
-    1 => 'Payment',
-    2 => 'Activation',
-    3 => 'Trustset',
-    4 => 'AccountDelete',
-    5 => 'Payment_BalanceChange',
-    6 => 'Payment_Exchange'
-    // ...todo
-  ];
-
+  private readonly array $txTypes;
   private readonly array $result;
   private readonly array $result_counts;
 
 
   public function __construct(string $address)
   {
+    $this->txTypes = config('xwa.transaction_types');
     $this->address = $address;
   }
 

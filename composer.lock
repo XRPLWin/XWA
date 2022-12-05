@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "45b8cdf56f4b59a3b8fcfaa14997f041",
+    "content-hash": "3ca5aef4b96232385d9db4da3e329c44",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -149,63 +149,6 @@
                 "source": "https://github.com/aws/aws-sdk-php/tree/3.252.1"
             },
             "time": "2022-12-02T19:21:15+00:00"
-        },
-        {
-            "name": "baopham/dynamodb",
-            "version": "6.1.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/baopham/laravel-dynamodb.git",
-                "reference": "963811691313124e7562a02aefdcc31fdbd75e78"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/baopham/laravel-dynamodb/zipball/963811691313124e7562a02aefdcc31fdbd75e78",
-                "reference": "963811691313124e7562a02aefdcc31fdbd75e78",
-                "shasum": ""
-            },
-            "require": {
-                "aws/aws-sdk-php": "^3.0.0",
-                "illuminate/database": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.* || 5.6.* || 5.7.* || 5.8.* || ^6.0 || ^7.0 || ^8.0 || ^9.0",
-                "illuminate/support": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.* || 5.6.* || 5.7.* || 5.8.* || ^6.0 || ^7.0 || ^8.0 || ^9.0"
-            },
-            "require-dev": {
-                "orchestra/testbench": "~3.0 || ~5.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "BaoPham\\DynamoDb\\DynamoDbServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "BaoPham\\DynamoDb\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Bao Pham",
-                    "email": "gbaopham@gmail.com"
-                }
-            ],
-            "description": "Eloquent syntax for DynamoDB",
-            "keywords": [
-                "aws",
-                "dynamodb",
-                "laravel"
-            ],
-            "support": {
-                "issues": "https://github.com/baopham/laravel-dynamodb/issues",
-                "source": "https://github.com/baopham/laravel-dynamodb/tree/6.1.3"
-            },
-            "time": "2022-02-10T16:53:52+00:00"
         },
         {
             "name": "brick/math",
@@ -826,64 +769,6 @@
             "time": "2022-02-20T15:07:15+00:00"
         },
         {
-            "name": "gndlf/xrpl_php",
-            "version": "v0.4.0-alpha",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/AlexanderBuzz/xrpl-php.git",
-                "reference": "3699c8d01dafcbca4f18403bde4c3280e164b45a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/AlexanderBuzz/xrpl-php/zipball/3699c8d01dafcbca4f18403bde4c3280e164b45a",
-                "reference": "3699c8d01dafcbca4f18403bde4c3280e164b45a",
-                "shasum": ""
-            },
-            "require": {
-                "brick/money": "^0.7.0",
-                "guzzlehttp/guzzle": "^7.4",
-                "php-ds/php-ds": "^1.4",
-                "simplito/elliptic-php": "^1.0"
-            },
-            "require-dev": {
-                "donatj/mock-webserver": "^2.5",
-                "ext-gmp": "*",
-                "ext-sockets": "*",
-                "phpunit/phpunit": "^9",
-                "vimeo/psalm": "^4.23"
-            },
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "src/Sugar/autofill.php",
-                    "src/Sugar/balances.php",
-                    "src/Sugar/fundWallet.php",
-                    "src/Sugar/getFeeXrp.php",
-                    "src/Sugar/xrpConversion.php"
-                ],
-                "psr-4": {
-                    "XRPL_PHP\\": "src/",
-                    "XRPL_PHP\\Test\\": "tests/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "ISC"
-            ],
-            "authors": [
-                {
-                    "name": "Alexander Busse",
-                    "email": "alexander.busse@posteo.net"
-                }
-            ],
-            "description": "PHP Client for the XRP Ledger",
-            "support": {
-                "issues": "https://github.com/AlexanderBuzz/xrpl-php/issues",
-                "source": "https://github.com/AlexanderBuzz/xrpl-php/tree/v0.4.0-alpha"
-            },
-            "time": "2022-11-04T15:13:23+00:00"
-        },
-        {
             "name": "google/auth",
             "version": "v1.24.0",
             "source": {
@@ -1454,6 +1339,65 @@
                 }
             ],
             "time": "2022-10-26T14:07:24+00:00"
+        },
+        {
+            "name": "hardcastle/xrpl_php",
+            "version": "v0.5.0-alpha",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/AlexanderBuzz/xrpl-php.git",
+                "reference": "73b54fa0d61979b629ac0be1760d1569614c0b27"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/AlexanderBuzz/xrpl-php/zipball/73b54fa0d61979b629ac0be1760d1569614c0b27",
+                "reference": "73b54fa0d61979b629ac0be1760d1569614c0b27",
+                "shasum": ""
+            },
+            "require": {
+                "brick/money": "^0.7.0",
+                "guzzlehttp/guzzle": "^7.4",
+                "php-ds/php-ds": "^1.4",
+                "simplito/elliptic-php": "^1.0"
+            },
+            "require-dev": {
+                "donatj/mock-webserver": "^2.5",
+                "ext-gmp": "*",
+                "ext-sockets": "*",
+                "phpunit/phpunit": "^9",
+                "vimeo/psalm": "^4.23"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/Sugar/autofill.php",
+                    "src/Sugar/balances.php",
+                    "src/Sugar/fundWallet.php",
+                    "src/Sugar/getFeeXrp.php",
+                    "src/Sugar/submit.php",
+                    "src/Sugar/xrpConversion.php"
+                ],
+                "psr-4": {
+                    "XRPL_PHP\\": "src/",
+                    "XRPL_PHP\\Test\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "ISC"
+            ],
+            "authors": [
+                {
+                    "name": "Alexander Busse",
+                    "email": "alexander.busse@posteo.net"
+                }
+            ],
+            "description": "PHP Client for the XRP Ledger",
+            "support": {
+                "issues": "https://github.com/AlexanderBuzz/xrpl-php/issues",
+                "source": "https://github.com/AlexanderBuzz/xrpl-php/tree/v0.5.0-alpha"
+            },
+            "time": "2022-11-22T17:30:27+00:00"
         },
         {
             "name": "laminas/laminas-diactoros",
@@ -6802,20 +6746,20 @@
         },
         {
             "name": "xrplwin/xrpl-txmutationparser",
-            "version": "v0.0.8",
+            "version": "v0.0.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/XRPLWin/XRPL-TxMutationParser.git",
-                "reference": "0de3b7126ac1965ca7255745b0183af41e4bf8bc"
+                "reference": "fe54eb959e96adb96e07f833cb179ded1a8ed449"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/XRPLWin/XRPL-TxMutationParser/zipball/0de3b7126ac1965ca7255745b0183af41e4bf8bc",
-                "reference": "0de3b7126ac1965ca7255745b0183af41e4bf8bc",
+                "url": "https://api.github.com/repos/XRPLWin/XRPL-TxMutationParser/zipball/fe54eb959e96adb96e07f833cb179ded1a8ed449",
+                "reference": "fe54eb959e96adb96e07f833cb179ded1a8ed449",
                 "shasum": ""
             },
             "require": {
-                "gndlf/xrpl_php": "v0.4.0-alpha",
+                "hardcastle/xrpl_php": "v0.5.0-alpha",
                 "php": "^8.1.0",
                 "xrplwin/xrpl": "^0.0"
             },
@@ -6856,9 +6800,9 @@
             ],
             "support": {
                 "issues": "https://github.com/XRPLWin/XRPL-TxMutationParser/issues",
-                "source": "https://github.com/XRPLWin/XRPL-TxMutationParser/tree/v0.0.8"
+                "source": "https://github.com/XRPLWin/XRPL-TxMutationParser/tree/v0.0.9"
             },
-            "time": "2022-11-11T18:07:41+00:00"
+            "time": "2022-12-05T12:41:22+00:00"
         }
     ],
     "packages-dev": [
