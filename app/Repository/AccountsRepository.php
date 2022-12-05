@@ -22,9 +22,13 @@ class AccountsRepository extends Repository
    */
   public static function fetchOne($where): ?array
   {
-    $bq = app('bigquery');
     $query = 'SELECT address,l,lt,activatedBy,isdeleted FROM `'.config('bigquery.project_id').'.xwa.accounts` WHERE '.$where.' LIMIT 1';
-    $results = $bq->runQuery($bq->query($query));
+    try {
+      $results = \BigQuery::runQuery(\BigQuery::query($query));
+    } catch (\Throwable $e) {
+      //dd($e->getMessage());
+      throw $e;
+    }
     $r = null;
     foreach ($results as $row) {
       $r = $row;
@@ -47,11 +51,8 @@ class AccountsRepository extends Repository
     $insert .= \implode(',',$castedValues);
     $insert .= ')';
     //dd($insert,$values);
-    $bq = app('bigquery');
-    $dataset = $bq->dataset('xwa');
-    $query = $bq->query($insert)->defaultDataset($dataset);
     try {
-      $bq->runQuery($query);
+      \BigQuery::runQuery(\BigQuery::query($insert));
     } catch (\Throwable $e) {
       //dd($e->getMessage());
       throw $e;

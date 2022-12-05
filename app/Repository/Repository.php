@@ -61,12 +61,10 @@ class Repository
       $i++;
     }
     $q .= ' WHERE '.$conditions;
-    //if($limit)
-    //  $q .= ' LIMIT '.$limit;
-    $bq = app('bigquery');
-    $query = $bq->query($q)->defaultDataset($bq->dataset('xwa'));
+
+    $query = \BigQuery::query($q);
     try {
-      $bq->runQuery($query);
+      \BigQuery::runQuery($query);
     } catch (\Throwable $e) {
       //dd($e->getMessage());
       throw $e;
@@ -81,11 +79,10 @@ class Repository
   public static function query(string $q, array $options = []): ?\Google\Cloud\BigQuery\QueryResults
   {
     $results = null;
-    $bq = app('bigquery');
 
-    $query = $bq->query($q);//->defaultDataset($bq->dataset('xwa'));
+    $query =  \BigQuery::query($q);
     try {
-      $results = $bq->runQuery($query);
+      $results =  \BigQuery::runQuery($query);
     } catch (\Throwable $e) {
       //dd($e->getMessage());
       throw $e;

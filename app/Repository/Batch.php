@@ -115,12 +115,10 @@ class Batch
    */
   private function executeInsert($table, $data): array
   {
-    $bq = app('bigquery');
-    $table = $bq->dataset('xwa')->table($table);
+    $table = \BigQuery::dataset('xwa')->table($table);
     $processed_rows = 0;
     $rows = [];
     foreach($data as $v) {
-      dd($v['model']::TYPE);
       $rows[] = ['insertId' => $v['fields']['h'].'-'.$v['model']::TYPE, 'data' => $v['fields']];
       //unset($v['model']);
       $processed_rows++;

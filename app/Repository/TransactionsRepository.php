@@ -27,10 +27,9 @@ class TransactionsRepository extends Repository
       $columns = 'SK,PK,h,t,r,isin,fee,a,i,c,a2,i2,c2,dt,st';
     if($orderBy !== '')
       $orderBy = ' ORDER BY '.$orderBy;
-    $bq = app('bigquery');
     
     $query = 'SELECT '.$columns.' FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE '.$where.''.$orderBy.' LIMIT '.$limit;;
-    return $bq->runQuery($bq->query($query));
+    return \BigQuery::runQuery(\BigQuery::query($query));
   }
 
   /**
@@ -47,11 +46,9 @@ class TransactionsRepository extends Repository
     $castedValues = self::valuesToCastedValues(BTransaction::BQCASTS, $values);
     $insert .= \implode(',',$castedValues);
     $insert .= ')';
-    $bq = app('bigquery');
-    $dataset = $bq->dataset('xwa');
-    $query = $bq->query($insert)->defaultDataset($dataset);
+
     try {
-      $bq->runQuery($query);
+      \BigQuery::runQuery(\BigQuery::query($insert));
     } catch (\Throwable $e) {
       //dd($e->getMessage());
       throw $e;

@@ -12,6 +12,8 @@ class MainController extends Controller
 {
     public function test()
     {
+      //$a = \BigQuery::client();
+      //dd($a);
       exit;
       $i = new BAccount([
         'address' => 'testtesttesttest',
