@@ -35,6 +35,11 @@ return [
 
     'connections' => [
 
+        //'bigquery' => [
+        //    'driver' => 'bigquery',
+        //    'database' => env('GOOGLE_CLOUD_PROJECT_ID').'.xwa',
+        //],
+
           /*'dynamodb' => [
             'driver' => 'dynamodb',
             'key' => env('AWS_ACCESS_KEY_ID'),

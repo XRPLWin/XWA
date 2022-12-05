@@ -182,13 +182,13 @@ abstract class XRPLParserBase implements XRPLParserInterface
    * This is used as Sort key in DynamoDB table.
    * @return float
    */
-  public function SK(): float
+  /*public function SK(): float
   {
     $ti = (string)$this->getTransactionIndex();
     if(\strlen($ti) >= 4)
       throw new \Exception('Transaction index of 4 or more characters detected: '.$ti. ' Db adjust required');
     return (float)($this->tx->ledger_index.'.'.\str_pad($ti,3,'0',STR_PAD_LEFT));
-  }
+  }*/
 
   /**
    * This will detect activations from meta field. It is know that Payment type activates account.

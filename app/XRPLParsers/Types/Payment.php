@@ -98,14 +98,13 @@ final class Payment extends XRPLParserBase
   {
     //dd($this->data);
     $r = [
-      't' => $this->data['Date'],
+      't' => ripple_epoch_to_carbon((int)$this->data['Date'])->format('Y-m-d H:i:s.uP'),
       //'fe' => $this->data['Fee'], //now optional
-      //'in' => $this->data['In'],
+      'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'], //OK
       'h' => (string)$this->data['hash'],
       //'a' => $this->data['Amount'] //now optional
     ];
-
 
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];
@@ -124,10 +123,7 @@ final class Payment extends XRPLParserBase
 
 
     if(\array_key_exists('Fee', $this->data))
-      $r['fe'] = $this->data['Fee'];
-
-    if($this->data['In'] === true) //to save space we only store true value
-      $r['in'] = true;
+      $r['fee'] = $this->data['Fee'];
 
     //if($this->data['IsPartialPayment'])
     //  $r['rqa'] = $this->data['RequestedAmount']; //rqa - requested amount - this field only exists when there is partial payment

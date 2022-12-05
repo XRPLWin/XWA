@@ -7,13 +7,14 @@ use Illuminate\Console\Command;
 use XRPLWin\XRPL\Client;
 use App\Utilities\AccountLoader;
 use App\Utilities\Ledger;
-use App\Models\DAccount;
-use App\Models\DTransactionActivation;
+use App\Models\BAccount;
+use App\Models\BTransactionActivation;
 use App\Models\Ledgerindex;
 use App\Models\Map;
 use App\XRPLParsers\Parser;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use App\Repository\Batch;
 
 class XwaAccountSync extends Command
 {
@@ -61,7 +62,8 @@ class XwaAccountSync extends Command
      *
      * @var bool
      */
-    private int $ledger_current = -1;
+    private int     $ledger_current = -1;
+    private string  $ledger_current_time = '';
 
     /**
      * XRPL API Client instance
@@ -87,15 +89,21 @@ class XwaAccountSync extends Command
       //$this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
       
       $this->ledger_current = Ledger::current();
-      
+      $this->ledger_current_time = \Carbon\Carbon::now()->format('Y-m-d H:i:s.uP');
+     
+      //clear account cache
+      Cache::forget('daccount:'.$address);
+      Cache::forget('daccount_fti:'.$address);
       
       $account = AccountLoader::getOrCreate($address);
+      
+      //dd($account);
       //dd($account);
       //If this account is issuer (by checking obligations) set t field to 1.
-      if($account->checkIsIssuer())
-        $account->t = 1;
-      else
-        unset($account->t); //this will remove field on model save
+      //if($account->checkIsIssuer())
+      //  $account->t = 1;
+      //else
+      //  unset($account->t); //this will remove field on model save
 
       //dd($account);
       
@@ -123,7 +131,7 @@ class XwaAccountSync extends Command
             'forward' => true,
             'limit' => 400, //400
           ]);
-
+         
       $account_tx->setCooldownHandler(
         /**
          * @param int $current_try Current try 1 to max
@@ -145,7 +153,9 @@ class XwaAccountSync extends Command
       $do = true;
       $isLast = true;
       $dayToFlush = null;
+      $i = 0;
       while($do) {
+        $i++;
         try {
           $account_tx->send();
         } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
@@ -154,7 +164,7 @@ class XwaAccountSync extends Command
           $this->info('Error catched: '.$e->getMessage());
           //throw $e;
         }
-        
+        //if($i ==8) dd($account_tx);
         //Handles sucessful response from ledger with unsucessful message.
         //Hanldes rate limited responses.
         $is_success = $account_tx->isSuccess();
@@ -169,39 +179,68 @@ class XwaAccountSync extends Command
         {
           $this->batch_current++;
           //dd($account_tx);
+          
           $txs = $account_tx->finalResult();
           $this->info('');
           $this->info('Starting batch of '.count($txs).' transactions: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
           $bar = $this->output->createProgressBar(count($txs));
           $bar->start();
-
-          //Do the logic here
           
+          $parsedDatas = []; //list of sub-method results (parsed transactions)
+
+          # Prepare Batch instance which will hold list of queries to be executed at once to BigQuery
+          $batch = new Batch;
+
+          
+          # Parse each transaction and prepare batch execution queries
           foreach($txs as $tx) {
-            //dd($tx);
-            $parsedData = $this->processTransaction($account,$tx);
+            $parsedDatas[] = $this->processTransaction($account,$tx, $batch);
+            $bar->advance();
+          }
+          unset($txs);
+
+          # Execute batch queries
+          $this->info('');
+          $this->info('Executing batch of queries...');
+          $processed_rows = $batch->execute();
+          unset($batch);
+
+          $this->info('- DONE (processed '.$processed_rows.' rows)');
+          //$this->info('Process memory usage: '.memory_get_usage_formatted());
+
+          # Post processing results (flush cache)
+          foreach($parsedDatas as $parsedData) {
             if(!empty($parsedData)) {
               if($dayToFlush === null) {
-                $dayToFlush = ripple_epoch_to_carbon($parsedData['t'])->format('Y-m-d');
+                
+                $dayToFlush = bqtimestamp_to_carbon($parsedData['t'])->format('Y-m-d');
                 $this->info('Flushing day (initial) '.$dayToFlush);
                 $this->flushDayCache($account->address,$dayToFlush);
               } else {
-                $txDayToFlush = ripple_epoch_to_carbon($parsedData['t'])->format('Y-m-d');
+                $txDayToFlush = bqtimestamp_to_carbon($parsedData['t'])->format('Y-m-d');
                 if($dayToFlush !== $txDayToFlush) {
                   $this->info('Flushing day '.$dayToFlush);
                   $this->flushDayCache($account->address,$dayToFlush);
-                  
+                  unset($dayToFlush);
                   $dayToFlush = $txDayToFlush;
                 }
               }
             }
-            $bar->advance();
           }
+          unset($parsedDatas);
+          
           $bar->finish();
+          unset($bar);
 
-          if($account_tx = $account_tx->next()) {
+          $next = $account_tx->next();
+          unset($account_tx);
+         
+          if($next !== null) {
+            $account_tx = $next;
+            unset($next);
             //update last synced ledger index to account metadata
             $account->l = $tx->tx->ledger_index;
+            $account->lt = ripple_epoch_to_carbon($tx->tx->date)->format('Y-m-d H:i:s.uP');
             //$this->info($tx->tx->ledger_index.' is last ledger');
             $account->save();
             //continuing to next page
@@ -226,6 +265,8 @@ class XwaAccountSync extends Command
       # Save last scanned ledger index
       if($isLast) {
         $account->l = $this->ledger_current;
+        $account->lt = $this->ledger_current_time;
+        //dd($account);
         $account->save();
       }
       
@@ -240,22 +281,23 @@ class XwaAccountSync extends Command
      * Calls appropriate method.
      * @return ?array
      */
-    private function processTransaction(DAccount $account, \stdClass $transaction): ?array
+    private function processTransaction(BAccount $account, \stdClass $transaction, Batch $batch): ?array
     {
       $type = $transaction->tx->TransactionType;
       $method = 'processTransaction_'.$type;
-
+      
+      
       if($transaction->meta->TransactionResult != 'tesSUCCESS')
         return null; //do not log failed transactions
 
       //this is faster than call_user_func()
-      return $this->{$method}($account, $transaction);
+      return $this->{$method}($account, $transaction, $batch);
     }
 
     /**
     * Executed offer
     */
-    private function processTransaction_OfferCreate(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_OfferCreate(BAccount $account, \stdClass $transaction): array
     {
       return  []; //TODO
       $txhash = $tx['hash'];
@@ -304,7 +346,7 @@ class XwaAccountSync extends Command
       }
     }
 
-    private function processTransaction_OfferCancel(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_OfferCancel(BAccount $account, \stdClass $transaction): array
     {
       return []; //TODO
     }
@@ -315,23 +357,18 @@ class XwaAccountSync extends Command
     * @return void
     */
     //OK
-    private function processTransaction_Payment(DAccount $account, \stdClass $transaction):array
+    private function processTransaction_Payment(BAccount $account, \stdClass $transaction, Batch $batch):array
     {
       /** @var \App\XRPLParsers\Types\Payment */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       $parsedData = $parser->toDArray();
 
-      $DTransactionClassName = '\\App\\Models\\DTransaction'.$parser->getTransactionTypeClass();
-      $model = new $DTransactionClassName();
- 
-      $model->PK = $account->address.'-'.$DTransactionClassName::TYPE;
-      //$this->info($DTransactionClassName.':'.$model->PK);
-      $model->SK = $parser->SK();
-      foreach($parsedData as $key => $value) {
-        $model->{$key} = $value;
-      }
-      $model->save();
-      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
       
       # Activations by payment:
       $parser->detectActivations();
@@ -339,25 +376,30 @@ class XwaAccountSync extends Command
       if($activatedAddress = $parser->getActivated()) {
         //$this->info('');
         //$this->info('Activation: '.$activatedAddress. ' on index '.$parser->SK());
-        $Activation = new DTransactionActivation;
-        $Activation->PK = $account->address.'-'.DTransactionActivation::TYPE;
-        $Activation->SK = $parser->SK();
-        $Activation->t = $parser->getDataField('Date');
-        $Activation->r = $activatedAddress;
-        $Activation->save();
+        $Activation = new BTransactionActivation([
+          'address' => $account->address,//.'-'.BTransactionActivation::TYPE,
+          'xwatype' => BTransactionActivation::TYPE,
+          'h' => $parsedData['h'],
+          't' => ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('Y-m-d H:i:s.uP'),
+          'r' => $activatedAddress,
+          'isin' => true,
+        ]);
+        $batch->queueModelChanges($Activation);
+        //$Activation->save();
       }
 
       if($activatedByAddress = $parser->getActivatedBy()) {
         $this->info('');
-        $this->info('Activation: Activated by '.$activatedByAddress. ' on index '.$parser->SK());
-        $account->by = $activatedByAddress;
-        unset($account->del); //remove deleted flag, in case it is reactivated, this will remove field on model save
-        $account->save();
+        $this->info('Activation: Activated by '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
+        $account->activatedBy = $activatedByAddress;
+        $account->isdeleted = false; //in case it is reactivated, this will remove field on model save
+        $batch->queueModelChanges($account);
+        //$account->save();
 
         if($this->recursiveaccountqueue)
         {
           //parent created this account, queue parent
-          $this->info('Queued account: '.$activatedByAddress. ' on index '.$parser->SK());
+          $this->info('Queued account: '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
           //$source_account->sync(true);
           $newAccount = AccountLoader::getOrCreate($activatedByAddress);
           $newAccount->sync(
@@ -371,25 +413,23 @@ class XwaAccountSync extends Command
     }
 
     //OK
-    private function processTransaction_TrustSet(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_TrustSet(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       /** @var \App\XRPLParsers\Types\TrustSet */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
 
       $parsedData = $parser->toDArray();
 
-      $DTransactionClassName = '\\App\\Models\\DTransaction'.$parser->getTransactionTypeClass();
-      $model = new $DTransactionClassName();
-      $model->PK = $account->address.'-'.$DTransactionClassName::TYPE;
-      $model->SK = $parser->SK();
-      foreach($parsedData as $key => $value) {
-        $model->{$key} = $value;
-      }
-      $model->save();
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
       return $parsedData;
     }
 
-    private function processTransaction_AccountSet(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_AccountSet(BAccount $account, \stdClass $transaction): array
     {
       return []; //not used yet
 
@@ -419,21 +459,19 @@ class XwaAccountSync extends Command
     }
 
     //OK
-    private function processTransaction_AccountDelete(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_AccountDelete(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       /** @var \App\XRPLParsers\Types\AccountDelete */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
 
       $parsedData = $parser->toDArray();
 
-      $DTransactionClassName = '\\App\\Models\\DTransaction'.$parser->getTransactionTypeClass();
-      $model = new $DTransactionClassName();
-      $model->PK = $account->address.'-'.$DTransactionClassName::TYPE;
-      $model->SK = $parser->SK();
-      foreach($parsedData as $key => $value) {
-        $model->{$key} = $value;
-      }
-      $model->save();
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
 
       if(isset($parsedData['in']) && $parsedData['in']) {
         //incomming xrp
@@ -441,8 +479,9 @@ class XwaAccountSync extends Command
         //outgoing, this is deleted account, flag account deleted
         $this->info('');
         $this->info('Deleted');
-        $account->del = true;
-        $account->save();
+        $account->isdeleted = true;
+        $batch->queueModelChanges($account);
+        //$account->save();
         //dd($account);
         
       }
@@ -450,102 +489,104 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
-    private function processTransaction_SetRegularKey(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_SetRegularKey(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_SignerListSet(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_SignerListSet(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_CheckCancel(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_CheckCancel(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_CheckCash(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_CheckCash(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_CheckCreate(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_CheckCreate(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
 
-    private function processTransaction_EscrowCreate(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_EscrowCreate(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_EscrowFinish(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_EscrowFinish(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_EscrowCancel(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_EscrowCancel(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_PaymentChannelCreate(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_PaymentChannelCreate(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_PaymentChannelFund(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_PaymentChannelFund(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_PaymentChannelClaim(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_PaymentChannelClaim(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_DepositPreauth(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_DepositPreauth(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_TicketCreate(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_TicketCreate(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_NFTokenAcceptOffer(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenAcceptOffer(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_NFTokenBurn(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenBurn(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_NFTokenCancelOffer(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenCancelOffer(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_NFTokenCreateOffer(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenCreateOffer(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
-    private function processTransaction_NFTokenMint(DAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenMint(BAccount $account, \stdClass $transaction): array
     {
       return [];
     }
 
     /**
      * Flush account maps and cache for this day.
+     * @deprecated
      */
     private function flushDayCache(string $address, string $day)
     {
+      /*
       $carbon = Carbon::createFromFormat('Y-m-d',$day);
       $liId = Ledgerindex::getLedgerindexIdForDay($carbon);
       if($liId) {
@@ -557,6 +598,6 @@ class XwaAccountSync extends Command
         }
         //flush from maps table
         Map::where('address',$address)->where('ledgerindex_id',$liId)->delete();
-      }
+      }*/
     }
 }
