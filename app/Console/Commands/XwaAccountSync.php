@@ -331,15 +331,14 @@ class XwaAccountSync extends Command
     }
 
     /**
-    * Executed offer
-    */
+     * Created/Executed offer
+     * @return array
+     */
     private function processTransaction_OfferCreate(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       /** @var \App\XRPLParsers\Types\OfferCreate */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
-      dd($parser);
-      $parsedData = $parser->toDArray();
-
+      $parsedData = $parser->toBArray();
 
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -347,71 +346,29 @@ class XwaAccountSync extends Command
       $model->xwatype = $TransactionClassName::TYPE;
       $batch->queueModelChanges($model);
       //$model->save();
-
-
-      dd('test');
-      return  []; //TODO
-      $txhash = $tx['hash'];
-
-      $TransactionOfferCheck = TransactionTrustset::where('txhash',$txhash)->count();
-      if($TransactionOfferCheck)
-        return null; //nothing to do, already stored
-
-
-
-
-      if(isset($meta['AffectedNodes']) && is_array($meta['AffectedNodes'])) {
-
-        foreach($meta['AffectedNodes'] as $anode) {
-
-          if(isset($anode['ModifiedNode']))
-          {
-
-          //  if(!isset($anode['ModifiedNode']['FinalFields']['Account'] ))
-          //    dd($anode);
-
-          //if($anode['ModifiedNode']['LedgerEntryType'] == 'AccountRoot' && !isset($anode['ModifiedNode']['FinalFields']))
-          //  dd($anode);
-
-            if($anode['ModifiedNode']['LedgerEntryType'] == 'AccountRoot' &&
-                isset($anode['ModifiedNode']['FinalFields']) &&
-                $anode['ModifiedNode']['FinalFields']['Account'] == $account->account) {
-              $newBalance = (int)$anode['ModifiedNode']['FinalFields']['Balance']; //drops
-              $oldBalance = (int)$anode['ModifiedNode']['PreviousFields']['Balance']; //drops
-              $gainLossXrp = (($newBalance - $oldBalance)+$tx['Fee']) / 1000000;
-
-              $TransactionOffer = new TransactionOffer;
-              $TransactionOffer->txhash = $txhash;
-              $TransactionOffer->account_id = $account->id;
-              $TransactionOffer->fee = $tx['Fee']; //in drops
-              $TransactionOffer->time_at = ripple_epoch_to_carbon($tx['date']);
-              $TransactionOffer->amount = $gainLossXrp;
-              if($TransactionOffer->amount !== 0)
-                $TransactionOffer->save();
-
-              //dd($txhash,$newBalance,$oldBalance,($newBalance - $oldBalance));
-            }
-            //dd($anode);
-          }
-        }
-      }
+      return $parsedData;
     }
 
+    /**
+     * Canceled offer
+     * @return array
+     */
     private function processTransaction_OfferCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      //dd('todo processTransaction_OfferCancel');
       return []; //TODO
     }
 
     /**
     * Payment to or from in any currency.
     * @modifies DTransaction $account
-    * @return void
+    * @return array
     */
-    private function processTransaction_Payment(BAccount $account, \stdClass $transaction, Batch $batch):array
+    private function processTransaction_Payment(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       /** @var \App\XRPLParsers\Types\Payment */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
-      $parsedData = $parser->toDArray();
+      $parsedData = $parser->toBArray();
 
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -468,7 +425,7 @@ class XwaAccountSync extends Command
       /** @var \App\XRPLParsers\Types\TrustSet */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
 
-      $parsedData = $parser->toDArray();
+      $parsedData = $parser->toBArray();
 
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -514,7 +471,7 @@ class XwaAccountSync extends Command
       /** @var \App\XRPLParsers\Types\AccountDelete */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
 
-      $parsedData = $parser->toDArray();
+      $parsedData = $parser->toBArray();
 
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);

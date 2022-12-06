@@ -12,8 +12,7 @@ class BTransactionOffercreate extends BTransaction
 
   public function toFinalArray(): array
   {
-    dd('todo toFinalArray BTransactionOffercreate');
-    /*$array = ['type' => $this::TYPE];
+    $array = ['type' => $this::TYPE];
     $array = \array_merge(parent::toFinalArray(),$array);
     
     if(isset($array['c']) && $array['c'] !== null) {
@@ -24,7 +23,7 @@ class BTransactionOffercreate extends BTransaction
     if(isset($array['c2']) && $array['c2'] !== null)
       $array['c2_formatted'] = xrp_currency_to_symbol($array['c2']);
     
-    return $array;*/
+    return $array;
   }
 
 }

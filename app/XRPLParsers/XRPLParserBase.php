@@ -77,9 +77,9 @@ abstract class XRPLParserBase implements XRPLParserInterface
    * key => value one dimensional array which correlates to column => value in DyDb.
    * @return array
    */
-  public function toDArray(): array
+  public function toBArray(): array
   {
-    throw new \Exception('toDArray Not implemented in final class');
+    throw new \Exception('toBArray Not implemented in final class');
   }
 
   /**
@@ -96,7 +96,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
 
     $this->data['In'] = null;
 
-    if(isset($this->tx->Destination) && $this->tx->Destination == $this->reference_address) //todo makni provjeru destination jer nekad destination ne postoji, koristi txcontext umjesto toga za calc in/out
+    if(isset($this->tx->Destination) && $this->tx->Destination == $this->reference_address)
       $this->data['In'] = true;
     elseif( $this->tx->Account == $this->reference_address )
       $this->data['In'] = false;
