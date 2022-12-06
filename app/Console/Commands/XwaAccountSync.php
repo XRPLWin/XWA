@@ -63,7 +63,17 @@ class XwaAccountSync extends Command
      * @var bool
      */
     private int     $ledger_current = -1;
-    private string  $ledger_current_time = '';
+    private readonly string  $ledger_current_time;
+
+    /**
+     * Each new run ledger index that will be queried is last accessed -1.
+     * This means few transaction might be already stored in database. To prevent
+     * duplication of transactions last hash is extracted from transactions table,
+     * then compared when that transactions in reached in pulled new transactions list
+     * this will became true and inserting can continue.
+     * This will be set as false if atleast one transaction is already inserted in db.
+     */
+    private bool $transaction_flow_valid = true;
 
     /**
      * XRPL API Client instance
@@ -89,7 +99,7 @@ class XwaAccountSync extends Command
       //$this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
       
       $this->ledger_current = Ledger::current();
-      $this->ledger_current_time = \Carbon\Carbon::now()->format('Y-m-d H:i:s.uP');
+      $this->ledger_current_time = \Carbon\Carbon::now()->format('Y-m-d H:i:s.uP'); //not 100% on point due to Ledger::current() can be stale up to 10 seconds
      
       //clear account cache
       Cache::forget('daccount:'.$address);
@@ -121,23 +131,21 @@ class XwaAccountSync extends Command
         return 0;
       }*/
 
+      $ledger_index_min = (int)$account->l;
+
       # Find last inserted transaction in transactions table for check to prevent duplicates
-      $last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""', 't,xwatype,h','t DESC'); //{t,xwatype,h}
+      $last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""', 'xwatype,h','t DESC'); //{t,xwatype,h}
       if($last_inserted_tx !== null) {
-        if($account->lt->lessThanOrEqualTo($last_inserted_tx->t->get())) {
-          //Transaction in 
-        } else {
-          $last_inserted_tx = null;
-        }
-        ///->format('Y-m-d H:i:s.uP')
+        //At least one transaction exists, query one less ledger index just in case something wont be missed
+        $ledger_index_min--;
+        $this->transaction_flow_valid = false;
       }
-      //dd($last_inserted_tx,$account->lt);
 
       $account_tx = $this->XRPLClient->api('account_tx')
           ->params([
             'account' => $account->address,
             //'ledger_index' => 'current',
-            'ledger_index_min' => (int)$account->l, //Ledger index this account is scanned to.
+            'ledger_index_min' => $ledger_index_min, //Ledger index this account is scanned to.
             'ledger_index_max' => $this->ledger_current,
             'binary' => false,
             'forward' => true,
@@ -176,7 +184,7 @@ class XwaAccountSync extends Command
           $this->info('Error catched: '.$e->getMessage());
           //throw $e;
         }
-        //if($i ==8) dd($account_tx);
+
         //Handles sucessful response from ledger with unsucessful message.
         //Hanldes rate limited responses.
         $is_success = $account_tx->isSuccess();
@@ -193,6 +201,7 @@ class XwaAccountSync extends Command
           //dd($account_tx);
           
           $txs = $account_tx->finalResult();
+          
           $this->info('');
           $this->info('Starting batch of '.count($txs).' transactions: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
           $bar = $this->output->createProgressBar(count($txs));
@@ -206,7 +215,7 @@ class XwaAccountSync extends Command
           
           # Parse each transaction and prepare batch execution queries
           foreach($txs as $tx) {
-            $parsedDatas[] = $this->processTransaction($account,$tx, $batch);
+            $parsedDatas[] = $this->processTransaction($account,$tx,$batch,$last_inserted_tx);
             $bar->advance();
           }
           unset($txs);
@@ -249,15 +258,12 @@ class XwaAccountSync extends Command
             //update last synced ledger index to account metadata
             $account->l = $tx->tx->ledger_index;
             $account->lt = ripple_epoch_to_carbon($tx->tx->date)->format('Y-m-d H:i:s.uP');
-            //$this->info($tx->tx->ledger_index.' is last ledger');
 
             # Commit changes to $account every 20th iteration (for improved performace)
             if($i % 20 === 0) {
               $this->info('Committing to account...');
               $account->save();
-              
             }
-              
             //continuing to next page
           }
           else
@@ -283,7 +289,6 @@ class XwaAccountSync extends Command
       if($isLast) {
         $account->l = $this->ledger_current;
         $account->lt = $this->ledger_current_time;
-        //dd($account);
         $this->info('Committing to account (last)...');
         $account->save();
       }
@@ -299,15 +304,28 @@ class XwaAccountSync extends Command
      * Calls appropriate method.
      * @return ?array
      */
-    private function processTransaction(BAccount $account, \stdClass $transaction, Batch $batch): ?array
+    private function processTransaction(BAccount $account, \stdClass $transaction, Batch $batch, ?\stdClass $last_inserted_tx): ?array
     {
-      $type = $transaction->tx->TransactionType;
-      $method = 'processTransaction_'.$type;
-      
-      
       if($transaction->meta->TransactionResult != 'tesSUCCESS')
         return null; //do not log failed transactions
 
+      $type = $transaction->tx->TransactionType;
+      $method = 'processTransaction_'.$type;
+      
+      if($this->transaction_flow_valid === false) {
+        // this transaction hash might be already inserted
+        if($transaction->tx->hash == $last_inserted_tx->h) {
+          // this is latest inserted transaction into database, flag flow as valid end exit
+          // Note: there can be more than one transaction with same hash for current account, all other transactions (autogenerated, eg Activation)
+          //       are coupled and inserted in the same time, we are free to skip to next transaction hash.
+          $this->transaction_flow_valid = true;
+          $this->info('Already inserted: '.$transaction->tx->hash.' (skipping, latest)');
+        } else {
+          $this->info('Already inserted: '.$transaction->tx->hash.' (skipping)');
+        }
+        return null;
+      }
+      
       //this is faster than call_user_func()
       return $this->{$method}($account, $transaction, $batch);
     }
