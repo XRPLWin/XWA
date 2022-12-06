@@ -15,10 +15,6 @@ final class Payment extends XRPLParserBase
    */
   protected function parseTypeFields(): void
   {
-
-    # $this->data['In'] is bool
-    //dd($this);
-
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].']');

@@ -333,8 +333,23 @@ class XwaAccountSync extends Command
     /**
     * Executed offer
     */
-    private function processTransaction_OfferCreate(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_OfferCreate(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      /** @var \App\XRPLParsers\Types\OfferCreate */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      dd($parser);
+      $parsedData = $parser->toDArray();
+
+
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+
+
+      dd('test');
       return  []; //TODO
       $txhash = $tx['hash'];
 
@@ -382,7 +397,7 @@ class XwaAccountSync extends Command
       }
     }
 
-    private function processTransaction_OfferCancel(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_OfferCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       return []; //TODO
     }
@@ -392,7 +407,6 @@ class XwaAccountSync extends Command
     * @modifies DTransaction $account
     * @return void
     */
-    //OK
     private function processTransaction_Payment(BAccount $account, \stdClass $transaction, Batch $batch):array
     {
       /** @var \App\XRPLParsers\Types\Payment */

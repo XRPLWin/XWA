@@ -3,16 +3,17 @@
 namespace App\Models;
 
 /**
- * Transaction model of type Payment.
- * PK: rAcct-1 SK: <INT> (Ledger index)
+ * Transaction model of type OfferCreate.
+ * PK: rAcct-7 SK: <INT> (Ledger index)
  */
-class BTransactionPayment extends BTransaction
+class BTransactionOffercreate extends BTransaction
 {
-  const TYPE = 1;
+  const TYPE = 7;
 
-  public function toFinalArray()
+  public function toFinalArray(): array
   {
-    $array = ['type' => $this::TYPE];
+    dd('todo toFinalArray BTransactionOffercreate');
+    /*$array = ['type' => $this::TYPE];
     $array = \array_merge(parent::toFinalArray(),$array);
     
     if(isset($array['c']) && $array['c'] !== null) {
@@ -23,7 +24,7 @@ class BTransactionPayment extends BTransaction
     if(isset($array['c2']) && $array['c2'] !== null)
       $array['c2_formatted'] = xrp_currency_to_symbol($array['c2']);
     
-    return $array;
+    return $array;*/
   }
 
 }
