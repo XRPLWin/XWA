@@ -27,7 +27,7 @@ final class AccountDelete extends XRPLParserBase
    * key => value one dimensional array which correlates to column => value in DyDb.
    * @return array
    */
-  public function toDArray(): array
+  public function toBArray(): array
   {
     $r = [
       't' => ripple_epoch_to_carbon((int)$this->data['Date'])->format('Y-m-d H:i:s.uP'),
