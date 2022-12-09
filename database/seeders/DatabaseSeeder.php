@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
   public function run()
   {
     $this->call([
-      LedgerIndexesSeeder::class,
+      //FooSeeder::class,
     ]);
 
   }

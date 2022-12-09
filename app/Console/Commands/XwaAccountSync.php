@@ -371,7 +371,6 @@ class XwaAccountSync extends Command
 
     /**
     * Payment to or from in any currency.
-    * @modifies DTransaction $account
     * @return array
     */
     private function processTransaction_Payment(BAccount $account, \stdClass $transaction, Batch $batch): array
@@ -429,7 +428,10 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
-    //OK
+    /**
+     * TrustSet (set or unset)
+     * @return array
+     */
     private function processTransaction_TrustSet(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       /** @var \App\XRPLParsers\Types\TrustSet */
@@ -446,6 +448,11 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    /**
+     * AccountSet
+     * TODO
+     * @return array
+     */
     private function processTransaction_AccountSet(BAccount $account, \stdClass $transaction): array
     {
       return []; //not used yet
@@ -475,7 +482,10 @@ class XwaAccountSync extends Command
       return [];
     }
 
-    //OK
+    /**
+     * AccountDelete
+     * @return array
+     */
     private function processTransaction_AccountDelete(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       /** @var \App\XRPLParsers\Types\AccountDelete */
@@ -492,6 +502,7 @@ class XwaAccountSync extends Command
 
       if(isset($parsedData['in']) && $parsedData['in']) {
         //incomming xrp
+        //TODO check this
       } else {
         //outgoing, this is deleted account, flag account deleted
         $this->info('');
