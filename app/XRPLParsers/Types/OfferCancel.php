@@ -4,9 +4,9 @@ namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
 
-final class OfferCreate extends XRPLParserBase
+final class OfferCancel extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','TRADE'];
+  private array $acceptedParsedTypes = ['SET'];
   /**
    * Parses TrustSet type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
@@ -16,20 +16,15 @@ final class OfferCreate extends XRPLParserBase
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on OfferCreate with HASH ['.$this->data['hash'].']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on OfferCancel with HASH ['.$this->data['hash'].']');
     
-     # Sub-Type
-    if($parsedType === 'TRADE') {
-      //Eg. Trade based on offer, this can be auto-furfilled offer or partially furfilled offer when creating new.
-      $this->transaction_type_class = 'OfferCreate_Trade';
-    }
+  
 
     # Counterparty is always transaction account (creator)
     $this->data['Counterparty'] = $this->tx->Account;
 
-    # Direction IN if this is not reference account's offer
-    if($this->tx->Account !== $this->reference_address)
-      $this->data['In'] = true;
+    # OfferCancel is always OUT
+    $this->data['In'] = false;
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
@@ -39,6 +34,8 @@ final class OfferCreate extends XRPLParserBase
         $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
       }
     }
+
+    # We expect fee only but this will catch eventual balance changes if any
     if(isset($this->data['eventList']['secondary'])) {
       $this->data['Amount2'] = $this->data['eventList']['secondary']['value'];
       if($this->data['eventList']['secondary']['currency'] !== 'XRP') {
@@ -50,7 +47,6 @@ final class OfferCreate extends XRPLParserBase
           $this->data['Issuer2'] = $this->data['eventList']['secondary']['counterparty'];
           $this->data['Currency2'] = $this->data['eventList']['secondary']['currency'];
         }
-        
       }
     }
   }
@@ -68,6 +64,8 @@ final class OfferCreate extends XRPLParserBase
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
     ];
+
+    # Standard fields:
 
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];

@@ -3,12 +3,12 @@
 namespace App\Models;
 
 /**
- * Transaction model of type OfferCreate.
- * PK: rAcct-7 SK: <INT> (Ledger index)
+ * Transaction model of type OfferCancel.
+ * PK: rAcct-9 SK: <INT> (Ledger index)
  */
-class BTransactionOfferCreate extends BTransaction
+class BTransactionOfferCancel extends BTransaction
 {
-  const TYPE = 7;
+  const TYPE = 9;
 
   public function toFinalArray(): array
   {

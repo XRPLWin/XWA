@@ -355,7 +355,17 @@ class XwaAccountSync extends Command
      */
     private function processTransaction_OfferCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      //dd('todo processTransaction_OfferCancel');
+      /** @var \App\XRPLParsers\Types\OfferCancel */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
       return []; //TODO
     }
 
