@@ -81,16 +81,21 @@ class AccountController extends Controller
     $r = [
       'synced' => false,   // bool
       'queued' => false, //bool
-      'progress_current' => 0,
-      'progress_total' => 0
+      'progress_current' => 0, //unix timestamp - offset
+      'progress_current_time' => null, //current time
+      'progress_total' => \time()
     ];
 
     $acct = AccountLoader::getOrCreate($address);
     
     if($acct) {
 
-      $r['progress_current'] = $acct->l;
-      $r['progress_total'] = \App\Utilities\Ledger::current();
+      $firstTxInfo = $acct->getFirstTransactionAllInfo();
+      $offset = $firstTxInfo['first'] ? $firstTxInfo['first']:0;
+      
+      $r['progress_current_time'] = $acct->lt;
+      $r['progress_current'] = $acct->lt->timestamp - $offset;
+      $r['progress_total'] = $r['progress_total'] - $offset;
 
       if(!$acct->isSynced())
       {
@@ -98,8 +103,6 @@ class AccountController extends Controller
         $r['queued'] = $queuedJobsCount?true:false;
         $r['synced'] = false;
       }
-
-
     }
    
     return response()->json($r)
