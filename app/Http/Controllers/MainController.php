@@ -32,7 +32,6 @@ class MainController extends Controller
         ]);
       $tx = $tx->send()->finalResult();
       
-      /** @var \App\XRPLParsers\Types\AccountDelete */
       $parser = \App\XRPLParsers\Parser::get($tx, $tx->meta, $request->input('acc'));
      
       $parsedData = $parser->toBArray();

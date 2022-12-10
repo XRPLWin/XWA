@@ -89,7 +89,7 @@ class Search
     }
 
     $this->result = $data['data'];
-    $this->result_counts = ['page' => $data['page'], 'pages' => $num_pages, 'more' => $data['hasmorepages']];
+    $this->result_counts = ['page' => $data['page'], 'pages' => $num_pages, 'more' => $data['hasmorepages'], 'total' => $data['total']];
     $this->isExecuted = true;
     return $this;
   }
@@ -252,14 +252,14 @@ class Search
     ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2016-09-06&to=2016-09-06&types[0]=Payment&dir=in
     //https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert
     $query = \BigQuery::query($SQL)->useQueryCache($dateRanges[1]->isToday() ? false:true); //we do not use cache on queries that envelop today
-
+    
     # Run query and wait for results
     $results = \BigQuery::runQuery($query); //run query
-
+    
     $backoff = new \Google\Cloud\Core\ExponentialBackoff(8);
     $backoff->execute(function () use ($results) {
         $results->reload();
-
+        
         if (!$results->isComplete()) {
             throw new \Exception();
         }
@@ -268,7 +268,7 @@ class Search
     if (!$results->isComplete()) {
       throw new \Exception('Query did not complete within the allotted time');
     }
-
+    dd($results);
     // All results are loaded at this point
 
     # Loop raw results and create models
