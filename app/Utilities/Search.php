@@ -242,7 +242,7 @@ class Search
     # Build query for BQ
     $limit = $mapper->getLimit();
     //$limit = 1;
-    $start = microtime(true);
+    //$start = microtime(true);
     $SQL = 'SELECT '.\implode(',',\array_keys(BTransaction::BQCASTS)).' FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
     //$SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
     
@@ -277,7 +277,11 @@ class Search
     }
     //dd($results);
     // All results are loaded at this point
-    $time_afterquery =  microtime(true)- $start;
+    //echo  microtime(true)- $start;
+
+    //dd('stop');
+
+
     # Loop raw results and create models
     $i = 1;
     $hasMorePages = false;
@@ -290,8 +294,8 @@ class Search
       $collection[] = $this->mutateRowToModel($row);
       $i++;
     }
-    echo  microtime(true)- $start;
-    dd('stop, time after query: '.$time_afterquery);
+    
+    
     if($hasMorePages) {
       $count = $this->_runCount($mapper,$dateRanges);
     } else {
