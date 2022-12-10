@@ -15,6 +15,7 @@ use App\Utilities\AccountLoader;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 
@@ -79,17 +80,25 @@ class Search
       return $this;
     }
 
+    //calculate how much pages total
+    $num_pages = 1;
+    $limit = config('xwa.limit_per_page');
+
+    if($data['total'] > $limit) {
+      $num_pages = (int)\ceil($data['total'] / $limit);
+    }
+
     $this->result = $data['data'];
-    $this->result_counts = ['page' => $data['page'], 'more' => $data['hasmorepages']];
+    $this->result_counts = ['page' => $data['page'], 'pages' => $num_pages, 'more' => $data['hasmorepages']];
     $this->isExecuted = true;
     return $this;
   }
 
   /**
    * @throws \Exception
-   * @return ?
+   * @return array
    */
-  private function _execute_real(int $page = 1, BAccount $acct)
+  private function _execute_real(int $page = 1, BAccount $acct): array
   {
     $mapper = new Mapper();
     $mapper->setAddress($this->address);
@@ -165,6 +174,7 @@ class Search
             'total_pages' => 0
           ],*/
           'page' => 0,
+          'total' => 0,
           'hasmorepages' => false,
           'data' => []
         ];
@@ -222,7 +232,7 @@ class Search
     $mapper->checkRequirements($acct);
 
     //Now the fun part.
-
+  
     # Build query for BQ
     $limit = $mapper->getLimit();
     
@@ -233,6 +243,7 @@ class Search
     $SQL .= $mapper->generateConditionsSQL();
     # Limit and offset, always get +1 result to see if there are more pages
     $SQL .= ' ORDER BY t ASC LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
+
     //dd($SQL);
     //dump(' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset());
 
@@ -265,20 +276,92 @@ class Search
     $hasMorePages = false;
     $collection = [];
     foreach($results->rows(['returnRawResults' => false]) as $row) {
-      
       if($i > $limit) {
         $hasMorePages = true;
         break;
       }
-
       $collection[] = $this->mutateRowToModel($row);
-
-      //echo $i.') '.$row['h'].'<br>';
-      //if($i == 12) dd($job->rows() );
       $i++;
     }
+
+    if($hasMorePages) {
+      $count = $this->_runCount($mapper,$dateRanges);
+    } else {
+      $count = $i;
+    }
+    return ['page' => $page, 'hasmorepages' => $hasMorePages, 'total' => $count, 'data' => $collection];
+  }
+
+  private function _runCount(Mapper $mapper, array $dateRanges): int
+  {
+
+    $cache_key = 'searchcount:'.$this->_generateSearchIndentifier($mapper);
+    $count = Cache::get($cache_key);
     
-    return ['page' => $page, 'hasmorepages' => $hasMorePages, 'data' => $collection];
+    if($count === null) {
+
+      # Count Start
+
+      $SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
+      # Add all conditions
+      $SQL .= $mapper->generateConditionsSQL();
+      $query = \BigQuery::query($SQL)->useQueryCache($dateRanges[1]->isToday() ? false:true); //we do not use cache on queries that envelop today
+      # Run query and wait for results
+      $results = \BigQuery::runQuery($query); //run query
+  
+      $backoff = new \Google\Cloud\Core\ExponentialBackoff(8);
+      $backoff->execute(function () use ($results) {
+          $results->reload();
+          if (!$results->isComplete()) {
+              throw new \Exception();
+          }
+      });
+  
+      if (!$results->isComplete()) {
+        throw new \Exception('Count Query did not complete within the allotted time');
+      }
+      $count = null;
+      foreach($results->rows() as $v) {
+        $count = $v['c'];
+        break;
+      }
+      if($count === null)
+        throw new \Exception('Count Query did not returned expected single row');
+
+      # Count End
+      Cache::put($cache_key, $count, 86400); //86400 seconds = 24 hours
+    }
+    return $count;
+  }
+
+  /**
+   * This search identifier. This string identifies all search parameter combination for this search.
+   * @return string SHA-512Half
+   */
+  private function _generateSearchIndentifier(Mapper $mapper): string
+  {
+    $params = $mapper->getConditions();
+
+    $indentity = $this->address.':';
+    unset($params['page']);
+
+    \ksort($params);
+    if(isset($params['txTypes'])) {
+      $_txTypes = $params['txTypes'];
+      unset($params['txTypes']);
+      \ksort($_txTypes);
+    }
+
+    foreach($params as $k => $v) {
+      $indentity .= $k.'='.$v.':';
+    }
+    if(isset($_txTypes)) {
+      foreach($_txTypes as $k => $v) {
+        $indentity .= $k.'='.$v.':';
+      }
+    }
+    $hash = \hash('sha512', $indentity);
+    return \substr($hash,0,64);
   }
 
 

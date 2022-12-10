@@ -1,12 +1,7 @@
 <?php
 
 namespace App\Utilities;
-use App\Models\Map;
-use App\Models\Ledgerindex;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
-use Illuminate\Support\Facades\Cache;
-use App\Repository\TransactionsRepository;
 use App\Models\BAccount;
 
 /**
@@ -44,6 +39,11 @@ class Mapper
     if($this->page <= 1)
       return 0;
     return $this->getLimit() * ($this->page - 1);
+  }
+
+  public function getConditions(): array
+  {
+    return $this->conditions;
   }
 
   public function addCondition(string $condition, mixed $value): self
