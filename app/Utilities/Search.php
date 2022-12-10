@@ -69,15 +69,21 @@ class Search
     try {
       $data = $this->_execute_real($page, $acct);
     } catch (\Throwable $e) {
-      if(config('app.debug')) {
-        $this->errors[] = $e->getMessage().' on line '.$e->getLine().' on line '.$e->getLine(). ' in file '.$e->getFile();
-        Log::debug($e);
+      if(config('app.env') == 'production') {
+        if(config('app.debug')) {
+          $this->errors[] = $e->getMessage().' on line '.$e->getLine().' on line '.$e->getLine(). ' in file '.$e->getFile();
+          Log::debug($e);
+        }
+        else
+          $this->errors[] = $e->getMessage();
+  
+        $this->last_error_code = 2;
+        return $this;
       }
-      else
-        $this->errors[] = $e->getMessage();
 
-      $this->last_error_code = 2;
-      return $this;
+      //Throw erros on local (dev) environments
+      throw $e;
+      
     }
 
     //calculate how much pages total

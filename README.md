@@ -37,6 +37,14 @@ sudo supervisorctl update
 sudo supervisorctl restart all
 ```
 
+### Permissions
+
+```
+chown -R root:daemon .
+find storage/ -type d -exec chmod 770 {} \;
+find storage/ -type f -exec chmod 760 {} \;
+```
+
 ## Tests
 To execute all tests run:
 
