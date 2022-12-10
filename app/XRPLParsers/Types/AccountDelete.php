@@ -13,12 +13,13 @@ final class AccountDelete extends XRPLParserBase
    */
   protected function parseTypeFields(): void
   {
-    
-    //dd($this->tx,$this->data);
-
     $this->data['Counterparty'] = $this->data['In'] ? $this->tx->Account:$this->tx->Destination;
     $this->data['DestinationTag'] = isset($this->tx->DestinationTag) ? $this->tx->DestinationTag:null;
-    $this->data['Amount'] = drops_to_xrp((int)$this->meta->delivered_amount);
+
+    # Balance changes from eventList (primary, or none)
+    if(isset($this->data['eventList']['primary'])) {
+      $this->data['Amount'] = $this->data['eventList']['primary']['value'];
+    }
   }
 
 

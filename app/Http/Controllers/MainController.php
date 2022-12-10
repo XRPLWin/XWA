@@ -10,6 +10,39 @@ use XRPLWin\XRPLOrderbookReader\LiquidityCheck;
 
 class MainController extends Controller
 {
+    public function txtest(Request $request)
+    {
+      $form = '<style>body{font:12px Menlo, Monaco, Consolas, monospace}</style>
+      <h1>Transaction parse tester</h1><form action="" method="GET">
+        <input type="text" name="tx" placeholder="tx" value="'.$request->input('tx').'" style="width:500px">
+        <input type="text" name="acc" placeholder="perspective" value="'.$request->input('acc').'" style="width:300px">
+        <input type="submit">
+      </form>';
+
+      echo $form;
+
+      if(!$request->input('tx') || !$request->input('acc')) return '';
+
+
+      $client = app(\XRPLWin\XRPL\Client::class);
+
+      $tx = $client->api('tx')
+        ->params([
+          'transaction' => $request->input('tx')
+        ]);
+      $tx = $tx->send()->finalResult();
+      
+      /** @var \App\XRPLParsers\Types\AccountDelete */
+      $parser = \App\XRPLParsers\Parser::get($tx, $tx->meta, $request->input('acc'));
+     
+      $parsedData = $parser->toBArray();
+      dump($parser);
+      echo '$parser->toBArray() - parsedData:';
+      dump($parsedData);
+
+      echo '<a target="_blank" href="https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash='.$request->input('tx').'&ref='.$request->input('acc').'">View in Playground (new window)</a>';
+    }
+
     public function test()
     {
       //$a = \BigQuery::client();

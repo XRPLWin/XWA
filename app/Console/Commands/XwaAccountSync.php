@@ -499,19 +499,14 @@ class XwaAccountSync extends Command
       $model->xwatype = $TransactionClassName::TYPE;
       $batch->queueModelChanges($model);
       //$model->save();
-
-      if(isset($parsedData['in']) && $parsedData['in']) {
-        //incomming xrp
-        //TODO check this
-      } else {
+      
+      if(!$parsedData['isin']) {
         //outgoing, this is deleted account, flag account deleted
         $this->info('');
         $this->info('Deleted');
         $account->isdeleted = true;
         $batch->queueModelChanges($account);
         //$account->save();
-        //dd($account);
-        
       }
 
       return $parsedData;

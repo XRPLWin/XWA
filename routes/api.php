@@ -18,6 +18,7 @@ Route::get('/server/queue', [App\Http\Controllers\Api\ServerController::class, '
 
 # TEST
 Route::get('/test', [App\Http\Controllers\MainController::class, 'test'])->name('test');
+Route::get('/txtest', [App\Http\Controllers\MainController::class, 'txtest'])->name('txtest');
 
 
 # Sample:
