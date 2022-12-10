@@ -241,7 +241,8 @@ class Search
   
     # Build query for BQ
     $limit = $mapper->getLimit();
-    
+    //$limit = 1;
+    $start = microtime(true);
     $SQL = 'SELECT '.\implode(',',\array_keys(BTransaction::BQCASTS)).' FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
     //$SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
     
@@ -249,7 +250,7 @@ class Search
     $SQL .= $mapper->generateConditionsSQL();
     # Limit and offset, always get +1 result to see if there are more pages
     $SQL .= ' ORDER BY t ASC LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
-
+   
     //dd($SQL);
     //dump(' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset());
 
@@ -261,22 +262,22 @@ class Search
     
     # Run query and wait for results
     $results = \BigQuery::runQuery($query); //run query
-    
-    $backoff = new \Google\Cloud\Core\ExponentialBackoff(8);
+   
+    /*$backoff = new \Google\Cloud\Core\ExponentialBackoff(8);
     $backoff->execute(function () use ($results) {
         $results->reload();
         
         if (!$results->isComplete()) {
             throw new \Exception();
         }
-    });
+    });*/
 
     if (!$results->isComplete()) {
       throw new \Exception('Query did not complete within the allotted time');
     }
-    dd($results);
+    //dd($results);
     // All results are loaded at this point
-
+    $time_afterquery =  microtime(true)- $start;
     # Loop raw results and create models
     $i = 1;
     $hasMorePages = false;
@@ -289,7 +290,8 @@ class Search
       $collection[] = $this->mutateRowToModel($row);
       $i++;
     }
-
+    echo  microtime(true)- $start;
+    dd('stop, time after query: '.$time_afterquery);
     if($hasMorePages) {
       $count = $this->_runCount($mapper,$dateRanges);
     } else {
@@ -315,13 +317,13 @@ class Search
       # Run query and wait for results
       $results = \BigQuery::runQuery($query); //run query
   
-      $backoff = new \Google\Cloud\Core\ExponentialBackoff(8);
+      /*$backoff = new \Google\Cloud\Core\ExponentialBackoff(8);
       $backoff->execute(function () use ($results) {
           $results->reload();
           if (!$results->isComplete()) {
               throw new \Exception();
           }
-      });
+      });*/
   
       if (!$results->isComplete()) {
         throw new \Exception('Count Query did not complete within the allotted time');
