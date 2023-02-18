@@ -3,7 +3,7 @@
     "version": "0.0.1",
     "type": "project",
     "description": "XRP Ledger Analyzer",
-    "keywords": ["xrpl", "xrpl", "xrp-ledger", "analyzer", "php", "dynamodb", "aws"],
+    "keywords": ["xrpl", "xrpl", "xrp-ledger", "analyzer", "php", "bigquery", "google"],
     "license": "MIT",
     "readmeFilename": "README.md",
     "bugs" : {
@@ -19,7 +19,7 @@
         "schulzefelix/laravel-bigquery": "^1.7",
         "xrplwin/xrpl": ">=0.0.11",
         "xrplwin/xrpl-orderbook-reader": "^1.0.4",
-        "xrplwin/xrpl-txmutationparser": "^0.0.9"
+        "xrplwin/xrpl-txmutationparser": "^0.0.10"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
