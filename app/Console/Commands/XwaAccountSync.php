@@ -450,36 +450,24 @@ class XwaAccountSync extends Command
 
     /**
      * AccountSet
-     * TODO
+     * TODO (rWinEUKtN3BmYdDoGU6HZ7tTG54BeCAiz)
      * @return array
      */
-    private function processTransaction_AccountSet(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_AccountSet(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      return []; //not used yet
+      /** @var \App\XRPLParsers\Types\AccountSet */
 
-      $txhash = $tx['hash'];
-      $TransactionAccountsetCheck = TransactionAccountset::where('txhash',$txhash)->count();
-      if($TransactionAccountsetCheck)
-        return []; //nothing to do, already stored
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
 
-      $TransactionAccountset = new TransactionAccountset;
-      $TransactionAccountset->txhash = $txhash;
+      $parsedData = $parser->toBArray();
 
-      if($account->account == $tx['Account'])
-        $TransactionAccountset->source_account_id = $account->id; //reuse it
-      else
-        $TransactionAccountset->source_account_id = StaticAccount::GetOrCreate($tx['Account'],$this->ledger_current)->id;
-
-      $TransactionAccountset->fee = $tx['Fee']; //in drops
-      $TransactionAccountset->time_at = ripple_epoch_to_carbon($tx['date']);
-
-      //$TransactionAccountset->set_flag = $tx['SetFlag'];
-
-      $TransactionAccountset->save();
-
-
-
-      return [];
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
     /**
