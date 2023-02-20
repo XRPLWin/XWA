@@ -86,3 +86,11 @@ http://playground.test/play/xrpl-transaction-mutation-parser?hash=1C480B388ECADC
 
 
 ## create opanapi definition "3.0.0" like this https://demo.webpower.eu/admin/api/swagger.php
+
+Abundance of older scrambled transactions here: rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn
+
+Uphold with escrows
+http://xlanalyzer-ui.test/account/rMdG3ju8pgyVh29ELPWaDuA74CpWW6Fxns/search?from=2019-05-29&to=2020-02-16&st=&dt=&cp=&token=&dir=
+php artisan xwa:accountsync rMdG3ju8pgyVh29ELPWaDuA74CpWW6Fxns
+tarting batch of 200 transactions: Ledger from 58938924 to 77927657
+   0/200 [>---------------------------]   0%"todo PaymentChannelCreate"

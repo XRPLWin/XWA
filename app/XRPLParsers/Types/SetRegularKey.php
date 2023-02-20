@@ -4,29 +4,26 @@ namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
 
-final class OfferCancel extends XRPLParserBase
+final class SetRegularKey extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','SENT'];
+
   /**
    * Parses TrustSet type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
-   * @see https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash=E7697D162A606FCC138C5732BF0D2A4AED49386DC59235FC3E218650AAC19744&ref=rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn
-   *      UNKNOWN transaction
+   * @see 7905E05FB8D6C696553CD5EFF0CBF749E4717E62C90E71E1BDD6CA87733F1065 - zero fee with SENT context
+   * @see 6AA6F6EAAAB56E65F7F738A9A2A8A7525439D65BA990E9BA08F6F4B1C2D349B4
    * @return void
    */
   protected function parseTypeFields(): void
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on OfferCancel with HASH ['.$this->data['hash'].']');
-    
-  
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on SetRegularKey with HASH ['.$this->data['hash'].']');
 
     # Counterparty is always transaction account (creator)
     $this->data['Counterparty'] = $this->tx->Account;
-
-    # OfferCancel is always OUT
-    $this->data['In'] = false;
+    $this->data['In'] = true;
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
@@ -37,20 +34,6 @@ final class OfferCancel extends XRPLParserBase
       }
     }
 
-    # We expect fee only but this will catch eventual balance changes if any
-    if(isset($this->data['eventList']['secondary'])) {
-      $this->data['Amount2'] = $this->data['eventList']['secondary']['value'];
-      if($this->data['eventList']['secondary']['currency'] !== 'XRP') {
-        if(is_array($this->data['eventList']['secondary']['counterparty'])) {
-          //Secondary counterparty is rippled trough reference account
-          //Counterparty is list of counterparty participants, and value is SUM of balance changes
-          throw new \Exception('Unhandled Counterparty Array for parsedtype ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].'] for perspective ['.$this->reference_address.']');
-        } else {
-          $this->data['Issuer2'] = $this->data['eventList']['secondary']['counterparty'];
-          $this->data['Currency2'] = $this->data['eventList']['secondary']['currency'];
-        }
-      }
-    }
   }
 
   /**
@@ -67,22 +50,14 @@ final class OfferCancel extends XRPLParserBase
       'h' => (string)$this->data['hash'],
     ];
 
-    # Standard fields:
-
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];
-    if(\array_key_exists('Amount2', $this->data))
-      $r['a2'] = $this->data['Amount2'];
-
+    
     if(\array_key_exists('Issuer', $this->data))
       $r['i'] = $this->data['Issuer'];
-    if(\array_key_exists('Issuer2', $this->data))
-      $r['i2'] = $this->data['Issuer2'];
 
     if(\array_key_exists('Currency', $this->data))
       $r['c'] = $this->data['Currency'];
-    if(\array_key_exists('Currency2', $this->data))
-      $r['c2'] = $this->data['Currency2'];
 
     if(\array_key_exists('Fee', $this->data))
       $r['fee'] = $this->data['Fee'];

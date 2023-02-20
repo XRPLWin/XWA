@@ -450,7 +450,6 @@ class XwaAccountSync extends Command
 
     /**
      * AccountSet
-     * TODO (rWinEUKtN3BmYdDoGU6HZ7tTG54BeCAiz)
      * @return array
      */
     private function processTransaction_AccountSet(BAccount $account, \stdClass $transaction, Batch $batch): array
@@ -500,94 +499,148 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
-    private function processTransaction_SetRegularKey(BAccount $account, \stdClass $transaction): array
+    /**
+     * SetRegularKey
+     * ex. rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn
+     * @return array
+     */
+    private function processTransaction_SetRegularKey(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      /** @var \App\XRPLParsers\Types\SetRegularKey */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * SignerListSet
+     * @return array
+     */
+    private function processTransaction_SignerListSet(BAccount $account, \stdClass $transaction, Batch $batch): array
+    {
+      dd('todo SignerListSet');
       return [];
     }
 
-    private function processTransaction_SignerListSet(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_CheckCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo CheckCancel');
       return [];
     }
 
-    private function processTransaction_CheckCancel(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_CheckCash(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo CheckCash');
       return [];
     }
 
-    private function processTransaction_CheckCash(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_CheckCreate(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      return [];
-    }
-
-    private function processTransaction_CheckCreate(BAccount $account, \stdClass $transaction): array
-    {
+      dd('todo CheckCreate');
       return [];
     }
 
 
-    private function processTransaction_EscrowCreate(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_EscrowCreate(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo EscrowCreate');
       return [];
     }
 
-    private function processTransaction_EscrowFinish(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_EscrowFinish(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo EscrowFinish');
       return [];
     }
 
-    private function processTransaction_EscrowCancel(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_EscrowCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo EscrowCancel');
       return [];
     }
 
-    private function processTransaction_PaymentChannelCreate(BAccount $account, \stdClass $transaction): array
+    /**
+     * PaymentChannelCreate
+     * UNTESTED
+     * @return array
+     */
+    private function processTransaction_PaymentChannelCreate(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      /** @var \App\XRPLParsers\Types\PaymentChannelCreate */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+   
+    }
+
+    private function processTransaction_PaymentChannelFund(BAccount $account, \stdClass $transaction, Batch $batch): array
+    {
+      dd('todo PaymentChannelFund');
       return [];
     }
 
-    private function processTransaction_PaymentChannelFund(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_PaymentChannelClaim(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo PaymentChannelClaim - on php artisan xwa:accountsync rMdG3ju8pgyVh29ELPWaDuA74CpWW6Fxns');
       return [];
     }
 
-    private function processTransaction_PaymentChannelClaim(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_DepositPreauth(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo DepositPreauth');
       return [];
     }
 
-    private function processTransaction_DepositPreauth(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_TicketCreate(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo TicketCreate');
       return [];
     }
 
-    private function processTransaction_TicketCreate(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenAcceptOffer(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo NFTokenAcceptOffer');
       return [];
     }
 
-    private function processTransaction_NFTokenAcceptOffer(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenBurn(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo NFTokenBurn');
       return [];
     }
 
-    private function processTransaction_NFTokenBurn(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenCancelOffer(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo NFTokenCancelOffer');
       return [];
     }
 
-    private function processTransaction_NFTokenCancelOffer(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenCreateOffer(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
+      dd('todo NFTokenCreateOffer');
       return [];
     }
 
-    private function processTransaction_NFTokenCreateOffer(BAccount $account, \stdClass $transaction): array
+    private function processTransaction_NFTokenMint(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      return [];
-    }
-
-    private function processTransaction_NFTokenMint(BAccount $account, \stdClass $transaction): array
-    {
+      dd('todo NFTokenMint');
       return [];
     }
 

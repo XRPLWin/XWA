@@ -6,17 +6,22 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class OfferCreate extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','TRADE'];
+  private array $acceptedParsedTypes = ['SET','TRADE','UNKNOWN'];
   /**
    * Parses TrustSet type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
+   * @see https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash=0CD69FD1F0A890CC57CDA430213FD294F7D65FF4A0F379A0D09D07A222D324E6&ref=rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn
+   *      Tis is older transaction with missing fileds txcontent is UNKNOWN
    * @return void
    */
   protected function parseTypeFields(): void
   {
     $parsedType = $this->data['txcontext'];
-    if(!in_array($parsedType, $this->acceptedParsedTypes))
+    if(!in_array($parsedType, $this->acceptedParsedTypes)) {
+      //dd($this->data);
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on OfferCreate with HASH ['.$this->data['hash'].']');
+    }
+      
     
      # Sub-Type
     if($parsedType === 'TRADE') {
