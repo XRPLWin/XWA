@@ -94,3 +94,5 @@ http://xlanalyzer-ui.test/account/rMdG3ju8pgyVh29ELPWaDuA74CpWW6Fxns/search?from
 php artisan xwa:accountsync rMdG3ju8pgyVh29ELPWaDuA74CpWW6Fxns
 tarting batch of 200 transactions: Ledger from 58938924 to 77927657
    0/200 [>---------------------------]   0%"todo PaymentChannelCreate"
+  
+LOT of paymentchannels and UNINDENTIFIED PAY EXTRA ATTENTION: http://xlanalyzer-ui.test/account/rJnQrhRTXutuSwtrwxYiTkHn4Dtp8sF2LM/search?from=2018-06-01&to=2018-06-20&st=&dt=&cp=&token=&dir=

@@ -592,14 +592,34 @@ class XwaAccountSync extends Command
 
     private function processTransaction_PaymentChannelFund(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo PaymentChannelFund');
-      return [];
+      /** @var \App\XRPLParsers\Types\PaymentChannelFund */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
     private function processTransaction_PaymentChannelClaim(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo PaymentChannelClaim - on php artisan xwa:accountsync rMdG3ju8pgyVh29ELPWaDuA74CpWW6Fxns');
-      return [];
+      /** @var \App\XRPLParsers\Types\PaymentChannelClaim */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
     private function processTransaction_DepositPreauth(BAccount $account, \stdClass $transaction, Batch $batch): array
