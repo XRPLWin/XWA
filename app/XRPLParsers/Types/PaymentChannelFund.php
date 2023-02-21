@@ -24,11 +24,14 @@ final class PaymentChannelFund extends XRPLParserBase
 
     $this->data['Counterparty'] = $this->tx->Account;
     
-    if($this->reference_address == $this->tx->Account) {
-      $this->data['In'] = true;
+    //Fund is always out
+    $this->data['In'] = false;
+
+    /*if($this->reference_address == $this->tx->Account) {
+      $this->data['In'] = false;
     } else {
       $this->data['In'] = false;
-    }
+    }*/
     
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
