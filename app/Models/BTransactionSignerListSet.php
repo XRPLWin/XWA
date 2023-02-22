@@ -3,12 +3,12 @@
 namespace App\Models;
 
 /**
- * Transaction model of type PaymentChannelClaim.
- * PK: rAcct-13 SK: <INT> (Ledger index)
+ * Transaction model of type BTransactionSignerListSet.
+ * PK: rAcct-15 SK: <INT> (Ledger index)
  */
-class BTransactionPaymentChannelClaim extends BTransaction
+class BTransactionSignerListSet extends BTransaction
 {
-  const TYPE = 13;
+  const TYPE = 15;
 
   public function toFinalArray(): array
   {

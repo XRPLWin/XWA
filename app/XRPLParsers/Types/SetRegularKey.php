@@ -29,8 +29,7 @@ final class SetRegularKey extends XRPLParserBase
     if(isset($this->data['eventList']['primary'])) {
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
-        $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
-        $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
+        throw new \Exception('Unhandled non XRP value on SetRegularKey with HASH ['.$this->data['hash'].']');
       }
     }
 
@@ -52,12 +51,6 @@ final class SetRegularKey extends XRPLParserBase
 
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];
-    
-    if(\array_key_exists('Issuer', $this->data))
-      $r['i'] = $this->data['Issuer'];
-
-    if(\array_key_exists('Currency', $this->data))
-      $r['c'] = $this->data['Currency'];
 
     if(\array_key_exists('Fee', $this->data))
       $r['fee'] = $this->data['Fee'];

@@ -523,12 +523,24 @@ class XwaAccountSync extends Command
 
     /**
      * SignerListSet
+     * ex. 09A9C86BF20695735AB03620EB1C32606635AC3DA0B70282F37C674FC889EFE7
      * @return array
      */
     private function processTransaction_SignerListSet(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo SignerListSet');
-      return [];
+      /** @var \App\XRPLParsers\Types\SignerListSet */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
     private function processTransaction_CheckCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
@@ -570,7 +582,6 @@ class XwaAccountSync extends Command
 
     /**
      * PaymentChannelCreate
-     * UNTESTED
      * @return array
      */
     private function processTransaction_PaymentChannelCreate(BAccount $account, \stdClass $transaction, Batch $batch): array

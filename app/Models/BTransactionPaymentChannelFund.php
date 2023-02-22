@@ -3,7 +3,7 @@
 namespace App\Models;
 
 /**
- * Transaction model of type OfferCreate.
+ * Transaction model of type PaymentChannelFund.
  * PK: rAcct-14 SK: <INT> (Ledger index)
  */
 class BTransactionPaymentChannelFund extends BTransaction
