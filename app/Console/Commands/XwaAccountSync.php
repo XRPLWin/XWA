@@ -563,13 +563,23 @@ class XwaAccountSync extends Command
       $batch->queueModelChanges($model);
       //$model->save();
       return $parsedData;
-      return [];
     }
 
     private function processTransaction_CheckCash(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo CheckCash');
-      return [];
+      /** @var \App\XRPLParsers\Types\CheckCash */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
     private function processTransaction_CheckCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
