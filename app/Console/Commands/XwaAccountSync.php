@@ -543,9 +543,26 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
-    private function processTransaction_CheckCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
+    /**
+     * CheckCreate
+     * ex. 4E0AA11CBDD1760DE95B68DF2ABBE75C9698CEB548BEA9789053FCB3EBD444FB
+     * @return array
+     */
+    private function processTransaction_CheckCreate(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo CheckCancel');
+      /** @var \App\XRPLParsers\Types\CheckCreate */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
       return [];
     }
 
@@ -555,9 +572,9 @@ class XwaAccountSync extends Command
       return [];
     }
 
-    private function processTransaction_CheckCreate(BAccount $account, \stdClass $transaction, Batch $batch): array
+    private function processTransaction_CheckCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo CheckCreate');
+      dd('todo CheckCancel');
       return [];
     }
 
