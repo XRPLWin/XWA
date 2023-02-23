@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class Payment extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED','SET','TRADE'];
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','TRADE'];
   /**
    * Parses Payment type fields and maps them to $this->data
    * Accepted parsedType: SENT|RECEIVED|TRADE
