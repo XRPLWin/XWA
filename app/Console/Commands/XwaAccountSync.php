@@ -728,10 +728,25 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    /**
+     * DepositPreauth
+     * ex. CB1BF910C93D050254C049E9003DA1A265C107E0C8DE4A7CFF55FADFD39D5656
+     * @return array
+     */
     private function processTransaction_DepositPreauth(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo DepositPreauth');
-      return [];
+      /** @var \App\XRPLParsers\Types\DepositPreauth */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
     private function processTransaction_TicketCreate(BAccount $account, \stdClass $transaction, Batch $batch): array

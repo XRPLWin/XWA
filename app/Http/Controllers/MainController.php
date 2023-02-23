@@ -40,7 +40,7 @@ class MainController extends Controller
       echo '$parser->toBArray() - parsedData:';
       dump($parsedData);
 
-      $TransactionClassName = '\\App\\Models\\BTransaction'.$tx->TransactionType;
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       try {
         $model = new $TransactionClassName($parsedData);
         $model->address = $request->input('acc');
