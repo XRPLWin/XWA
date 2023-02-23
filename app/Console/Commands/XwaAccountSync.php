@@ -565,6 +565,11 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    /**
+     * CheckCash
+     * ex. 67B71B13601CDA5402920691841AC27A156463678E106FABD45357175F9FF406
+     * @return array
+     */
     private function processTransaction_CheckCash(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       /** @var \App\XRPLParsers\Types\CheckCash */
@@ -582,6 +587,11 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    /**
+     * CheckCancel
+     * ex. D3328000315C6DCEC1426E4E549288E3672752385D86A40D56856DBD10382953
+     * @return array
+     */
     private function processTransaction_CheckCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       dd('todo CheckCancel');

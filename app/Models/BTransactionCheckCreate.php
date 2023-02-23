@@ -3,7 +3,7 @@
 namespace App\Models;
 
 /**
- * Transaction model of type BTransactionCheckCreate.
+ * Transaction model of type CheckCreate.
  * PK: rAcct-16 SK: <INT> (Ledger index)
  */
 class BTransactionCheckCreate extends BTransaction
