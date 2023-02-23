@@ -17,7 +17,7 @@ final class CheckCancel extends XRPLParserBase
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on CheckCancel with HASH ['.$this->data['hash'].']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on CheckCancel with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     
     # Counterparty is always transaction account (creator)
     $this->data['Counterparty'] = $this->tx->Account;

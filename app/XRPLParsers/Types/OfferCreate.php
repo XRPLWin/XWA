@@ -19,7 +19,7 @@ final class OfferCreate extends XRPLParserBase
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes)) {
       //dd($this->data);
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on OfferCreate with HASH ['.$this->data['hash'].']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on OfferCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     }
       
     

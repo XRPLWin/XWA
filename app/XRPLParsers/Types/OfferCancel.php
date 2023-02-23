@@ -18,7 +18,7 @@ final class OfferCancel extends XRPLParserBase
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on OfferCancel with HASH ['.$this->data['hash'].']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on OfferCancel with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     
   
 

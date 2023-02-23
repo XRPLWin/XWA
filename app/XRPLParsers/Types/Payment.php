@@ -17,7 +17,7 @@ final class Payment extends XRPLParserBase
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     # Sub-Type
     if($parsedType === 'TRADE') {
@@ -48,7 +48,7 @@ final class Payment extends XRPLParserBase
       $this->data['Counterparty'] = $this->tx->Account;
     } else {
       //todo get counterparty from $this->tx->Account if this is intermediate - check this
-      throw new \Exception('Unhandled Counterparty for parsedtype ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].']');
+      throw new \Exception('Unhandled Counterparty for parsedtype ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     }
 
 

@@ -19,7 +19,7 @@ final class SignerListSet extends XRPLParserBase
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on SignerListSet with HASH ['.$this->data['hash'].']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on SignerListSet with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     # Counterparty is always transaction account (creator)
     $this->data['Counterparty'] = $this->tx->Account;
@@ -32,7 +32,7 @@ final class SignerListSet extends XRPLParserBase
     if(isset($this->data['eventList']['primary'])) {
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
-        throw new \Exception('Unhandled non XRP value on SignerListSet with HASH ['.$this->data['hash'].']');
+        throw new \Exception('Unhandled non XRP value on SignerListSet with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
     }
   }

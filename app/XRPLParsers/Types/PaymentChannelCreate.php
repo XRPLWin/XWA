@@ -20,7 +20,7 @@ final class PaymentChannelCreate extends XRPLParserBase
     //dd($this->reference_address);
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on PaymentChannelCreate with HASH ['.$this->data['hash'].']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on PaymentChannelCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     
     if($this->reference_address == $this->tx->Account) {
       $this->data['Counterparty'] = $this->tx->Destination;
@@ -34,7 +34,7 @@ final class PaymentChannelCreate extends XRPLParserBase
     if(isset($this->data['eventList']['primary'])) {
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
-        throw new \Exception('Unhandled non XRP value on PaymentChannelCreate with HASH ['.$this->data['hash'].']');
+        throw new \Exception('Unhandled non XRP value on PaymentChannelCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
     }
 

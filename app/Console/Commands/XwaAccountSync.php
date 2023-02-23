@@ -594,27 +594,85 @@ class XwaAccountSync extends Command
      */
     private function processTransaction_CheckCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo CheckCancel');
-      return [];
+      /** @var \App\XRPLParsers\Types\CheckCancel */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
-
+    /**
+     * EscrowCreate
+     * ex. C44F2EB84196B9AD820313DBEBA6316A15C9A2D35787579ED172B87A30131DA7
+     * @return array
+     */
     private function processTransaction_EscrowCreate(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo EscrowCreate');
-      return [];
+      /** @var \App\XRPLParsers\Types\EscrowCreate */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
+    /**
+     * EscrowFinish
+     * ex. 317081AF188CDD4DBE55C418F41A90EC3B959CDB3B76105E0CBE6B7A0F56C5F7
+     * @return array
+     */
     private function processTransaction_EscrowFinish(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo EscrowFinish');
-      return [];
+      /** @var \App\XRPLParsers\Types\EscrowFinish */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
+    /**
+     * EscrowCancel
+     * ex. B24B9D7843F99AED7FB8A3929151D0CCF656459AE40178B77C9D44CED64E839B
+     * @return array
+     */
     private function processTransaction_EscrowCancel(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo EscrowCancel');
-      return [];
+      /** @var \App\XRPLParsers\Types\EscrowCancel */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
     /**

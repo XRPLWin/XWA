@@ -20,7 +20,7 @@ final class CheckCreate extends XRPLParserBase
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on CheckCreate with HASH ['.$this->data['hash'].']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on CheckCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     if($parsedType == 'SET') {
       $this->data['Counterparty'] = $this->tx->Destination;

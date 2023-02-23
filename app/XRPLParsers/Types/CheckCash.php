@@ -24,7 +24,7 @@ final class CheckCash extends XRPLParserBase
     //dd('todo'); //check for "rippling" todo
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on CheckCash with HASH ['.$this->data['hash'].']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on CheckCash with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     
     # Counterparty is always CheckCash initiator
     $this->data['Counterparty'] = $this->tx->Account;

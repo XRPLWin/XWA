@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\B;
 use Illuminate\Http\Request;
 use App\Models\BAccount;
 use Brick\Math\BigDecimal;
@@ -33,12 +34,29 @@ class MainController extends Controller
       $tx = $tx->send()->finalResult();
       
       $parser = \App\XRPLParsers\Parser::get($tx, $tx->meta, $request->input('acc'));
-     
+
       $parsedData = $parser->toBArray();
       dump($parser);
       echo '$parser->toBArray() - parsedData:';
       dump($parsedData);
 
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$tx->TransactionType;
+      try {
+        $model = new $TransactionClassName($parsedData);
+        $model->address = $request->input('acc');
+        $model->xwatype = $TransactionClassName::TYPE;
+        
+      } catch (\Throwable $e) {
+        $model = null;
+      }
+
+      if($model) {
+        echo $TransactionClassName.'->toArray():';
+        dump($model->toArray());
+      } else {
+        echo $TransactionClassName.'->toArray():<div style="color:red;margin:20px 0">MODEL DOES NOT EXISTS</div>';
+      }
+      
       echo '<a target="_blank" href="https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash='.$request->input('tx').'&ref='.$request->input('acc').'">View in Playground (new window)</a>';
     }
 
