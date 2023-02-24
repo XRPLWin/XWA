@@ -148,6 +148,12 @@ return new class extends Migration
         'description' => 'Currency (secondary)'
       ],
       [
+        'name' => 'nft',
+        'type' => 'STRING',
+        'mode' => 'NULLABLE',
+        'description' => 'NFTokenID'
+      ],
+      [
         'name' => 'dt',
         'type' => 'INTEGER',
         'mode' => 'NULLABLE',

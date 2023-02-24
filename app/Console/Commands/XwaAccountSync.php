@@ -770,15 +770,35 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    /**
+     * NFTokenCreateOffer
+     * ex. 36E42A76F46711318C27247E4DA3AE962E6976EC6F44917F15E37EC5A9DA2352
+     * @return array
+     */
+    private function processTransaction_NFTokenCreateOffer(BAccount $account, \stdClass $transaction, Batch $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\NFTokenCreateOffer */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * NFTokenAcceptOffer
+     * ex. F4A10EBD3B4AE95C44046778227A33EA7D717ECB1532A19FA6C1D8CF3C88C8A0
+     * @return array
+     */
     private function processTransaction_NFTokenAcceptOffer(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       dd('todo NFTokenAcceptOffer');
-      return [];
-    }
-
-    private function processTransaction_NFTokenBurn(BAccount $account, \stdClass $transaction, Batch $batch): array
-    {
-      dd('todo NFTokenBurn');
       return [];
     }
 
@@ -788,15 +808,17 @@ class XwaAccountSync extends Command
       return [];
     }
 
-    private function processTransaction_NFTokenCreateOffer(BAccount $account, \stdClass $transaction, Batch $batch): array
-    {
-      dd('todo NFTokenCreateOffer');
-      return [];
-    }
+    
 
     private function processTransaction_NFTokenMint(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
       dd('todo NFTokenMint');
+      return [];
+    }
+
+    private function processTransaction_NFTokenBurn(BAccount $account, \stdClass $transaction, Batch $batch): array
+    {
+      dd('todo NFTokenBurn');
       return [];
     }
 
