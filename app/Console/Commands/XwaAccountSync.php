@@ -749,10 +749,25 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    /**
+     * DepositPreauth
+     * ex. 7458B6FD22827B3C141CDC88F1F0C72658C9B5D2E40961E45AF6CD31DECC0C29 - rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn
+     * @return array
+     */
     private function processTransaction_TicketCreate(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo TicketCreate');
-      return [];
+      /** @var \App\XRPLParsers\Types\TicketCreate */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      
+      $parsedData = $parser->toBArray();
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
     private function processTransaction_NFTokenAcceptOffer(BAccount $account, \stdClass $transaction, Batch $batch): array

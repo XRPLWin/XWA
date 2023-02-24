@@ -3,7 +3,7 @@
 namespace App\Models;
 
 /**
- * Transaction model of type DepositPreauth_Unauthorize.
+ * Transaction model of type DepositPreauth.
  * PK: rAcct-23 SK: <INT> (Ledger index)
  */
 class BTransactionDepositPreauth_Unauthorize extends BTransaction

@@ -3,12 +3,12 @@
 namespace App\Models;
 
 /**
- * Transaction model of type DepositPreauth.
- * PK: rAcct-22 SK: <INT> (Ledger index)
+ * Transaction model of type TicketCreate.
+ * PK: rAcct-24 SK: <INT> (Ledger index)
  */
-class BTransactionDepositPreauth_Authorize extends BTransaction
+class BTransactionTicketCreate extends BTransaction
 {
-  const TYPE = 22;
+  const TYPE = 24;
 
   public function toFinalArray(): array
   {
