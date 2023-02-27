@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class NFTokenAcceptOffer extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET'];
+  private array $acceptedParsedTypes = ['ACCEPT','TRADE'];
 
   /**
    * Parses NFTokenAcceptOffer type fields and maps them to $this->data
@@ -17,7 +17,6 @@ final class NFTokenAcceptOffer extends XRPLParserBase
    */
   protected function parseTypeFields(): void
   {
-    dd('todo NFTokenAcceptOffer - store info to seperate nfthistory table and create new nft entry to nft table if does not exist');
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on NFTokenAcceptOffer with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
