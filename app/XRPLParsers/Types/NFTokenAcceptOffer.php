@@ -4,12 +4,12 @@ namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
 
-final class NFTokenCreateOffer extends XRPLParserBase
+final class NFTokenAcceptOffer extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','RECEIVED'];
+  private array $acceptedParsedTypes = ['SET'];
 
   /**
-   * Parses NFTokenCreateOffer type fields and maps them to $this->data
+   * Parses NFTokenAcceptOffer type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
    * @see 36E42A76F46711318C27247E4DA3AE962E6976EC6F44917F15E37EC5A9DA2352 - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw - created
    * @see 0C9CF542A766EBC1211EEE4F6A5A972DA0309E6283CE07F7E65E45352322D650 - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw - destination
@@ -17,16 +17,17 @@ final class NFTokenCreateOffer extends XRPLParserBase
    */
   protected function parseTypeFields(): void
   {
+    dd('todo NFTokenAcceptOffer - store info to seperate nfthistory table and create new nft entry to nft table if does not exist');
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on NFTokenCreateOffer with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on NFTokenAcceptOffer with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     //SELL OR BUY
-    $this->transaction_type_class = 'NFTokenCreateOffer_Buy';
-    if(isset($this->tx->Flags) &&  $this->tx->Flags == 1)
-      $this->transaction_type_class = 'NFTokenCreateOffer_Sell';
+    //$this->transaction_type_class = 'NFTokenCreateOffer_Buy';
+    //if(isset($this->tx->Flags) &&  $this->tx->Flags == 1)
+    //  $this->transaction_type_class = 'NFTokenCreateOffer_Sell';
 
-    $this->data['nft'] = $this->tx->NFTokenID;
+    //$this->data['nft'] = $this->tx->NFTokenID; //TODO pull nft in question from offer.
     $this->data['Counterparty'] = $this->tx->Account;
 
     $this->data['In'] = true;
@@ -55,7 +56,7 @@ final class NFTokenCreateOffer extends XRPLParserBase
       'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
-      'nft' => (string)$this->data['nft'],
+      //'nft' => (string)$this->data['nft'],
     ];
 
     if(\array_key_exists('Amount', $this->data))
