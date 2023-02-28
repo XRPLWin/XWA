@@ -14,6 +14,12 @@ abstract class XRPLParserBase implements XRPLParserInterface
   protected array $data = [];
   protected array $parsedData = [];
   protected readonly string $reference_address;
+
+  /**
+   * Flag to indicate if this parsed transaction needs to be persisted in reference_address transaction store.
+   */
+  protected bool $persist = true;
+
   /**
    * If false this tx will not store to db for reference_address perspective.
    * Example: token exchange trough issuer, issuer will not have this record in db, 
@@ -268,5 +274,10 @@ abstract class XRPLParserBase implements XRPLParserInterface
   public function getTransactionTypeClass()
   {
     return $this->transaction_type_class;
+  }
+
+  public function getPersist(): bool
+  {
+    return $this->persist;
   }
 }

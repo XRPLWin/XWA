@@ -20,7 +20,7 @@ final class NFTokenAcceptOffer extends XRPLParserBase
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on NFTokenAcceptOffer with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-
+    //dd($this);
     //SELL OR BUY
     //$this->transaction_type_class = 'NFTokenCreateOffer_Buy';
     //if(isset($this->tx->Flags) &&  $this->tx->Flags == 1)
@@ -40,6 +40,11 @@ final class NFTokenAcceptOffer extends XRPLParserBase
         $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
         $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
       }
+    }
+
+    # Do not persist when no amount and no Fee, it is issuer's child trustlines movement
+    if(!isset($this->data['Amount']) && !isset($this->data['Fee'])) {
+      $this->persist = false;
     }
   }
 

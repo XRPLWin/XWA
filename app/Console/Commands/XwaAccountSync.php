@@ -340,6 +340,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       $parsedData = $parser->toBArray();
 
+      if($parser->getPersist() === false)
+        return $parsedData;
+
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
       $model->address = $account->address;
@@ -358,6 +361,9 @@ class XwaAccountSync extends Command
       /** @var \App\XRPLParsers\Types\OfferCancel */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -378,6 +384,9 @@ class XwaAccountSync extends Command
       /** @var \App\XRPLParsers\Types\Payment */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
 
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -439,6 +448,9 @@ class XwaAccountSync extends Command
 
       $parsedData = $parser->toBArray();
 
+      if($parser->getPersist() === false)
+        return $parsedData;
+
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
       $model->address = $account->address;
@@ -460,6 +472,9 @@ class XwaAccountSync extends Command
 
       $parsedData = $parser->toBArray();
 
+      if($parser->getPersist() === false)
+        return $parsedData;
+
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
       $model->address = $account->address;
@@ -479,6 +494,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
 
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
 
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -510,6 +528,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       
@@ -532,6 +553,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       
@@ -554,6 +578,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       
@@ -576,6 +603,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       
@@ -598,6 +628,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       
@@ -620,6 +653,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       
@@ -642,6 +678,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       
@@ -664,6 +703,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       
@@ -685,6 +727,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -702,6 +747,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -718,6 +766,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -739,6 +790,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -760,6 +814,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -781,6 +838,9 @@ class XwaAccountSync extends Command
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
@@ -800,8 +860,10 @@ class XwaAccountSync extends Command
     {
       /** @var \App\XRPLParsers\Types\NFTokenAcceptOffer */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
-      
       $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
       
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
