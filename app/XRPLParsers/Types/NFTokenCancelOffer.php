@@ -4,32 +4,27 @@ namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
 
-final class NFTokenAcceptOffer extends XRPLParserBase
+final class NFTokenCancelOffer extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['ACCEPT','TRADE','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','UNKNOWN'];
 
   /**
-   * Parses NFTokenAcceptOffer type fields and maps them to $this->data
+   * Parses NFTokenCancelOffer type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
-   * @see 36E42A76F46711318C27247E4DA3AE962E6976EC6F44917F15E37EC5A9DA2352 - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw - created
-   * @see 0C9CF542A766EBC1211EEE4F6A5A972DA0309E6283CE07F7E65E45352322D650 - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw - destination
-   * @see 964474F04C4AE61A5CEDDB1543464118BF4F2E3C69CD502E893EAC5317ECEECD - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw - UNKNOWN
+   * @see DF3137FA90575D6F75EE6F5B9D51DFA9722AF7CBB18B19ADBBB8E20D15CFD238 - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw - created
+   * @see F5A6234B644F15F44EBFD4CE9A03F2A000F20BC084D8D23875C7E3FCC7AFBAA9 - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw - UNKNOWN
    * @return void
    */
   protected function parseTypeFields(): void
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on NFTokenAcceptOffer with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-    
-    # TODO
-    //dd($this);
-    //SELL OR BUY
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on NFTokenCancelOffer with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+   
     //$this->transaction_type_class = 'NFTokenCreateOffer_Buy';
     //if(isset($this->tx->Flags) &&  $this->tx->Flags == 1)
     //  $this->transaction_type_class = 'NFTokenCreateOffer_Sell';
 
-    //$this->data['nft'] = $this->tx->NFTokenID; //TODO pull nft in question from offer.
     $this->data['Counterparty'] = $this->tx->Account;
 
     $this->data['In'] = true;
@@ -45,7 +40,7 @@ final class NFTokenAcceptOffer extends XRPLParserBase
       }
     }
 
-    # Do not persist when no amount and no Fee, it is issuer's child trustlines movement
+    # Do not persist when no amount and no Fee
     if(!isset($this->data['Amount']) && !isset($this->data['Fee'])) {
       $this->persist = false;
     }

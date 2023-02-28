@@ -874,10 +874,27 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    /**
+     * NFTokenCancelOffer
+     * ex. DF3137FA90575D6F75EE6F5B9D51DFA9722AF7CBB18B19ADBBB8E20D15CFD238 - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw
+     * @return array
+     */
     private function processTransaction_NFTokenCancelOffer(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo NFTokenCancelOffer');
-      return [];
+      /** @var \App\XRPLParsers\Types\NFTokenCancelOffer */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
     
