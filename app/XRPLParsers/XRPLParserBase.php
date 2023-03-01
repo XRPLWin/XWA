@@ -17,15 +17,12 @@ abstract class XRPLParserBase implements XRPLParserInterface
 
   /**
    * Flag to indicate if this parsed transaction needs to be persisted in reference_address transaction store.
-   */
-  protected bool $persist = true;
-
-  /**
    * If false this tx will not store to db for reference_address perspective.
    * Example: token exchange trough issuer, issuer will not have this record in db, 
    * since its balance did not change. +party1 -party2 => issuer is unchanged.
    */
-  protected bool $is_relevant_for_reference_address = true;
+  protected bool $persist = true;
+
   protected array $activations = [
     'reference_activated_by' => null,
     'reference_activated' => null,
@@ -66,7 +63,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
      * Modifies $this->data
      * @createsKey bool In
      * @createsKey int Fee (optional)
-     * Modifies $this->is_relevant_for_reference_address
+     * Modifies $this->persist
      */
     $this->parseType();
 
