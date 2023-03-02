@@ -34,7 +34,7 @@ final class EscrowCreate extends XRPLParserBase
     if(isset($this->data['eventList']['primary'])) {
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
-        throw new \Exception('Unhandled non XRP value on EscrowCreate with HASH ['.$this->data['hash'].']');
+        throw new \Exception('Unhandled non XRP value on EscrowCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
     }
   }

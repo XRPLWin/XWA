@@ -11,7 +11,7 @@ final class NFTokenMint extends XRPLParserBase
   /**
    * Parses NFTokenMint type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
-   * @see rU2T6qNSab9N4SQZAEutwWnkzA7vUGWcfQ - check it
+   * @see B42C7A0C9C3061463C619999942D0F25E4AE5FB051EA0D7A4EE1A924DB6DFEE8 - minted by (for self): rU2T6qNSab9N4SQZAEutwWnkzA7vUGWcfQ
    * @see D904ADB2D6DD9644B7ACC14E351536B8570F8451AAB01E946ADB47B1E381399F - minted by: rfx2mVhTZzc6bLXKeYyFKtpha2LHrkNZFT for issuer: rHeRoYtbiMSKhtXm4k7tff1PrcwYnCePR3
    * @return void
    */
@@ -20,29 +20,49 @@ final class NFTokenMint extends XRPLParserBase
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on NFTokenMint with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-   
-    //$this->transaction_type_class = 'NFTokenCreateOffer_Buy';
-    //if(isset($this->tx->Flags) &&  $this->tx->Flags == 1)
-    //  $this->transaction_type_class = 'NFTokenCreateOffer_Sell';
+  
+    # Case 1: This NFT is minted in behalf of another account
+    if(isset($this->tx->Issuer)) { 
+      
+      if($this->tx->Account == $this->reference_address) {
+        $this->persist = true;
+        $this->data['In'] = true;
+        $this->data['Counterparty'] = $this->tx->Issuer;
+      } elseif($this->tx->Issuer == $this->reference_address) {
+        $this->persist = true;
+        $this->data['In'] = true;
+        $this->data['Counterparty'] = $this->tx->Account;
+      } else {
+        //Reference address does not have any part of this transaction
+        $this->persist = false;
+        $this->data['In'] = true;
+        $this->data['Counterparty'] = $this->tx->Account;
+      }
+    }
+    # Case 2: This NFT is minted for minter account (self)
+    else { //
+      if($this->tx->Account == $this->reference_address) {
+        $this->persist = true;
+        $this->data['In'] = true;
+        $this->data['Counterparty'] = $this->tx->Account;
+      } else {
+        //Reference address does not have any part of this transaction
+        $this->persist = false;
+        $this->data['In'] = true;
+        $this->data['Counterparty'] = $this->tx->Account;
+      }
+    }
 
-    $this->data['Counterparty'] = $this->tx->Account;
-
-    if($this->reference_address == $this->tx->Account)
-      $this->data['In'] = true;
-    
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
-        $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
-        $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
+        throw new \Exception('Unhandled non XRP value on NFTokenMint with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
     }
 
-    # Do not persist when no amount and no Fee
-    if(!isset($this->data['Amount']) && !isset($this->data['Fee'])) {
-      $this->persist = false;
-    }
+    //TODO extract minted nft token ID from meta->AffectedNodes->ModifiedNode(NFTokenPage)->FinalFields/PreviousFields->NFTokens (by comparing)
+    $this->data['nft'] = NULL; //TODO fill $this->data['nft']
   }
 
   /**
@@ -57,7 +77,7 @@ final class NFTokenMint extends XRPLParserBase
       'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
-      //'nft' => (string)$this->data['nft'],
+      'nft' => (string)$this->data['nft'],
     ];
 
     if(\array_key_exists('Amount', $this->data))
