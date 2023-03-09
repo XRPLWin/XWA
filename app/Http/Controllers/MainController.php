@@ -53,6 +53,8 @@ class MainController extends Controller
       if($model) {
         echo $TransactionClassName.'->toArray():';
         dump($model->toArray());
+        echo $TransactionClassName.'->toFinalArray():';
+        dump($model->toFinalArray());
       } else {
         echo $TransactionClassName.'->toArray():<div style="color:red;margin:20px 0">MODEL DOES NOT EXISTS</div>';
       }

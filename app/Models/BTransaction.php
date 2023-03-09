@@ -40,7 +40,8 @@ class BTransaction extends B
     'i2',
     'c2',
     'dt',
-    'st'
+    'st',
+    'nft'
   ];
 
   protected $casts = [

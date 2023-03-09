@@ -3,10 +3,11 @@
 namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
+use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
 final class NFTokenAcceptOffer extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['ACCEPT','TRADE','UNKNOWN'];
+  private array $acceptedParsedTypes = ['ACCEPT','TRADE','UNKNOWN','SET'];
 
   /**
    * Parses NFTokenAcceptOffer type fields and maps them to $this->data
@@ -23,6 +24,16 @@ final class NFTokenAcceptOffer extends XRPLParserBase
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on NFTokenAcceptOffer with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     
+    
+
+    $nftparser = new NFTTxMutationParser($this->reference_address, $this->tx);
+    $nftparserResult = $nftparser->result();
+
+    /**
+     * Extract nft token if this NFT token has changed ownership of reference_address
+     */
+    $this->data['nft'] = $nftparserResult['nftokenid']; //can be null
+
     # TODO
     //dd($this);
     //SELL OR BUY
@@ -30,7 +41,6 @@ final class NFTokenAcceptOffer extends XRPLParserBase
     //if(isset($this->tx->Flags) &&  $this->tx->Flags == 1)
     //  $this->transaction_type_class = 'NFTokenCreateOffer_Sell';
 
-    //$this->data['nft'] = $this->tx->NFTokenID; //TODO pull nft in question from offer.
     $this->data['Counterparty'] = $this->tx->Account;
 
     $this->data['In'] = true;
@@ -66,8 +76,11 @@ final class NFTokenAcceptOffer extends XRPLParserBase
       'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
-      //'nft' => (string)$this->data['nft'],
+      'nft' => $this->data['nft'], //nullable
     ];
+
+    //if($this->data['nft'] !== null)
+    //  $r['nft'] = (string)$this->data['nft'];
 
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];

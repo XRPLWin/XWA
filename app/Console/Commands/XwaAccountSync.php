@@ -46,23 +46,29 @@ class XwaAccountSync extends Command
      * How much batch jobs will be executed before requeuing
      * Requeuing will move job to end of queue.
      * 
-     * @var bool
+     * @var int
      */
     protected int $batchlimit = 0;
 
     /**
      * Current batch being executed.
      *
-     * @var bool
+     * @var int
      */
     protected int $batch_current = 0;
 
     /**
      * Current ledger being scanned.
      *
-     * @var bool
+     * @var int
      */
-    private int     $ledger_current = -1;
+    private int $ledger_current = -1;
+
+    /**
+     * Current ledger being scanned time.
+     *
+     * @var string
+     */
     private readonly string  $ledger_current_time;
 
     /**
