@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "74df10c56b4bd0e0435e6af394c4d568",
+    "content-hash": "06500d0b00164b72f5b916cc421935df",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -58,16 +58,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.261.7",
+            "version": "3.261.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "2f0a97018eb9fd05bbd69a75a943ef15d0bbc785"
+                "reference": "d91e6f89a6c41e8df859b0d313150386cfee6f6a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/2f0a97018eb9fd05bbd69a75a943ef15d0bbc785",
-                "reference": "2f0a97018eb9fd05bbd69a75a943ef15d0bbc785",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/d91e6f89a6c41e8df859b0d313150386cfee6f6a",
+                "reference": "d91e6f89a6c41e8df859b0d313150386cfee6f6a",
                 "shasum": ""
             },
             "require": {
@@ -146,9 +146,9 @@
             "support": {
                 "forum": "https://forums.aws.amazon.com/forum.jspa?forumID=80",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.261.7"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.261.9"
             },
-            "time": "2023-03-08T19:20:51+00:00"
+            "time": "2023-03-10T19:25:08+00:00"
         },
         {
             "name": "brick/math",
@@ -884,16 +884,16 @@
         },
         {
             "name": "google/cloud-core",
-            "version": "v1.49.1",
+            "version": "v1.49.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-cloud-php-core.git",
-                "reference": "aaa1a8d22ff38d0f0ae882ef14377b4c14a65a8f"
+                "reference": "18d37b0b9fa761eaff909f360f96efa9ca2d6ca7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-cloud-php-core/zipball/aaa1a8d22ff38d0f0ae882ef14377b4c14a65a8f",
-                "reference": "aaa1a8d22ff38d0f0ae882ef14377b4c14a65a8f",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-core/zipball/18d37b0b9fa761eaff909f360f96efa9ca2d6ca7",
+                "reference": "18d37b0b9fa761eaff909f360f96efa9ca2d6ca7",
                 "shasum": ""
             },
             "require": {
@@ -944,9 +944,9 @@
             ],
             "description": "Google Cloud PHP shared dependency, providing functionality useful to all components.",
             "support": {
-                "source": "https://github.com/googleapis/google-cloud-php-core/tree/v1.49.1"
+                "source": "https://github.com/googleapis/google-cloud-php-core/tree/v1.49.2"
             },
-            "time": "2023-02-10T16:10:50+00:00"
+            "time": "2023-03-10T20:22:17+00:00"
         },
         {
             "name": "graham-campbell/result-type",
@@ -6722,16 +6722,16 @@
         },
         {
             "name": "xrplwin/xrpl-nfttxmutationparser",
-            "version": "v0.0.2",
+            "version": "v1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/XRPLWin/XRPL-NFTTxMutationParser.git",
-                "reference": "f8e8cc293cddeba980018b4c5605fbffdbdab34d"
+                "reference": "4f3ade2323ec70faa54afed76b4639e579846021"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/XRPLWin/XRPL-NFTTxMutationParser/zipball/f8e8cc293cddeba980018b4c5605fbffdbdab34d",
-                "reference": "f8e8cc293cddeba980018b4c5605fbffdbdab34d",
+                "url": "https://api.github.com/repos/XRPLWin/XRPL-NFTTxMutationParser/zipball/4f3ade2323ec70faa54afed76b4639e579846021",
+                "reference": "4f3ade2323ec70faa54afed76b4639e579846021",
                 "shasum": ""
             },
             "require": {
@@ -6775,9 +6775,9 @@
             ],
             "support": {
                 "issues": "https://github.com/XRPLWin/XRPL-NFTTxMutationParser/issues",
-                "source": "https://github.com/XRPLWin/XRPL-NFTTxMutationParser/tree/v0.0.2"
+                "source": "https://github.com/XRPLWin/XRPL-NFTTxMutationParser/tree/v1.0.1"
             },
-            "time": "2023-03-07T09:41:55+00:00"
+            "time": "2023-03-10T18:19:56+00:00"
         },
         {
             "name": "xrplwin/xrpl-orderbook-reader",
@@ -6841,7 +6841,7 @@
         },
         {
             "name": "xrplwin/xrpl-txmutationparser",
-            "version": "v0.0.12",
+            "version": "v1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/XRPLWin/XRPL-TxMutationParser.git",
@@ -6895,7 +6895,7 @@
             ],
             "support": {
                 "issues": "https://github.com/XRPLWin/XRPL-TxMutationParser/issues",
-                "source": "https://github.com/XRPLWin/XRPL-TxMutationParser/tree/v0.0.12"
+                "source": "https://github.com/XRPLWin/XRPL-TxMutationParser/tree/v1.0.0"
             },
             "time": "2023-03-09T11:38:05+00:00"
         }
@@ -7797,16 +7797,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "1.10.5",
+            "version": "1.10.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "1fb6f494d82455151ecf15c5c191923f5d84324e"
+                "reference": "50d089a3e0904b0fe7e2cf2d4fd37d427d64235a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/1fb6f494d82455151ecf15c5c191923f5d84324e",
-                "reference": "1fb6f494d82455151ecf15c5c191923f5d84324e",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/50d089a3e0904b0fe7e2cf2d4fd37d427d64235a",
+                "reference": "50d089a3e0904b0fe7e2cf2d4fd37d427d64235a",
                 "shasum": ""
             },
             "require": {
@@ -7836,7 +7836,7 @@
             ],
             "support": {
                 "issues": "https://github.com/phpstan/phpstan/issues",
-                "source": "https://github.com/phpstan/phpstan/tree/1.10.5"
+                "source": "https://github.com/phpstan/phpstan/tree/1.10.6"
             },
             "funding": [
                 {
@@ -7852,7 +7852,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-03-07T16:48:45+00:00"
+            "time": "2023-03-09T16:55:12+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",

@@ -4,11 +4,11 @@ namespace App\Models;
 
 /**
  * Transaction model of type NFTokenAcceptOffer.
- * PK: rAcct-27 SK: <INT> (Ledger index)
+ * PK: rAcct-28 SK: <INT> (Ledger index)
  */
-class BTransactionNFTokenAcceptOffer extends BTransaction
+class BTransactionNFTokenAcceptOffer_Buy extends BTransaction
 {
-  const TYPE = 27;
+  const TYPE = 28;
 
   public function toFinalArray()
   {

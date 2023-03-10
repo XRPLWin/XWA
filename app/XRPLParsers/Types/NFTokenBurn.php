@@ -5,9 +5,9 @@ namespace App\XRPLParsers\Types;
 use App\XRPLParsers\XRPLParserBase;
 use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
-final class NFTokenMint extends XRPLParserBase
+final class NFTokenBurn extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','UNKNOWN','REGULARKEYSIGNER'];
 
   /**
    * Parses NFTokenMint type fields and maps them to $this->data
@@ -27,23 +27,23 @@ final class NFTokenMint extends XRPLParserBase
 
     $this->data['nft'] = $nftparserResult['nft'];
 
-    if(\in_array(NFTTxMutationParser::ROLE_OWNER,$nftparserResult['ref']['roles'])) { //owner or owner+minter
+    if(\in_array(NFTTxMutationParser::ROLE_OWNER,$nftparserResult['ref']['roles'])) { //owner or owner+burner
       $this->data['In'] = true;
       $this->data['Counterparty'] = $this->tx->Account;
     } else {
 
-      //unknown or minter
+      //unknown or burner
       $this->data['In'] = false;
       $this->persist = false;
       $this->data['Counterparty'] = $this->tx->Account;
 
-      if(isset($this->tx->Issuer)) {
-        //This NFT is minted in behalf of another account
-        $this->data['Counterparty'] = $this->tx->Issuer;
+      if(isset($this->tx->Owner)) {
+        //This NFT is burned in behalf of another account
+        $this->data['Counterparty'] = $this->tx->Owner;
       }
 
-      if(\in_array(NFTTxMutationParser::ROLE_MINTER,$nftparserResult['ref']['roles'])) {
-        //minter
+      if(\in_array(NFTTxMutationParser::ROLE_BURNER,$nftparserResult['ref']['roles'])) {
+        //burner
         $this->persist = true;
       }
     }

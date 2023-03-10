@@ -3,12 +3,12 @@
 namespace App\Models;
 
 /**
- * Transaction model of type NFTokenCancelOffer.
- * PK: rAcct-29 SK: <INT> (Ledger index)
+ * Transaction model of type NFTokenMint.
+ * PK: rAcct-30 SK: <INT> (Ledger index)
  */
-class BTransactionNFTokenCancelOffer extends BTransaction
+class BTransactionNFTokenMint extends BTransaction
 {
-  const TYPE = 29;
+  const TYPE = 30;
 
   public function toFinalArray()
   {

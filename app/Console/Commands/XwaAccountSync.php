@@ -904,17 +904,50 @@ class XwaAccountSync extends Command
     }
 
     
-
+    /**
+     * NFTokenMint
+     * ex. 97F547EEDD12D5FC8F555B359FB7098A26D09C9E4E8B7FD9CEC1560ABEBF4341 - rKgR5LMCU1opzENpP7Qz7bRsQB4MKPpJb4
+     * @return array
+     */
     private function processTransaction_NFTokenMint(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo NFTokenMint');
-      return [];
+      /** @var \App\XRPLParsers\Types\NFTokenMint */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
+    /**
+     * NFTokenBurn
+     * ex. 97F547EEDD12D5FC8F555B359FB7098A26D09C9E4E8B7FD9CEC1560ABEBF4341 - rKgR5LMCU1opzENpP7Qz7bRsQB4MKPpJb4
+     * @return array
+     */
     private function processTransaction_NFTokenBurn(BAccount $account, \stdClass $transaction, Batch $batch): array
     {
-      dd('todo NFTokenBurn');
-      return [];
+      /** @var \App\XRPLParsers\Types\NFTokenBurn */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
     }
 
     /**

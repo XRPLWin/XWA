@@ -20,10 +20,6 @@ final class NFTokenCancelOffer extends XRPLParserBase
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on NFTokenCancelOffer with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-   
-    //$this->transaction_type_class = 'NFTokenCreateOffer_Buy';
-    //if(isset($this->tx->Flags) &&  $this->tx->Flags == 1)
-    //  $this->transaction_type_class = 'NFTokenCreateOffer_Sell';
 
     $this->data['Counterparty'] = $this->tx->Account;
 

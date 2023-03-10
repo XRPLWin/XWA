@@ -3,6 +3,7 @@
 namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
+use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
 final class NFTokenCreateOffer extends XRPLParserBase
 {
@@ -21,12 +22,18 @@ final class NFTokenCreateOffer extends XRPLParserBase
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on NFTokenCreateOffer with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
-    //SELL OR BUY
-    $this->transaction_type_class = 'NFTokenCreateOffer_Buy';
-    if(isset($this->tx->Flags) &&  $this->tx->Flags == 1)
-      $this->transaction_type_class = 'NFTokenCreateOffer_Sell';
+    $nftparser = new NFTTxMutationParser($this->reference_address, $this->tx);
+    $nftparserResult = $nftparser->result();
 
-    $this->data['nft'] = $this->tx->NFTokenID;
+    $this->data['nft'] = $nftparserResult['nft'];
+
+    //SELL OR BUY
+    //$this->transaction_type_class = 'NFTokenCreateOffer_Buy';
+    //if(isset($this->tx->Flags) &&  $this->tx->Flags == 1)
+    //  $this->transaction_type_class = 'NFTokenCreateOffer_Sell';
+
+    $this->transaction_type_class = ($nftparserResult['context'] === 'SELL') ? 'NFTokenCreateOffer_Sell':'NFTokenCreateOffer_Buy';
+
     $this->data['Counterparty'] = $this->tx->Account;
 
     $this->data['In'] = true;
