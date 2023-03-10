@@ -12,8 +12,6 @@ final class NFTokenAcceptOffer extends XRPLParserBase
   /**
    * Parses NFTokenAcceptOffer type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
-   * @see 36E42A76F46711318C27247E4DA3AE962E6976EC6F44917F15E37EC5A9DA2352 - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw - created
-   * @see 0C9CF542A766EBC1211EEE4F6A5A972DA0309E6283CE07F7E65E45352322D650 - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw - destination
    * @see 964474F04C4AE61A5CEDDB1543464118BF4F2E3C69CD502E893EAC5317ECEECD - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw - UNKNOWN
    * TODO 04EBA3FC9A54613CD782F8F659297E8FDAD8A2D1F7C6D7BE252419079D50483B nft accept offer with token currency
    * @return void
@@ -32,7 +30,7 @@ final class NFTokenAcceptOffer extends XRPLParserBase
     /**
      * Extract nft token if this NFT token has changed ownership of reference_address
      */
-    $this->data['nft'] = $nftparserResult['nftokenid']; //can be null
+    $this->data['nft'] = $nftparserResult['nftokenid'];
 
     # TODO
     //dd($this);
