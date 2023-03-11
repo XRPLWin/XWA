@@ -114,7 +114,6 @@ class XwaAccountSync extends Command
       $account = AccountLoader::getOrCreate($address);
       
       //dd($account);
-      //dd($account);
       //If this account is issuer (by checking obligations) set t field to 1.
       //if($account->checkIsIssuer())
       //  $account->t = 1;

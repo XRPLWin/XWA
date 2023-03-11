@@ -96,6 +96,7 @@ class AccountController extends Controller
       $r['progress_current_time'] = $acct->lt;
       $r['progress_current'] = $acct->lt->timestamp - $offset;
       $r['progress_total'] = $r['progress_total'] - $offset;
+      $r['synced'] = true;
 
       if(!$acct->isSynced())
       {
@@ -127,8 +128,8 @@ class AccountController extends Controller
     ];
 
     $acct = AccountLoader::getOrCreate($address);
-   
-    if(!$acct->isSynced())
+
+    if(!$acct->isSynced(3))
     {
       $acct->sync(false,false,1500);
       $r['sync_queued'] = true;
@@ -185,7 +186,7 @@ class AccountController extends Controller
     $acct = AccountLoader::getOrCreate($address);
     if(!$acct->isSynced())
       $acct->sync(false);
-
+    
     if($acct->t === 1)
     {
       //get obligations

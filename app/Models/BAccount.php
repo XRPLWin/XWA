@@ -193,10 +193,13 @@ class BAccount extends B
   {
     if($referenceTime === null)
       $referenceTime = now();
+    
     $lt = clone $this->lt;
-    $lt->addMinutes(10); //10 min leeway time (eg sync can be 10 min stale)
+    
+    $lt->addMinutes($leeway_minutes); //10 min leeway time (eg sync can be 10 min stale)
+
     if($referenceTime->greaterThan($lt))
-      return true;
-    return false;
+      return false;
+    return true;
   }
 }
