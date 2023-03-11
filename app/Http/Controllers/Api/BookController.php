@@ -20,12 +20,9 @@ class BookController extends Controller
   * @param string $form 'XRP' or '<CURRENCY CODE OR HEX>+<ISSUER>'
   * @param string $to 'XRP' or '<CURRENCY CODE OR HEX>+<ISSUER>'
   * @param float|int $tradeAmount
-  * @see https://github.com/XRPL-Labs/net-worth-xapp/blob/main/src/plugins/xapp-vue.js
-  * @see https://github.com/XRPL-Labs/XRPL-Orderbook-Reader/blob/0378825be82cb21402a9a719c79bfc12a88e2f31/src/index.ts
-  * @see https://github.com/XRPL-Labs/XRPL-Orderbook-Reader/blob/0378825be82cb21402a9a719c79bfc12a88e2f31/src/parser/LiquidityParser.ts#L54
-  * @return \Illuminate\Http\Response JSON [ 'price' => x.xxx ]
+  * @return \Illuminate\Http\Response JSON
   */
-  public function currency_rates(string $from, string $to, int $amount = 500)
+  public function currency_rates(string $from, string $to, float|int $amount = 500)
   {
     $r = [ 'price' => 0, 'from' => false, 'to' => false];
 
@@ -76,67 +73,14 @@ class BookController extends Controller
         'errors' => ['CONNECT_ERROR']
       ];
     }
-    //dd($Liquidity,$params);
-   
 
     $r['price'] = $Liquidity['rate'];
     $r['from'] = $_from;
     $r['to'] = $_to;
     $r['safe'] = $Liquidity['safe'];
     $r['errors'] = $Liquidity['errors'];
-    //$r['amount'] = $amount;
 
     return response()->json($r);
-  }
-
-  /**
-  * Queries XRPLedger and returns orderbook, on fail returns empty array
-  * @param array $params - arameters sent to 'book_offers' XRPL API
-  * @return array list of offers directly from XRPL
-  */
-  private function currency_rates_fetch_book_offers(array $params) : array
-  {
-    //dd($params);
-    $client = app(Client::class);
-
-    $lc = new LiquidityCheck($params,
-      [
-        # Options:
-        //'rates' => 'to',
-        //'maxSpreadPercentage' => 4,
-        //'maxSlippagePercentage' => 3,
-        //'maxSlippagePercentageReverse' => 3,
-        //'maxBookLines' => 500,
-        'includeBookData' => true //default false
-      ], $client);
-    
-    try {
-    $Liquidity = $lc->get();
-    } catch (\Throwable) {
-      //Unable to connect to provided XRPL server...
-    $Liquidity = [
-        'rate' => null,
-        'safe' => false,
-        'errors' => ['CONNECT_ERROR']
-    ];
-    }
-      
-      dd($Liquidity); 
-
-    $orderbookResponse = XRPL::book_offers($params);
-
-    if(isset($orderbookResponse['result']['status']) && $orderbookResponse['result']['status'] == 'success')
-    {
-      $offers = $orderbookResponse['result']['offers'];
-      if(!is_array($offers))
-        return [];
-
-      if(count($offers) == 0)
-        return [];
-
-      return $offers;
-    }
-    return [];
   }
 
 }

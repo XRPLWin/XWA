@@ -69,7 +69,7 @@ class XwaAccountSync extends Command
      *
      * @var string
      */
-    private readonly string  $ledger_current_time;
+    private string  $ledger_current_time;
 
     /**
      * Each new run ledger index that will be queried is last accessed -1.
