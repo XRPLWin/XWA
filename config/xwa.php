@@ -6,16 +6,16 @@
 $r = [
 
   # Sync this version with composer.json
-  'version' => '0.0.1',
+  'version' => '0.0.2',
 
   /*
   |--------------------------------------------------------------------------
   | Search limit per page
   |--------------------------------------------------------------------------
-  | Default: 1000
+  | Default: 500
   | How much results to pull before paginating.
   */
-  'limit_per_page' => env('XWA_SEARCH_LIMIT', 4000),
+  'limit_per_page' => env('XWA_SEARCH_LIMIT', 500),
 
   /*
   |--------------------------------------------------------------------------

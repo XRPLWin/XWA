@@ -1,6 +1,6 @@
 {
     "name": "xrplwin/xrplwinanalyzer",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "type": "project",
     "description": "XRP Ledger Analyzer",
     "keywords": ["xrpl", "xrpl", "xrp-ledger", "analyzer", "php", "bigquery", "google"],
