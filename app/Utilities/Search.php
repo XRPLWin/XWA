@@ -259,7 +259,7 @@ class Search
     ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2016-09-06&to=2016-09-06&types[0]=Payment&dir=in
     //https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert
     $query = \BigQuery::query($SQL)->useQueryCache($dateRanges[1]->isToday() ? false:true); //we do not use cache on queries that envelop today
-    
+
     # Run query and wait for results
     $results = \BigQuery::runQuery($query); //run query
    
@@ -296,10 +296,10 @@ class Search
     }
     
     
-    if($hasMorePages) {
+    if($hasMorePages || $page > 1) {
       $count = $this->_runCount($mapper,$dateRanges);
     } else {
-      $count = $i;
+      $count = $i-1;
     }
     return ['page' => $page, 'hasmorepages' => $hasMorePages, 'total' => $count, 'data' => $collection];
   }
@@ -309,7 +309,6 @@ class Search
 
     $cache_key = 'searchcount:'.$this->_generateSearchIndentifier($mapper);
     $count = Cache::get($cache_key);
-    
     if($count === null) {
 
       # Count Start
