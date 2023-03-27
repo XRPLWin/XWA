@@ -22,7 +22,7 @@ return [
         'sanctum/csrf-cookie'
     ],
 
-    'allowed_methods' => ['*'],
+    'allowed_methods' => ['GET', 'HEAD', 'OPTIONS'],
 
     'allowed_origins' => ['*'],
 
