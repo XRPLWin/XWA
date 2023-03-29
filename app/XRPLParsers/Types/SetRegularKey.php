@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class SetRegularKey extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','SENT'];
+  private array $acceptedParsedTypes = ['SET','SENT','UNKNOWN'];
 
   /**
    * Parses TrustSet type fields and maps them to $this->data
@@ -24,6 +24,8 @@ final class SetRegularKey extends XRPLParserBase
     # Counterparty is always transaction account (creator)
     $this->data['Counterparty'] = $this->tx->Account;
     $this->data['In'] = true;
+    if(isset($this->tx->RegularKey) && $this->tx->RegularKey == $this->reference_address)
+    $this->data['In'] = false;
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
