@@ -6,10 +6,11 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class Payment extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED','TRADE'];
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','TRADE','UNKNOWN'];
   /**
    * Parses Payment type fields and maps them to $this->data
-   * Accepted parsedType: SENT|RECEIVED|TRADE
+   * Accepted parsedType: SENT|RECEIVED|TRADE|UNKNOWN
+   * UNKNOWN is special case when this accounts perspective offer is furfilled due to path taken.
    * @see https://xrpl.org/transaction-types.html
    * @return void
    */
@@ -45,6 +46,8 @@ final class Payment extends XRPLParserBase
       //Counterparty is source
       $this->data['Counterparty'] = $this->tx->Account;
     } elseif( $parsedType === 'TRADE' ) {
+      $this->data['Counterparty'] = $this->tx->Account;
+    } elseif( $parsedType === 'UNKNOWN' ) {
       $this->data['Counterparty'] = $this->tx->Account;
     } else {
       //todo get counterparty from $this->tx->Account if this is intermediate - check this
