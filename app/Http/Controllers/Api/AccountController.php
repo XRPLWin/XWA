@@ -91,7 +91,7 @@ class AccountController extends Controller
       $ttl = 5; //5 seconds for latest
       $referenceTime = now();
     }
-    
+
     $r = [
       'synced' => false,   // bool
       'queued' => false, //bool
@@ -100,6 +100,7 @@ class AccountController extends Controller
       'progress_total' => \time()
     ];
 
+    /** @var \App\Models\BAccount */
     $acct = AccountLoader::getOrCreate($address);
     
     if($acct) {
@@ -112,11 +113,17 @@ class AccountController extends Controller
       $r['progress_total'] = $r['progress_total'] - $offset;
       $r['synced'] = true;
 
+    
+
       if(!$acct->isSynced(1,$referenceTime))
       {
         $queuedJobsCount = DB::table('jobs')->where('qtype_data',$acct->address)->where('attempts',0)->count();
         $r['queued'] = $queuedJobsCount?true:false;
         $r['synced'] = false;
+
+        if(!$r['queued']) {
+          $acct->sync(false,false,1500);
+        }
       }
     }
    

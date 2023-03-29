@@ -150,12 +150,14 @@ class BAccount extends B
   /**
    * Synces job if not already synced
    * @param bool $recursive - if true it will queue parent address
+   * @param bool $skipcheck - checks if alredy in sync
+   * @param int $limit - limit sent to artisan command
    * @return bool True if added to sync queue (queued)
    */
   public function sync(bool $recursive = true, bool $skipcheck = false, int $limit = 0): bool
   {
     if(!$skipcheck) {
-      //check if already synced
+      //check if already in sync
       $check = DB::connection(config('database.default'))
         ->table('jobs')
         ->where('qtype','account')
