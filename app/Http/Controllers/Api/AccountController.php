@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use App\Utilities\Search;
 use XRPLWin\XRPL\Api\Methods\LedgerCurrent;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 #use App\Statics\XRPL;
 #use App\Statics\Account as StaticAccount;
@@ -72,12 +74,24 @@ class AccountController extends Controller
   }
 
 
-  public function syncinfo(string $address): JsonResponse
+  public function syncinfo(string $address, string $to_datetime = null): JsonResponse
   {
-    $ttl = 5; //5 seconds (review this)
-
     validateXRPAddressOrFail($address);
-  
+
+    if($to_datetime) {
+      $validator = Validator::make(['to_datetime' => $to_datetime], [
+        'to_datetime' => 'required|date',
+      ]);
+      if ($validator->fails()) {
+        abort(422,'Invalid date format');
+      }
+      $ttl = 604800; //604800 = 7 days
+      $referenceTime = Carbon::createFromFormat('Y-m-d',$to_datetime)->endOfDay();
+    } else { //latest time requested
+      $ttl = 5; //5 seconds for latest
+      $referenceTime = now();
+    }
+    
     $r = [
       'synced' => false,   // bool
       'queued' => false, //bool
@@ -98,7 +112,7 @@ class AccountController extends Controller
       $r['progress_total'] = $r['progress_total'] - $offset;
       $r['synced'] = true;
 
-      if(!$acct->isSynced())
+      if(!$acct->isSynced(1,$referenceTime))
       {
         $queuedJobsCount = DB::table('jobs')->where('qtype_data',$acct->address)->where('attempts',0)->count();
         $r['queued'] = $queuedJobsCount?true:false;
