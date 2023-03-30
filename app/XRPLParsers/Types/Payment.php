@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class Payment extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED','TRADE','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','TRADE','REGULARKEYSIGNER','UNKNOWN'];
   /**
    * Parses Payment type fields and maps them to $this->data
    * Accepted parsedType: SENT|RECEIVED|TRADE|UNKNOWN
@@ -49,6 +49,9 @@ final class Payment extends XRPLParserBase
       $this->data['Counterparty'] = $this->tx->Account;
     } elseif( $parsedType === 'UNKNOWN' ) {
       $this->data['Counterparty'] = $this->tx->Account;
+    } elseif( $parsedType === 'REGULARKEYSIGNER' ) {
+      $this->data['Counterparty'] = $this->tx->Account;
+      $this->persist = false;
     } else {
       //todo get counterparty from $this->tx->Account if this is intermediate - check this
       throw new \Exception('Unhandled Counterparty for parsedtype ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
