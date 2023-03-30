@@ -85,7 +85,7 @@ class AccountController extends Controller
       if ($validator->fails()) {
         abort(422,'Invalid date format');
       }
-      $ttl = 604800; //604800 = 7 days
+      $ttl = 3600; //3600  = 1h
       $referenceTime = Carbon::createFromFormat('Y-m-d',$to_datetime)->endOfDay();
     } else { //latest time requested
       $ttl = 5; //5 seconds for latest
@@ -113,10 +113,7 @@ class AccountController extends Controller
       $r['progress_total'] = $r['progress_total'] - $offset;
       $r['synced'] = true;
 
-    
-
-      if(!$acct->isSynced(1,$referenceTime))
-      {
+      if(!$acct->isSynced(1,$referenceTime)) { 
         $ttl = 5; //5 seconds for latest
         $queuedJobsCount = DB::table('jobs')->where('qtype_data',$acct->address)->where('attempts',0)->count();
         $r['queued'] = $queuedJobsCount?true:false;
