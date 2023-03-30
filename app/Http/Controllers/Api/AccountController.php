@@ -97,34 +97,40 @@ class AccountController extends Controller
       'queued' => false, //bool
       'progress_current' => 0, //unix timestamp - offset
       'progress_current_time' => null, //current time
-      'progress_total' => \time()
+      'progress_total' => $referenceTime->format('U'),
+      //'progress_percent' => 0,
     ];
 
     /** @var \App\Models\BAccount */
     $acct = AccountLoader::getOrCreate($address);
     
     if($acct) {
-
       $firstTxInfo = $acct->getFirstTransactionAllInfo();
       $offset = $firstTxInfo['first'] ? $firstTxInfo['first']:0;
       
       $r['progress_current_time'] = $acct->lt;
       $r['progress_current'] = $acct->lt->timestamp - $offset;
+      if($r['progress_current'] < 0) $r['progress_current'] = 0;
       $r['progress_total'] = $r['progress_total'] - $offset;
       $r['synced'] = true;
 
-      if(!$acct->isSynced(1,$referenceTime)) { 
+      if(!$acct->isSynced(1,$referenceTime)) {
         $ttl = 5; //5 seconds for latest
         $queuedJobsCount = DB::table('jobs')->where('qtype_data',$acct->address)->where('attempts',0)->count();
         $r['queued'] = $queuedJobsCount?true:false;
         $r['synced'] = false;
-
         if(!$r['queued']) {
           $acct->sync(false,false,1500);
         }
       }
     }
    
+    /*if($r['progress_total'] == 0 || $r['progress_current'] == 0)
+      $r['progress_percent'] = 0;
+    else
+      $r['progress_percent'] = ceil(($r['progress_total']-$r['progress_current'])/$r['progress_current'] * 100);
+    if( $r['progress_percent'] > 100)  $r['progress_percent'] = 100;*/
+
     return response()->json($r)
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$ttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $ttl));

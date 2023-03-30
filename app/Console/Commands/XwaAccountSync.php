@@ -264,8 +264,8 @@ class XwaAccountSync extends Command
             $account->l = $tx->tx->ledger_index;
             $account->lt = ripple_epoch_to_carbon($tx->tx->date)->format('Y-m-d H:i:s.uP');
 
-            # Commit changes to $account every 20th iteration (for improved performace)
-            if($i % 20 === 0) {
+            # Commit changes to $account every 10th iteration (for improved performance)
+            if($i == 1 || $i % 10 === 0) {
               $this->info('Committing to account...');
               $account->save();
             }
