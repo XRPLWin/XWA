@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class AccountSet extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses TrustSet type fields and maps them to $this->data
@@ -19,7 +19,7 @@ final class AccountSet extends XRPLParserBase
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on AccountSet with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
-    if($parsedType == 'UNKNOWN')
+    if($parsedType == 'UNKNOWN' || $parsedType == 'REGULARKEYSIGNER')
       $this->persist = false;
 
     # Counterparty is always transaction account (creator)
