@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use App\Repository\Batch;
 use App\Repository\TransactionsRepository;
+use Illuminate\Support\Facades\DB;
 
 class XwaAccountSync extends Command
 {
@@ -101,6 +102,14 @@ class XwaAccountSync extends Command
       $address = $this->argument('address');
       $this->recursiveaccountqueue = $this->option('recursiveaccountqueue'); //bool
       $this->batchlimit = (int)$this->option('limit'); //int
+
+      //Flag job as started
+      DB::beginTransaction();
+      $jobExists = DB::table('jobs')->where('qtype_data', $address)->count();
+      if($jobExists) {
+        DB::update('update jobs set started_at = ? where qtype_data = ?', [\time(),$address]);
+      }
+      DB::commit();
       
       //$this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
       
@@ -112,8 +121,11 @@ class XwaAccountSync extends Command
       Cache::forget('daccount_fti:'.$address);
       
       $account = AccountLoader::getOrCreate($address);
+
       
-      //dd($account);
+      
+      //$account->last_sync_started = \time();
+      //$account->save();
       //If this account is issuer (by checking obligations) set t field to 1.
       //if($account->checkIsIssuer())
       //  $account->t = 1;
