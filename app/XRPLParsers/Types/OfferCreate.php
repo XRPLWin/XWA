@@ -6,12 +6,13 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class OfferCreate extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','TRADE','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','TRADE','SENT','UNKNOWN'];
   /**
    * Parses TrustSet type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
    * @see https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash=0CD69FD1F0A890CC57CDA430213FD294F7D65FF4A0F379A0D09D07A222D324E6&ref=rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn
    *      Tis is older transaction with missing fileds txcontent is UNKNOWN
+   * @see https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash=D78DB577E7726AF26D5F48A36C968C10B33AFDAF79C2D110E151D3A328DB45C1&ref=r9XRCuhi5uDZY9gPvpiCy6kWDjeH3wM4LU
    * @return void
    */
   protected function parseTypeFields(): void
@@ -24,7 +25,7 @@ final class OfferCreate extends XRPLParserBase
       
     
      # Sub-Type
-    if($parsedType === 'TRADE') {
+    if($parsedType === 'TRADE' || $parsedType === 'SENT') {
       //Eg. Trade based on offer, this can be auto-furfilled offer or partially furfilled offer when creating new.
       $this->transaction_type_class = 'OfferCreate_Trade';
     }
