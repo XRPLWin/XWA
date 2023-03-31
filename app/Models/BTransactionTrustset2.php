@@ -6,7 +6,7 @@ namespace App\Models;
  * Transaction model of type TrustSet.
  * PK: rAcct-3 SK: <INT> (Ledger index)
  */
-final class BTransactionTrustset extends BTransaction
+final class BTransactionTrustSet extends BTransaction
 {
   const TYPE = 3;
   const CONTEXT_ADDTRUSTLINE = 'addtrustline';
