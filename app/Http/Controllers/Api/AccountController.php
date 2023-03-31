@@ -117,7 +117,7 @@ class AccountController extends Controller
 
       if(!$acct->isSynced(1,$referenceTime)) {
         $ttl = 5; //5 seconds for latest
-        $queuedJob = DB::table('jobs')->select('started_at')->where('qtype_data',$acct->address)->where('attempts',0)->first();
+        $queuedJob = DB::table('jobs')->select('started_at')->where('qtype_data',$acct->address)->first();
 
         if($queuedJob) {
           $r['queued'] = true;
