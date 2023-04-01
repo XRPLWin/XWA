@@ -99,7 +99,6 @@ class AccountController extends Controller
       'progress_current' => 0, //unix timestamp - offset
       'progress_current_time' => null, //current time
       'progress_total' => $referenceTime->format('U'),
-      //'progress_percent' => 0,
     ];
 
     /** @var \App\Models\BAccount */
