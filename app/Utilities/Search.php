@@ -45,6 +45,9 @@ class Search
     if(!$data['page']) $data['page'] = 1;
     $data['page'] = \abs($data['page']);
 
+    if(isset($data['types'])) {
+      $data['types'] = \explode(',',$data['types']);
+    }
     $this->params = $data;
     return $this;
   }
