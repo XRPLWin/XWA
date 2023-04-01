@@ -86,7 +86,14 @@ class AccountController extends Controller
         abort(422,'Invalid date format');
       }
       $ttl = 3600; //3600  = 1h
-      $referenceTime = Carbon::createFromFormat('Y-m-d',$to_datetime)->endOfDay();
+      $referenceTime = Carbon::createFromFormat('Y-m-d',$to_datetime)->startOfDay();
+      if($referenceTime->isFuture())
+        $referenceTime = now();
+      elseif($referenceTime->isToday())
+        $referenceTime = now();
+      else
+        $referenceTime->endOfDay();
+      //  dd($referenceTime);
     } else { //latest time requested
       $ttl = 5; //5 seconds for latest
       $referenceTime = now();
@@ -114,7 +121,7 @@ class AccountController extends Controller
       $r['progress_total'] = $r['progress_total'] - $offset;
       $r['synced'] = true;
 
-      if(!$acct->isSynced(1,$referenceTime)) {
+      if(!$acct->isSynced(10,$referenceTime)) {
         $ttl = 5; //5 seconds for latest
         $queuedJob = DB::table('jobs')->select('started_at')->where('qtype_data',$acct->address)->first();
 
