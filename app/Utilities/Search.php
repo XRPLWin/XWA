@@ -153,14 +153,14 @@ class Search
     $firstTxInfo = $acct->getFirstTransactionAllInfo();
 
     if($firstTxInfo['first'] === null) {
-      return [
+      /*return [
         'page' => 0,
         'total' => 0,
         'hasmorepages' => false,
         'info' => 'No synced transactions found',
         'data' => []
-      ];
-      //throw new \Exception('No synced transactions found');
+      ];*/
+      throw new \Exception('No synced transactions found');
     }
     $c1 = $dateRanges[1]->setTimeFromTimeString('10:00:00');
     $c2 = Carbon::createFromFormat('U',$firstTxInfo['first'])->setTimeFromTimeString('10:00:00');
@@ -170,10 +170,10 @@ class Search
         'page' => 0,
         'total' => 0,
         'hasmorepages' => false,
-        'info' => 'No synced transactions found to requested date',
+        'info' => 'No transactions found to requested date',
         'data' => []
       ];
-      //throw new \Exception('No synced transactions found to requested date');
+      //throw new \Exception('No transactions found to requested date');
     }
       
 
@@ -190,12 +190,11 @@ class Search
       }
       if(!$_txtypesrangeisvalid) {
         //throw new \Exception('No synced specific transactions found to requested date');
-        //return sucessfull response
         return [
           'page' => 0,
           'total' => 0,
           'hasmorepages' => false,
-          'info' => 'No synced specific transactions found to requested date',
+          'info' => 'No specific transactions found to requested date',
           'data' => []
         ];
       } 

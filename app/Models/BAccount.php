@@ -103,7 +103,7 @@ class BAccount extends B
 
       $r = [
         'first' => null, //time of first transaciton
-        'first_per_types' => [],   //times of first transaction per types
+        'first_per_types' => [], //times of first transaction per types
       ];
   
       foreach($typeList as $typeIdentifier => $foo) {
