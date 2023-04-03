@@ -98,7 +98,7 @@ class Search
     }
 
     $this->result = $data['data'];
-    $this->result_counts = ['page' => $data['page'], 'pages' => $num_pages, 'more' => $data['hasmorepages'], 'total' => $data['total']];
+    $this->result_counts = ['page' => $data['page'], 'pages' => $num_pages, 'more' => $data['hasmorepages'], 'total' => $data['total'], 'info' => $data['info']];
     $this->isExecuted = true;
     return $this;
   }
@@ -153,13 +153,29 @@ class Search
     $firstTxInfo = $acct->getFirstTransactionAllInfo();
 
     if($firstTxInfo['first'] === null) {
-      throw new \Exception('No synced transactions found');
+      return [
+        'page' => 0,
+        'total' => 0,
+        'hasmorepages' => false,
+        'info' => 'No synced transactions found',
+        'data' => []
+      ];
+      //throw new \Exception('No synced transactions found');
     }
     $c1 = $dateRanges[1]->setTimeFromTimeString('10:00:00');
     $c2 = Carbon::createFromFormat('U',$firstTxInfo['first'])->setTimeFromTimeString('10:00:00');
     
-    if($c1->lessThan($c2))
-      throw new \Exception('No synced transactions found to requested date');
+    if($c1->lessThan($c2)) {
+      return [
+        'page' => 0,
+        'total' => 0,
+        'hasmorepages' => false,
+        'info' => 'No synced transactions found to requested date',
+        'data' => []
+      ];
+      //throw new \Exception('No synced transactions found to requested date');
+    }
+      
 
     if(!$typesIsAll) {
       //only specific types are requested
@@ -176,15 +192,10 @@ class Search
         //throw new \Exception('No synced specific transactions found to requested date');
         //return sucessfull response
         return [
-          /*'counts' => [
-            'total_filtered' => 0,
-            'total_scanned' => 0,
-            'page' => 0,
-            'total_pages' => 0
-          ],*/
           'page' => 0,
           'total' => 0,
           'hasmorepages' => false,
+          'info' => 'No synced specific transactions found to requested date',
           'data' => []
         ];
       } 
@@ -304,7 +315,7 @@ class Search
     } else {
       $count = $i-1;
     }
-    return ['page' => $page, 'hasmorepages' => $hasMorePages, 'total' => $count, 'data' => $collection];
+    return ['page' => $page, 'hasmorepages' => $hasMorePages, 'total' => $count, 'info' => '', 'data' => $collection];
   }
 
   private function _runCount(Mapper $mapper, array $dateRanges): int
