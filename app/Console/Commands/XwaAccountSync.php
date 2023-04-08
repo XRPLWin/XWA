@@ -151,7 +151,8 @@ class XwaAccountSync extends Command
       $ledger_index_min = (int)$account->l;
 
       # Find last inserted transaction in transactions table for check to prevent duplicates
-      $last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""', 'h','t DESC'); //{t,xwatype,h}
+      $last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""','h','t DESC');
+      
       if($last_inserted_tx !== null) {
         //At least one transaction exists, query one less ledger index just in case something wont be missed
         $ledger_index_min--;
