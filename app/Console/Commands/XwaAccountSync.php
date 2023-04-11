@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Repository\Batch;
 use App\Repository\TransactionsRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class XwaAccountSync extends Command
 {
@@ -152,6 +153,9 @@ class XwaAccountSync extends Command
 
       # Find last inserted transaction in transactions table for check to prevent duplicates
       $last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""','h','t DESC');
+      
+      Log::debug(var_export($last_inserted_tx, true));
+      Log::debug(var_export($this->transaction_flow_valid, true));
       
       if($last_inserted_tx !== null) {
         //At least one transaction exists, query one less ledger index just in case something wont be missed

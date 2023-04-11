@@ -28,8 +28,15 @@ class TransactionsRepository extends Repository
     if($orderBy !== '')
       $orderBy = ' ORDER BY '.$orderBy;
     
-    $query = 'SELECT '.$columns.' FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE '.$where.''.$orderBy.' LIMIT '.$limit;;
-    return \BigQuery::runQuery(\BigQuery::query($query));
+    $query = 'SELECT '.$columns.' FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE '.$where.''.$orderBy.' LIMIT '.$limit;
+    try {
+      $r = \BigQuery::runQuery(\BigQuery::query($query));
+    } catch (\Throwable $e) {
+      //dd($e->getMessage());
+      throw $e;
+      //return false;
+    }
+    return $r;
   }
 
   /**
