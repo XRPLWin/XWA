@@ -102,6 +102,7 @@ class AccountController extends Controller
     $r = [
       'synced' => false,  //bool
       'queued' => false,  //bool
+      'no_in_queue' => 0,  //int
       'running' => false, //bool
       'progress_current' => 0, //unix timestamp - offset
       'progress_current_time' => null, //current time
@@ -123,11 +124,15 @@ class AccountController extends Controller
 
       if(!$acct->isSynced(10,$referenceTime)) {
         $ttl = 5; //5 seconds for latest
-        $queuedJob = DB::table('jobs')->select('started_at')->where('qtype_data',$acct->address)->first();
+        $queuedJob = DB::table('jobs')->select('id','queue','started_at')->where('qtype_data',$acct->address)->first();
 
         if($queuedJob) {
           $r['queued'] = true;
           if($queuedJob->started_at !== null) $r['running'] = true;
+          $r['no_in_queue'] = DB::table('jobs')
+            ->where('queue',$queuedJob->queue)
+            ->where('id','<',$queuedJob->id)
+            ->count();
         }
 
         $r['synced'] = false;
