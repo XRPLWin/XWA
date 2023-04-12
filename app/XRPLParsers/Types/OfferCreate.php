@@ -13,6 +13,7 @@ final class OfferCreate extends XRPLParserBase
    * @see https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash=0CD69FD1F0A890CC57CDA430213FD294F7D65FF4A0F379A0D09D07A222D324E6&ref=rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn
    *      Tis is older transaction with missing fileds txcontent is UNKNOWN
    * @see https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash=D78DB577E7726AF26D5F48A36C968C10B33AFDAF79C2D110E151D3A328DB45C1&ref=r9XRCuhi5uDZY9gPvpiCy6kWDjeH3wM4LU
+   * @see MULTI: https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash=B36F2C42D4AEC872188BC2143D50936F8B3898F7D401ED014CF44ED062D2BBD3&ref=rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz
    * @return void
    */
   protected function parseTypeFields(): void
@@ -50,8 +51,10 @@ final class OfferCreate extends XRPLParserBase
       if($this->data['eventList']['secondary']['currency'] !== 'XRP') {
         if(is_array($this->data['eventList']['secondary']['counterparty'])) {
           //Secondary counterparty is rippled trough reference account
+          $this->data['Issuer2'] = $this->data['eventList']['secondary']['counterparty'][0];
+          $this->data['Currency2'] = $this->data['eventList']['secondary']['currency'][0];
           //Counterparty is list of counterparty participants, and value is SUM of balance changes
-          throw new \Exception('Unhandled Counterparty Array for parsedtype ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].'] for perspective ['.$this->reference_address.']');
+          //throw new \Exception('Unhandled Counterparty Array for parsedtype ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].'] for perspective ['.$this->reference_address.']');
         } else {
           $this->data['Issuer2'] = $this->data['eventList']['secondary']['counterparty'];
           $this->data['Currency2'] = $this->data['eventList']['secondary']['currency'];
