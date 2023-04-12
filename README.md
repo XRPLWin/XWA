@@ -64,4 +64,4 @@ To execute only Feature tests run:
 
 `php artisan test --testsuite=Feature`
 
-To learn more on how to run Laravel tests read [official documentation](https://laravel.com/docs/9.x/testing).
+To learn more on how to run Laravel tests read [official documentation](https://laravel.com/docs/10.x/testing).
