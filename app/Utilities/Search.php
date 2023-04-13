@@ -293,7 +293,9 @@ class Search
       Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('Query did not complete within the allotted time');
       throw new \Exception('Query did not complete within the allotted time');
     }
-    $_log = $results->job()->info()['statistics']['finalExecutionDurationMs'].'ms - '.$results->job()->info()['selfLink']. ' with timeoutMs '.$timeoutMs.'ms';
+    $_info = $results->job()->info();
+    $_info['statistics']['finalExecutionDurationMs'] = isset($_info['statistics']['finalExecutionDurationMs']) ? $_info['statistics']['finalExecutionDurationMs']:'-';
+    $_log = $_info['statistics']['finalExecutionDurationMs'].'ms - '.$_info['selfLink']. ' with timeoutMs '.$timeoutMs.'ms';
     Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info($_log);
     //dd($_log);
 
