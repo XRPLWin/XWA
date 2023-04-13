@@ -273,7 +273,7 @@ class Search
     //https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert
     $query = \BigQuery::query($SQL)->useQueryCache($dateRanges[1]->isToday() ? false:true); //we do not use cache on queries that envelop today
 
-    $timeoutMs = 100;
+    $timeoutMs = 10000;
     # Run query and wait for results
     $results = \BigQuery::runQuery($query,[
       'timeoutMs' => $timeoutMs
@@ -290,13 +290,13 @@ class Search
     });*/
 
     if (!$results->isComplete()) {
-      Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('Query did not complete within the allotted time');
+      //Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('Query did not complete within the allotted time');
       throw new \Exception('Query did not complete within the allotted time');
     }
-    $_info = $results->job()->info();
-    $_info['statistics']['finalExecutionDurationMs'] = isset($_info['statistics']['finalExecutionDurationMs']) ? $_info['statistics']['finalExecutionDurationMs']:'-';
-    $_log = $_info['statistics']['finalExecutionDurationMs'].'ms - '.$_info['selfLink']. ' with timeoutMs '.$timeoutMs.'ms';
-    Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info($_log);
+    //$_info = $results->job()->info();
+    //$_info['statistics']['finalExecutionDurationMs'] = isset($_info['statistics']['finalExecutionDurationMs']) ? $_info['statistics']['finalExecutionDurationMs']:'-';
+    //$_log = $_info['statistics']['finalExecutionDurationMs'].'ms - '.$_info['selfLink']. ' with timeoutMs '.$timeoutMs.'ms';
+    //Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info($_log);
     //dd($_log);
 
     
