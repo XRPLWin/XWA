@@ -157,7 +157,7 @@ class XwaAccountSync extends Command
       Log::debug(var_export($last_inserted_tx, true));
       Log::debug(var_export($this->transaction_flow_valid, true));
       
-      if($last_inserted_tx !== null) {
+      if(is_object($last_inserted_tx)) {
         //At least one transaction exists, query one less ledger index just in case something wont be missed
         $ledger_index_min--;
         $this->transaction_flow_valid = false;
