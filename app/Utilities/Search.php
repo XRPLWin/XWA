@@ -273,9 +273,13 @@ class Search
     //https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert
     $query = \BigQuery::query($SQL)->useQueryCache($dateRanges[1]->isToday() ? false:true); //we do not use cache on queries that envelop today
 
+    $timeoutMs = 100;
     # Run query and wait for results
-    $results = \BigQuery::runQuery($query); //run query
-   
+    $results = \BigQuery::runQuery($query,[
+      'timeoutMs' => $timeoutMs
+    ]); //run query
+
+    
     /*$backoff = new \Google\Cloud\Core\ExponentialBackoff(8);
     $backoff->execute(function () use ($results) {
         $results->reload();
@@ -286,9 +290,14 @@ class Search
     });*/
 
     if (!$results->isComplete()) {
+      Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('Query did not complete within the allotted time');
       throw new \Exception('Query did not complete within the allotted time');
     }
-    //dd($results);
+    $_log = $results->job()->info()['statistics']['finalExecutionDurationMs'].'ms - '.$results->job()->info()['selfLink']. ' with timeoutMs '.$timeoutMs.'ms';
+    Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info($_log);
+    //dd($_log);
+
+    
     // All results are loaded at this point
     //echo  microtime(true)- $start;
 
@@ -307,6 +316,7 @@ class Search
       $collection[] = $this->mutateRowToModel($row);
       $i++;
     }
+    //dd($results,$collection);
     
     
     if($hasMorePages || $page > 1) {
