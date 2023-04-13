@@ -19,17 +19,14 @@ pecl install swoole
 ## Supervisor
 
 ### Swoole worker
-Customize depending of your needs.  
+Customize depending of your needs, 12 workers per 1 CPU tested optimal.  
 Copy `/documentation/supervisor/octane.ini` to `/etc/supervisor.d/octane.ini`  
 
 ### Account sync queue workers
-Customize depending of your needs.  
+Currently 3 jobs supported.  
 Copy `/documentation/supervisor/queue.ini` to `/etc/supervisor.d/queue.ini`
 
 ```
-# Inform supervisor to read workers again.
-sudo supervisorctl reread
-
 # Tell supervisor to bring the changes into effect
 sudo supervisorctl update
 
