@@ -46,8 +46,9 @@ class AccountController extends Controller
   public function search(string $address, Request $request): JsonResponse
   {
     ini_set('memory_limit', '256M');
-    $_rand = rand(1,9999999999);
-    //Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('# Start '.$_rand);
+    
+    $_rand = rand(1,9999999999);Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('# Start '.$_rand);
+    
     validateXRPAddressOrFail($address);
     $search = new Search($address);
     
@@ -70,7 +71,7 @@ class AccountController extends Controller
     if($request->input('to') == \date('Y-m-d'))
       $ttl = 300; //5 mins
 
-    //Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('# End '.$_rand);
+    Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('# End '.$_rand);
     return response()->json($result)
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$ttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $ttl))
