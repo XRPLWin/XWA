@@ -12,6 +12,7 @@ use XRPLWin\XRPL\Api\Methods\LedgerCurrent;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 #use App\Statics\XRPL;
 #use App\Statics\Account as StaticAccount;
@@ -45,6 +46,8 @@ class AccountController extends Controller
   public function search(string $address, Request $request): JsonResponse
   {
     ini_set('memory_limit', '256M');
+    $_rand = rand(1,9999999999);
+    Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('# Start '.$_rand);
     validateXRPAddressOrFail($address);
     $search = new Search($address);
     
@@ -67,6 +70,7 @@ class AccountController extends Controller
     if($request->input('to') == \date('Y-m-d'))
       $ttl = 300; //5 mins
 
+      Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('# End '.$_rand);
     return response()->json($result)
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$ttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $ttl))
