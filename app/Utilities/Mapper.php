@@ -57,8 +57,6 @@ class Mapper
     return isset($this->conditions[$condition]) ? $this->conditions[$condition]:null;
   }
 
-
-
   /**
    * Check if dates are correct
    * 1. From is less or equal to to
@@ -105,8 +103,7 @@ class Mapper
     if( !isset($this->conditions['from']) || !isset($this->conditions['to']) || !isset($this->conditions['txTypes']) )
       throw new \Exception('From To and txTypes conditions are not set');
     
-    //Todo check if $acct->lt (ledger time) is synced to requested from/to conditions
-
+    //TODO? check if $acct->lt (ledger time) is synced to requested from/to conditions
   }
 
   /**
@@ -137,9 +134,13 @@ class Mapper
         $SQL .= ' AND isin = false';
     }
 
-    # (optional) r - Counterparty
+    # (optional) r - Counterparty (array)
     if(isset($this->conditions['cp'])) {
-      $SQL .= ' AND r = """'.$this->conditions['cp'].'"""';
+      if(count($this->conditions['cp']) == 1)
+        $SQL .= ' AND r = """'.$this->conditions['cp'].'"""';
+      else {
+        $SQL .= ' AND (r = """'.\implode('""" OR r = """',$this->conditions['cp']).'""")';
+      }
     }
 
     # (optional) st - Source tag
@@ -162,15 +163,6 @@ class Mapper
       }
     }
 
-    //dd($SQL);
-    //dd($this);
-
-
-
-
-
-
-    //dd($this->conditions);
     return $SQL;
   }
 

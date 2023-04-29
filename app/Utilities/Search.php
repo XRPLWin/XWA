@@ -228,10 +228,19 @@ class Search
     }
     unset($param_token);
 
-    //Counterparty
+    //Counterparty (rAddress1,rAddress2,...)
     $param_cp = $this->param('cp');
-    if($param_cp && isValidXRPAddressFormat($param_cp)) {
-      $mapper->addCondition('cp',$param_cp);
+    if($param_cp) {
+      $param_cp_arr = [];
+      //$param_cp_ex =  \explode(',',$param_cp);
+      foreach(\explode(',',$param_cp) as $param_cp_exv) {
+        if(!$param_cp_exv) continue;
+        if(isValidXRPAddressFormat($param_cp_exv)) {
+          $param_cp_arr[] = $param_cp_exv;
+        }
+      }
+      $mapper->addCondition('cp',$param_cp_arr);
+      unset($param_cp_arr);
     }
     unset($param_cp);
 
