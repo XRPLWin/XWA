@@ -17,7 +17,7 @@
         "laravel/octane": "^1.3",
         "league/flysystem-aws-s3-v3": "^3.0",
         "schulzefelix/laravel-bigquery": "^1.7",
-        "xrplwin/xrpl": ">=0.0.11",
+        "xrplwin/xrpl": "^1.0",
         "xrplwin/xrpl-nfttxmutationparser": "^1.0",
         "xrplwin/xrpl-orderbook-reader": "^1.0",
         "xrplwin/xrpl-txmutationparser": "^1.0"
