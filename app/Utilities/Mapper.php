@@ -137,7 +137,7 @@ class Mapper
     # (optional) r - Counterparty (array)
     if(isset($this->conditions['cp'])) {
       if(count($this->conditions['cp']) == 1)
-        $SQL .= ' AND r = """'.$this->conditions['cp'].'"""';
+        $SQL .= ' AND r = """'.$this->conditions['cp'][0].'"""';
       else {
         $SQL .= ' AND (r = """'.\implode('""" OR r = """',$this->conditions['cp']).'""")';
       }
