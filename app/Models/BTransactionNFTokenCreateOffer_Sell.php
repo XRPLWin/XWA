@@ -9,10 +9,11 @@ namespace App\Models;
 class BTransactionNFTokenCreateOffer_Sell extends BTransaction
 {
   const TYPE = 25;
+  const TYPENAME = 'NFTokenCreateOffer (Sell)';
 
   public function toFinalArray(): array
   {
-    $array = ['type' => $this::TYPE];
+    $array = ['type' => $this::TYPE, 'typename' => $this::TYPENAME];
     $array = \array_merge(parent::toFinalArray(),$array);
 
     if(isset($array['c']) && $array['c'] !== null) {

@@ -9,13 +9,15 @@ namespace App\Models;
 final class BTransactionTrustSet extends BTransaction
 {
   const TYPE = 3;
-  const CONTEXT_ADDTRUSTLINE = 'addtrustline';
-  const CONTEXT_REMOVETRUSTLINE = 'removetrustline';
+  const TYPENAME = 'TrustSet';
+  const CONTEXT_ADDTRUSTLINE = 'add';
+  const CONTEXT_REMOVETRUSTLINE = 'remove';
 
-  public function toFinalArray()
+  public function toFinalArray(): array
   {
     $array = [
       'type' => $this::TYPE,
+      'typename' => $this::TYPENAME, //overriden below
       'context' => $this::CONTEXT_ADDTRUSTLINE
     ];
     $array = \array_merge(parent::toArray(),$array);
@@ -27,7 +29,8 @@ final class BTransactionTrustSet extends BTransaction
     //CONTEXT
     if($array['a'] == '0' || empty($array['a']))
       $array['context'] = $this::CONTEXT_REMOVETRUSTLINE;
-
+    
+    $array['typename'] = $this::TYPENAME. ' ('.$array['context'].')';
     return $array;
   }
   

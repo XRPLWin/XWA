@@ -9,4 +9,5 @@ namespace App\Models;
 final class BTransactionPayment_Exchange extends BTransactionPayment
 {
   const TYPE = 6;
+  const TYPENAME = 'Payment (Exchange)';
 }

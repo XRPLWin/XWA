@@ -9,10 +9,11 @@ namespace App\Models;
 class BTransactionTicketCreate extends BTransaction
 {
   const TYPE = 24;
+  const TYPENAME = 'TicketCreate';
 
   public function toFinalArray(): array
   {
-    $array = ['type' => $this::TYPE];
+    $array = ['type' => $this::TYPE, 'typename' => $this::TYPENAME];
     $array = \array_merge(parent::toFinalArray(),$array);
     
     return $array;

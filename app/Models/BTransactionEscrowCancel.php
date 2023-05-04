@@ -9,10 +9,11 @@ namespace App\Models;
 class BTransactionEscrowCancel extends BTransaction
 {
   const TYPE = 21;
+  const TYPENAME = 'EscrowCancel';
 
   public function toFinalArray(): array
   {
-    $array = ['type' => $this::TYPE];
+    $array = ['type' => $this::TYPE, 'typename' => $this::TYPENAME];
     $array = \array_merge(parent::toFinalArray(),$array);
     
     return $array;

@@ -9,4 +9,5 @@ namespace App\Models;
 final class BTransactionPayment_BalanceChange extends BTransactionPayment
 {
   const TYPE = 5;
+  const TYPENAME = 'Payment (BalanceChange)';
 }

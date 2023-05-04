@@ -9,10 +9,11 @@ namespace App\Models;
 class BTransactionAccountSet extends BTransaction
 {
   const TYPE = 10;
+  const TYPENAME = 'AccountSet';
 
   public function toFinalArray(): array
   {
-    $array = ['type' => $this::TYPE];
+    $array = ['type' => $this::TYPE, 'typename' => $this::TYPENAME];
     $array = \array_merge(parent::toFinalArray(),$array);
     
     if(isset($array['c']) && $array['c'] !== null) {

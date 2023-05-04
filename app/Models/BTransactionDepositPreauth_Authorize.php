@@ -9,10 +9,11 @@ namespace App\Models;
 class BTransactionDepositPreauth_Authorize extends BTransaction
 {
   const TYPE = 22;
+  const TYPENAME = 'DepositPreauth (Authorize)';
 
   public function toFinalArray(): array
   {
-    $array = ['type' => $this::TYPE];
+    $array = ['type' => $this::TYPE, 'typename' => $this::TYPENAME];
     $array = \array_merge(parent::toFinalArray(),$array);
     
     return $array;

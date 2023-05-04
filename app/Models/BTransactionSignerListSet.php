@@ -9,10 +9,11 @@ namespace App\Models;
 class BTransactionSignerListSet extends BTransaction
 {
   const TYPE = 15;
+  const TYPENAME = 'SignerListSet';
 
   public function toFinalArray(): array
   {
-    $array = ['type' => $this::TYPE];
+    $array = ['type' => $this::TYPE, 'typename' => $this::TYPENAME];
     $array = \array_merge(parent::toFinalArray(),$array);
     
     return $array;

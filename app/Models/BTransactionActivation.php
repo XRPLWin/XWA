@@ -9,4 +9,12 @@ namespace App\Models;
 final class BTransactionActivation extends BTransaction
 {
   const TYPE = 2;
+  const TYPENAME = 'Activation';
+
+  public function toFinalArray(): array
+  {
+    $array = ['type' => $this::TYPE, 'typename' => $this::TYPENAME];
+    $array = \array_merge(parent::toFinalArray(),$array);
+    return $array;
+  }
 }

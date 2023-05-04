@@ -327,8 +327,6 @@ class Search
       $collection[] = $this->mutateRowToModel($row);
       $i++;
     }
-    //dd($results,$collection);
-    
     
     if($hasMorePages || $page > 1) {
       $count = $this->_runCount($mapper,$dateRanges);

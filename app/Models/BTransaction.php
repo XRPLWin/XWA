@@ -17,6 +17,7 @@ use App\Repository\TransactionsRepository;
 class BTransaction extends B
 {
   const TYPE = 0;
+  const TYPENAME = 'unknown';
   const CONTEXT_DEFAULT = false;
 
   protected $table = 'transactions';
@@ -71,7 +72,22 @@ class BTransaction extends B
     return 'address = """'.$this->address.'""" AND t = '.$this->t;
   }
 
-  public function toFinalArray()
+  /**
+   * Used for API output.
+   */
+  public function toFinalArray(): array
+  {
+    $r = $this->toFinalOriginalArray();
+    //cleanup fields from output:
+    unset($r['address']);
+    unset($r['xwatype']);
+    return $r;
+  }
+
+  /**
+   * Returns array of original columns.
+   */
+  public function toFinalOriginalArray(): array
   {
     $array = [
       'type' => $this::TYPE,

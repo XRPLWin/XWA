@@ -9,10 +9,11 @@ namespace App\Models;
 class BTransactionPaymentChannelCreate extends BTransaction
 {
   const TYPE = 12;
+  const TYPENAME = 'PaymentChannelCreate';
 
   public function toFinalArray(): array
   {
-    $array = ['type' => $this::TYPE];
+    $array = ['type' => $this::TYPE, 'typename' => $this::TYPENAME];
     $array = \array_merge(parent::toFinalArray(),$array);
     
     return $array;

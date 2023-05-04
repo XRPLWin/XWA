@@ -9,10 +9,11 @@ namespace App\Models;
 class BTransactionCheckCancel extends BTransaction
 {
   const TYPE = 18;
+  const TYPENAME = 'CheckCancel';
 
-  public function toFinalArray()
+  public function toFinalArray(): array
   {
-    $array = ['type' => $this::TYPE];
+    $array = ['type' => $this::TYPE, 'typename' => $this::TYPENAME];
     $array = \array_merge(parent::toFinalArray(),$array);
     
     return $array;

@@ -9,4 +9,5 @@ namespace App\Models;
 class BTransactionOfferCreate_Trade extends BTransactionOfferCreate
 {
   const TYPE = 8;
+  const TYPENAME = 'OfferCreate (Trade)';
 }

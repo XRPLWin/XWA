@@ -9,10 +9,11 @@ namespace App\Models;
 class BTransactionOfferCreate extends BTransaction
 {
   const TYPE = 7;
+  const TYPENAME = 'OfferCreate';
 
   public function toFinalArray(): array
   {
-    $array = ['type' => $this::TYPE];
+    $array = ['type' => $this::TYPE, 'typename' => $this::TYPENAME];
     $array = \array_merge(parent::toFinalArray(),$array);
     
     if(isset($array['c']) && $array['c'] !== null) {

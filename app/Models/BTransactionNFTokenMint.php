@@ -9,10 +9,11 @@ namespace App\Models;
 class BTransactionNFTokenMint extends BTransaction
 {
   const TYPE = 30;
+  const TYPENAME = 'NFTokenMint';
 
-  public function toFinalArray()
+  public function toFinalArray(): array
   {
-    $array = ['type' => $this::TYPE];
+    $array = ['type' => $this::TYPE, 'typename' => $this::TYPENAME];
     $array = \array_merge(parent::toFinalArray(),$array);
     
     return $array;
