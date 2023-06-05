@@ -41,7 +41,7 @@ autorestart=true
 user=daemon
 numprocs=1
 redirect_stderr=true
-stdout_logfile=var/log/supervisor/xwa-queue-worker-'.$name.'.log​
+stdout_logfile=var/log/supervisor/xwa-queue-worker-'.$name.'.log
 ';
         }
         Storage::disk('private')->put('queue.ini', $str);
