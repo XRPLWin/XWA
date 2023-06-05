@@ -91,18 +91,29 @@ class XwaAccountSync extends Command
     protected Client $XRPLClient;
 
     /**
+     * When debugging enabled it will log output to log file.
+     */
+    private bool $debug = true;
+    private string $debug_id = '';
+
+    /**
      * Execute the console command.
      *
      * @return int
      */
     public function handle()
     {
+      $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
+      
       $this->XRPLClient = app(Client::class);
 
       //dd('test',config_static('xrpl.address_ignore.rBKPS4oLSaV2KVVuHH8EpQqMGgGefGFQs72'));
       $address = $this->argument('address');
       $this->recursiveaccountqueue = $this->option('recursiveaccountqueue'); //bool
       $this->batchlimit = (int)$this->option('limit'); //int
+
+      $this->log('######################################################');
+      $this->log('Processing address: '.$address);
 
       //Flag job as started
       DB::beginTransaction();
@@ -144,7 +155,7 @@ class XwaAccountSync extends Command
      // $account->l = 66055470;
       
       /*if( config_static('xrpl.address_ignore.'.$account->address) !== null ) {
-        $this->info('History sync skipped (ignored)');
+        $this->log('History sync skipped (ignored)');
         //modify $account todo
         return 0;
       }*/
@@ -154,8 +165,8 @@ class XwaAccountSync extends Command
       # Find last inserted transaction in transactions table for check to prevent duplicates
       $last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""','h','t DESC');
       
-      Log::debug(var_export($last_inserted_tx, true));
-      Log::debug(var_export($this->transaction_flow_valid, true));
+      //Log::debug(var_export($last_inserted_tx, true));
+      //Log::debug(var_export($this->transaction_flow_valid, true));
       
       if(is_object($last_inserted_tx)) {
         //At least one transaction exists, query one less ledger index just in case something wont be missed
@@ -202,8 +213,8 @@ class XwaAccountSync extends Command
           $account_tx->send();
         } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
           // Handle errors
-          $this->info('');
-          $this->info('Error catched: '.$e->getMessage());
+          $this->log('');
+          $this->log('Error catched: '.$e->getMessage());
           //throw $e;
         }
 
@@ -212,9 +223,9 @@ class XwaAccountSync extends Command
         $is_success = $account_tx->isSuccess();
 
         if(!$is_success) {
-          $this->info('');
-          $this->info('Unsuccessful response (code 1), trying again: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
-          $this->info('Retrying in 3 seconds...');
+          $this->log('');
+          $this->log('Unsuccessful response (code 1), trying again: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
+          $this->log('Retrying in 3 seconds...');
           sleep(3);
         }
         else
@@ -224,8 +235,8 @@ class XwaAccountSync extends Command
           
           $txs = $account_tx->finalResult();
           
-          $this->info('');
-          $this->info('Starting batch of '.count($txs).' transactions: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
+          $this->log('');
+          $this->log('Starting batch of '.count($txs).' transactions: Ledger from '.(int)$account->l.' to '.$this->ledger_current);
           $bar = $this->output->createProgressBar(count($txs));
           $bar->start();
           
@@ -243,13 +254,13 @@ class XwaAccountSync extends Command
           unset($txs);
 
           # Execute batch queries
-          $this->info('');
-          $this->info('Executing batch of queries...');
+          $this->log('');
+          $this->log('Executing batch of queries...');
           $processed_rows = $batch->execute();
           unset($batch);
 
-          $this->info('- DONE (processed '.$processed_rows.' rows)');
-          //$this->info('Process memory usage: '.memory_get_usage_formatted());
+          $this->log('- DONE (processed '.$processed_rows.' rows)');
+          //$this->log('Process memory usage: '.memory_get_usage_formatted());
 
           # Post processing results (flush cache)
           foreach($parsedDatas as $parsedData) {
@@ -257,12 +268,12 @@ class XwaAccountSync extends Command
               if($dayToFlush === null) {
                 
                 $dayToFlush = bqtimestamp_to_carbon($parsedData['t'])->format('Y-m-d');
-                $this->info('Flushing day (initial) '.$dayToFlush);
+                $this->log('Flushing day (initial) '.$dayToFlush);
                 $this->flushDayCache($account->address,$dayToFlush);
               } else {
                 $txDayToFlush = bqtimestamp_to_carbon($parsedData['t'])->format('Y-m-d');
                 if($dayToFlush !== $txDayToFlush) {
-                  $this->info('Flushing day '.$dayToFlush);
+                  $this->log('Flushing day '.$dayToFlush);
                   $this->flushDayCache($account->address,$dayToFlush);
                   unset($dayToFlush);
                   $dayToFlush = $txDayToFlush;
@@ -283,7 +294,7 @@ class XwaAccountSync extends Command
 
             # Commit changes to $account every 10th iteration (for improved performance)
             if($i == 1 || $i % 10 === 0) {
-              $this->info('Committing to account...');
+              $this->log('Committing to account...');
               $account->save();
             }
             //continuing to next page
@@ -296,10 +307,10 @@ class XwaAccountSync extends Command
               # batch limit reached
               $do = false; //stop
               $isLast = false; //flat it is not last run
-              $this->info('Committing to account in preparation to requeue...');
+              $this->log('Committing to account in preparation to requeue...');
               $account->save();
-              $this->info('');
-              $this->info('Batch limit ('.$this->batch_current.') reached, requeuing job');
+              $this->log('');
+              $this->log('Batch limit ('.$this->batch_current.') reached, requeuing job');
               $account->sync($this->recursiveaccountqueue, true, $this->batchlimit);
               sleep(1);
             }
@@ -311,7 +322,7 @@ class XwaAccountSync extends Command
       if($isLast) {
         $account->l = $this->ledger_current;
         $account->lt = $this->ledger_current_time;
-        $this->info('Committing to account (last)...');
+        $this->log('Committing to account (last)...');
         $account->save();
       }
       
@@ -341,9 +352,9 @@ class XwaAccountSync extends Command
           // Note: there can be more than one transaction with same hash for current account, all other transactions (autogenerated, eg Activation)
           //       are coupled and inserted in the same time, we are free to skip to next transaction hash.
           $this->transaction_flow_valid = true;
-          $this->info('Already inserted: '.$transaction->tx->hash.' (skipping, latest)');
+          $this->log('Already inserted: '.$transaction->tx->hash.' (skipping, latest)');
         } else {
-          $this->info('Already inserted: '.$transaction->tx->hash.' (skipping)');
+          $this->log('Already inserted: '.$transaction->tx->hash.' (skipping)');
         }
         return null;
       }
@@ -421,8 +432,8 @@ class XwaAccountSync extends Command
       $parser->detectActivations();
 
       if($activatedAddress = $parser->getActivated()) {
-        //$this->info('');
-        //$this->info('Activation: '.$activatedAddress. ' on index '.$parser->SK());
+        //$this->log('');
+        //$this->log('Activation: '.$activatedAddress. ' on index '.$parser->SK());
         $Activation = new BTransactionActivation([
           'address' => $account->address,//.'-'.BTransactionActivation::TYPE,
           'xwatype' => BTransactionActivation::TYPE,
@@ -436,8 +447,8 @@ class XwaAccountSync extends Command
       }
 
       if($activatedByAddress = $parser->getActivatedBy()) {
-        $this->info('');
-        $this->info('Activation: Activated by '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
+        $this->log('');
+        $this->log('Activation: Activated by '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
         $account->activatedBy = $activatedByAddress;
         $account->isdeleted = false; //in case it is reactivated, this will remove field on model save
         $batch->queueModelChanges($account);
@@ -446,7 +457,7 @@ class XwaAccountSync extends Command
         if($this->recursiveaccountqueue)
         {
           //parent created this account, queue parent
-          $this->info('Queued account: '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
+          $this->log('Queued account: '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
           //$source_account->sync(true);
           $newAccount = AccountLoader::getOrCreate($activatedByAddress);
           $newAccount->sync(
@@ -529,8 +540,8 @@ class XwaAccountSync extends Command
       
       if(!$parsedData['isin']) {
         //outgoing, this is deleted account, flag account deleted
-        $this->info('');
-        $this->info('Deleted');
+        $this->log('');
+        $this->log('Deleted');
         $account->isdeleted = true;
         $batch->queueModelChanges($account);
         //$account->save();
@@ -985,5 +996,16 @@ class XwaAccountSync extends Command
         //flush from maps table
         Map::where('address',$address)->where('ledgerindex_id',$liId)->delete();
       }*/
+    }
+
+    private function log(string $logline)
+    {
+      $logline = '['.$this->debug_id.'] '.$logline;
+      $this->info($logline);
+
+      if(!$this->debug)
+        return;
+
+      Log::channel('syncjob')->info($logline);
     }
 }
