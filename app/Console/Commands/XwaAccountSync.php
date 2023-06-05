@@ -165,6 +165,7 @@ class XwaAccountSync extends Command
       # Find last inserted transaction in transactions table for check to prevent duplicates
       $last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""','h','t DESC');
       
+      $this->log('last_inserted_tx: '.var_export($last_inserted_tx, true));
       //Log::debug(var_export($last_inserted_tx, true));
       //Log::debug(var_export($this->transaction_flow_valid, true));
       
