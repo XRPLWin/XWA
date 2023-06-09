@@ -66,15 +66,19 @@ class AccountController extends Controller
 
 
     $ttl = 5259487; //5 259 487 = 2 months
+    $httpttl = 172800; //172 800 = 2 days
     
     //if end date is today we will set low ttl, since new data can come in at any time
-    if($request->input('to') == \date('Y-m-d'))
+    if($request->input('to') == \date('Y-m-d')) {
       $ttl = 300; //5 mins
+      $httpttl = 300; //5 mins
+    }
+      
 
     #Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('# End '.$_rand);
     return response()->json($result)
-      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$ttl)
-      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $ttl))
+      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
     ;
   }
 
