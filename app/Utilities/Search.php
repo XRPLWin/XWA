@@ -60,7 +60,7 @@ class Search
   public function execute(): self
   {
     $acct = AccountLoader::get($this->address);
-
+    
     if(!$acct) {
       $this->errors[] = 'Account not synced yet';
       $this->last_error_code = 3;

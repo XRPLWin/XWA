@@ -48,6 +48,13 @@ find storage/ -type f -exec chmod 760 {} \;
 php artisan octane:reload
 ```
 
+### Clearing cache
+
+```
+php artisan cache:clear
+rm -rf /var/nginxcache/*
+```
+
 ## Tests
 To execute all tests run:
 

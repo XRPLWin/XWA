@@ -63,7 +63,7 @@ class AccountController extends Controller
 
     $result =  ['success' => true];
     $result = array_merge($result, $search->result());
-
+    
 
     $ttl = 5259487; //5 259 487 = 2 months
     $httpttl = 172800; //172 800 = 2 days
