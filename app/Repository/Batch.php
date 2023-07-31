@@ -88,7 +88,7 @@ class Batch
    */
   private function executeInsert($table, $data): array
   {
-    $table = \BigQuery::dataset('xwa')->table($table);
+    $table = \BigQuery::dataset(config('bigquery.xwa_dataset'))->table($table);
     $processed_rows = 0;
     $rows = [];
     foreach($data as $v) {

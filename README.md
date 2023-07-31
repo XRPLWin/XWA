@@ -48,11 +48,12 @@ find storage/ -type f -exec chmod 760 {} \;
 php artisan octane:reload
 ```
 
-### Clearing cache
+### Full restart
 
 ```
 php artisan cache:clear
 rm -rf /var/nginxcache/*
+systemctl restart supervisord nginx
 ```
 
 ## Tests

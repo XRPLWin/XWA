@@ -28,6 +28,8 @@ class BTransaction extends B
 
   protected $fillable = [
     't',
+    'l',
+    'li',
     'address',
     'xwatype',
     'h',
@@ -51,6 +53,8 @@ class BTransaction extends B
 
   const BQCASTS = [
     't'       => 'TIMESTAMP',
+    'l'       => 'INTEGER',
+    'li'      => 'INTEGER',
     'address' => 'STRING',
     'xwatype' => 'INTEGER',
     'h'       => 'STRING',
@@ -64,7 +68,8 @@ class BTransaction extends B
     'i2'      => 'NULLABLE STRING',
     'c2'      => 'NULLABLE STRING',
     'dt'      => 'NULLABLE INTEGER',
-    'st'      => 'NULLABLE INTEGER'
+    'st'      => 'NULLABLE INTEGER',
+    'nft'     => 'NULLABLE STRING',
   ];
 
   protected function bqPrimaryKeyCondition(): string

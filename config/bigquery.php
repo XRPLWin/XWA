@@ -76,4 +76,6 @@ return [
     */
 
     'location' => env('GOOGLE_CLOUD_LOCATION',''),
+
+    'xwa_dataset' => env('GOOGLE_CLOUD_DATASET','xwa'),
 ];

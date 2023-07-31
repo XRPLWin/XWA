@@ -265,8 +265,8 @@ class Search
     $limit = $mapper->getLimit();
     //$limit = 1;
     //$start = microtime(true);
-    $SQL = 'SELECT '.\implode(',',\array_keys(BTransaction::BQCASTS)).' FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
-    //$SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
+    $SQL = 'SELECT '.\implode(',',\array_keys(BTransaction::BQCASTS)).' FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE ';
+    //$SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE ';
     
     # Add all conditions
     $SQL .= $mapper->generateConditionsSQL();
@@ -345,7 +345,7 @@ class Search
 
       # Count Start
 
-      $SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE ';
+      $SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE ';
       # Add all conditions
       $SQL .= $mapper->generateConditionsSQL();
       $query = \BigQuery::query($SQL)->useQueryCache($dateRanges[1]->isToday() ? false:true); //we do not use cache on queries that envelop today

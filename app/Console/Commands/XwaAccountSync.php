@@ -10,7 +10,7 @@ use App\Utilities\Ledger;
 use App\Models\BAccount;
 use App\Models\BTransactionActivation;
 use App\XRPLParsers\Parser;
-use Carbon\Carbon;
+#use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use App\Repository\Batch;
 use App\Repository\TransactionsRepository;
@@ -65,13 +65,14 @@ class XwaAccountSync extends Command
      * @var int
      */
     private int $ledger_current = -1;
+    //private int $ledger_current_transaction_index = -1;
 
     /**
      * Current ledger being scanned time.
      *
      * @var string
      */
-    private string  $ledger_current_time;
+    private string $ledger_current_time;
 
     /**
      * Each new run ledger index that will be queried is last accessed -1.
@@ -81,7 +82,7 @@ class XwaAccountSync extends Command
      * this will became true and inserting can continue.
      * This will be set as false if atleast one transaction is already inserted in db.
      */
-    private bool $transaction_flow_valid = true;
+    //private bool $transaction_flow_valid = true;
 
     /**
      * XRPL API Client instance
@@ -111,8 +112,9 @@ class XwaAccountSync extends Command
       $address = $this->argument('address');
       $this->recursiveaccountqueue = $this->option('recursiveaccountqueue'); //bool
       $this->batchlimit = (int)$this->option('limit'); //int
+      //$this->transaction_flow_valid = true;
 
-      $this->log('######################################################');
+      $this->log('######################### START');
       $this->log('Processing address: '.$address);
 
       //Flag job as started
@@ -133,7 +135,7 @@ class XwaAccountSync extends Command
       Cache::forget('daccount_fti:'.$address);
       
       $account = AccountLoader::getOrCreate($address);
-
+      
       
       
       //$account->last_sync_started = \time();
@@ -163,16 +165,18 @@ class XwaAccountSync extends Command
       $ledger_index_min = (int)$account->l;
 
       # Find last inserted transaction in transactions table for check to prevent duplicates
-      $last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""','h','t DESC');
+      $last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""','l,li','t DESC');
       
+      //Tu sam stao 2023!!!!!!!!!!!!!!!!!!########################################################################################################################
       $this->log('last_inserted_tx: '.var_export($last_inserted_tx, true));
       //Log::debug(var_export($last_inserted_tx, true));
       //Log::debug(var_export($this->transaction_flow_valid, true));
       
       if(is_object($last_inserted_tx)) {
+        $this->log('last_inserted_tx: mark1');
         //At least one transaction exists, query one less ledger index just in case something wont be missed
         $ledger_index_min--;
-        $this->transaction_flow_valid = false;
+        //$this->transaction_flow_valid = false;
       }
 
       $account_tx = $this->XRPLClient->api('account_tx')
@@ -183,7 +187,7 @@ class XwaAccountSync extends Command
             'ledger_index_max' => $this->ledger_current,
             'binary' => false,
             'forward' => true,
-            'limit' => 400, //400
+            'limit' => 400,
           ]);
          
       $account_tx->setCooldownHandler(
@@ -249,7 +253,16 @@ class XwaAccountSync extends Command
           
           # Parse each transaction and prepare batch execution queries
           foreach($txs as $tx) {
-            $parsedDatas[] = $this->processTransaction($account,$tx,$batch,$last_inserted_tx);
+            $parsedDatas[] = $this->processTransaction(
+              $account,
+              $tx,
+              $batch,
+              is_object($last_inserted_tx) ? $last_inserted_tx->l  : null,
+              is_object($last_inserted_tx) ? $last_inserted_tx->li : null
+
+              //$last_inserted_tx
+            );
+            //$this->ledger_current_transaction_index = $tx->meta->TransactionIndex;
             $bar->advance();
           }
           unset($txs);
@@ -263,7 +276,7 @@ class XwaAccountSync extends Command
           $this->log('- DONE (processed '.$processed_rows.' rows)');
           //$this->log('Process memory usage: '.memory_get_usage_formatted());
 
-          # Post processing results (flush cache)
+          # Post processing results START (flush cache)
           foreach($parsedDatas as $parsedData) {
             if(!empty($parsedData)) {
               if($dayToFlush === null) {
@@ -282,6 +295,7 @@ class XwaAccountSync extends Command
               }
             }
           }
+          # Post processing results END
           unset($parsedDatas);
           
           $bar->finish();
@@ -291,6 +305,7 @@ class XwaAccountSync extends Command
             
             //update last synced ledger index to account metadata
             $account->l = $tx->tx->ledger_index;
+            $account->li = $tx->meta->TransactionIndex;
             $account->lt = ripple_epoch_to_carbon($tx->tx->date)->format('Y-m-d H:i:s.uP');
 
             # Commit changes to $account every 10th iteration (for improved performance)
@@ -301,7 +316,7 @@ class XwaAccountSync extends Command
             //continuing to next page
           }
           else
-            $do = false;
+            $do = false; //no more transactions to date
 
           if($do) {
             if($this->batchlimit > 0 && $this->batch_current >= $this->batchlimit) {
@@ -322,6 +337,7 @@ class XwaAccountSync extends Command
       # Save last scanned ledger index
       if($isLast) {
         $account->l = $this->ledger_current;
+        $account->li = -1;
         $account->lt = $this->ledger_current_time;
         $this->log('Committing to account (last)...');
         $account->save();
@@ -338,15 +354,38 @@ class XwaAccountSync extends Command
      * Calls appropriate method.
      * @return ?array
      */
-    private function processTransaction(BAccount $account, \stdClass $transaction, Batch $batch, ?\stdClass $last_inserted_tx): ?array
+    private function processTransaction(BAccount $account, \stdClass $transaction, Batch $batch, ?int $last_ledger_index = null, ?int $last_transaction_index = null/*, ?\stdClass $last_inserted_tx*/): ?array
     {
       if($transaction->meta->TransactionResult != 'tesSUCCESS')
         return null; //do not log failed transactions
 
       $type = $transaction->tx->TransactionType;
       $method = 'processTransaction_'.$type;
+
+      if($last_ledger_index !== null && $last_transaction_index !== null) {
+        //inserted to somewhere already...
+
+        //$account->l = $tx->tx->ledger_index;
+        //    $account->li = $this->ledger_current_transaction_index;
+
+        if((int)$last_ledger_index > (int)$transaction->tx->ledger_index) {
+          $this->log('Already inserted: '.$transaction->tx->hash.' (skipping) ['.$last_ledger_index.' > '.$transaction->tx->ledger_index.']');
+          return null;
+        }
+
+        if((int)$last_ledger_index == (int)$transaction->tx->ledger_index) {
+          if((int)$last_transaction_index >= (int)$transaction->meta->TransactionIndex) {
+            $this->log('Already inserted: '.$transaction->tx->hash.' (skipping, same ledgerindex) ['.$last_ledger_index.' == '.$transaction->tx->ledger_index.']['.$last_transaction_index.' >= '.$transaction->meta->TransactionIndex.']');
+            return null;
+          }
+        }
+      }
+
+      //$this->log('Inserting: '.$transaction->tx->hash.' l: '.$transaction->tx->ledger_index.' li: '.$transaction->meta->TransactionIndex);
+
       
-      if($this->transaction_flow_valid === false) {
+      /*if($this->transaction_flow_valid == false) {
+        $this->log('processTransaction: mark1');
         // this transaction hash might be already inserted
         if(is_object($last_inserted_tx) && $transaction->tx->hash == $last_inserted_tx->h) {
           // this is latest inserted transaction into database, flag flow as valid end exit
@@ -358,7 +397,7 @@ class XwaAccountSync extends Command
           $this->log('Already inserted: '.$transaction->tx->hash.' (skipping)');
         }
         return null;
-      }
+      }*/
       
       //this is faster than call_user_func()
       return $this->{$method}($account, $transaction, $batch);
@@ -376,7 +415,7 @@ class XwaAccountSync extends Command
 
       if($parser->getPersist() === false)
         return $parsedData;
-
+      
       $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
       $model = new $TransactionClassName($parsedData);
       $model->address = $account->address;
@@ -418,7 +457,7 @@ class XwaAccountSync extends Command
       /** @var \App\XRPLParsers\Types\Payment */
       $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
       $parsedData = $parser->toBArray();
-
+      
       if($parser->getPersist() === false)
         return $parsedData;
 

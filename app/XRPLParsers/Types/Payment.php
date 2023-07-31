@@ -100,9 +100,10 @@ final class Payment extends XRPLParserBase
    */
   public function toBArray(): array
   {
-    //dd($this->data);
     $r = [
       't' => ripple_epoch_to_carbon((int)$this->data['Date'])->format('Y-m-d H:i:s.uP'),
+      'l' => $this->data['LedgerIndex'],
+      'li' => $this->data['TransactionIndex'],
       'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],

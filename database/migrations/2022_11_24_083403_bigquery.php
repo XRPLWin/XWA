@@ -14,7 +14,7 @@ return new class extends Migration
    */
   public function up()
   {
-    \BigQuery::createDataset('xwa');
+    \BigQuery::createDataset(config('bigquery.xwa_dataset'));
 
     /**
      * Create accounts table
@@ -32,6 +32,12 @@ return new class extends Migration
         'type' => 'INTEGER',
         'mode' => 'REQUIRED',
         'description' => 'Last synced ledger index'
+      ],
+      [
+        'name' => 'li',
+        'type' => 'INTEGER',
+        'mode' => 'REQUIRED',
+        'description' => 'TransactionIndex' //position inside ledgerindex
       ],
       [
         'name' => 'lt',
@@ -53,7 +59,7 @@ return new class extends Migration
       ],
     ];
 
-    \BigQuery::dataset('xwa')->createTable('accounts', ['schema' => [ 'fields' => $fields ]]);
+    \BigQuery::dataset(config('bigquery.xwa_dataset'))->createTable('accounts', ['schema' => [ 'fields' => $fields ]]);
     unset($fields);
 
 
@@ -67,6 +73,18 @@ return new class extends Migration
         'type' => 'TIMESTAMP',
         'mode' => 'REQUIRED',
         'description' => 'Timestamp (Y-m-d H:i:s.uP)',
+      ],
+      [
+        'name' => 'l',
+        'type' => 'INTEGER',
+        'mode' => 'REQUIRED',
+        'description' => 'LedgerIndex' //ledger index of this transaction
+      ],
+      [
+        'name' => 'li',
+        'type' => 'INTEGER',
+        'mode' => 'REQUIRED',
+        'description' => 'TransactionIndex' //position inside ledgerindex
       ],
       /*[
         'name' => 'SK',
@@ -183,7 +201,7 @@ return new class extends Migration
       ],*/
     ];
 
-    \BigQuery::dataset('xwa')->createTable('transactions', [
+    \BigQuery::dataset(config('bigquery.xwa_dataset'))->createTable('transactions', [
       'schema' => [ 'fields' => $fields ],
       'timePartitioning' => [
         'type' => 'MONTH',
@@ -199,6 +217,6 @@ return new class extends Migration
    */
   public function down()
   {
-    \BigQuery::dataset('xwa')->delete(['deleteContents' => true]);
+    \BigQuery::dataset(config('bigquery.xwa_dataset'))->delete(['deleteContents' => true]);
   }
 };

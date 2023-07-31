@@ -22,7 +22,7 @@ class AccountsRepository extends Repository
    */
   public static function fetchOne($where): ?array
   {
-    $query = 'SELECT address,l,lt,activatedBy,isdeleted FROM `'.config('bigquery.project_id').'.xwa.accounts` WHERE '.$where.' LIMIT 1';
+    $query = 'SELECT address,l,li,lt,activatedBy,isdeleted FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.accounts` WHERE '.$where.' LIMIT 1';
     try {
       $results = \BigQuery::runQuery(\BigQuery::query($query));
     } catch (\Throwable $e) {
@@ -46,7 +46,7 @@ class AccountsRepository extends Repository
     if(!count($values))
       throw new \Exception('Values missing');
 
-    $insert ='INSERT INTO `'.config('bigquery.project_id').'.xwa.accounts` ('.\implode(',',\array_keys($values)).') VALUES (';
+    $insert ='INSERT INTO `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.accounts` ('.\implode(',',\array_keys($values)).') VALUES (';
     $castedValues = self::valuesToCastedValues(BAccount::BQCASTS, $values);
     $insert .= \implode(',',$castedValues);
     $insert .= ')';

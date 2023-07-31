@@ -30,6 +30,8 @@ final class TrustSet extends XRPLParserBase
   {
     $r = [
       't' => ripple_epoch_to_carbon((int)$this->data['Date'])->format('Y-m-d H:i:s.uP'),
+      'l' => $this->data['LedgerIndex'],
+      'li' => $this->data['TransactionIndex'],
       //'fe' => $this->data['Fee'],
       'isin' => $this->data['In'],
       's' => $this->data['StateCreated'],

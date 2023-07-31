@@ -53,7 +53,7 @@ class Repository
     if(empty($modelandfields['fields']))
       return null;
 
-    $q ='UPDATE `'.config('bigquery.project_id').'.xwa.'.$table.'` SET';
+    $q ='UPDATE `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.'.$table.'` SET';
     $i = 0;
     foreach($modelandfields['fields'] as $k => $v) {
       if($i > 0) $q .= ',';

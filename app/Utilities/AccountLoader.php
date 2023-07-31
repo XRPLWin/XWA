@@ -20,11 +20,11 @@ class AccountLoader
       $Account = new BAccount([
         'address' => $address,
         'l' => (int)config('xrpl.genesis_ledger'), //initial
+        'li' => -1,
         'lt' => ripple_epoch_to_carbon(config('xrpl.genesis_ledger_close_time'))->format('Y-m-d H:i:s.uP'),
         'activatedBy' => null,
         'isdeleted' => false,
       ]);
-      
       
       $Account->save();
     }
@@ -39,7 +39,7 @@ class AccountLoader
   public static function get(string $address): ?BAccount
   {
     validateXRPAddressOrFail($address);
-
+   
     $AccountArray = Cache::get('daccount:'.$address);
     
     if(!$AccountArray) {

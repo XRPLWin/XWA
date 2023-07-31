@@ -137,6 +137,9 @@ abstract class XRPLParserBase implements XRPLParserInterface
    */
   protected function parseCommonFields(): void
   {
+    # LedgerIndex
+    $this->data['LedgerIndex'] = $this->tx->ledger_index;
+
     # TransactionIndex (int)
     if(!is_int($this->meta->TransactionIndex))
       throw new \Exception('TransactionIndex not integer for transaction hash: '.$this->tx->hash);

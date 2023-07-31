@@ -23,6 +23,7 @@ class BAccount extends B
   public $fillable = [
     'address', //Primary Key
     'l',
+    'li',
     'lt',
     'activatedBy',
     'isdeleted'
@@ -35,6 +36,7 @@ class BAccount extends B
   const BQCASTS = [
     'address' => 'STRING',
     'l'       => 'INTEGER',
+    'li'      => 'INTEGER',
     'lt'      => 'TIMESTAMP',
     'activatedBy' => 'NULLABLE STRING',
     'isdeleted' => 'BOOLEAN'
@@ -90,7 +92,7 @@ class BAccount extends B
     if($r === null) {
 
       $results = TransactionsRepository::query(
-        'SELECT xwatype,t FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE TRUE QUALIFY ROW_NUMBER() OVER (PARTITION BY xwatype ORDER BY t ASC) = 1'
+        'SELECT xwatype,t FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE TRUE QUALIFY ROW_NUMBER() OVER (PARTITION BY xwatype ORDER BY t ASC) = 1'
       );
 
       $collection = [];

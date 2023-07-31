@@ -28,7 +28,7 @@ class TransactionsRepository extends Repository
     if($orderBy !== '')
       $orderBy = ' ORDER BY '.$orderBy;
     
-    $query = 'SELECT '.$columns.' FROM `'.config('bigquery.project_id').'.xwa.transactions` WHERE '.$where.''.$orderBy.' LIMIT '.$limit;
+    $query = 'SELECT '.$columns.' FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE '.$where.''.$orderBy.' LIMIT '.$limit;
     try {
       $r = \BigQuery::runQuery(\BigQuery::query($query));
     } catch (\Throwable $e) {
@@ -49,7 +49,7 @@ class TransactionsRepository extends Repository
       throw new \Exception('Values missing');
 
 
-    $insert ='INSERT INTO `'.config('bigquery.project_id').'.xwa.transactions` ('.\implode(',',\array_keys($values)).') VALUES (';
+    $insert ='INSERT INTO `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` ('.\implode(',',\array_keys($values)).') VALUES (';
     $castedValues = self::valuesToCastedValues(BTransaction::BQCASTS, $values);
     $insert .= \implode(',',$castedValues);
     $insert .= ')';
