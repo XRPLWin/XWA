@@ -42,7 +42,7 @@ find storage/ -type d -exec chmod 770 {} \;
 find storage/ -type f -exec chmod 760 {} \;
 ```
 
-### Restarting
+### Restarting workers
 
 ```
 php artisan octane:reload

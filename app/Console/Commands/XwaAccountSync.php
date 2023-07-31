@@ -246,7 +246,6 @@ class XwaAccountSync extends Command
             $bar->advance();
           }
           unset($txs);
-
           # Execute batch queries
           $this->log('');
           $this->log('Executing batch of queries...');
@@ -438,6 +437,8 @@ class XwaAccountSync extends Command
         $Activation = new BTransactionActivation([
           'address' => $account->address,//.'-'.BTransactionActivation::TYPE,
           'xwatype' => BTransactionActivation::TYPE,
+          'l' => $parsedData['l'],
+          'li' => $parsedData['li'],
           'h' => $parsedData['h'],
           't' => ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('Y-m-d H:i:s.uP'),
           'r' => $activatedAddress,
