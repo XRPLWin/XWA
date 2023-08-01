@@ -357,7 +357,7 @@ class XwaAccountSync extends Command
         }
       }
 
-      //$this->log('Inserting: '.$transaction->tx->hash.' l: '.$transaction->tx->ledger_index.' li: '.$transaction->meta->TransactionIndex);
+      $this->log('Inserting: '.$transaction->tx->hash.' l: '.$transaction->tx->ledger_index.' li: '.$transaction->meta->TransactionIndex);
 
       //this is faster than call_user_func()
       return $this->{$method}($account, $transaction, $batch);
