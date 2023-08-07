@@ -28,7 +28,7 @@ class OracleController extends Controller
     }
 
     $lines = (array)$account_lines->finalResult();
-    
+
     $ttl = 300; //5 mins
     $httpttl = 300; //5 mins
 
@@ -36,8 +36,5 @@ class OracleController extends Controller
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
     ;
-
-
-    return response()->json(['price' => 1.23]);
   }
 }
