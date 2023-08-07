@@ -54,6 +54,12 @@ class InfoController extends Controller
           'route' => '/v1/currency_rates/{from}/{to}/{amount?}',
           'method' => 'GET',
           'example' => config('app.url').'/v1/currency_rates/USD+rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq/XRP',
+        ],
+        [
+          'action' => 'Get XRP Price',
+          'route' => '/v1/oracle/USD',
+          'method' => 'GET',
+          'example' => config('app.url').'/v1/oracle/USD',
         ]
       ]
     ]);

@@ -25,3 +25,5 @@ Route::get('/account/search/{address}', [App\Http\Controllers\Api\AccountControl
 //Route::middleware(['varnish5min'])->group(function () {
   Route::get('/currency_rates/{from}/{to}/{amount?}', [App\Http\Controllers\Api\BookController::class, 'currency_rates'])->name('currency_rates');
 //});
+
+Route::get('/oracle/USD', [App\Http\Controllers\Api\OracleController::class, 'usd'])->name('oracle.usd');
