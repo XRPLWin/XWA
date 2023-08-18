@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Utilities\AccountLoader;
+use App\Utilities\Account as XRPLAccountInfo;
 use XRPLWin\XRPL\Client as XRPLWinApiClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -162,6 +163,36 @@ class AccountController extends Controller
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $ttl));
   }
 
+  /**
+   * Fast account summary, does not use BQ, connects to XRPL.
+   * For high traffic.
+   * Cached
+   * @return JsonResponse
+   */
+  public function summary(string $address): JsonResponse
+  {
+    validateXRPAddressOrFail($address);
+
+    $AInfoInstance = new XRPLAccountInfo($address);
+    $AInfo = $AInfoInstance->get();
+    if($AInfo === null)
+      abort(404); //todo cooldown this somehow
+
+    $ttl = 86400; //86 400 = 1 day
+    $httpttl = 86400; //86 400 = 1 day
+
+    if(!$AInfoInstance->isComplete()) {
+      //something is missing, lower http cache, so script can re-run soon
+      $ttl = 1800; //30 min
+      $httpttl = 1800; //30 min
+    }
+    
+    #Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('# End '.$_rand);
+    return response()->json($AInfo)
+      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
+    ;
+  }
 
   public function info(string $address): JsonResponse
   {
@@ -174,7 +205,7 @@ class AccountController extends Controller
         'first' => null, //time of first transaciton
         'first_per_types' => [],   //times of first transaction per types
       ],
-      'type' => 'normal', // normal|issuer|exchange
+      'type' => 'normal', // normal|issuer|exchange - we have this info in summary (todo)
       'deleted' => false
     ];
 

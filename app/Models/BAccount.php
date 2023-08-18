@@ -128,6 +128,7 @@ class BAccount extends B
 
   /**
    * Queries XRPLedger to determine if this account is issuer.
+   * Some public servers disable this API method because it can require a large amount of processing.
    * @return bool
    */
   /*public function checkIsIssuer(): bool

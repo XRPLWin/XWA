@@ -56,6 +56,12 @@ rm -rf /var/nginxcache/*
 systemctl restart supervisord nginx
 ```
 
+### Task scheduler
+
+```
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
 ## Tests
 To execute all tests run:
 

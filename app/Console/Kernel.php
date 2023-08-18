@@ -15,7 +15,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('xwa:downloadtokendata')
+            ->withoutOverlapping(10) //lock expires every 10 mins
+            ->daily()
+            ->onOneServer()
+            //->sendOutputTo(storage_path('logs/nftsync.log')) //logging
+            ;
     }
 
     /**

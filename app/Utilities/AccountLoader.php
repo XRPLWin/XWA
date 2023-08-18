@@ -1,14 +1,13 @@
 <?php
 
 namespace App\Utilities;
-use App\Models\DAccount;
 use App\Models\BAccount;
 use Illuminate\Support\Facades\Cache;
 
 class AccountLoader
 {
   /**
-   * Fetches DAccount model or creates new in DB.
+   * Fetches BAccount model or creates new in DB.
    * @return BAccount
    * @throws \Exception
    */
@@ -33,7 +32,7 @@ class AccountLoader
   }
 
   /**
-   * Gets DAccount from cache or database.
+   * Gets BAccount from cache or database.
    * @return ?BAccount
    */
   public static function get(string $address): ?BAccount
