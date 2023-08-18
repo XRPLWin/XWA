@@ -18,6 +18,12 @@ class InfoController extends Controller
       //'release-notes' => 'TODO',
       'endpoints' => [
         [
+          'action' => 'Get account summary',
+          'route' => '/v1/account/summary/{address}',
+          'method' => 'GET',
+          'example' => config('app.url').'/v1/account/summary/rWinEUKtN3BmYdDoGU6HZ7tTG54BeCAiz',
+        ],
+        [
           'action' => 'Get account info',
           'route' => '/v1/account/info/{address}',
           'method' => 'GET'
