@@ -59,7 +59,7 @@ systemctl restart supervisord nginx
 ### Task scheduler
 
 ```
-* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+* * * * * /opt/php/bin/php /opt/nginx/htdocs/xwa/artisan schedule:run >> /dev/null 2>&1
 ```
 
 ## Tests
