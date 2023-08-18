@@ -58,6 +58,9 @@ systemctl restart supervisord nginx
 
 ### Task scheduler
 
+Set nano as crontab editor: `export VISUAL=nano`  
+Edit crontab: `crontab -e`
+
 ```
 * * * * * /opt/php/bin/php /opt/nginx/htdocs/xwa/artisan schedule:run >> /dev/null 2>&1
 ```
