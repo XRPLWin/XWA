@@ -7,6 +7,10 @@ use XRPLWin\XRPL\Client as XRPLWinApiClient;
 #use Illuminate\Support\Facades\Cache;
 use App\Models\Issuer;
 use Illuminate\Support\Facades\Storage;
+use Psr\Http\Message\ResponseInterface;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\TooManyRedirectsException;
 
 /**
  * This class loads account info from ledger and other sources.
@@ -237,6 +241,19 @@ class Account
       }
       # 4. KYC
       $r['kyc'] = (bool)$xumm_account_info['kycApproved'];
+      
+    }
+
+    # Avatar
+    $r['avatar'] = $this->getXummCustomAvatarUrl();
+    if($r['avatar'] === null && $r['emailhash'] !== null) {
+      $gravatarInfo = $this->getGravatarInformation($r['emailhash']);
+      if($gravatarInfo !== null) {
+        $r['avatar'] = 'https://secure.gravatar.com/avatar/'.\strtolower($r['emailhash']);
+        if($gravatarInfo['username'] !== null && $r['name'] === null) {
+          $r['name'] = $gravatarInfo['username'];
+        }
+      }
     }
 
     $this->data = $r;
@@ -247,6 +264,84 @@ class Account
     }
    
   }
+
+  /**
+   * @return array [bool avatar (always true), ?string username]
+   */
+  private function getGravatarInformation(string $emailhash): ?array
+  {
+    $client = new \GuzzleHttp\Client();
+    try {
+      $response = $client->request('GET', 'https://en.gravatar.com/'.\strtolower($emailhash).'.json', [
+        //'on_headers' => self::class . '::checkIfXummHasCustomAvatar_onheader',
+        'connect_timeout' => 20, //60
+        'timeout'  => 20,
+        'allow_redirects' => false,
+        'http_errors' => false,
+        'accept' => 'application/json',
+      ]);
+    } catch (ConnectException|TooManyRedirectsException $e) {
+      //fallback to another provider recommended
+      return null;
+    } catch (GuzzleException $e) {
+      return null;
+    }
+
+    if($response->getStatusCode() == 200) {
+      $r = [
+        'avatar' => true,
+        'username' => null,
+      ];
+      $content = \json_decode($response->getBody(),true);
+      if(isset($content['entry']) && \is_array($content['entry'])) {
+        foreach($content['entry'] as $ent) {
+          if(isset($ent['displayName']) && \is_string($ent['displayName'])) {
+            $r['username'] = $ent['displayName'];
+          } else if(isset($ent['preferredUsername']) && \is_string($ent['preferredUsername'])) {
+            $r['username'] = $ent['preferredUsername'];
+          }
+          break;
+        }
+      }
+      return $r;
+    }
+      
+    return null;
+  }
+
+  /**
+   * If avatar redirects then custom avatar is here, and we can download it, 200 = hashicon
+   * Syntax: https://xumm.app/avatar/rAccount.png
+   * @return ?string
+   */
+  private function getXummCustomAvatarUrl(): ?string
+  {
+    $client = new \GuzzleHttp\Client();
+
+    try {
+      $response = $client->request('GET', 'https://xumm.app/avatar/'.$this->address.'.png', [
+        //'on_headers' => self::class . '::checkIfXummHasCustomAvatar_onheader',
+        'connect_timeout' => 20, //60
+        'timeout'  => 20,
+        'allow_redirects' => false,
+        'http_errors' => false
+      ]);
+    } catch (ConnectException|TooManyRedirectsException $e) {
+      //fallback to another provider recommended
+      return null;
+    } catch (GuzzleException $e) {
+      return null;
+    }
+
+    if($response->getStatusCode() == 302)
+      return 'https://xumm.app/avatar/'.$this->address.'.png';
+    return null;
+  }
+
+  //public static function checkIfXummHasCustomAvatar_onheader(ResponseInterface $response)
+  //{
+  //  //
+  //}
 
   private function xumm_account_info(): array
   {
@@ -318,6 +413,7 @@ class Account
       'deleted' => false, //if true, then this account was once active (xrpscan provides this info)
 
       'name' => null, //try extract name from bithomp, xrpscan, etc
+      'avatar' => null, //avatar url or null (use hashicon then)
       'paystring' => null, //available in xumm profile
       'alert' => false, //if alert is true then this account might have engaged in some kind of scam in the past, xumm blocked field
       'kyc' => false, //from various sources, essencially xumm kyc
