@@ -135,7 +135,7 @@ class Account
       $r['flags'] = $result->Flags;
       if(isset($result->RegularKey)) {
         $r['rk'] = $result->RegularKey;
-        if($r['rk'] == 'rrrrrrrrrrrrrrrrrrrrBZbvji')
+        if($r['rk'] == 'rrrrrrrrrrrrrrrrrrrrBZbvji' || $r['rk'] == 'rrrrrrrrrrrrrrrrrrrrrhoLvTp')
           $r['bh'] = true;
       }
         
