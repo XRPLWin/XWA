@@ -23,6 +23,18 @@ final class PaymentChannelFund extends XRPLParserBase
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on PaymentChannelFund with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     $this->data['Counterparty'] = $this->tx->Account;
+
+    //Counterparty is found in PayChannel Modified node
+    if($this->reference_address == $this->tx->Account) {
+
+      foreach($this->meta->AffectedNodes as $an) {
+        if(isset($an->ModifiedNode) && $an->ModifiedNode->LedgerEntryType == 'PayChannel') {
+          if(isset($an->ModifiedNode->FinalFields->Destination))
+            $this->data['Counterparty'] = $an->ModifiedNode->FinalFields->Destination;
+          break;
+        }
+      }
+    }
     
     //Fund is always out
     $this->data['In'] = false;
