@@ -86,7 +86,6 @@ class Account
 
   private function fetch(): void
   {
-    //todo get data from file and set to $r variable
     $storedData = $this->fetchFromDisk();
     if(\is_array($storedData)) {
       $this->data = $storedData;
@@ -95,10 +94,20 @@ class Account
       return;
     }
 
-
-
-
     $r = $this->template();
+    $name_processed = false;
+
+    //Check if is genesis
+    $genesis_name = config_static('xrpl.genesis.'.$this->address);
+    if($genesis_name !== null) {
+      $r['genesis'] = true;
+      $r['name'] = $genesis_name;
+      $name_processed = true;
+    }
+    
+
+    
+
     $result = null;
     $fails = [
       'xrpscan_account_info' => false,
@@ -144,24 +153,23 @@ class Account
       if(isset($result->EmailHash))
         $r['emailhash'] = $result->EmailHash;
     }
-   
+    
     
     # Check if is issuer from pre-synced list of issuers, possible to get kyc
     # - XRPL Notice: Some public servers disable this API method because it can require a large amount of processing.
 
     //$kyc_processed = false;
-    $name_processed = false;
+    
     
     $Issuer = Issuer::where('issuer',$this->address)->first();
     if($Issuer) {
-      $r['name'] = $Issuer->title;
+      if($r['name'] == null)
+        $r['name'] = $Issuer->title;
       $r['kyc'] = $Issuer->is_kyc;
       $r['issuer'] = true;
       $r['active'] = true;
       if($Issuer->social_twitter)
         $r['socials']['twitter'] = $Issuer->social_twitter;
-      
-      //$kyc_processed = true;
       $name_processed = true;
     }
 
@@ -175,7 +183,7 @@ class Account
       } catch (\Exception $e) {
         //try again later
         $fails['xrpscan_account_info'] = true;
-      }  
+      }
       if($xrpscan_account_info) {
         if($result === null) {
           //this is unexisting account, check if it is deleted by checking parentName
@@ -411,7 +419,7 @@ class Account
     return [
       'active' => false, //this might mean account was deleted or never activated
       'deleted' => false, //if true, then this account was once active (xrpscan provides this info)
-
+      'genesis' => false,
       'name' => null, //try extract name from bithomp, xrpscan, etc
       'avatar' => null, //avatar url or null (use hashicon then)
       'paystring' => null, //available in xumm profile

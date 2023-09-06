@@ -5,8 +5,8 @@ return [
   * Ignore history pull on exchange accounts and genesis accounts
   * We do not need to analyze those.
   */
-  'address_ignore' => [
-    # GENESIS ACCOUNTS (https://bithomp.com/api/v2/genesis)
+  'genesis' => [
+    # GENESIS ACCOUNTS (https://bithomp.com/api/v2/genesis) for XRPL
     'rBKPS4oLSaV2KVVuHH8EpQqMGgGefGFQs7' => 'GENESIS',
     'rLs1MzkFWCxTbuAHgjeTZK4fcCDDnf2KRv' => 'AnnaSee2',
     'rpGaCyHRYbgKhErgFih3RdjJqXDsYBouz3' => 'AnnaSee2',
@@ -143,48 +143,6 @@ return [
     'r4HabKLiKYtCbwnGG3Ev4HqncmXWsCtF9F' => 'miltonquinnine3',
     'rKHD6m92oprEVdi1FwGfTzxbgKt8eQfUYL' => 'arij',
     'rhxbkK9jGqPVLZSWPvCEmmf15xHBfJfCEy' => 'GENESIS',
-
-    # Exchanges
-    'rKfzfrk1RsUxWmHimWyNwk8AoWHoFneu4m' => 'Uphold (1)',
-    'rQrQMKhcw3WnptGeWiYSwX5Tz3otyJqPnq' => 'Uphold (2)',
-    'rMdG3ju8pgyVh29ELPWaDuA74CpWW6Fxns' => 'Uphold (3)',
-
-    'rDsbeomae4FXwgQTJp9Rs64Qg9vDiTCdBv' => 'Bitstamp (1)',
-    'rrpNnNLKrartuEqfJGpqyDwPj1AFPg9vn1' => 'Bitstamp (Hot 1)',
-    'rGFuMiw48HdbnrUbkRYuitXTmfrDBNTCnX' => 'Bitstamp (Hot 2)',
-
-    'rKq7xLeTaDFCg9cdy9MmgxpPWS8EZf2fNq' => 'Bitrue (1)',
-    'rfKsmLP6sTfVGDvga6rW6XbmSFUzc3G9f3' => 'Bitrue (3)',
-    'raLPjTYeGezfdb6crXZzcC8RkLBEwbBHJ5' => 'Bitrue (2)',
-
-    'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh' => 'Binance (1)',
-    'rJb5KsHsDHF1YS5B5DU6QCkH5NsPaKQTcy' => 'Binance (2)',
-    'rH71Wv8YCeHCbMfWDrFGCDuUBhxQB2HLN1' => 'Binance (3)',
-    'rEy8TFcrAPvhpKrwyrscNYyqBGUkE9hKaJ' => 'Binance (4)',
-    'rs8ZPbYqgecRcDzQpJYAMhSxSi5htsjnza' => 'Binance (5)',
-    'rDAE53VfMvftPB4ogpWGWvzkQxfht6JPxr' => 'Binance (6)',
-    'rhQADfs6UxfP7iUPwsU7b3uwDVQLLgFcu8' => 'Binance (7)',
-    'rNU4eAowPuixS5ZCWaRL72UUeKgxcKExpK' => 'Binance (10)',
-    'rEeEWeP88cpKUddKk37B2EZeiHBGiBXY3'  => 'BinanceUS (1)',
-    'rMvYS27SYs5dXdFsUgpvv1CSrPsCz7ePF5' => 'BinanceUS (2)',
-
-    'rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq' => 'Poloniex (1)',
-    'rwU8rAiE2eyEPz3sikfbHuqCuiAtdXqa2v' => 'Poloniex (2)',
-
-    'raQwCVAJVqjrVm1Nj5SFRcX8i22BhdC9WA' => 'UPbit (1)',
-    'rNzT5xopUaJK8L7mHbThUGKaHoct62dNBC' => 'UPbit (2)',
-    'rN9qNpgnBaZwqCg8CvUZRPqCcPPY7wfWep' => 'UPbit (3)',
-    'rJYQKfsTi8XCLZ1vGSf9CxiL4prz5bvbtz' => 'UPbit (4)',
-    'rBszWJzYpNoqoY4xKuGUpN23b6EBT41ocF' => 'UPbit (5)',
-    'rEahGW5VLYQH2vGBfFmbv9BBpWSTDoukGR' => 'UPbit (6)',
-    'rEVrb2XPMxs3Wq1zKgFaYZers9nKCWUNd5' => 'UPbit (7)',
-    'rPUTdfCwxGaQoX9urHhxS5sKrJ8FmanEU1' => 'UPbit (8)',
-    'rKXz2jrZbSpYLvm8mNqL2tSGnJJsB2atmS' => 'UPbit (10)',
-    'r4pZEBi9Kcbx4TTyBrwPeszj1pLy3uPJYr' => 'UPbit (11)',
-
-
-
-
   ]
 
 ];
