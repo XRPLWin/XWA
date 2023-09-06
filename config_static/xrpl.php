@@ -5,7 +5,7 @@ return [
   * Ignore history pull on exchange accounts and genesis accounts
   * We do not need to analyze those.
   */
-  'genesis' => [
+  'genesis_mainnet' => [ //genesis_env(XRPL_NET)
     # GENESIS ACCOUNTS (https://bithomp.com/api/v2/genesis) for XRPL
     'rBKPS4oLSaV2KVVuHH8EpQqMGgGefGFQs7' => 'GENESIS',
     'rLs1MzkFWCxTbuAHgjeTZK4fcCDDnf2KRv' => 'AnnaSee2',

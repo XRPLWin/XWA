@@ -98,7 +98,7 @@ class Account
     $name_processed = false;
 
     //Check if is genesis
-    $genesis_name = config_static('xrpl.genesis.'.$this->address);
+    $genesis_name = config_static('xrpl.genesis_'.config('xrpl.net').'.'.$this->address);
     if($genesis_name !== null) {
       $r['genesis'] = true;
       $r['name'] = $genesis_name;
