@@ -23,7 +23,7 @@ class Search
 {
   private string $address;
   private readonly array $params;
-  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','types','page'];
+  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','nft','types','page'];
   private bool $isExecuted = false;
   private array $errors = [];
   private int $last_error_code = 0; //0 - no error
@@ -227,6 +227,16 @@ class Search
       }
     }
     unset($param_token);
+
+    //NFT
+    $param_nft = $this->param('nft');
+    if($param_nft) {
+      //has to be 64 characters length
+      if(\strlen($param_nft) == 64)
+        $mapper->addCondition('nft',$param_nft);
+    }
+    unset($param_nft);
+
 
     //Counterparty (rAddress1,rAddress2,...)
     $param_cp = $this->param('cp');

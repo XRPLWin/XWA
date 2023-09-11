@@ -163,6 +163,10 @@ class Mapper
       }
     }
 
+    if(isset($this->conditions['nft'])) {
+      $SQL .= ' AND nft = """'.$this->conditions['nft'].'"""';
+    }
+
     return $SQL;
   }
 
