@@ -7,7 +7,7 @@ use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
 final class NFTokenCreateOffer extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','RECEIVED'];
+  private array $acceptedParsedTypes = ['SET','RECEIVED','UNKNOWN'];
 
   /**
    * Parses NFTokenCreateOffer type fields and maps them to $this->data
@@ -31,9 +31,9 @@ final class NFTokenCreateOffer extends XRPLParserBase
 
     $this->data['Counterparty'] = $this->tx->Account;
 
-    $this->data['In'] = true;
-    if($this->reference_address == $this->tx->Account)
-      $this->data['In'] = false;
+    $this->data['In'] = false;
+    if(isset($this->tx->Destination) && $this->reference_address == $this->tx->Destination)
+      $this->data['In'] = true;
     
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
