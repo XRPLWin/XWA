@@ -22,7 +22,6 @@ final class AccountDelete extends XRPLParserBase
     }
   }
 
-
   /**
    * Returns standardized array of relevant data for storing to Dynamo database.
    * key => value one dimensional array which correlates to column => value in DyDb.
@@ -38,8 +37,10 @@ final class AccountDelete extends XRPLParserBase
       'isin' => $this->data['In'],
       'r' => $this->data['Counterparty'],
       'h' => $this->data['hash'],
-      'a' => $this->data['Amount'],
     ];
+
+    if(\array_key_exists('Amount', $this->data))
+      $r['a'] = $this->data['Amount'];
 
     if(\array_key_exists('Fee', $this->data))
       $r['fee'] = $this->data['Fee'];
@@ -52,7 +53,4 @@ final class AccountDelete extends XRPLParserBase
 
     return $r;
   }
-
-
-
 }
