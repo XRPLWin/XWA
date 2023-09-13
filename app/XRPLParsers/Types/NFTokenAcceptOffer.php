@@ -7,7 +7,7 @@ use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
 final class NFTokenAcceptOffer extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['ACCEPT','TRADE','UNKNOWN','SET'];
+  private array $acceptedParsedTypes = ['ACCEPT','TRADE','UNKNOWN','SET','REGULARKEYSIGNER'];
 
   /**
    * Parses NFTokenAcceptOffer type fields and maps them to $this->data

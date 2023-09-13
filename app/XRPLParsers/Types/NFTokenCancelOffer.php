@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class NFTokenCancelOffer extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses NFTokenCancelOffer type fields and maps them to $this->data
