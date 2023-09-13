@@ -6,13 +6,14 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class SignerListSet extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','UNKNOWN','REGULARKEYSIGNER'];
 
   /**
    * Parses TrustSet type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
    * @see 09A9C86BF20695735AB03620EB1C32606635AC3DA0B70282F37C674FC889EFE7 - rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn - signer list creator (SET)
    * @see 09A9C86BF20695735AB03620EB1C32606635AC3DA0B70282F37C674FC889EFE7 - ra5nK24KXen9AHvsdFTKHSANinZseWnPcX - signer list participant (UNKNOWN)
+   * @see EB7CFF7BDD0E14FD57ECD4EC30CDEB87B6F51B97EE47073CFF6960254DD0A46D - rhssY88ZGmw82A1wXnxxG6ayQgpH3WMnJg - REGULARKEYSIGNER
    * @return void
    */
   protected function parseTypeFields(): void
