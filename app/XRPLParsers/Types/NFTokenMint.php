@@ -7,7 +7,7 @@ use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
 final class NFTokenMint extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses NFTokenMint type fields and maps them to $this->data
