@@ -37,9 +37,9 @@ final class NFTokenCancelOffer extends XRPLParserBase
     }
 
     # Do not persist when no amount and no Fee
-    if(!isset($this->data['Amount']) && !isset($this->data['Fee'])) {
-      $this->persist = false;
-    }
+    //if(!isset($this->data['Amount']) && !isset($this->data['Fee'])) {
+    //  $this->persist = false;
+    //}
   }
 
   /**

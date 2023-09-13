@@ -46,9 +46,9 @@ final class NFTokenAcceptOffer extends XRPLParserBase
     }
 
     # Do not persist when no amount and no Fee, it is issuer's child trustlines movement
-    if(!isset($this->data['Amount']) && !isset($this->data['Fee'])) {
-      $this->persist = false;
-    }
+    //if(!isset($this->data['Amount']) && !isset($this->data['Fee'])) {
+      //$this->persist = false;
+    //}
   }
 
   /**
