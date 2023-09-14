@@ -61,6 +61,7 @@ final class DepositPreauth extends XRPLParserBase
       'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
+      'nftoffers' => [],
     ];
 
     if(\array_key_exists('Amount', $this->data))

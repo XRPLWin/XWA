@@ -135,7 +135,7 @@ class XwaAccountSync extends Command
       //dd($account);
       
       //Test only start (comment this)
-      //$account->l = 73806933;$account->save();exit;
+      //$account->l = 80676166;$account->save();exit;
       //$account->l = 74139050;$account->save();exit;
       //Test only end
 
@@ -170,7 +170,7 @@ class XwaAccountSync extends Command
             'ledger_index_max' => $this->ledger_current,
             'binary' => false,
             'forward' => true,
-            'limit' => 400,
+            'limit' => 400, //400
           ]);
          
       $account_tx->setCooldownHandler(
@@ -443,6 +443,7 @@ class XwaAccountSync extends Command
           't' => ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('Y-m-d H:i:s.uP'),
           'r' => $activatedAddress,
           'isin' => true,
+          'nftoffers' => [],
         ]);
         $batch->queueModelChanges($Activation);
         //$Activation->save();

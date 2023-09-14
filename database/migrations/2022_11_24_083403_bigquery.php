@@ -172,6 +172,24 @@ return new class extends Migration
         'description' => 'NFTokenID'
       ],
       [
+        'name' => 'nftoffers',
+        'type' => 'STRING',
+        'mode' => 'REPEATED',
+        'description' => 'List of NFTOfferIDs that are affected in specific transaction'
+      ],
+     /* [
+        'name' => 'nftoffers',
+        'type' => 'RECORD',
+        'mode' => 'REPEATED',
+        'fields' => [
+          'name' => 'id',
+          'type' => 'STRING',
+          'mode' => 'REQUIRED',
+          'description' => 'nftoffers[].id'
+        ],
+        'description' => 'List of NFTOfferIDs that are affected in specific transaction'
+      ],*/
+      [
         'name' => 'dt',
         'type' => 'INTEGER',
         'mode' => 'NULLABLE',

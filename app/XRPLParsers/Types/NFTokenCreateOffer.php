@@ -26,6 +26,10 @@ final class NFTokenCreateOffer extends XRPLParserBase
     $nftparserResult = $nftparser->result();
 
     $this->data['nft'] = $nftparserResult['nft'];
+    $this->data['nftoffers'] = [];
+    if(isset($this->meta->offer_id)) {
+      $this->data['nftoffers'] = [$this->meta->offer_id];
+    }
 
     $this->transaction_type_class = ($nftparserResult['context'] === 'SELL') ? 'NFTokenCreateOffer_Sell':'NFTokenCreateOffer_Buy';
 
@@ -60,6 +64,7 @@ final class NFTokenCreateOffer extends XRPLParserBase
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
       'nft' => (string)$this->data['nft'],
+      'nftoffers' => (array)$this->data['nftoffers'],
     ];
 
     if(\array_key_exists('Amount', $this->data))

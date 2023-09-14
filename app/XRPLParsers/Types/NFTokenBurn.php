@@ -64,6 +64,7 @@ final class NFTokenBurn extends XRPLParserBase
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
       'nft' => (string)$this->data['nft'],
+      'nftoffers' => [],
     ];
 
     if(\array_key_exists('Fee', $this->data))

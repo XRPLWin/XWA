@@ -96,6 +96,7 @@ class Batch
       //unset($v['model']);
       $processed_rows++;
     }
+    //dump($rows);
     //dd($rows);
     //Testing invalid row:
     //$rows[] = ['insertId' => $id+1, 'data' => ['foo' => 'bar']];

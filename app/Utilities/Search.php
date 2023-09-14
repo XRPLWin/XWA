@@ -23,7 +23,7 @@ class Search
 {
   private string $address;
   private readonly array $params;
-  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','nft','types','page'];
+  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','nft','nftoffer','types','page'];
   private bool $isExecuted = false;
   private array $errors = [];
   private int $last_error_code = 0; //0 - no error
@@ -114,8 +114,8 @@ class Search
     $mapper->setPage($page);
 
     $mapper
-    ->addCondition('from',$this->param('from'))
-    ->addCondition('to',$this->param('to'));
+      ->addCondition('from',$this->param('from'))
+      ->addCondition('to',$this->param('to'));
 
     $dateRanges = $mapper->parseDateRanges();
     if($dateRanges === null)
@@ -234,6 +234,15 @@ class Search
       //has to be 64 characters length
       if(\strlen($param_nft) == 64)
         $mapper->addCondition('nft',$param_nft);
+    }
+    unset($param_nft);
+
+    //NFTOffer
+    $param_nftoffer = $this->param('nftoffer');
+    if($param_nftoffer) {
+      //has to be 64 characters length
+      if(\strlen($param_nftoffer) == 64)
+        $mapper->addCondition('nftoffer',$param_nftoffer);
     }
     unset($param_nft);
 

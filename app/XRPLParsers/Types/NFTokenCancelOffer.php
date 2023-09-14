@@ -40,6 +40,9 @@ final class NFTokenCancelOffer extends XRPLParserBase
     //if(!isset($this->data['Amount']) && !isset($this->data['Fee'])) {
     //  $this->persist = false;
     //}
+
+    $this->data['nftoffers'] = $this->tx->NFTokenOffers;
+
   }
 
   /**
@@ -57,6 +60,7 @@ final class NFTokenCancelOffer extends XRPLParserBase
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
       //no nft here
+      'nftoffers' => (array)$this->data['nftoffers'],
     ];
 
     if(\array_key_exists('Amount', $this->data))

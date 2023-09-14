@@ -49,6 +49,12 @@ final class NFTokenAcceptOffer extends XRPLParserBase
     //if(!isset($this->data['Amount']) && !isset($this->data['Fee'])) {
       //$this->persist = false;
     //}
+
+    $this->data['nftoffers'] = [];
+    if(isset($this->tx->NFTokenSellOffer))
+      $this->data['nftoffers'][] = $this->tx->NFTokenSellOffer;
+    if(isset($this->tx->NFTokenBuyOffer))
+      $this->data['nftoffers'][] = $this->tx->NFTokenBuyOffer;
   }
 
   /**
@@ -66,6 +72,7 @@ final class NFTokenAcceptOffer extends XRPLParserBase
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
       'nft' => $this->data['nft'],
+      'nftoffers' => (array)$this->data['nftoffers'],
     ];
 
     //if($this->data['nft'] !== null)

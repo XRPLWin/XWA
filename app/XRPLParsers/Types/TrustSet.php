@@ -40,6 +40,7 @@ final class TrustSet extends XRPLParserBase
       'r' => $this->data['Issuer'], //counterparty =
       'i' => $this->data['Issuer'], //= issuer
       'h' => $this->data['hash'],
+      'nftoffers' => [],
     ];
 
     if(\array_key_exists('Fee', $this->data))

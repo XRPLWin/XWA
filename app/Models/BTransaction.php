@@ -44,7 +44,8 @@ class BTransaction extends B
     'c2',
     'dt',
     'st',
-    'nft'
+    'nft',
+    'nftoffers'
   ];
 
   protected $casts = [
@@ -70,6 +71,7 @@ class BTransaction extends B
     'dt'      => 'NULLABLE INTEGER',
     'st'      => 'NULLABLE INTEGER',
     'nft'     => 'NULLABLE STRING',
+    'nftoffers'=> 'ARRAY',
   ];
 
   protected function bqPrimaryKeyCondition(): string
