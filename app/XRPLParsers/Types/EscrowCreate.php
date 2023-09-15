@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class EscrowCreate extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED'];
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','UNKNOWN'];
 
   /**
    * Parses EscrowCreate type fields and maps them to $this->data
@@ -14,6 +14,7 @@ final class EscrowCreate extends XRPLParserBase
    * @see https://xrpl.org/transaction-types.html
    * @see 4E0AA11CBDD1760DE95B68DF2ABBE75C9698CEB548BEA9789053FCB3EBD444FB - rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn - creator
    * @see 4E0AA11CBDD1760DE95B68DF2ABBE75C9698CEB548BEA9789053FCB3EBD444FB - ra5nK24KXen9AHvsdFTKHSANinZseWnPcX - destination
+   * @see DF2BDFCAA19B9938A6DBE0070F6466E4649B9988DE7D7558CE71FFFAABAE5D48 - UNKNOWN xMART...
    * @return void
    */
   protected function parseTypeFields(): void
@@ -28,6 +29,10 @@ final class EscrowCreate extends XRPLParserBase
     } elseif($parsedType == 'RECEIVED') {
       $this->data['Counterparty'] = $this->tx->Account;
       $this->data['In'] = true;
+    } elseif($parsedType == 'UNKNOWN') {
+      $this->data['Counterparty'] = $this->tx->Account;
+      $this->data['In'] = false;
+      $this->persist = false;
     }
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
