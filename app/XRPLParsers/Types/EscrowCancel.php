@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class EscrowCancel extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED'];
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','UNKNOWN'];
 
   /**
    * Parses EscrowCancel type fields and maps them to $this->data
@@ -22,6 +22,12 @@ final class EscrowCancel extends XRPLParserBase
 
     $this->data['Counterparty'] = $this->tx->Account;
     $this->data['In'] = true;
+
+    if($parsedType == 'UNKNOWN') {
+      $this->data['Counterparty'] = $this->tx->Account;
+      $this->data['In'] = true;
+      $this->persist = false;
+    }
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
