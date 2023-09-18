@@ -23,7 +23,7 @@ class Search
 {
   private string $address;
   private readonly array $params;
-  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','nft','nftoffer','types','page'];
+  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','offer','nft','nftoffer','types','page'];
   private bool $isExecuted = false;
   private array $errors = [];
   private int $last_error_code = 0; //0 - no error
@@ -228,6 +228,18 @@ class Search
     }
     unset($param_token);
 
+    //Offer
+    $param_offer = $this->param('offer');
+    $mapper->addCondition('offer',$param_offer);
+
+    //if($param_offer) {
+    //  //has to be 64 characters length
+    //  if(\strlen($param_offer) == 64) //TODO upper limit, probably no more than 70chars
+    //      $mapper->addCondition('offer',$param_offer);
+    //}
+
+    unset($param_offer);
+
     //NFT
     $param_nft = $this->param('nft');
     if($param_nft) {
@@ -244,7 +256,7 @@ class Search
       if(\strlen($param_nftoffer) == 64)
         $mapper->addCondition('nftoffer',$param_nftoffer);
     }
-    unset($param_nft);
+    unset($param_nftoffer);
 
 
     //Counterparty (rAddress1,rAddress2,...)
@@ -292,7 +304,6 @@ class Search
     # Limit and offset, always get +1 result to see if there are more pages
     $SQL .= ' ORDER BY t ASC LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
    
-    //dd($SQL);
     //dump(' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset());
 
     //https://github.com/googleapis/google-cloud-php-bigquery/blob/main/tests/Snippet/CopyJobConfigurationTest.php

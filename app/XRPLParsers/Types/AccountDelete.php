@@ -37,6 +37,7 @@ final class AccountDelete extends XRPLParserBase
       'isin' => $this->data['In'],
       'r' => $this->data['Counterparty'],
       'h' => $this->data['hash'],
+      'offers' => [],
       'nftoffers' => [],
     ];
 

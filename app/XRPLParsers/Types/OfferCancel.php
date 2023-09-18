@@ -51,6 +51,11 @@ final class OfferCancel extends XRPLParserBase
         }
       }
     }
+
+    $this->data['offers'] = [];
+    if(isset($this->tx->OfferSequence)) {
+      $this->data['offers'] = [$this->tx->Account.':'.$this->tx->OfferSequence];
+    }
   }
 
   /**
@@ -67,6 +72,7 @@ final class OfferCancel extends XRPLParserBase
       'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
+      'offers' => (array)$this->data['offers'],
       'nftoffers' => [],
     ];
 

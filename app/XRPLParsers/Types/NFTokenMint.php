@@ -63,6 +63,7 @@ final class NFTokenMint extends XRPLParserBase
       'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
+      'offers' => [],
       'nft' => (string)$this->data['nft'],
       'nftoffers' => [],
     ];

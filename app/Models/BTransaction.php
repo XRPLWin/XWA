@@ -44,6 +44,7 @@ class BTransaction extends B
     'c2',
     'dt',
     'st',
+    'offers',
     'nft',
     'nftoffers'
   ];
@@ -70,6 +71,7 @@ class BTransaction extends B
     'c2'      => 'NULLABLE STRING',
     'dt'      => 'NULLABLE INTEGER',
     'st'      => 'NULLABLE INTEGER',
+    'offers'  => 'ARRAY',
     'nft'     => 'NULLABLE STRING',
     'nftoffers'=> 'ARRAY',
   ];

@@ -51,6 +51,7 @@ final class SetRegularKey extends XRPLParserBase
       'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
+      'offers' => [],
       'nftoffers' => [],
     ];
 

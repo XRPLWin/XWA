@@ -62,6 +62,31 @@ final class OfferCreate extends XRPLParserBase
         
       }
     }
+
+    # Offers start
+    $this->data['offers'] = [];
+    //search for affected offers in metadata
+    if(isset($this->meta->AffectedNodes)) {
+      foreach($this->meta->AffectedNodes as $n) {
+        if(isset($n->CreatedNode) && $n->CreatedNode->LedgerEntryType == 'Offer') {
+          if(isset($n->CreatedNode->NewFields->Sequence)) {
+            $this->data['offers'][] = $n->CreatedNode->NewFields->Account.':'.$n->CreatedNode->NewFields->Sequence;
+          }
+        }
+        if(isset($n->ModifiedNode) && $n->ModifiedNode->LedgerEntryType == 'Offer') {
+          if(isset($n->ModifiedNode->FinalFields->Sequence)) {
+            $this->data['offers'][] = $n->ModifiedNode->FinalFields->Account.':'.$n->ModifiedNode->FinalFields->Sequence;
+          }
+        }
+        if(isset($n->DeletedNode) && $n->DeletedNode->LedgerEntryType == 'Offer') {
+          if(isset($n->DeletedNode->FinalFields->Sequence)) {
+            $this->data['offers'][] = $n->DeletedNode->FinalFields->Account.':'.$n->DeletedNode->FinalFields->Sequence;
+          }
+        }
+      }
+    }
+    $this->data['offers'] = \array_unique($this->data['offers']);
+    # Offers end
   }
 
   /**
@@ -78,6 +103,7 @@ final class OfferCreate extends XRPLParserBase
       'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
+      'offers' => (array)$this->data['offers'],
       'nftoffers' => [],
     ];
 

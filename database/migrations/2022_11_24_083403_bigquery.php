@@ -166,6 +166,12 @@ return new class extends Migration
         'description' => 'Currency (secondary)'
       ],
       [
+        'name' => 'offers',
+        'type' => 'STRING',
+        'mode' => 'REPEATED',
+        'description' => 'List of offers that are affected in specific transaction in format: "rAccount:sequence"'
+      ],
+      [
         'name' => 'nft',
         'type' => 'STRING',
         'mode' => 'NULLABLE',

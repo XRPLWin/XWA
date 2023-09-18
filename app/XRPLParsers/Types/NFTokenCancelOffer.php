@@ -59,6 +59,7 @@ final class NFTokenCancelOffer extends XRPLParserBase
       'isin' => $this->data['In'],
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
+      'offers' => [],
       //no nft here
       'nftoffers' => (array)$this->data['nftoffers'],
     ];

@@ -163,13 +163,18 @@ class Mapper
       }
     }
 
+    # (optional) Offer - in list of offers contained in single row
+    if(isset($this->conditions['offer'])) {
+      $SQL .= ' AND EXISTS(SELECT 1 FROM UNNEST(offers) AS o WHERE o="""'.$this->conditions['offer'].'""")';
+    }
+
     if(isset($this->conditions['nft'])) {
       $SQL .= ' AND nft = """'.$this->conditions['nft'].'"""';
     }
 
     # (optional) NFTOffer - in list of offers contained in single row
     if(isset($this->conditions['nftoffer'])) {
-      $SQL .= ' AND EXISTS(SELECT 1 FROM UNNEST(nftoffers) AS o WHERE o="""'.$this->conditions['nftoffer'].'""")';
+      $SQL .= ' AND EXISTS(SELECT 1 FROM UNNEST(nftoffers) AS x WHERE x="""'.$this->conditions['nftoffer'].'""")';
     }
     return $SQL;
   }
