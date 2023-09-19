@@ -443,6 +443,7 @@ class XwaAccountSync extends Command
           't' => ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('Y-m-d H:i:s.uP'),
           'r' => $activatedAddress,
           'isin' => true,
+          'offers' => [],
           'nftoffers' => [],
         ]);
         $batch->queueModelChanges($Activation);
