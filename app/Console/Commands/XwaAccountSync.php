@@ -93,6 +93,7 @@ class XwaAccountSync extends Command
      */
     public function handle()
     {
+      $this->debug = config('app.debug');
       $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
       
       $this->XRPLClient = app(Client::class);
