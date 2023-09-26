@@ -25,6 +25,15 @@ return [
     'server_wss' => 's.altnet.rippletest.net',
   ],
 
+  'xahautest' => [
+    //for connection via php GuzzleHttp (reporting server)
+    'rippled_server_uri' => 'https://xahau-test.net',
+    //for connection via php GuzzleHttp (full history server)
+    'rippled_fullhistory_server_uri' => 'https://xahau-test.net',
+    //websocket domain (example: 'xrplcluster.com')
+    'server_wss' => 'xahau-test.net',
+  ],
+
 
   //https://xrpl.org/basic-data-types.html#specifying-time
   'ripple_epoch' => 946684800,
@@ -35,6 +44,7 @@ return [
    * Default genesis_ledger             : 32570
    * Default genesis_ledger_close_time  : 410325670
    * @see https://xrpl.org/websocket-api-tool.html#ledger
+   * TODO move this to net (see up)
    */
   'genesis_ledger'            => env('XRPL_GENESIS_LEDGER', 32570),
   'genesis_ledger_close_time' => env('XRPL_GENESIS_LEDGER_CLOSE_TIME', 410325670), //ripple epoch (2013-Jan-01 03:21:10.000000000 UTC)

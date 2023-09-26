@@ -982,6 +982,49 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    # HOOKS start
+
+    private function processTransaction_SetHook(BAccount $account, \stdClass $transaction, Batch $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\SetHook */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    private function processTransaction_Invoke(BAccount $account, \stdClass $transaction, Batch $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\Invoke */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      $parsedData = $parser->toBArray();
+      
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+
+
+
+    # HOOKS end
+
     /**
      * Flush account maps and cache for this day.
      * @deprecated
