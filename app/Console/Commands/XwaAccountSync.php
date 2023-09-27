@@ -1020,6 +1020,24 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    private function processTransaction_URITokenBuy(BAccount $account, \stdClass $transaction, Batch $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\URITokenBuy */
+      $parser = Parser::get($transaction->tx, $transaction->meta, $account->address);
+      $parsedData = $parser->toBArray();
+      
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
 
 
 
