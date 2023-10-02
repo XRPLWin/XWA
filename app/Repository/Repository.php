@@ -37,6 +37,30 @@ class Repository
         case 'BOOLEAN':
           $r[$k] = $v?'true':'false';
           break;
+        case 'RECORD':
+          if(count($v)) {
+            $parsed_records = [];
+            foreach($v as $record_k => $record) {
+              $parsed_records[$record_k] = [];
+              foreach($record as $record_field => $record_fieldvalue) {
+                //dd($k,$record_field);
+                $_cast = $definition[$k.'.'.$record_field];
+                if($_cast == 'STRING') {
+                  $parsed_records[$record_k][$record_field] = '"""'.$record_fieldvalue.'"""';
+                } else {
+                  throw new \Exception('Unhandled record cast "'.$_cast.'"');
+                }
+              }
+              $parsed_records[$record_k] = '('.\implode(',',array_values($parsed_records[$record_k])).')';
+              
+            }
+            $r[$k] = '['.\implode(',',\array_values($parsed_records)).']';
+            //dd($r);
+            //$r[$k] = '('.\implode(',',\array_values($v)).')'; //see https://www.adaltas.com/en/2019/11/22/bigquery-insert-complex-column/
+          }
+          else
+            $r[$k] = 'NULL';
+          break;
         case 'TIMESTAMP':
           $r[$k] = '\''.$v.'\'';
           break;

@@ -201,7 +201,7 @@ class BAccount extends B
     
     $lt = clone $this->lt;
     
-    $lt->addMinutes($leeway_minutes); //10 min leeway time (eg sync can be 10 min stale)
+    $lt->addMinutes($leeway_minutes); //x min leeway time (eg sync can be 10 min stale)
 
     if($referenceTime->greaterThan($lt))
       return false;

@@ -14,6 +14,8 @@ return [
     'rippled_fullhistory_server_uri' => 'https://xrplcluster.com',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 'xrplcluster.com',
+    //enable or disable unlreport
+    'feature_unlreport' => false,
   ],
 
   'testnet' => [
@@ -23,6 +25,8 @@ return [
     'rippled_fullhistory_server_uri' => 'https://s.altnet.rippletest.net:51234',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 's.altnet.rippletest.net',
+    //enable or disable unlreport
+    'feature_unlreport' => false,
   ],
 
   'xahautest' => [
@@ -32,6 +36,8 @@ return [
     'rippled_fullhistory_server_uri' => 'https://xahau-test.net',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 'xahau-test.net',
+    //enable or disable unlreport
+    'feature_unlreport' => true,
   ],
 
 
