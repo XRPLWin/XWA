@@ -16,6 +16,7 @@ return [
     'server_wss' => 'xrplcluster.com',
     //enable or disable unlreport
     'feature_unlreport' => false,
+    'feature_unlreport_first_flag_ledger' => 0,
   ],
 
   'testnet' => [
@@ -27,6 +28,7 @@ return [
     'server_wss' => 's.altnet.rippletest.net',
     //enable or disable unlreport
     'feature_unlreport' => false,
+    'feature_unlreport_first_flag_ledger' => 0,
   ],
 
   'xahautest' => [
@@ -38,6 +40,7 @@ return [
     'server_wss' => 'xahau-test.net',
     //enable or disable unlreport
     'feature_unlreport' => true,
+    'feature_unlreport_first_flag_ledger' => 6869247, //6869248 is first flag
   ],
 
 

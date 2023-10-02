@@ -31,7 +31,7 @@ class UnlreportsRepository extends Repository
       $select = 'first_l,last_l,vlkey,validators';
 
     $query = 'SELECT '.$select.' FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.unlreports` '.$where.' LIMIT 1';
-
+    
     try {
       $results = \BigQuery::runQuery(\BigQuery::query($query));
     } catch (\Throwable $e) {
