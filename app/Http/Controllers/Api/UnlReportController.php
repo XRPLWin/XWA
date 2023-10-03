@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Utilities\Ledger;
+use App\Models\BUnlreport;
 use XRPLWin\UNLReportReader\UNLReportReader;
 use Carbon\Carbon;
 #use Illuminate\Http\Request;
@@ -11,29 +12,58 @@ use Carbon\Carbon;
 
 class UnlReportController extends Controller
 {
+  /**
+   * Returns list of UNLReports (expanded)
+   * Max range 31 days.
+   * @return Response JSON
+   */
   public function index(string $from, ?string $to = null)
   {
     if(!config('xrpl.'.config('xrpl.net').'.feature_unlreport'))
       abort(404);
+
+    $ttl = 5259487; //5 259 487 = 2 months
+    $httpttl = 172800; //172 800 = 2 days
       
     $from = Carbon::createFromFormat('Y-m-d', $from)->startOfDay()->timezone('UTC');
     if($to !== null)
-      $to = Carbon::createFromFormat('Y-m-d', $to)->addDay()->timezone('UTC');
-    
+      $to = Carbon::createFromFormat('Y-m-d', $to)->timezone('UTC');
+
+    if($from->gt($to)) {
+      return response()->json(['success' => false, 'error_code' => 3, 'errors' => ['Requested from date larger than to date']],422)
+        ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+        ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
+    }
+
+    $to->addDay();
+    if($from->diffInDays($to) > 31) {
+      return response()->json(['success' => false, 'error_code' => 1, 'errors' => ['Date range too large (> 31 days)']],422)
+        ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+        ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
+    }
+
+    $minTime = ripple_epoch_to_carbon(config('xrpl.genesis_ledger_close_time'));
+    if($minTime->gte($from)) {
+      return response()->json(['success' => false, 'error_code' => 2, 'errors' => ['Requested date out of ledger range']],422)
+        ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+        ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
+    }
+
     $li_start = Ledger::getFromDate($from);
     if($to) {
       $li_end = Ledger::getFromDate($to);
     } else {
       $li_end = Ledger::current();
     }
-    //
-    $reader = new UNLReportReader(config('xrpl.'.config('xrpl.net').'.rippled_fullhistory_server_uri'));
-   // dd($li_start, $li_end);
-    $reports = $reader->fetchRange($li_start, $li_end); //array
-    //dd($li_start,$li_end,$reports);
 
-
-    return response()->json($reports);
-
+    $reports = BUnlreport::fetchByRange($li_start,$li_end);
+    return response()->json([
+      'succes' => true,
+      'ledger_index_start' => $li_start,
+      'ledger_index_end' => $li_end,
+      'count' => count($reports),
+      'data' => $reports
+    ])->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
   }
 }

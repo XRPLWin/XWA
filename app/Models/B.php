@@ -12,8 +12,7 @@ abstract class B extends Model
 {
   //protected $connection = 'bigquery';
   const BQCASTS = []; //This const is overriden in extended classes
-
-  public string $repositoryclass;
+  const repositoryclass = Repository::class; //This const is overriden in extended classes
 
   /*public function test()
   {
@@ -28,7 +27,7 @@ abstract class B extends Model
   {
     $r = [];
     $BQCASTS = $this::BQCASTS;
-    $castedValues = Repository::valuesToCastedValues($BQCASTS,$this->attributes,$this->exists);
+    $castedValues = self::repositoryclass::valuesToCastedValues($BQCASTS,$this->attributes,$this->exists);
     
     if($this->exists) { //update
       //extract only dirty changed values
@@ -150,7 +149,7 @@ abstract class B extends Model
     if (count($dirty) > 0) {
       //$this->setKeysForSaveQuery($query)->update($dirty);
     
-      $saved = $this->repositoryclass::update(
+      $saved = self::repositoryclass::update(
         $data['table'],
         $this->bqPrimaryKeyCondition(),
         ['fields' => $data['fields'], 'model' => $this]
@@ -186,7 +185,7 @@ abstract class B extends Model
     //}
 
     
-    $saved = $this->repositoryclass::insert($data['fields']);
+    $saved = self::repositoryclass::insert($data['fields']);
     if(!$saved)
       return false;
 

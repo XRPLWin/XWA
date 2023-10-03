@@ -3,6 +3,8 @@
 namespace App\Models;
 #use Illuminate\Support\Facades\DB;
 use App\Repository\UnlreportsRepository;
+use XRPLWin\UNLReportReader\UNLReportReader;
+use XRPLWin\XRPL\Utilities\UNLReportFlagLedger;
 
 class BUnlreport extends B
 {
@@ -10,7 +12,7 @@ class BUnlreport extends B
   public $timestamps = false;
   protected $primaryKey = 'first_l';
   protected $keyType = 'int';
-  public string $repositoryclass = UnlreportsRepository::class;
+  const repositoryclass = UnlreportsRepository::class;
 
   public $fillable = [
     'first_l', //Primary Key
@@ -61,6 +63,57 @@ class BUnlreport extends B
     if($saved)
       return self::hydrate([$values])->first();
     return null;
+  }
+
+  public static function fetchByRange(int $start_li, int $end_li)
+  {
+    $data = UnlreportsRepository::fetchByLedgerIndexRange($start_li, $end_li);
+    return self::expandReports($data, $start_li, $end_li);
+  }
+
+  /**
+   * @param array $compactedRows - result from bigquery db
+   * @return array expanded rows for each flag ledger
+   */
+  public static function expandReports(array $compactedRows, int $start_li, int $end_li): array
+  {
+    if(!count($compactedRows))
+      return [];
+
+    //Collect variables
+    $first_fl = UNLReportFlagLedger::next($start_li); //1 to 256 (+255)
+    //$endRow = \end($compactedRows);
+    //$last_fl = $endRow['last_l']; //512
+    $last_fl = UNLReportFlagLedger::next($end_li);
+    //unset($endRow);
+    $count = UNLReportReader::calcNumFlagsBetweenLedgers($first_fl,$last_fl);
+
+    $r = [];
+    for($x=1; $x<=$count; $x++) {
+      $flag = ($first_fl+(256*($x-1)));
+
+
+      $r[$flag] = [
+        'first_l' => $flag-255,
+        'last_l' => $flag,
+        'vlkey' => '',
+        'validators' => [],
+      ];
+
+
+      //echo $x.' - ('.$first_fl.' - '.$flag.')<br>';
+      foreach($compactedRows as $row) {
+        if($row['first_l'] < $flag && $row['last_l'] >= $flag) {
+          
+          $row['first_l'] = $flag-255;
+          $row['last_l'] = $flag;
+
+          $r[$flag] = $row;
+          break;
+        }
+      }
+    }
+    return \array_values($r);
   }
 
   /**

@@ -18,7 +18,7 @@ class BAccount extends B
   protected $primaryKey = 'address';
   protected $keyType = 'string';
   public $timestamps = false;
-  public string $repositoryclass = AccountsRepository::class;
+  const repositoryclass = AccountsRepository::class;
 
   public $fillable = [
     'address', //Primary Key
