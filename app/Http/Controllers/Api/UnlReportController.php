@@ -30,23 +30,26 @@ class UnlReportController extends Controller
       $to = Carbon::createFromFormat('Y-m-d', $to)->timezone('UTC');
 
     if($from->gt($to)) {
-      return response()->json(['success' => false, 'error_code' => 3, 'errors' => ['Requested from date larger than to date']],422)
-        ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
-        ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
+      return response()->json(['success' => false, 'error_code' => 1, 'errors' => ['Requested from date larger than to date']],422);
     }
 
-    $to->addDay();
+    if($from->isFuture() || $to->isFuture()) {
+      return response()->json(['success' => false, 'error_code' => 2, 'errors' => ['Requested dates can not be in future']],422);
+    }
+
     if($from->diffInDays($to) > 31) {
-      return response()->json(['success' => false, 'error_code' => 1, 'errors' => ['Date range too large (> 31 days)']],422)
-        ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
-        ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
+      return response()->json(['success' => false, 'error_code' => 3, 'errors' => ['Date range too large (> 31 days)']],422);
+    }
+
+    if(!$to->isToday()) {
+      $to->addDay();
+    } else {
+      $to = null;
     }
 
     $minTime = ripple_epoch_to_carbon(config('xrpl.genesis_ledger_close_time'));
     if($minTime->gte($from)) {
-      return response()->json(['success' => false, 'error_code' => 2, 'errors' => ['Requested date out of ledger range']],422)
-        ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
-        ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
+      return response()->json(['success' => false, 'error_code' => 4, 'errors' => ['Requested date out of ledger range']],422);
     }
 
     $li_start = Ledger::getFromDate($from);
@@ -54,6 +57,8 @@ class UnlReportController extends Controller
       $li_end = Ledger::getFromDate($to);
     } else {
       $li_end = Ledger::current();
+      $ttl = 300; //5 mins, maybe 10 min? (ledger flag time is 12mins)
+      $httpttl = 300; //5 mins, maybe 10 min? (ledger flag time is 12mins)
     }
 
     $reports = BUnlreport::fetchByRange($li_start,$li_end);
