@@ -17,7 +17,7 @@ class UnlReportController extends Controller
    * Max range 31 days.
    * @return Response JSON
    */
-  public function index(string $from, ?string $to = null)
+  public function report(string $from, ?string $to = null)
   {
     if(!config('xrpl.'.config('xrpl.net').'.feature_unlreport'))
       abort(404);
@@ -68,6 +68,21 @@ class UnlReportController extends Controller
       'ledger_index_end' => $li_end,
       'count' => count($reports),
       'data' => $reports
+    ])->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
+  }
+
+  //todo
+  public function validators()
+  {
+    $ttl = 5259487; //5 259 487 = 2 months
+    $httpttl = 172800; //172 800 = 2 days
+
+    $data = BUnlreport::fetchValidators();
+
+    return response()->json([
+      'succes' => true,
+      'data' => $data,
     ])->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
   }

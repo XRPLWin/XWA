@@ -29,9 +29,10 @@ class BUnlreport extends B
     'first_l' => 'INTEGER',
     'last_l'  => 'INTEGER',
     'vlkey' => 'STRING',
-    'validators' => 'RECORD',
-    'validators.pk' => 'STRING',
-    'validators.acc' => 'STRING',
+    'validators' => 'ARRAY',
+    //'validators' => 'RECORD',
+    //'validators.pk' => 'STRING',
+    //'validators.acc' => 'STRING',
   ];
 
   protected function bqPrimaryKeyCondition(): string
@@ -69,6 +70,12 @@ class BUnlreport extends B
   {
     $data = UnlreportsRepository::fetchByLedgerIndexRange($start_li, $end_li);
     return self::expandReports($data, $start_li, $end_li);
+  }
+
+  public static function fetchValidators()
+  {
+    $data = UnlreportsRepository::fetchValidators();
+    return $data;
   }
 
   /**
@@ -123,7 +130,7 @@ class BUnlreport extends B
    * Converts validators list returned from node to xwa compatible format.
    * @see https://github.com/XRPLWin/UNLReportReader
    * @param array [ [ 'Account' => ?string, 'PublicKey' => string], ... ]
-   * @return array [ [ 'pk' => string, 'acc' => ?string ], ... ]
+   * @return array [ string, ... ]
    */
   public static function normalizeValidatorsList(array $rawValidatorsList)
   {
@@ -132,10 +139,11 @@ class BUnlreport extends B
 
     $normalized = [];
     foreach($rawValidatorsList as $v) {
-      $normalized[] = [
-        'pk' => $v['PublicKey'],
-        'acc' => $v['Account']
-      ];
+      $normalized[] = $v['PublicKey'];
+      //$normalized[] = [
+      //  'pk' => $v['PublicKey'],
+      //  'acc' => $v['Account']
+      //];
     }
     return $normalized;
   }
@@ -150,7 +158,8 @@ class BUnlreport extends B
     $seed = (string)$this->vlkey.'_';
     $validators_seed_array = [];
     foreach($this->validators as $v) {
-      $validators_seed_array[] = $v['pk'].'-'.(string)$v['acc'];
+      //$validators_seed_array[] = $v['pk'].'-'.(string)$v['acc'];
+      $validators_seed_array[] = (string)$v;
     }
     \sort($validators_seed_array);
     $seed .= \implode('_',$validators_seed_array);

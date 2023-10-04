@@ -37,6 +37,12 @@ class Repository
         case 'BOOLEAN':
           $r[$k] = $v?'true':'false';
           break;
+        case 'ARRAY':
+          if(count($v) > 0)
+            $r[$k] = '["""'.\implode('""","""',$v).'"""]';
+          else
+            $r[$k] = 'NULL';
+          break;
         case 'RECORD':
           if(count($v)) {
             $parsed_records = [];

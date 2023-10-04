@@ -24,7 +24,7 @@ class TransactionsRepository extends Repository
   public static function fetchMany(string $where, ?string $columns = null, string $orderBy = '', int $limit): \Google\Cloud\BigQuery\QueryResults
   {
     if($columns === null)
-      $columns = 'SK,PK,h,t,r,isin,fee,a,i,c,a2,i2,c2,dt,st';
+      $columns = 'SK,PK,h,t,r,isin,fee,a,i,c,a2,i2,c2,dt,st'; //todo fix this
     if($orderBy !== '')
       $orderBy = ' ORDER BY '.$orderBy;
     

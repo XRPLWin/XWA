@@ -69,6 +69,7 @@ class XwaUnlreportsSync extends Command
     //$last_synced_LI needs to be at least 512
     if($last_synced_LI < 512)
       $last_synced_LI = 512;
+
    
     $this->xwa_last_saved_report = BUnlreport::last('first_l,last_l,vlkey,validators');
     if($this->xwa_last_saved_report == null) { //create first flag row
@@ -91,8 +92,8 @@ class XwaUnlreportsSync extends Command
     
     //This can throw ConnectException
     $reports = $reader->fetchMulti($last_synced_LI, true, $this->xwa_limit); //array
+
     if(count($reports) != $this->xwa_limit) {
-      
       //Latest ledger reached, no more data to sync, stop.
       //Hint: Wait and try again later with $this->limit or try now with limit: count($reports)
 
@@ -122,7 +123,7 @@ class XwaUnlreportsSync extends Command
     $mock = new BUnlreport;
     $mock->vlkey = $report['import_vlkey'];
     $mock->validators = BUnlreport::normalizeValidatorsList($report['active_validators']);
-
+    
     if($mock->generateHash() != $this->xwa_last_saved_report->generateHash()) {
       $this->commitLastChanges();
       //there is diff in data, create new row, and set it to $this->xwa_last_saved_report

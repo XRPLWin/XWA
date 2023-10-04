@@ -68,6 +68,12 @@ class InfoController extends Controller
         'method' => 'GET',
         'example' => config('app.url').'/v1/unlreport/2023-09-01/2023-09-20',
       ];
+      $endpoints[] = [
+        'action' => 'Get Validator info',
+        'route' => '/v1/unlvalidators',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/unlvalidators',
+      ];
     }
     return response()->json([
       'version' => config('xwa.version'),

@@ -53,6 +53,12 @@ return new class extends Migration
       ],
       [
         'name' => 'validators',
+        'type' => 'STRING',
+        'mode' => 'REPEATED',
+        'description' => 'List of active validators'
+      ],
+      /*[
+        'name' => 'validators',
         'type' => 'RECORD',
         'mode' => 'REPEATED',
         'fields' => [
@@ -70,7 +76,7 @@ return new class extends Migration
           ],
         ],
         'description' => 'List of active validators'
-      ]
+      ]*/
     ];
 
     \BigQuery::dataset(config('bigquery.xwa_dataset'))->createTable('unlreports', ['schema' => [ 'fields' => $fields ]]);
