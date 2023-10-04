@@ -54,13 +54,13 @@ class XwaUnlreportsSync extends Command
    */
   public function handle()
   {
+    if(!config('xrpl.'.config('xrpl.net').'.feature_unlreport'))
+      return Command::FAILURE;
+
     $this->debug = config('app.debug');
     $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
 
     $this->xwa_limit = (int)$this->option('limit'); //int
-
-    if(!config('xrpl.'.config('xrpl.net').'.feature_unlreport'))
-      return Command::FAILURE;
 
     $this->log('Scan limit is: '.$this->xwa_limit);
 

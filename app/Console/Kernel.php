@@ -21,10 +21,13 @@ class Kernel extends ConsoleKernel
         ->onOneServer()
         //->sendOutputTo(storage_path('logs/nftsync.log')) //logging
         ;
-    $schedule->command('xwa:unlreportssync')
-      ->withoutOverlapping(4) //lock expires every 4 mins, flag ledgers ara approx every 5 mins
-      ->everyFiveMinutes()
-      ->onOneServer();
+    if(!config('xrpl.'.config('xrpl.net').'.feature_unlreport')) {
+      $schedule->command('xwa:unlreportssync')
+        ->withoutOverlapping(4) //lock expires every 4 mins, flag ledgers ara approx every 12 mins
+        ->everyFiveMinutes()
+        ->onOneServer();  
+    }
+    
   }
 
   /**
