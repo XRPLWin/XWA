@@ -80,7 +80,42 @@ return new class extends Migration
     ];
 
     \BigQuery::dataset(config('bigquery.xwa_dataset'))->createTable('unlreports', ['schema' => [ 'fields' => $fields ]]);
-    
+    unset($fields);
+
+
+    $fields = [
+      [
+        'name' => 'validator',
+        'type' => 'STRING',
+        'mode' => 'REQUIRED',
+        'description' => 'Validator Public Key'
+      ],
+      [
+        'name' => 'account',
+        'type' => 'STRING',
+        'mode' => 'NULLABLE',
+        'description' => 'Account (r-address) of this validator'
+      ],
+      [
+        'name' => 'first_l',
+        'type' => 'INTEGER',
+        'mode' => 'REQUIRED',
+        'description' => 'First appeared ledger index (flag ledger index plus 1)'
+      ],
+      [
+        'name' => 'active_fl_count',
+        'type' => 'INTEGER',
+        'mode' => 'REQUIRED',
+        'description' => 'Number of flag ledgers this validator appeared in'
+      ],
+      /*[
+        'name' => 'total_claimed',
+        'type' => 'INTEGER',
+        'mode' => 'REQUIRED',
+        'description' => 'Claimed drops'
+      ],*/
+    ];
+    \BigQuery::dataset(config('bigquery.xwa_dataset'))->createTable('unlvalidators', ['schema' => [ 'fields' => $fields ]]);
   }
 
   /**
@@ -91,5 +126,6 @@ return new class extends Migration
   public function down()
   {
     \BigQuery::dataset(config('bigquery.xwa_dataset'))->table('unlreports')->delete();
+    \BigQuery::dataset(config('bigquery.xwa_dataset'))->table('unlvalidators')->delete();
   }
 };

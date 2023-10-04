@@ -65,6 +65,7 @@ return new class extends Migration
 
     /**
      * Create transactions table
+     * @see https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types
      */
     
     $fields = [

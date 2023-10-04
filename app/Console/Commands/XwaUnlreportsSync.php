@@ -4,8 +4,10 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\BUnlreport;
+use App\Models\BUnlvalidator;
 use XRPLWin\UNLReportReader\UNLReportReader;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Collection;
 
 
 class XwaUnlreportsSync extends Command
@@ -40,6 +42,7 @@ class XwaUnlreportsSync extends Command
    */
   private int $xwa_limit;
   private int $xwa_current_row = 0;
+  private Collection $xwa_validators;
 
   /**
    * When debugging enabled it will log output to log file.
@@ -83,6 +86,12 @@ class XwaUnlreportsSync extends Command
     } else {
       $this->log('Last scanned flag ledger: '. $this->xwa_last_saved_report->last_l);
     }
+
+
+    ###
+    //fetch all stored validators
+    $this->xwa_validators = BUnlvalidator::fetchAll();
+    ###
     
     $last_synced_LI = ($this->xwa_last_saved_report->last_l + 1);
     $this->log('Starting scan from ledger_index: '. $last_synced_LI);
@@ -114,7 +123,14 @@ class XwaUnlreportsSync extends Command
   {
     $this->log('Committing last active row to database...');
     $this->xwa_last_saved_report->save();
-    $this->log('['.$this->xwa_current_row.'/'.$this->xwa_limit.'] Updated existing row ['.$this->xwa_last_saved_report->first_l.','.$this->xwa_last_saved_report->last_l.'] (no content changes)');
+    $this->log('Committing validators to database...');
+    $bar = $this->output->createProgressBar($this->xwa_validators->count());
+    $bar->start();
+    foreach($this->xwa_validators as $v) {
+      $v->save();
+      $bar->advance();
+    }
+    $bar->finish();
   }
 
   private function processReport(array $report)
@@ -123,6 +139,22 @@ class XwaUnlreportsSync extends Command
     $mock = new BUnlreport;
     $mock->vlkey = $report['import_vlkey'];
     $mock->validators = BUnlreport::normalizeValidatorsList($report['active_validators']);
+
+    foreach($report['active_validators'] as $_v) {
+      
+      if($V = $this->xwa_validators->where('validator',$_v['PublicKey'])->first()) {
+        $V->active_fl_count = ($V->active_fl_count+1);
+        //$V->save();
+      } else {
+        $newV = new BUnlvalidator;
+        $newV->validator = $_v['PublicKey'];
+        $newV->account = $_v['Account'];
+        $newV->first_l = $report['report_range'][0];
+        $newV->active_fl_count = 1;
+        //$newV->save();
+        $this->xwa_validators->push($newV);
+      }
+    }
     
     if($mock->generateHash() != $this->xwa_last_saved_report->generateHash()) {
       $this->commitLastChanges();

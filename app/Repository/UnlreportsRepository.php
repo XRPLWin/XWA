@@ -7,7 +7,7 @@ use App\Models\BUnlreport;
 class UnlreportsRepository extends Repository
 {
   /**
-   * Load account data by address.
+   * Load account data by ledger_index.
    * @see https://github.com/GoogleCloudPlatform/php-docs-samples/tree/master/bigquery/api/src
    * @return ?array
    */
@@ -72,34 +72,6 @@ class UnlreportsRepository extends Repository
     foreach ($results as $row) {
       $r = $row;
       break;
-    }
-    return $r;
-  }
-
-  public static function fetchValidators()
-  {
-
-    $query = 'SELECT validators FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.unlreports` WHERE '.
-             //'WHERE first_l BETWEEN '.$start_li.' AND '.$end_li.' ORDER BY first_l ASC';
-             //'WHERE (first_l BETWEEN '.$start_li.' AND '.$end_li.') OR (last_l BETWEEN '.$start_li.' AND '.$end_li.') ORDER BY first_l ASC';
-             //INNER:
-             '(first_l between '.$start_li.' AND '.$end_li.' AND last_l between '.$start_li.' AND '.$end_li.')'.
-             //BORDER RIGHT:
-             ' OR (first_l between '.$start_li.' AND '.$end_li.' AND last_l >= '.$end_li.')'.
-             //BORDER LEFT:
-             ' OR (first_l <= '.$start_li.' AND last_l between '.$start_li.' AND '.$end_li.')'.
-             //OUTER:
-             ' OR (first_l <= '.$start_li.' AND last_l >= '.$end_li.')';
-    try {
-      $results = \BigQuery::runQuery(\BigQuery::query($query));
-    } catch (\Throwable $e) {
-      //dd($e->getMessage());
-      throw $e;
-    }
-    
-    $r = [];
-    foreach($results->rows(['returnRawResults' => false]) as $row) {
-      $r[] = $row;
     }
     return $r;
   }

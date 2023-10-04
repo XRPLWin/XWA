@@ -99,7 +99,6 @@ abstract class B extends Model
     else {
 
       //do update and set $saved = bool
-
       $saved = $this->performBQInsert($data);
 
       //if (! $this->getConnectionName() &&
@@ -183,9 +182,7 @@ abstract class B extends Model
     //if ($this->usesTimestamps()) {
     //    $this->updateTimestamps();
     //}
-
-    
-    $saved = self::repositoryclass::insert($data['fields']);
+    $saved = $data['model']::repositoryclass::insert($data['fields']);
     if(!$saved)
       return false;
 
