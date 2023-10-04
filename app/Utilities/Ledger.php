@@ -30,6 +30,9 @@ class Ledger
    */
   public static function getFromDate(Carbon $date)
   {
+    if($date->isFuture()) {
+      throw new \Exception('ledge getFromDate() Requested datetime is in future');
+    }
     $l = Ledgerindextime::select('day_start','ledger_index')->whereDate('day_start',$date)->first();
     if($l === null) {
       $ledgerTime = new XRPLLedgerTimeSyncer([

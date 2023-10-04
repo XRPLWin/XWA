@@ -89,28 +89,31 @@ class BUnlreport extends B
     $count = UNLReportReader::calcNumFlagsBetweenLedgers($first_fl,$last_fl);
 
     $r = [];
+    $is_started = false;
     for($x=1; $x<=$count; $x++) {
       $flag = ($first_fl+(256*($x-1)));
 
-
-      $r[$flag] = [
-        'first_l' => $flag-255,
-        'last_l' => $flag,
-        'vlkey' => '',
-        'validators' => [],
-      ];
+      
 
 
       //echo $x.' - ('.$first_fl.' - '.$flag.')<br>';
       foreach($compactedRows as $row) {
         if($row['first_l'] < $flag && $row['last_l'] >= $flag) {
-          
+          $is_started = true;
           $row['first_l'] = $flag-255;
           $row['last_l'] = $flag;
 
           $r[$flag] = $row;
           break;
         }
+      }
+      if(!isset($r[$flag]) && !$is_started) {
+        $r[$flag] = [
+          'first_l' => $flag-255,
+          'last_l' => $flag,
+          'vlkey' => '',
+          'validators' => [],
+        ];
       }
     }
     return \array_values($r);

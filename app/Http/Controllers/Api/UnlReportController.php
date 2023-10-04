@@ -27,7 +27,7 @@ class UnlReportController extends Controller
       
     $from = Carbon::createFromFormat('Y-m-d', $from)->startOfDay()->timezone('UTC');
     if($to !== null)
-      $to = Carbon::createFromFormat('Y-m-d', $to)->timezone('UTC');
+      $to = Carbon::createFromFormat('Y-m-d', $to)->startOfDay()->timezone('UTC');
 
     if($from->gt($to)) {
       return response()->json(['success' => false, 'error_code' => 1, 'errors' => ['Requested from date larger than to date']],422);
@@ -51,9 +51,9 @@ class UnlReportController extends Controller
     if($minTime->gte($from)) {
       return response()->json(['success' => false, 'error_code' => 4, 'errors' => ['Requested date out of ledger range']],422);
     }
-
+  
     $li_start = Ledger::getFromDate($from);
-    if($to) {
+    if($to) { 
       $li_end = Ledger::getFromDate($to);
     } else {
       $li_end = Ledger::current();
