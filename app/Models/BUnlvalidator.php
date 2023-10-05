@@ -80,13 +80,16 @@ class BUnlvalidator extends B
   {
     $r = [
       'reliability' => 0,
+      'is_active' => false,
       //'last_active_l' => $this->last_l, //this is last active ledger (flag ledger)
       //'max_successive_fl_count' => $this->max_successive_fl_count
     ];
     $total_flag_ledgers = UNLReportReader::calcNumFlagsBetweenLedgers($this->first_l,$max_ledger_index);
     $r['reliability'] = calcPercentFromTwoNumbers($this->active_fl_count,$total_flag_ledgers,3);
 
-    
+    if($this->last_l == $max_ledger_index)
+      $r['is_active'] = true;
+      
     //dd($r,$this->first_l,$this->active_fl_count,$total_flag_ledgers);
     //dd('stats');
     return $r;

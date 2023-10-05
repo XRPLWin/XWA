@@ -65,6 +65,7 @@ class UnlReportController extends Controller
     $reports = BUnlreport::fetchByRange($li_start,$li_end);
     return response()->json([
       'succes' => true,
+      'updated' => now(),
       'ledger_index_start' => $li_start,
       'ledger_index_end' => $li_end,
       'count' => count($reports),
@@ -79,8 +80,8 @@ class UnlReportController extends Controller
    */
   public function validators()
   {
-    $ttl = 300; //5 259 487 = 2 months
-    $httpttl = 300; //172 800 = 2 days
+    $ttl = 600; //10 mins
+    $httpttl = 600; //10 mins
 
     //
     $lastCheckedLedgerIndex = BUnlreport::last('last_l');
@@ -102,19 +103,39 @@ class UnlReportController extends Controller
       $data[$v->validator] = [
         'validator' => $v->validator,
         'account' => $v->account,
-        'reliability' => $stats['reliability'],
+        'reliability' => number_format($stats['reliability'],0),
+        'reliability_sort' => $stats['reliability'],
         'first_active_ledger_index' => $v->first_l,
         'last_active_ledger_index' => $v->last_l,
         'max_successive_ledger_indexes' => ($v->max_successive_fl_count*256),
         'current_successive_ledger_indexes' => ($v->current_successive_fl_count*256),
+        'is_active' => $stats['is_active']
       ];
       unset($stats);
     }
-    $data = collect($data)->sortBy('reliability');
+    $list = collect($data)->sortByDesc('reliability_sort');
+
+    //calculate rank:
+    $prev = null;
+    $data = [];
+    $rank = 1;
+    foreach($list->toArray() as $dk => $curr) {
+      if($prev === null) {
+        $prev = $curr;
+      } else {
+        if($prev['reliability'] != $curr['reliability']) {
+          $rank++;
+        }
+      }
+      $data[$dk] = $curr;
+      $data[$dk]['rank'] = $rank;
+      $prev = $curr;
+    }
 
     return response()->json([
       'succes' => true,
-      'data' => \array_values($data->toArray()),
+      'updated' => now(),
+      'data' => \array_values($data),
     ])->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
   }
