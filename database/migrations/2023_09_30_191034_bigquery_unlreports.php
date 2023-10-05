@@ -103,6 +103,24 @@ return new class extends Migration
         'description' => 'First appeared ledger index (flag ledger index plus 1)'
       ],
       [
+        'name' => 'last_l',
+        'type' => 'INTEGER',
+        'mode' => 'REQUIRED',
+        'description' => 'Last appeared ledger index (flag ledger)'
+      ],
+      [
+        'name' => 'current_successive_fl_count',
+        'type' => 'INTEGER',
+        'mode' => 'REQUIRED',
+        'description' => 'Number of flag ledgers this validator ran without interruptions'
+      ],
+      [
+        'name' => 'max_successive_fl_count',
+        'type' => 'INTEGER',
+        'mode' => 'REQUIRED',
+        'description' => 'Number of flag ledgers this validator ran without interruptions'
+      ],
+      [
         'name' => 'active_fl_count',
         'type' => 'INTEGER',
         'mode' => 'REQUIRED',

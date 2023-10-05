@@ -73,17 +73,48 @@ class UnlReportController extends Controller
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
   }
 
-  //todo
+  /**
+   * Returns list of validator with statistics
+   * @return Response JSON
+   */
   public function validators()
   {
-    $ttl = 5259487; //5 259 487 = 2 months
-    $httpttl = 172800; //172 800 = 2 days
+    $ttl = 300; //5 259 487 = 2 months
+    $httpttl = 300; //172 800 = 2 days
 
-    $data = BUnlreport::fetchValidators();
+    //
+    $lastCheckedLedgerIndex = BUnlreport::last('last_l');
+    if(!$lastCheckedLedgerIndex) {
+      $lastCheckedLedgerIndex = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger');
+    } else {
+      $lastCheckedLedgerIndex = $lastCheckedLedgerIndex->last_l;
+    }
+    if($lastCheckedLedgerIndex < 512) $lastCheckedLedgerIndex = 512;
+    //
+
+
+    $validators = BUnlvalidator::fetchAll();
+    $data = [];
+    foreach($validators as $v) {
+
+      $stats = $v->getStatistics($lastCheckedLedgerIndex);
+
+      $data[$v->validator] = [
+        'validator' => $v->validator,
+        'account' => $v->account,
+        'reliability' => $stats['reliability'],
+        'first_active_ledger_index' => $v->first_l,
+        'last_active_ledger_index' => $v->last_l,
+        'max_successive_ledger_indexes' => ($v->max_successive_fl_count*256),
+        'current_successive_ledger_indexes' => ($v->current_successive_fl_count*256),
+      ];
+      unset($stats);
+    }
+    $data = collect($data)->sortBy('reliability');
 
     return response()->json([
       'succes' => true,
-      'data' => $data,
+      'data' => \array_values($data->toArray()),
     ])->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
   }

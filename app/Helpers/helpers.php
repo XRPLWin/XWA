@@ -50,6 +50,15 @@ if (!function_exists('xrpl_has_flag')) {
   }
 }
 
+if (!function_exists('calcPercentFromTwoNumbers')) {
+  function calcPercentFromTwoNumbers($num_amount, $num_total,$decimal_places = 3): float {
+  	$count1 = $num_amount / $num_total;
+  	$count2 = $count1 * 100;
+  	$count = number_format($count2, $decimal_places);
+    return (float)$count;
+  }
+}
+
 if (!function_exists('wallet_to_short')) {
   /**
    * Shortify wallet address to xxxx....xxxx

@@ -143,13 +143,29 @@ class XwaUnlreportsSync extends Command
     foreach($report['active_validators'] as $_v) {
       
       if($V = $this->xwa_validators->where('validator',$_v['PublicKey'])->first()) {
+        if($report['report_range'][0]-1 == $V->last_l) {
+          //dump('last one was'.$V->last_l);  
+          $V->current_successive_fl_count = $V->current_successive_fl_count+1;
+        } else {
+          $V->current_successive_fl_count = 1;
+        }
+
+        if($V->current_successive_fl_count > $V->max_successive_fl_count)
+          $V->max_successive_fl_count = $V->current_successive_fl_count;
+
+        $V->last_l = $report['report_range'][1];
         $V->active_fl_count = ($V->active_fl_count+1);
+        if(!$V->account)
+          $V->account = $_v['Account'];
         //$V->save();
       } else {
         $newV = new BUnlvalidator;
         $newV->validator = $_v['PublicKey'];
         $newV->account = $_v['Account'];
         $newV->first_l = $report['report_range'][0];
+        $newV->last_l = $report['report_range'][1];
+        $newV->current_successive_fl_count = 1;
+        $newV->max_successive_fl_count = 1;
         $newV->active_fl_count = 1;
         //$newV->save();
         $this->xwa_validators->push($newV);
