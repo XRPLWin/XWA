@@ -8,6 +8,7 @@ use App\Models\BUnlvalidator;
 use XRPLWin\UNLReportReader\UNLReportReader;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 
 class XwaUnlreportsSync extends Command
@@ -62,7 +63,10 @@ class XwaUnlreportsSync extends Command
 
     $this->debug = config('app.debug');
     $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
+    
 
+    Cache::put('job_xwaunlreports_sync_running', true, 245); //240 = 4 mins
+    
     $this->xwa_limit = (int)$this->option('limit'); //int
 
     $this->log('Scan limit is: '.$this->xwa_limit);
@@ -107,6 +111,7 @@ class XwaUnlreportsSync extends Command
       //Hint: Wait and try again later with $this->limit or try now with limit: count($reports)
 
       $this->log('Requested ledgers out of range, try again later ('.count($reports).'/'.$this->xwa_limit.')');
+      Cache::delete('job_xwaunlreports_sync_running');
       return Command::SUCCESS;
     }
     
@@ -115,7 +120,7 @@ class XwaUnlreportsSync extends Command
     }
 
     $this->commitLastChanges();
-    
+    Cache::delete('job_xwaunlreports_sync_running');
     return Command::SUCCESS;
   }
 

@@ -43,7 +43,7 @@ class BUnlvalidator extends B
     return 'validator = """'.$this->validator.'"""';
   }
 
-  public static function find(int $validator, ?string $select = null): ?self
+  public static function find(string $validator, ?string $select = null): ?self
   {
     $data = UnlvalidatorsRepository::fetchByValidator($validator,$select);
     

@@ -69,10 +69,16 @@ class InfoController extends Controller
         'example' => config('app.url').'/v1/unlreport/2023-09-01/2023-09-20',
       ];
       $endpoints[] = [
-        'action' => 'Get Validator info',
+        'action' => 'Get Validators info',
         'route' => '/v1/unlvalidators',
         'method' => 'GET',
         'example' => config('app.url').'/v1/unlvalidators',
+      ];
+      $endpoints[] = [
+        'action' => 'Get Validator info',
+        'route' => '/v1/unlvalidator/{validator}',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/unlvalidator/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69',
       ];
     }
     return response()->json([
