@@ -17,6 +17,7 @@ return [
     //enable or disable unlreport
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
+    'feature_unlreport_first_flag_ledger_close_time' => 0,
   ],
 
   'testnet' => [
@@ -29,6 +30,7 @@ return [
     //enable or disable unlreport
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
+    'feature_unlreport_first_flag_ledger_close_time' => 0,
   ],
 
   'xahautest' => [
@@ -41,6 +43,7 @@ return [
     //enable or disable unlreport
     'feature_unlreport' => true,
     'feature_unlreport_first_flag_ledger' => 6869247, //6869248 is first flag
+    'feature_unlreport_first_flag_ledger_close_time' => 748958191, //ripple epoch
   ],
 
 

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Cache;
 use XRPLWin\XRPLLedgerTime\XRPLLedgerTimeSyncer;
 use App\Models\Ledgerindextime;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class Ledger
 {
@@ -31,7 +32,7 @@ class Ledger
   public static function getFromDate(Carbon $date)
   {
     if($date->isFuture()) {
-      throw new \Exception('ledge getFromDate() Requested datetime is in future');
+      throw new \Exception('ledger getFromDate() - requested datetime is in future');
     }
     $l = Ledgerindextime::select('day_start','ledger_index')->whereDate('day_start',$date)->first();
     if($l === null) {
@@ -41,10 +42,15 @@ class Ledger
         'endpoint_fullhistory_uri' => config('xrpl.'.config('xrpl.net').'.rippled_fullhistory_server_uri')
       ]);
       $ledgerIndex = $ledgerTime->datetimeToLedgerIndex($date);
-      $l = new Ledgerindextime;
-      $l->day_start = $date;
-      $l->ledger_index = $ledgerIndex;
-      $l->save();
+      DB::beginTransaction();
+      $l = Ledgerindextime::select('id','day_start','ledger_index')->whereDate('day_start',$date)->first();
+      if(!$l) {
+        $l = new Ledgerindextime;
+        $l->day_start = $date;
+        $l->ledger_index = $ledgerIndex;
+        $l->save();
+      }
+      DB::commit();
     }
     return $l->ledger_index;
   }

@@ -17,6 +17,7 @@ class BUnlreport extends B
   public $fillable = [
     'first_l', //Primary Key
     'last_l',
+    //'first_t',
     'vlkey',
     'validators'
   ];
@@ -26,6 +27,7 @@ class BUnlreport extends B
   ];
 
   const BQCASTS = [
+    //'first_t' => 'TIMESTAMP',
     'first_l' => 'INTEGER',
     'last_l'  => 'INTEGER',
     'vlkey' => 'STRING',
@@ -72,10 +74,11 @@ class BUnlreport extends B
     return self::expandReports($data, $start_li, $end_li);
   }
 
-  public static function fetchValidators()
+  public static function fetchByRangeForValidator(string $validator, int $start_li, int $end_li)
   {
-    $data = UnlreportsRepository::fetchValidators();
-    return $data;
+    $where = 'AND EXISTS(SELECT 1 FROM UNNEST(validators) AS v WHERE v="""'.$validator.'""")';
+    $data = UnlreportsRepository::fetchByLedgerIndexRange($start_li, $end_li,null,$where);
+    return self::expandReports($data, $start_li, $end_li);
   }
 
   /**

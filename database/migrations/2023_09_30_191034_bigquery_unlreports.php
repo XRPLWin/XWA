@@ -25,9 +25,9 @@ return new class extends Migration
         'name' => 'first_t',
         'type' => 'TIMESTAMP',
         'mode' => 'REQUIRED',
-        'description' => 'Timestamp (Y-m-d H:i:s.uP) of first_l',
-      ],
-      [
+        'description' => 'Timestamp of first ledger_index occurrence (Y-m-d H:i:s.uP)',
+      ],*/
+      /*[
         'name' => 'last_t',
         'type' => 'TIMESTAMP',
         'mode' => 'REQUIRED',

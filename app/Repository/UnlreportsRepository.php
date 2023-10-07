@@ -21,12 +21,12 @@ class UnlreportsRepository extends Repository
     return self::fetchOne('ORDER BY first_l DESC',$select);
   }
 
-  public static function fetchByLedgerIndexRange(int $start_li, int $end_li, ?string $select = null)
+  public static function fetchByLedgerIndexRange(int $start_li, int $end_li, ?string $select = null, string $where = '')
   {
     if($select === null)
       $select = 'first_l,last_l,vlkey,validators';
 
-    $query = 'SELECT '.$select.' FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.unlreports` WHERE '.
+    $query = 'SELECT '.$select.' FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.unlreports` WHERE ('.
              //'WHERE first_l BETWEEN '.$start_li.' AND '.$end_li.' ORDER BY first_l ASC';
              //'WHERE (first_l BETWEEN '.$start_li.' AND '.$end_li.') OR (last_l BETWEEN '.$start_li.' AND '.$end_li.') ORDER BY first_l ASC';
              //INNER:
@@ -36,9 +36,10 @@ class UnlreportsRepository extends Repository
              //BORDER LEFT:
              ' OR (first_l <= '.$start_li.' AND last_l between '.$start_li.' AND '.$end_li.')'.
              //OUTER:
-             ' OR (first_l <= '.$start_li.' AND last_l >= '.$end_li.')';
+             ' OR (first_l <= '.$start_li.' AND last_l >= '.$end_li.')) '.$where;
+
     try {
-      $results = \BigQuery::runQuery(\BigQuery::query($query));
+      $results = \BigQuery::runQuery(\BigQuery::query(\trim($query)));
     } catch (\Throwable $e) {
       //dd($e->getMessage());
       throw $e;

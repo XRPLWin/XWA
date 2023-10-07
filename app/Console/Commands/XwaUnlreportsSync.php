@@ -65,13 +65,14 @@ class XwaUnlreportsSync extends Command
     $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
     
 
-    Cache::put('job_xwaunlreports_sync_running', true, 245); //240 = 4 mins
+    
     
     $this->xwa_limit = (int)$this->option('limit'); //int
 
     $this->log('Scan limit is: '.$this->xwa_limit);
 
     $last_synced_LI = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger');
+    
     
     //$last_synced_LI needs to be at least 512
     if($last_synced_LI < 512)
@@ -80,7 +81,12 @@ class XwaUnlreportsSync extends Command
    
     $this->xwa_last_saved_report = BUnlreport::last('first_l,last_l,vlkey,validators');
     if($this->xwa_last_saved_report == null) { //create first flag row
+      Cache::put('job_xwaunlreports_sync_running', true, 245); //240 = 4 mins
+      # Close time:
+      //$first_l_close_time = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger_close_time');
+
       $this->xwa_last_saved_report = BUnlreport::insert([
+        //'first_t' => ripple_epoch_to_carbon($first_l_close_time)->format('Y-m-d H:i:s.uP'),
         'first_l' => $last_synced_LI,
         'last_l' => $last_synced_LI,
         'vlkey' => null,
@@ -112,15 +118,15 @@ class XwaUnlreportsSync extends Command
 
       $this->log('Requested ledgers out of range, try again later ('.count($reports).'/'.$this->xwa_limit.')');
       Cache::delete('job_xwaunlreports_sync_running');
-      return Command::SUCCESS;
-    }
-    
-    foreach($reports as $report) {
-      $this->processReport($report);
-    }
 
-    $this->commitLastChanges();
-    Cache::delete('job_xwaunlreports_sync_running');
+    } else {
+      Cache::put('job_xwaunlreports_sync_running', true, 245); //240 = 4 mins
+      foreach($reports as $report) {
+        $this->processReport($report);
+      }
+      $this->commitLastChanges();
+      Cache::delete('job_xwaunlreports_sync_running');
+    }
     return Command::SUCCESS;
   }
 
@@ -181,6 +187,8 @@ class XwaUnlreportsSync extends Command
       $this->commitLastChanges();
       //there is diff in data, create new row, and set it to $this->xwa_last_saved_report
       $this->xwa_last_saved_report = BUnlreport::insert([
+        //Add 3 seconds (approx 1 ledger after flag ledger - to match first_l)
+        //'first_t' => ripple_epoch_to_carbon($report['flag_ledger_close_time'])->addSeconds(3)->format('Y-m-d H:i:s.uP'),
         'first_l' => $report['report_range'][0],
         'last_l' => $report['report_range'][1],
         'vlkey' => $report['import_vlkey'],

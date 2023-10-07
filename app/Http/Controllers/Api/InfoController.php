@@ -69,7 +69,7 @@ class InfoController extends Controller
         'example' => config('app.url').'/v1/unlreport/2023-09-01/2023-09-20',
       ];
       $endpoints[] = [
-        'action' => 'Get Validators info',
+        'action' => 'Get Validators list',
         'route' => '/v1/unlvalidators',
         'method' => 'GET',
         'example' => config('app.url').'/v1/unlvalidators',
@@ -80,13 +80,26 @@ class InfoController extends Controller
         'method' => 'GET',
         'example' => config('app.url').'/v1/unlvalidator/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69',
       ];
+      $endpoints[] = [
+        'action' => 'Get aggregated Validator reports (per day)',
+        'route' => '/v1/unlvalidator/{validator}/reports/daily/{from}/{to}',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/unlvalidator/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69/reports/daily/2023-10-01/2023-10-03',
+      ];
+      $endpoints[] = [
+        'action' => 'Get Validator reports for day',
+        'route' => '/v1/unlvalidator/{validator}/reports/{day}',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/unlvalidator/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69/reports/2023-10-01',
+      ];
+
     }
     return response()->json([
       'version' => config('xwa.version'),
       'description' => config('app.name'),
       'license' => 'MIT License',
-      'copyright' => 'Copyright (c) '.\date('Y').', XRPLWin (https://xrpl.win)',
-      //'documentation' => 'TODO',
+      'copyright' => 'Copyright (c) '.\date('Y').', XRPLWin (https://xrplwin.com)',
+      'documentation' => 'https://docs.xrplwin.com',
       //'release-notes' => 'TODO',
       'endpoints' => $endpoints
     ]);
