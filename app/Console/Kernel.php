@@ -22,7 +22,7 @@ class Kernel extends ConsoleKernel
         //->sendOutputTo(storage_path('logs/nftsync.log')) //logging
         ;
     $schedule->command('xwa:unlreportssync')
-      ->withoutOverlapping(4) //lock expires every 4 mins, flag ledgers ara approx every 12 mins
+      ->withoutOverlapping(4) //lock expires every 4 mins, flag ledgers are approx every 12 mins
       ->everyFiveMinutes()
       ->onOneServer();  
     
