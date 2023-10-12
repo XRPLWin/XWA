@@ -18,6 +18,7 @@ return [
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
     'feature_unlreport_first_flag_ledger_close_time' => 0,
+    'unl_vl' => 'https://vl.xrplf.org',
   ],
 
   'testnet' => [
@@ -31,6 +32,7 @@ return [
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
     'feature_unlreport_first_flag_ledger_close_time' => 0,
+    'unl_vl' => 'https://vl.altnet.rippletest.net',
   ],
 
   'xahautest' => [
@@ -44,6 +46,21 @@ return [
     'feature_unlreport' => true,
     'feature_unlreport_first_flag_ledger' => 6869247, //6869248 is first flag
     'feature_unlreport_first_flag_ledger_close_time' => 748958191, //ripple epoch
+    'unl_vl' => 'https://vl.test.xahauexplorer.com',
+  ],
+
+  'xahau' => [
+    //for connection via php GuzzleHttp (reporting server)
+    'rippled_server_uri' => 'https://xahau.network',
+    //for connection via php GuzzleHttp (full history server)
+    'rippled_fullhistory_server_uri' => 'https://xahau.network',
+    //websocket domain (example: 'xrplcluster.com')
+    'server_wss' => 'xahau.network',
+    //enable or disable unlreport
+    'feature_unlreport' => true,
+    'feature_unlreport_first_flag_ledger' => 512, //512 is first flag
+    'feature_unlreport_first_flag_ledger_close_time' => 750177810, //ripple epoch
+    'unl_vl' => 'https://vl.xahau.org',
   ],
 
 

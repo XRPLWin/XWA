@@ -61,6 +61,12 @@ class InfoController extends Controller
         'example' => config('app.url').'/v1/oracle/USD',
       ]
     ];
+    $endpoints[] = [
+      'action' => 'Get UNL Validators',
+      'route' => '/v1/validators/dunl',
+      'method' => 'GET',
+      'example' => config('app.url').'/v1/validators/dunl',
+    ];
     if(config('xrpl.'.config('xrpl.net').'.feature_unlreport')) {
       $endpoints[] = [
         'action' => 'Get UNLReports',
