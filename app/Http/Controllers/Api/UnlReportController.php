@@ -207,7 +207,7 @@ class UnlReportController extends Controller
     $ttl = 5259487; //5 259 487 = 2 months
     $httpttl = 172800; //172 800 = 2 days
 
-
+    $li_start = null;
     $day = Carbon::createFromFormat('Y-m-d', $day)->startOfDay()->timezone('UTC');
     if($day->isFuture()) {
       return response()->json(['success' => false, 'error_code' => 2, 'errors' => ['Requested date can not be in future']],422);
@@ -218,13 +218,26 @@ class UnlReportController extends Controller
     if($is_today && Cache::get('job_xwaunlreports_sync_running'))
       abort(425,'Too early (resync job is running)');
 
+    $minTime = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger_close_time'));
 
-    $minTime = ripple_epoch_to_carbon(config('xrpl.genesis_ledger_close_time'));
     if($minTime->gte($day)) {
-      return response()->json(['success' => false, 'error_code' => 4, 'errors' => ['Requested date out of ledger range']],422);
+
+      if($day->format('Y-m') == $minTime->format('Y-m')) {
+        $day = $minTime->startOfDay(); //same year and month, adjust to min starting date
+        $li_start = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger');
+      } else {
+        return response()->json(['success' => false, 'error_code' => 4, 'errors' => ['Requested date out of ledger range (it is before ledger inception)']],422);
+      }
     }
 
-    $li_start = Ledger::getFromDate($day);
+
+
+    //if($minTime->gte($day)) {
+    //  return response()->json(['success' => false, 'error_code' => 4, 'errors' => ['Requested date out of ledger range (it is before ledger inception)']],422);
+    //}
+    
+    if($li_start === null) $li_start = Ledger::getFromDate($day);
+    //$li_start = Ledger::getFromDate($day);
     if(!$is_today) { 
       $li_end = Ledger::getFromDate($day->addDay()->startOfDay());
     } else {
@@ -253,10 +266,11 @@ class UnlReportController extends Controller
       abort(404);
 
     //todo validate $validator input
-
+    
     $ttl = 5259487; //5 259 487 = 2 months
     $httpttl = 172800; //172 800 = 2 days
 
+    $li_start = null;
     $from = Carbon::createFromFormat('Y-m-d', $from)->startOfDay()->timezone('UTC');
     if($to !== null)
       $to = Carbon::createFromFormat('Y-m-d', $to)->startOfDay()->timezone('UTC');
@@ -276,35 +290,55 @@ class UnlReportController extends Controller
     if(($from->isToday() || $to->isToday()) && Cache::get('job_xwaunlreports_sync_running'))
       abort(425,'Too early (resync job is running)');
 
-    $minTime = ripple_epoch_to_carbon(config('xrpl.genesis_ledger_close_time'));
+    $minTime = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger_close_time'));
+
     if($minTime->gte($from)) {
-      return response()->json(['success' => false, 'error_code' => 4, 'errors' => ['Requested date out of ledger range']],422);
+
+      if($from->format('Y-m') == $minTime->format('Y-m')) {
+        $from = $minTime->startOfDay(); //same year and month, adjust to min starting date
+        $li_start = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger');
+      } else {
+        return response()->json(['success' => false, 'error_code' => 4, 'errors' => ['Requested date out of ledger range']],422);
+      }
     }
 
     if($to->isToday()) {
       $to = null;
     }
-
-    $li_start = Ledger::getFromDate($from);
+    if($li_start === null) $li_start = Ledger::getFromDate($from);
+    
     if($to) {
       $_to = clone $to;
       $li_end = Ledger::getFromDate($_to->addDay());
     } else {
       $li_end = Ledger::current();
+      
       $to = now();
       $ttl = 300; //5 mins, maybe 10 min? (ledger flag time is 12mins)
       $httpttl = 300; //5 mins, maybe 10 min? (ledger flag time is 12mins)
     }
 
     $reports = BUnlreport::fetchByRangeForValidator($validator,$li_start,$li_end);
+
     $reports = \array_reverse($reports);
     $days = CarbonPeriod::create($from,$to);
 
     $reports = collect($reports);
     $aggr = [];
+    $minTime = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger_close_time'));
+
     foreach($days as $day) {
 
-      $l = Ledger::getFromDate($day);
+      if($minTime->gte($day)) {
+        if($day->format('Y-m') == $minTime->format('Y-m')) {
+          $l = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger');
+        } else {
+          continue; //skip (this day is before first ledger)
+        }
+      } else {
+        $l = Ledger::getFromDate($day);
+      }
+      
       $_day = clone $day;
       $_day->addDay();
       if($_day->isFuture())
