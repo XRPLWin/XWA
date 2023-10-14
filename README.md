@@ -61,9 +61,7 @@ or use .sh script (copy reload.sh.sample to reload.sh) and make it executable `c
 ```
 
 ### Task scheduler
-
-Set nano as crontab editor: `export VISUAL=nano`  
-Edit crontab: `crontab -e`
+Edit crontab: `export VISUAL=nano && crontab -e`
 
 ```
 * * * * * /opt/php/bin/php /opt/nginx/htdocs/xwa/artisan schedule:run >> /dev/null 2>&1
