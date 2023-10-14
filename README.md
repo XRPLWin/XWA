@@ -55,6 +55,10 @@ php artisan cache:clear
 rm -rf /var/nginxcache/*
 systemctl restart supervisord nginx
 ```
+or use .sh script (copy reload.sh.sample to reload.sh) and make it executable `chmod +x reload.sh`
+```
+./reload.sh
+```
 
 ### Task scheduler
 
