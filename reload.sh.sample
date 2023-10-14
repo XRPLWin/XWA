@@ -1,0 +1,6 @@
+# bash
+echo 'Reloading XWA instance (nginx, octane, redis cache, nginx cache)...'
+php artisan cache:clear
+rm -rf /var/nginxcache/*
+systemctl restart supervisord nginx
+echo 'Done'
