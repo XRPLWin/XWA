@@ -74,12 +74,14 @@ class BUnlreport extends B
     return self::expandReports($data, $start_li, $end_li);
   }
 
-  public static function fetchByRangeForValidator(string $validator, int $start_li, int $end_li)
+  /*public static function fetchByRangeForValidator(string $validator, int $start_li, int $end_li)
   {
-    $where = 'AND EXISTS(SELECT 1 FROM UNNEST(validators) AS v WHERE v="""'.$validator.'""")';
+    //$where = 'AND EXISTS(SELECT 1 FROM UNNEST(validators) AS v WHERE v="""'.$validator.'""")';
+    $where = '';
     $data = UnlreportsRepository::fetchByLedgerIndexRange($start_li, $end_li,null,$where);
+    dd($data);
     return self::expandReports($data, $start_li, $end_li);
-  }
+  }*/
 
   /**
    * @param array $compactedRows - result from bigquery db

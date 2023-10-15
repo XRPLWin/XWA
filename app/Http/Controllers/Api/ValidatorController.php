@@ -17,6 +17,9 @@ class ValidatorController extends Controller
     if(!$url)
       abort(404);
 
+    $ttl = 600; //5 min, todo stavi vise, oko dan dva tri
+    $httpttl = 600; //5 min
+
     $client = new Client();
     $response = $client->get($url);
     $code = $response->getStatusCode();
@@ -34,22 +37,21 @@ class ValidatorController extends Controller
     $validators = [];
     foreach($data->validators as $v) {
       $validators[$v->validation_public_key] = [];
-      if(\str_starts_with($v->validation_public_key,'ED')) {
-        $validators[$v->validation_public_key]['public_key_ed'] = $v->validation_public_key;  //ED
-        $validators[$v->validation_public_key]['public_key'] = $codec->encodeNodePublic(Buffer::from($v->validation_public_key)); //nX
-        $validators[$v->validation_public_key]['address'] = CoreUtilities::deriveAddress(\strtoupper($v->validation_public_key)); //rX
+      if(\str_starts_with(\strtoupper($v->validation_public_key),'ED')) {
+        $validators[$v->validation_public_key]['validator'] = $v->validation_public_key;  //ED
+        $validators[$v->validation_public_key]['validator_n'] = $codec->encodeNodePublic(Buffer::from($v->validation_public_key)); //nX
+        $validators[$v->validation_public_key]['account'] = CoreUtilities::deriveAddress(\strtoupper($v->validation_public_key)); //rX
       } else {
-        $validators[$v->validation_public_key]['public_key_ed'] = $codec->decodeNodePublic($v->validation_public_key)->toString(); //ED
-        $validators[$v->validation_public_key]['public_key'] = $v->validation_public_key; //nX
-        $validators[$v->validation_public_key]['address'] = CoreUtilities::deriveAddress(\strtoupper($validators[$v->validation_public_key]['public_key_ed'])); //rX
+        $validators[$v->validation_public_key]['validator'] = $codec->decodeNodePublic($v->validation_public_key)->toString(); //ED
+        $validators[$v->validation_public_key]['validator_n'] = $v->validation_public_key; //nX
+        $validators[$v->validation_public_key]['account'] = CoreUtilities::deriveAddress(\strtoupper($validators[$v->validation_public_key]['public_key_ed'])); //rX
       }
 
       //Sequence:
       $man = \bin2hex(\base64_decode($v->manifest));
       $validators[$v->validation_public_key]['sequence'] = (int)\substr($man,2,8);
     }
-    $validators = \array_values($validators);
-    
+    //unset($validators['EDB95B14B19007502F59151C598B49A1329E728223F950273D202044C6E5F3ABD6']);
     return response()->json([
       'url' => $url,
       'updated' => now(),
@@ -57,7 +59,8 @@ class ValidatorController extends Controller
       'sequence' => $data->sequence,
       'public_key' => $raw->public_key,
       'version' => $raw->version,
-      'validators' => $validators
-    ]);
+      'data' => \array_values($validators)
+    ])->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));;
   }
 }

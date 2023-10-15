@@ -30,7 +30,7 @@ Route::get('/account/search/{address}', [App\Http\Controllers\Api\AccountControl
 Route::get('/oracle/USD', [App\Http\Controllers\Api\OracleController::class, 'usd'])->name('oracle.usd');
 Route::get('/validators/dunl', [App\Http\Controllers\Api\ValidatorController::class, 'dunl'])->name('validators.dunl');
 Route::get('/unlreport/{from}/{to?}', [App\Http\Controllers\Api\UnlReportController::class, 'report'])->name('unlreport.report');
-Route::get('/unlvalidators', [App\Http\Controllers\Api\UnlReportController::class, 'validators'])->name('unlreport.validators');
-Route::get('/unlvalidator/{validator}', [App\Http\Controllers\Api\UnlReportController::class, 'validator'])->name('unlreport.validator');
-Route::get('/unlvalidator/{validator}/reports/daily/{from}/{to}', [App\Http\Controllers\Api\UnlReportController::class, 'validator_reports_daily'])->name('unlreport.validator_reports_daily');
-Route::get('/unlvalidator/{validator}/reports/{day}', [App\Http\Controllers\Api\UnlReportController::class, 'validator_reports_day'])->name('unlreport.validator_reports_day');
+Route::get('/validators/unl', [App\Http\Controllers\Api\UnlReportController::class, 'validators'])->name('unlreport.validators');
+Route::get('/validators/unl/{validator}', [App\Http\Controllers\Api\UnlReportController::class, 'validator'])->name('unlreport.validator');
+Route::get('/validators/unl/{validator}/reports/daily/{from}/{to}', [App\Http\Controllers\Api\UnlReportController::class, 'validator_reports_daily'])->name('unlreport.validator_reports_daily');
+Route::get('/validators/unl/{validator}/reports/{day}', [App\Http\Controllers\Api\UnlReportController::class, 'validator_reports_day'])->name('unlreport.validator_reports_day');

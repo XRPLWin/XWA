@@ -36,8 +36,8 @@ class UnlreportsRepository extends Repository
              //BORDER LEFT:
              ' OR (first_l <= '.$start_li.' AND last_l between '.$start_li.' AND '.$end_li.')'.
              //OUTER:
-             ' OR (first_l <= '.$start_li.' AND last_l >= '.$end_li.')) '.$where;
-
+             ' OR (first_l <= '.$start_li.' AND last_l >= '.$end_li.')) '.$where.' ORDER BY first_l ASC';
+    //dd($query);
     try {
       $results = \BigQuery::runQuery(\BigQuery::query(\trim($query)));
     } catch (\Throwable $e) {

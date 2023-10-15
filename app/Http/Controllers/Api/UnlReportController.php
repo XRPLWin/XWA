@@ -9,6 +9,9 @@ use App\Models\BUnlvalidator;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Cache;
+use XRPL_PHP\Core\RippleAddressCodec\AddressCodec;
+use XRPL_PHP\Core\Buffer;
+#use XRPL_PHP\Core\CoreUtilities;
 #use Illuminate\Http\Request;
 #use Illuminate\Support\Facades\DB;
 
@@ -29,7 +32,8 @@ class UnlReportController extends Controller
 
     $ttl = 5259487; //5 259 487 = 2 months
     $httpttl = 172800; //172 800 = 2 days
-      
+    $li_start = null;
+
     $from = Carbon::createFromFormat('Y-m-d', $from)->startOfDay()->timezone('UTC');
     if($to !== null)
       $to = Carbon::createFromFormat('Y-m-d', $to)->startOfDay()->timezone('UTC');
@@ -52,12 +56,18 @@ class UnlReportController extends Controller
       $to = null;
     }
 
-    $minTime = ripple_epoch_to_carbon(config('xrpl.genesis_ledger_close_time'));
+    $minTime = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger_close_time'));
     if($minTime->gte($from)) {
-      return response()->json(['success' => false, 'error_code' => 4, 'errors' => ['Requested date out of ledger range']],422);
+
+      if($from->format('Y-m') == $minTime->format('Y-m')) {
+        $from = $minTime->startOfDay(); //same year and month, adjust to min starting date
+        $li_start = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger');
+      } else {
+        return response()->json(['success' => false, 'error_code' => 4, 'errors' => ['Requested date out of ledger range']],422);
+      }
     }
   
-    $li_start = Ledger::getFromDate($from);
+    if($li_start === null) $li_start = Ledger::getFromDate($from);
     if($to) { 
       $li_end = Ledger::getFromDate($to);
     } else {
@@ -103,7 +113,7 @@ class UnlReportController extends Controller
     if($lastCheckedLedgerIndex < 512) $lastCheckedLedgerIndex = 512;
     //
 
-
+    $codec = new AddressCodec();
     $validators = BUnlvalidator::fetchAll();
     $data = [];
     foreach($validators as $v) {
@@ -112,6 +122,8 @@ class UnlReportController extends Controller
 
       $data[$v->validator] = [
         'validator' => $v->validator,
+        'validator_n' => $codec->encodeNodePublic(Buffer::from($v->validator)), //nX
+        //'validator_acc' => CoreUtilities::deriveAddress(\strtoupper($v->validator)), //rX
         'account' => $v->account,
         'reliability' => number_format($stats['reliability'],0),
         'reliability_sort' => $stats['reliability'],
@@ -141,6 +153,8 @@ class UnlReportController extends Controller
       $data[$dk]['rank'] = $rank;
       $prev = $curr;
     }
+   
+    //unset($data['ED1E88D64F134456B4BCBBC5554FDE292CCF8585DED2CAADAF83A499B4276BE312']); //testing..
 
     return response()->json([
       'success' => true,
@@ -177,6 +191,7 @@ class UnlReportController extends Controller
       if($lastCheckedLedgerIndex < 512) $lastCheckedLedgerIndex = 512;
       //
       $stats = $v->getStatistics($lastCheckedLedgerIndex);
+
       $r = [
         'validator' => $v->validator,
         'account' => $v->account,
@@ -266,7 +281,6 @@ class UnlReportController extends Controller
       abort(404);
 
     //todo validate $validator input
-    
     $ttl = 5259487; //5 259 487 = 2 months
     $httpttl = 172800; //172 800 = 2 days
 
@@ -318,14 +332,17 @@ class UnlReportController extends Controller
       $httpttl = 300; //5 mins, maybe 10 min? (ledger flag time is 12mins)
     }
 
-    $reports = BUnlreport::fetchByRangeForValidator($validator,$li_start,$li_end);
-
+    //$reports = BUnlreport::fetchByRangeForValidator($validator,$li_start,$li_end);
+    $reports = BUnlreport::fetchByRange($li_start,$li_end);
+    $v = BUnlvalidator::find($validator,'first_l');
+    
     $reports = \array_reverse($reports);
     $days = CarbonPeriod::create($from,$to);
 
     $reports = collect($reports);
     $aggr = [];
     $minTime = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger_close_time'));
+    $codec = new AddressCodec(); 
 
     foreach($days as $day) {
 
@@ -347,22 +364,32 @@ class UnlReportController extends Controller
         $l2 = Ledger::getFromDate($_day);
       unset($_day);
       $list = $reports->where('first_l','>=',$l)->where('first_l','<',$l2);
-
+      
       if($list->count()) {
         $aggr[$day->format('Y-m-d')] = [
           'total' => $list->count(),
           'active_num' => 0,
+          'inactive_num' => 0,
           'data' => []
         ];
+        
         foreach($list as $item) {
-  
-          if(\in_array($validator,$item['validators'])) {
+          $_validators = [];
+          foreach($item['validators'] as $_v){
+            $_validators[$_v] = $codec->encodeNodePublic(Buffer::from($_v)); //nX
+          }
+          $item['validators'] = $_validators;
+          if(isset($item['validators'][$validator])) {
             //requested validator is in this ledger range (one flag)
             $aggr[$day->format('Y-m-d')]['active_num']++;
             $item['active'] = true;
           } else {
-            //requested validator is NOT in this ledger range (one flag)
-            $item['active'] = false;
+            if($v->first_l > $item['first_l'])
+              $item['active'] = null; //not yet activated
+            else {
+              $item['active'] = false; //requested validator is NOT in this ledger range (one flag)
+              $aggr[$day->format('Y-m-d')]['inactive_num']++;
+            }
           }
           $aggr[$day->format('Y-m-d')]['data'][] = $item;
         }
