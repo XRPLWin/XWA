@@ -85,7 +85,7 @@ class BUnlvalidator extends B
       //'max_successive_fl_count' => $this->max_successive_fl_count
     ];
     $total_flag_ledgers = UNLReportReader::calcNumFlagsBetweenLedgers($this->first_l,$max_ledger_index);
-    //dd($this->first_l,$max_ledger_index,$total_flag_ledgers,$this->active_fl_count,$total_flag_ledgers);
+    //dd($this->first_l,$max_ledger_index,$this->active_fl_count,$total_flag_ledgers);
     $r['reliability'] = calcPercentFromTwoNumbers($this->active_fl_count,$total_flag_ledgers,3);
 
     if($this->last_l == $max_ledger_index)
