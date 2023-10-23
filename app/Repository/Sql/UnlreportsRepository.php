@@ -70,7 +70,7 @@ class UnlreportsRepository extends Repository
   {
     if(!count($values))
       throw new \Exception('Values missing');
-    $values['validators'] = \json_encode($values['validators']);
+    //$values['validators'] = \json_encode($values['validators']);
     return BUnlreport::insert($values);
   }
 }

@@ -64,15 +64,11 @@ class XwaUnlreportsSync extends Command
     $this->debug = config('app.debug');
     $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
     
-
-    
-    
     $this->xwa_limit = (int)$this->option('limit'); //int
 
     $this->log('Scan limit is: '.$this->xwa_limit);
 
     $last_synced_LI = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger');
-    
     
     //$last_synced_LI needs to be at least 512
     if($last_synced_LI < 512)
@@ -116,7 +112,6 @@ class XwaUnlreportsSync extends Command
     if(count($reports) != $this->xwa_limit) {
       //Latest ledger reached, no more data to sync, stop.
       //Hint: Wait and try again later with $this->limit or try now with limit: count($reports)
-
       $this->log('Requested ledgers out of range, try again later ('.count($reports).'/'.$this->xwa_limit.')');
       Cache::delete('job_xwaunlreports_sync_running');
 
@@ -151,7 +146,6 @@ class XwaUnlreportsSync extends Command
     $mock = new BUnlreport;
     $mock->vlkey = $report['import_vlkey'];
     $mock->validators = BUnlreport::normalizeValidatorsList($report['active_validators']);
-    
     foreach($report['active_validators'] as $_v) {
       
       if($V = $this->xwa_validators->where('validator',$_v['PublicKey'])->first()) {
@@ -183,7 +177,6 @@ class XwaUnlreportsSync extends Command
         $this->xwa_validators->push($newV);
       }
     }
-    
     if($mock->generateHash() != $this->xwa_last_saved_report->generateHash()) {
       $this->commitLastChanges();
       //there is diff in data, create new row, and set it to $this->xwa_last_saved_report

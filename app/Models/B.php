@@ -23,12 +23,11 @@ abstract class B extends Model
    * Extract changes, all fields must be present for insert, part can be present onl for update.
    * @return array [ 'table' => <tablename>, 'method' => <update|insert> 'fields' => [ <Fieldname> => <Parsed prepared value for BigQuery>, ... ], 'model' => MODEL ]
    */
-  public function extractPreparedDatabaseChanges(): array
+  public function extractBQPreparedDatabaseChanges(): array
   {
-    
     $r = [];
     $BQCASTS = $this::BQCASTS;
-    $castedValues = self::repositoryclass::valuesToCastedValues($BQCASTS,$this->attributes,$this->exists);
+    $castedValues = $this->getRepository()::valuesToCastedValues($BQCASTS,$this->attributes,$this->exists);
     
     if($this->exists) { //update
       //extract only dirty changed values
@@ -73,8 +72,10 @@ abstract class B extends Model
    */
   public function save(array $options = [])
   {
-    //if(config('xwa.database_engine') != 'bigquery')
-    //  return parent::save($options); //TODO
+    if(config('xwa.database_engine') != 'bigquery') {
+      return parent::save($options);
+    }
+      
 
     $this->mergeAttributesFromCachedCasts();
     
@@ -87,7 +88,7 @@ abstract class B extends Model
       return false;
     }
 
-    $data = $this->extractPreparedDatabaseChanges();
+    $data = $this->extractBQPreparedDatabaseChanges();
     //dd($data);
     
     // If the model already exists in the database we can just update our record
@@ -153,7 +154,7 @@ abstract class B extends Model
     if (count($dirty) > 0) {
       //$this->setKeysForSaveQuery($query)->update($dirty);
     
-      $saved = self::repositoryclass::update(
+      $saved = $this->getRepository()::update(
         $data['table'],
         $this->bqPrimaryKeyCondition(),
         ['fields' => $data['fields'], 'model' => $this]

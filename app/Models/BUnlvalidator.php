@@ -11,6 +11,7 @@ class BUnlvalidator extends B
   public $timestamps = false;
   protected $primaryKey = 'validator';
   protected $keyType = 'string';
+  public $incrementing = false;
   #const repositoryclass = UnlvalidatorsRepository::class;
 
   public static function getRepository(): string

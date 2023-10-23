@@ -13,6 +13,7 @@ class BUnlreport extends B
   public $timestamps = false;
   protected $primaryKey = 'first_l';
   protected $keyType = 'int';
+  public $incrementing = false;
   #const repositoryclass = UnlreportsRepository::class;
 
 
@@ -32,8 +33,7 @@ class BUnlreport extends B
   ];
 
   protected $casts = [
-    'validators' => AsArrayObject::class,
-    //'validators' => 'array'
+    'validators' => 'array'
   ];
 
   const BQCASTS = [
@@ -72,9 +72,11 @@ class BUnlreport extends B
 
   public static function repo_insert(array $values): ?BUnlreport
   {
+    $values['validators'] = \json_encode($values['validators']);
     $saved = self::getRepository()::insert($values);
-    if($saved)
+    if($saved) {
       return self::hydrate([$values])->first();
+    }
     return null;
   }
 
@@ -172,6 +174,8 @@ class BUnlreport extends B
   {
     $seed = (string)$this->vlkey.'_';
     $validators_seed_array = [];
+
+   
     foreach($this->validators as $v) {
       //$validators_seed_array[] = $v['pk'].'-'.(string)$v['acc'];
       $validators_seed_array[] = (string)$v;
