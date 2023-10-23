@@ -8,6 +8,7 @@ use XRPLWin\XRPL\Client;
 use App\Utilities\AccountLoader;
 use App\Utilities\Ledger;
 use App\Models\BAccount;
+use App\Models\BTransaction;
 use App\Models\BTransactionActivation;
 use App\XRPLParsers\Parser;
 #use Carbon\Carbon;
@@ -124,7 +125,6 @@ class XwaAccountSync extends Command
       Cache::forget('daccount_fti:'.$address);
       
       $account = AccountLoader::getOrCreate($address);
-      
       //$account->last_sync_started = \time();
       //$account->save();
       //If this account is issuer (by checking obligations) set t field to 1.
@@ -152,8 +152,10 @@ class XwaAccountSync extends Command
       $ledger_index_min = (int)$account->l;
 
       # Find last inserted transaction in transactions table for check to prevent duplicates
-      $last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""','l,li','t DESC');
-      
+      $last_inserted_tx = BTransaction::repo_fetchone(['l','li'], ['address' => $address], ['t', 'desc']);
+      //dd($last_inserted_tx);
+      //$last_inserted_tx = TransactionsRepository::fetchOne('address = """'.$address.'"""','l,li','t DESC');
+      //dd($last_inserted_tx);
       $this->log('last_inserted_tx: '.var_export($last_inserted_tx, true));
       //Log::debug(var_export($last_inserted_tx, true));
       
@@ -167,7 +169,7 @@ class XwaAccountSync extends Command
           ->params([
             'account' => $account->address,
             //'ledger_index' => 'current',
-            'ledger_index_min' => $ledger_index_min, //Ledger index this account is scanned to.
+            'ledger_index_min' => $ledger_index_min === 0 ? -1:$ledger_index_min, //Ledger index this account is scanned to.
             'ledger_index_max' => $this->ledger_current,
             'binary' => false,
             'forward' => true,
@@ -317,7 +319,7 @@ class XwaAccountSync extends Command
       # Save last scanned ledger index
       if($isLast) {
         $account->l = $this->ledger_current;
-        $account->li = -1;
+        $account->li = 0; //-1
         $account->lt = $this->ledger_current_time;
         $this->log('Committing to account (last)...');
         $account->save();

@@ -24,7 +24,15 @@ class BTransaction extends B
   protected $primaryKey = 'sk';
   protected $keyType = 'string';
   public $timestamps = false;
-  const repositoryclass = TransactionsRepository::class;
+  #const repositoryclass = TransactionsRepository::class;
+
+  public static function getRepository(): string
+  {
+    if(config('xwa.database_engine') == 'bigquery')
+      return \App\Repository\Bigquery\TransactionsRepository::class;
+    else
+      return \App\Repository\Sql\TransactionsRepository::class;
+  }
 
   protected $fillable = [
     't',
@@ -46,11 +54,16 @@ class BTransaction extends B
     'st',
     'offers',
     'nft',
-    'nftoffers'
+    'nftoffers',
+    'hooks',
+    'pc',
   ];
 
   protected $casts = [
     't' => 'datetime',
+    'offers' => 'array',
+    'nftoffers' => 'array',
+    'hooks' => 'array'
   ];
 
   const BQCASTS = [
@@ -74,11 +87,21 @@ class BTransaction extends B
     'offers'  => 'ARRAY',
     'nft'     => 'NULLABLE STRING',
     'nftoffers'=> 'ARRAY',
+    'hooks'   => 'ARRAY',
+    'pc'      => 'NULLABLE STRING',
   ];
 
   protected function bqPrimaryKeyCondition(): string
   {
     return 'address = """'.$this->address.'""" AND t = '.$this->t;
+  }
+
+  public static function repo_fetchone(array $select, array $where, array $order): ?self
+  {
+    $data = self::getRepository()::fetchOne($where, $select, $order);
+    if($data === null)
+      return null;
+    return self::hydrate([$data])->first();
   }
 
   /**

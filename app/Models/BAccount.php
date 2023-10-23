@@ -17,8 +17,17 @@ class BAccount extends B
   protected $table = 'accounts';
   protected $primaryKey = 'address';
   protected $keyType = 'string';
+  public $incrementing = false;
   public $timestamps = false;
-  const repositoryclass = AccountsRepository::class;
+  #const repositoryclass = AccountsRepository::class;
+
+  public static function getRepository(): string
+  {
+    if(config('xwa.database_engine') == 'bigquery')
+      return \App\Repository\Bigquery\AccountsRepository::class;
+    else
+      return \App\Repository\Sql\AccountsRepository::class;
+  }
 
   public $fillable = [
     'address', //Primary Key
@@ -64,10 +73,9 @@ class BAccount extends B
     return 'address = """'.$this->address.'"""';
   }
 
-  public static function find(string $address): ?self
+  public static function repo_find(string $address): ?self
   {
-    $data = AccountsRepository::fetchByAddress($address);
-    
+    $data = self::getRepository()::fetchByAddress($address);
     if($data === null)
       return null;
     return self::hydrate([$data])->first();

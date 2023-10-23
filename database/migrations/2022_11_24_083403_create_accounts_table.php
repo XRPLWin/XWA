@@ -78,13 +78,16 @@ return new class extends Migration
       return;
 
     Schema::create('accounts', function (Blueprint $table) {
-      $table->bigIncrements('id');
-      $table->string('address',50)->index();
+      //$table->bigIncrements('id');
+      $table->string('address',50);
       $table->unsignedInteger('l');
       $table->unsignedSmallInteger('li');
       $table->dateTimeTz('lt',0); //Last synced ledger timestamp
-      $table->string('activatedBy',50)->index()->comment('rAddress which activated this account'); //first one
+      $table->string('activatedBy',50)->nullable()->default(null)->comment('rAddress which activated this account'); //first one
       $table->boolean('isdeleted')->default(false);
+
+      //Add primary key:
+      $table->primary('address');
     });
 }
 

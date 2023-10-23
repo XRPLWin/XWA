@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Bigquery;
 
 use App\Models\BAccount;
 
