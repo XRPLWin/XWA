@@ -1,67 +1,23 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-# use Illuminate\Database\Schema\Blueprint;
-# use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-  /**
-   * Run the migrations.
-   * Note: BigQuery tables are not instantly available, it takes about 10 seconds to be available.
-   * @see https://github.com/prologuetech/laravel-big/blob/master/src/Big.php
-   * @return void
-   */
   public function up()
   {
-    \BigQuery::createDataset(config('bigquery.xwa_dataset'));
+    if(config('xwa.database_engine') == 'bigquery')
+      return $this->up_bigquery();
+    else
+      return $this->up_sql();
+  }
 
-    /**
-     * Create accounts table
-     */
-
-    $fields = [
-      [
-          'name' => 'address',
-          'type' => 'STRING',
-          'mode' => 'REQUIRED',
-          'description' => 'rAddress'
-      ],
-      [
-        'name' => 'l',
-        'type' => 'INTEGER',
-        'mode' => 'REQUIRED',
-        'description' => 'Last synced ledger index'
-      ],
-      [
-        'name' => 'li',
-        'type' => 'INTEGER',
-        'mode' => 'REQUIRED',
-        'description' => 'TransactionIndex' //position inside ledgerindex
-      ],
-      [
-        'name' => 'lt',
-        'type' => 'TIMESTAMP',
-        'mode' => 'REQUIRED',
-        'description' => 'Last synced ledger timestamp (Y-m-d H:i:s.uP)',
-      ],
-      [
-        'name' => 'activatedBy',
-        'type' => 'STRING',
-        'mode' => 'NULLABLE',
-        'description' => 'rAddress which activated this account'
-      ],
-      [
-        'name' => 'isdeleted',
-        'type' => 'BOOLEAN',
-        'mode' => 'REQUIRED',
-        'description' => 'Is this account deleted (yes or no)'
-      ],
-    ];
-
-    \BigQuery::dataset(config('bigquery.xwa_dataset'))->createTable('accounts', ['schema' => [ 'fields' => $fields ]]);
-    unset($fields);
-
+  protected function up_bigquery()
+  {
+    if(config('xwa.database_engine') != 'bigquery')
+      return;
 
     /**
      * Create transactions table
@@ -197,6 +153,18 @@ return new class extends Migration
         'description' => 'List of NFTOfferIDs that are affected in specific transaction'
       ],*/
       [
+        'name' => 'pc',
+        'type' => 'STRING',
+        'mode' => 'NULLABLE',
+        'description' => 'Payment Channel'
+      ],
+      [
+        'name' => 'hooks',
+        'type' => 'STRING',
+        'mode' => 'REPEATED',
+        'description' => 'List of executed hook hashes'
+      ],
+      [
         'name' => 'dt',
         'type' => 'INTEGER',
         'mode' => 'NULLABLE',
@@ -236,12 +204,71 @@ return new class extends Migration
   }
 
   /**
+   * Create transactions table on SQL database.
+   */
+  protected function up_sql()
+  {
+    if(config('xwa.database_engine') != 'sql')
+      return;
+
+    Schema::create('transactions', function (Blueprint $table) {
+      $table->bigIncrements('id');
+      $table->dateTimeTz('t',0)->comment('Transaction Timestamp');
+      $table->unsignedInteger('l')->comment('LedgerIndex');
+      $table->unsignedSmallInteger('li')->comment('TransactionIndex');
+      $table->string('address',50)->index()->comment('rAddress');
+      $table->unsignedSmallInteger('xwatype')->comment('XWA Transaction Type');
+      $table->string('h',64)->comment('Transaction HASH');
+      $table->string('r',50)->comment('Counterparty');
+      $table->boolean('isin')->default(true)->comment('Direction (in or out)');
+      $table->unsignedInteger('fee')->comment('Fee in drops');
+      //-999,999,999,999,999,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000
+      // 999,999,999,999,999,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000
+      // length: 96
+      //$table->decimal('a',96,0)->comment('Amount');
+      $table->string('a',97)->nullable()->default(null)->comment('Amount');
+      $table->string('i',50)->nullable()->default(null)->comment('Issuer');
+      $table->string('c',40)->nullable()->default(null)->comment('Currency');
+      $table->string('a2',97)->nullable()->default(null)->comment('Amount (secondary)');
+      $table->string('i2',50)->nullable()->default(null)->comment('Issuer (secondary)');
+      $table->string('c2',40)->nullable()->default(null)->comment('Currency (secondary)');
+      $table->json('offers')->comment('List of offers that are affected in specific transaction in format: rAccount:sequence');
+      $table->string('nft',64)->nullable()->default(null)->comment('NFTokenID');
+      $table->json('nftoffers')->comment('List of NFTOfferIDs that are affected in specific transaction');
+      $table->string('pc',64)->nullable()->default(null)->comment('Payment channel');
+      $table->json('hooks')->comment('List of executed hook hashes');
+      $table->integer('dt')->nullable()->default(null)->comment('Destination Tag');
+      $table->integer('st')->nullable()->default(null)->comment('Source Tag');
+    });
+  }
+
+  /**
    * Reverse the migrations.
    *
    * @return void
    */
   public function down()
   {
-    \BigQuery::dataset(config('bigquery.xwa_dataset'))->delete(['deleteContents' => true]);
+    if(config('xwa.database_engine') == 'bigquery')
+      return $this->down_bigquery();
+    else
+      return $this->down_sql();
   }
+
+  protected function down_bigquery()
+  {
+    if(config('xwa.database_engine') != 'bigquery')
+      return;
+      
+    \BigQuery::dataset(config('bigquery.xwa_dataset'))->table('transactions')->delete();
+  }
+
+  protected function down_sql()
+  {
+    if(config('xwa.database_engine') != 'sql')
+      return;
+      
+    Schema::dropIfExists('transactions');
+  }
+
 };
