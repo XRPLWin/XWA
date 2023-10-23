@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Sql;
 
-class Repository
+use App\Repository\Base\RepositoryInterface;
+
+abstract class Repository implements RepositoryInterface
 {
   /**
    * Takes array of values and casts them using definition.

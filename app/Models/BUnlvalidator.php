@@ -2,7 +2,6 @@
 
 namespace App\Models;
 #use Illuminate\Support\Facades\DB;
-use App\Repository\UnlvalidatorsRepository;
 use Illuminate\Support\Collection;
 use XRPLWin\UNLReportReader\UNLReportReader;
 
@@ -12,7 +11,15 @@ class BUnlvalidator extends B
   public $timestamps = false;
   protected $primaryKey = 'validator';
   protected $keyType = 'string';
-  const repositoryclass = UnlvalidatorsRepository::class;
+  #const repositoryclass = UnlvalidatorsRepository::class;
+
+  public static function getRepository(): string
+  {
+    if(config('xwa.database_engine') == 'bigquery')
+      return \App\Repository\Bigquery\UnlvalidatorsRepository::class;
+    else
+      return \App\Repository\Sql\UnlvalidatorsRepository::class;
+  }
 
   public $fillable = [
     'validator', //Primary Key
@@ -24,9 +31,7 @@ class BUnlvalidator extends B
     'active_fl_count'
   ];
 
-  protected $casts = [
-    //'validators' => 'array',
-  ];
+  protected $casts = [];
 
   const BQCASTS = [
     'validator' => 'STRING',
@@ -43,7 +48,7 @@ class BUnlvalidator extends B
     return 'validator = """'.$this->validator.'"""';
   }
 
-  public static function find(string $validator, ?string $select = null): ?self
+  public static function repo_find(string $validator, ?string $select = null): ?self
   {
     $data = UnlvalidatorsRepository::fetchByValidator($validator,$select);
     
@@ -52,9 +57,9 @@ class BUnlvalidator extends B
     return self::hydrate([$data])->first();
   }
 
-  public static function fetchAll(?string $select = null): Collection
+  public static function repo_fetchAll(array $select = []): Collection
   {
-    $data = UnlvalidatorsRepository::fetchAll($select);
+    $data = self::getRepository()::fetchAll($select);
     $models = [];
     foreach($data as $v) {
       $models[] = self::hydrate([$v])->first();
@@ -62,7 +67,7 @@ class BUnlvalidator extends B
     return collect($models);
   }
 
-  public static function insert(array $values): ?BUnlreport
+  public static function repo_insert(array $values): ?BUnlreport
   {
     $saved = UnlvalidatorsRepository::insert($values);
     if($saved)

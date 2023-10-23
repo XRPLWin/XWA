@@ -212,11 +212,13 @@ return new class extends Migration
       return;
 
     Schema::create('transactions', function (Blueprint $table) {
-      $table->bigIncrements('id');
-      $table->dateTimeTz('t',0)->comment('Transaction Timestamp');
+      //$table->bigIncrements('id');
+      
+      $table->string('address',50)->index()->comment('rAddress');
       $table->unsignedInteger('l')->comment('LedgerIndex');
       $table->unsignedSmallInteger('li')->comment('TransactionIndex');
-      $table->string('address',50)->index()->comment('rAddress');
+      $table->dateTimeTz('t',0)->comment('Transaction Timestamp');
+      
       $table->unsignedSmallInteger('xwatype')->comment('XWA Transaction Type');
       $table->string('h',64)->comment('Transaction HASH');
       $table->string('r',50)->comment('Counterparty');
@@ -239,6 +241,8 @@ return new class extends Migration
       $table->json('hooks')->comment('List of executed hook hashes');
       $table->integer('dt')->nullable()->default(null)->comment('Destination Tag');
       $table->integer('st')->nullable()->default(null)->comment('Source Tag');
+
+      $table->primary(['address', 'l', 'li']);
     });
   }
 

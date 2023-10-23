@@ -78,14 +78,15 @@ class XwaUnlreportsSync extends Command
     if($last_synced_LI < 512)
       $last_synced_LI = 512;
 
-   
-    $this->xwa_last_saved_report = BUnlreport::last('first_l,last_l,vlkey,validators');
+    
+    $this->xwa_last_saved_report = BUnlreport::repo_last(['first_l','last_l','vlkey','validators']);
+    
     if($this->xwa_last_saved_report == null) { //create first flag row
       Cache::put('job_xwaunlreports_sync_running', true, 245); //240 = 4 mins
       # Close time:
       //$first_l_close_time = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger_close_time');
 
-      $this->xwa_last_saved_report = BUnlreport::insert([
+      $this->xwa_last_saved_report = BUnlreport::repo_insert([
         //'first_t' => ripple_epoch_to_carbon($first_l_close_time)->format('Y-m-d H:i:s.uP'),
         'first_l' => $last_synced_LI,
         'last_l' => $last_synced_LI,
@@ -100,7 +101,7 @@ class XwaUnlreportsSync extends Command
 
     ###
     //fetch all stored validators
-    $this->xwa_validators = BUnlvalidator::fetchAll();
+    $this->xwa_validators = BUnlvalidator::repo_fetchAll();
     ###
     
     $last_synced_LI = ($this->xwa_last_saved_report->last_l + 1);
@@ -111,7 +112,7 @@ class XwaUnlreportsSync extends Command
     
     //This can throw ConnectException
     $reports = $reader->fetchMulti($last_synced_LI, true, $this->xwa_limit); //array
-
+    
     if(count($reports) != $this->xwa_limit) {
       //Latest ledger reached, no more data to sync, stop.
       //Hint: Wait and try again later with $this->limit or try now with limit: count($reports)
@@ -150,7 +151,7 @@ class XwaUnlreportsSync extends Command
     $mock = new BUnlreport;
     $mock->vlkey = $report['import_vlkey'];
     $mock->validators = BUnlreport::normalizeValidatorsList($report['active_validators']);
-
+    
     foreach($report['active_validators'] as $_v) {
       
       if($V = $this->xwa_validators->where('validator',$_v['PublicKey'])->first()) {
@@ -186,7 +187,7 @@ class XwaUnlreportsSync extends Command
     if($mock->generateHash() != $this->xwa_last_saved_report->generateHash()) {
       $this->commitLastChanges();
       //there is diff in data, create new row, and set it to $this->xwa_last_saved_report
-      $this->xwa_last_saved_report = BUnlreport::insert([
+      $this->xwa_last_saved_report = BUnlreport::repo_insert([
         //Add 3 seconds (approx 1 ledger after flag ledger - to match first_l)
         //'first_t' => ripple_epoch_to_carbon($report['flag_ledger_close_time'])->addSeconds(3)->format('Y-m-d H:i:s.uP'),
         'first_l' => $report['report_range'][0],

@@ -89,7 +89,7 @@ return new class extends Migration
       return;
 
     Schema::create('unlvalidators', function (Blueprint $table) {
-      $table->bigIncrements('id');
+      //$table->bigIncrements('id');
       $table->string('validator',66)->index()->comment('Validator Public Key'); //eg EDA4A1278B9FDCABFAE094956DB1D7A0FCB9E99E40FB02C8ED26E6B2C4B83DB932
       $table->string('account',50)->index()->comment('Account (r-address) of this validator');
       $table->unsignedInteger('first_l')->comment('First appeared ledger index (flag ledger index plus 1)');
@@ -97,6 +97,10 @@ return new class extends Migration
       $table->unsignedInteger('current_successive_fl_count')->comment('Current flag ledger for sucessive counting');
       $table->unsignedInteger('max_successive_fl_count')->comment('Number of flag ledgers this validator ran without interruptions');
       $table->unsignedInteger('active_fl_count')->comment('Number of flag ledgers this validator appeared in');
+      
+      //Add primary key:
+      $table->primary('validator');
+    
     });
   }
 

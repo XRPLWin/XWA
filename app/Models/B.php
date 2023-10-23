@@ -12,12 +12,12 @@ abstract class B extends Model
 {
   //protected $connection = 'bigquery';
   const BQCASTS = []; //This const is overriden in extended classes
-  const repositoryclass = Repository::class; //This const is overriden in extended classes
+  #const repositoryclass = Repository::class; //This const is overriden in extended classes
 
-  /*public function test()
+  public static function getRepository(): string
   {
-    return new $this->repositoryclass;
-  }*/
+    throw new \Exception('getRepository() is not implemented');
+  }
 
   /**
    * Extract changes, all fields must be present for insert, part can be present onl for update.
@@ -25,6 +25,7 @@ abstract class B extends Model
    */
   public function extractPreparedDatabaseChanges(): array
   {
+    
     $r = [];
     $BQCASTS = $this::BQCASTS;
     $castedValues = self::repositoryclass::valuesToCastedValues($BQCASTS,$this->attributes,$this->exists);
@@ -59,6 +60,7 @@ abstract class B extends Model
    */
   public function applyInsertedEvent($options = [])
   {
+    
     $this->mergeAttributesFromCachedCasts();
     $this->finishSave($options);
   }
@@ -71,6 +73,9 @@ abstract class B extends Model
    */
   public function save(array $options = [])
   {
+    //if(config('xwa.database_engine') != 'bigquery')
+    //  return parent::save($options); //TODO
+
     $this->mergeAttributesFromCachedCasts();
     
     //$query = $this->newModelQuery();

@@ -105,11 +105,14 @@ return new class extends Migration
       return;
 
     Schema::create('unlreports', function (Blueprint $table) {
-      $table->bigIncrements('id');
       $table->unsignedInteger('first_l')->comment('First applied ledger index (flag ledger index plus 1)');
+      //$table->unsignedInteger('first_l')->comment('First applied ledger index (flag ledger index plus 1)');
       $table->unsignedInteger('last_l')->comment('Last applied ledger index (flag ledger index)');
-      $table->string('vlkey',66)->index()->comment('Validator Public Key'); //eg ED45D1840EE724BE327ABE9146503D5848EFD5F38B6D5FEDE71E80ACCE5E6E738B
+      $table->string('vlkey',66)->nullable()->default(null)->comment('Validator Public Key'); //eg ED45D1840EE724BE327ABE9146503D5848EFD5F38B6D5FEDE71E80ACCE5E6E738B
       $table->json('validators')->comment('List of active validators');
+
+      //Add primary key:
+      $table->primary('first_l');
     });
   }
 

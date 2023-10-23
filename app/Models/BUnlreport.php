@@ -2,9 +2,10 @@
 
 namespace App\Models;
 #use Illuminate\Support\Facades\DB;
-use App\Repository\UnlreportsRepository;
+#use App\Repository\UnlreportsRepository;
 use XRPLWin\UNLReportReader\UNLReportReader;
 use XRPLWin\XRPL\Utilities\UNLReportFlagLedger;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 
 class BUnlreport extends B
 {
@@ -12,18 +13,27 @@ class BUnlreport extends B
   public $timestamps = false;
   protected $primaryKey = 'first_l';
   protected $keyType = 'int';
-  const repositoryclass = UnlreportsRepository::class;
+  #const repositoryclass = UnlreportsRepository::class;
+
+
+  public static function getRepository(): string
+  {
+    if(config('xwa.database_engine') == 'bigquery')
+      return \App\Repository\Bigquery\UnlreportsRepository::class;
+    else
+      return \App\Repository\Sql\UnlreportsRepository::class;
+  }
 
   public $fillable = [
     'first_l', //Primary Key
     'last_l',
-    //'first_t',
     'vlkey',
     'validators'
   ];
 
   protected $casts = [
-    //'validators' => 'array',
+    'validators' => AsArrayObject::class,
+    //'validators' => 'array'
   ];
 
   const BQCASTS = [
@@ -51,18 +61,18 @@ class BUnlreport extends B
     return self::hydrate([$data])->first();
   }
 
-  public static function last(?string $select = null): ?self
+  public static function repo_last(array $select = []): ?self //OK
   {
-    $data = UnlreportsRepository::fetchLastRow($select);
+    $data = self::getRepository()::fetchLastRow($select);
     
     if($data === null)
       return null;
     return self::hydrate([$data])->first();
   }
 
-  public static function insert(array $values): ?BUnlreport
+  public static function repo_insert(array $values): ?BUnlreport
   {
-    $saved = UnlreportsRepository::insert($values);
+    $saved = self::getRepository()::insert($values);
     if($saved)
       return self::hydrate([$values])->first();
     return null;
@@ -137,7 +147,7 @@ class BUnlreport extends B
    * @param array [ [ 'Account' => ?string, 'PublicKey' => string], ... ]
    * @return array [ string, ... ]
    */
-  public static function normalizeValidatorsList(array $rawValidatorsList)
+  public static function normalizeValidatorsList(array $rawValidatorsList): array
   {
     if(!count($rawValidatorsList))
       return [];
