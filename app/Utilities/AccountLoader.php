@@ -14,6 +14,7 @@ class AccountLoader
   public static function getOrCreate(string $address): BAccount
   {
     $Account = self::get($address);
+  
     if(!$Account)
     {
       $Account = new BAccount([
@@ -40,8 +41,7 @@ class AccountLoader
     validateXRPAddressOrFail($address);
    
     $AccountArray = Cache::get('daccount:'.$address);
-    
-    if(!$AccountArray) {
+    if($AccountArray == null) {
       $Account = BAccount::repo_find($address);
       if(!$Account)
         return null;

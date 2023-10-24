@@ -5,7 +5,7 @@ namespace App\Models;
 #use Kitar\Dynamodb\Model\Model;
 #use BaoPham\DynamoDb\DynamoDbModel;
 #use App\Override\DynamoDb\XWDynamoDbModel;
-use App\Repository\TransactionsRepository;
+#use App\Repository\TransactionsRepository;
 
 /**
  * Transaction model.

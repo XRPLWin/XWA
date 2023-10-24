@@ -72,9 +72,14 @@ class BUnlreport extends B
 
   public static function repo_insert(array $values): ?BUnlreport
   {
+    
+    //revert casted attributes to their raw form:
     $values['validators'] = \json_encode($values['validators']);
+
+
     $saved = self::getRepository()::insert($values);
     if($saved) {
+      
       return self::hydrate([$values])->first();
     }
     return null;

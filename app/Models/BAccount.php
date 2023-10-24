@@ -76,6 +76,7 @@ class BAccount extends B
   public static function repo_find(string $address): ?self
   {
     $data = self::getRepository()::fetchByAddress($address);
+    
     if($data === null)
       return null;
     return self::hydrate([$data])->first();

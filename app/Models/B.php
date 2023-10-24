@@ -19,8 +19,13 @@ abstract class B extends Model
     throw new \Exception('getRepository() is not implemented');
   }
 
+  public function extractPreparedDatabaseChanges(): array
+  {
+    return $this->extractBQPreparedDatabaseChanges();
+  }
+
   /**
-   * Extract changes, all fields must be present for insert, part can be present onl for update.
+   * Extract changes, all fields must be present for insert, part can be present only for update.
    * @return array [ 'table' => <tablename>, 'method' => <update|insert> 'fields' => [ <Fieldname> => <Parsed prepared value for BigQuery>, ... ], 'model' => MODEL ]
    */
   public function extractBQPreparedDatabaseChanges(): array

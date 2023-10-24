@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Sql;
 
+use App\Repository\Base\BatchInterface;
 use App\Models\B;
 
 /**
  * Batch queuer for query list to be executed
  */
-class Batch
+final class Batch implements BatchInterface
 {
   /** List of models in queue to save (update or insert) */
   private array $queue = [];

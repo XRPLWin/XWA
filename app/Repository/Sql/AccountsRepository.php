@@ -24,10 +24,10 @@ class AccountsRepository extends Repository
         'isdeleted'
       ])
       ->where('address',$address)
-      ->get()
-      ->toArray();
-      if(empty($r)) return null;
-      return $r;
+      ->get();
+      if(!$r->count()) return null;
+
+      return (array)$r->first();
   }
 
   /**
