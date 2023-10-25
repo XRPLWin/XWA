@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Utilities;
+namespace App\Utilities\Base;
 use Carbon\Carbon;
 use App\Models\BAccount;
 
 /**
- * 
+ * Search conditions mapper
  */
-class Mapper
+abstract class Mapper
 {
   private array $conditions = [
     //from

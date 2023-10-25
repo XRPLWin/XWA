@@ -8,7 +8,8 @@ use App\Utilities\Account as XRPLAccountInfo;
 use XRPLWin\XRPL\Client as XRPLWinApiClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Utilities\Search;
+use App\Utilities\Bigquery\Search as BigquerySearch;
+use App\Utilities\Sql\Search as SqlSearch;
 use XRPLWin\XRPL\Api\Methods\LedgerCurrent;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -51,14 +52,18 @@ class AccountController extends Controller
     #$_rand = rand(1,9999999999);Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('# Start '.$_rand);
     
     validateXRPAddressOrFail($address);
-    $search = new Search($address);
+
+    if(config('xwa.database_engine') == 'bigquery')
+      $search = new BigquerySearch($address);
+    else
+      $search = new SqlSearch($address);
     
     
-    //dd($request->input());
+    
     $search->buildFromRequest($request);
     
     $search->execute();
-
+    dd($search);
     if($search->hasErrors()) {
       return response()->json(['success' => false, 'error_code' => $search->getErrorCode(), 'errors' => $search->getErrors()],422);
     }

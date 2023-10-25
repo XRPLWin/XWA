@@ -32,6 +32,8 @@ class TransactionsRepository extends Repository
 
     return $results->get();
   }
+  
+  # OLD BELOW
 
   /**
    * Inserts one record to database.
