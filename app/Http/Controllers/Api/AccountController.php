@@ -121,7 +121,6 @@ class AccountController extends Controller
 
     /** @var \App\Models\BAccount */
     $acct = AccountLoader::getOrCreate($address);
-    
     if($acct) {
       $firstTxInfo = $acct->getFirstTransactionAllInfo();
       $offset = $firstTxInfo['first'] ? $firstTxInfo['first']:0;

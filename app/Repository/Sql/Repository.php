@@ -107,8 +107,9 @@ abstract class Repository implements RepositoryInterface
 
   /**
    * Executes query.
+   * @deprecated
    */
-  public static function query(string $q, array $options = []): ?\Google\Cloud\BigQuery\QueryResults
+  /*public static function query(string $q, array $options = []): ?\Google\Cloud\BigQuery\QueryResults
   {
     $results = null;
 
@@ -120,6 +121,6 @@ abstract class Repository implements RepositoryInterface
       throw $e;
     }
     return $results;
-  }
+  }*/
 
 }

@@ -16,6 +16,19 @@ class AccountsRepository extends Repository
     return self::fetchOne('address = """'.$address.'"""');
   }
 
+  public static function getFirstTransactionAllInfo(): array
+  {
+    $bigqueryresults = self::query(
+      'SELECT xwatype,t FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE TRUE QUALIFY ROW_NUMBER() OVER (PARTITION BY xwatype ORDER BY t ASC) = 1'
+    );
+
+    $collection = [];
+    foreach($bigqueryresults as $row) {
+      $collection[$row['xwatype']] = (int)$row['t']->get()->format('U');
+    }
+    return $collection;
+  }
+
   /**
    * Fetches one record from database.
    * @return ?array

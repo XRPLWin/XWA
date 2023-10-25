@@ -6,4 +6,5 @@ interface RepositoryInterface
 {
   public static function insert(array $values): bool;
   public static function update(string $table, string $conditions, array $modelandfields): ?bool;
+  #public static function getFirstTransactionAllInfo(): array;
 }

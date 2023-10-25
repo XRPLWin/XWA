@@ -82,7 +82,7 @@ class BAccount extends B
     return self::hydrate([$data])->first();
   }
 
-  public static function insert(array $values): bool
+  public static function insert(array $values): bool //todo rename to repo_insert
   {
     return AccountsRepository::insert($values);
   }
@@ -100,14 +100,11 @@ class BAccount extends B
 
     if($r === null) {
 
-      $results = TransactionsRepository::query(
+      $collection = self::getRepository()::getFirstTransactionAllInfo();
+      
+      /*$results = self::getRepository()::query(
         'SELECT xwatype,t FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE TRUE QUALIFY ROW_NUMBER() OVER (PARTITION BY xwatype ORDER BY t ASC) = 1'
-      );
-
-      $collection = [];
-      foreach($results as $row) {
-        $collection[$row['xwatype']] = (int)$row['t']->get()->format('U');
-      }
+      );*/
 
       $typeList = config('xwa.transaction_types');
       $timestamp_tracker = null;

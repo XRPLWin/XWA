@@ -4,6 +4,7 @@ namespace App\Repository\Sql;
 
 use App\Models\BAccount;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class AccountsRepository extends Repository
 {
@@ -29,6 +30,21 @@ class AccountsRepository extends Repository
 
       return (array)$r->first();
   }
+
+  public static function getFirstTransactionAllInfo(): array
+  {
+    $results = DB::table('transactions')->select('xwatype',DB::raw('MIN(`t`) as t'))->orderBy('t','asc')
+      ->groupBy('xwatype')
+      ->get();
+
+    $collection = [];
+    foreach($results as $row) {
+      $collection[$row->xwatype] = Carbon::parse($row->t)->format('U');
+    }
+    return $collection;
+  }
+
+  # OLD BELOW
 
   /**
    * Fetches one record from database.
