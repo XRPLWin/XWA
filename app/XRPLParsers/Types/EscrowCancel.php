@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class EscrowCancel extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED','UNKNOWN']; //todo add SET
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','SET','UNKNOWN'];
 
   /**
    * Parses EscrowCancel type fields and maps them to $this->data
@@ -21,12 +21,17 @@ final class EscrowCancel extends XRPLParserBase
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on EscrowCancel with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     $this->data['Counterparty'] = $this->tx->Account;
-    $this->data['In'] = true;
+    $this->data['In'] = false;
+    if($this->reference_address == $this->tx->Owner)
+      $this->data['In'] = true;
 
     if($parsedType == 'UNKNOWN') {
-      $this->data['Counterparty'] = $this->tx->Account;
-      $this->data['In'] = true;
-      $this->persist = false;
+      if($this->reference_address != $this->tx->Owner && $this->reference_address != $this->tx->Account) {
+        $this->data['In'] = false;
+        $this->persist = false;
+      }
+    } elseif($parsedType == 'SET') { //Account cancels Owners escrow
+      $this->data['Counterparty'] = $this->tx->Owner;
     }
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
