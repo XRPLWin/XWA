@@ -79,6 +79,9 @@ return new class extends Migration
 
     Schema::create('accounts', function (Blueprint $table) {
       //$table->bigIncrements('id');
+      $table->charset = 'utf8mb4';
+      $table->collation = 'utf8mb4_bin';
+      
       $table->string('address',50);
       $table->unsignedInteger('l');
       $table->unsignedSmallInteger('li');

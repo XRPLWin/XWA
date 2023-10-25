@@ -10,6 +10,11 @@ find storage/ -type d -exec chmod 770 {} \;
 find storage/ -type f -exec chmod 760 {} \;
 ```
 
+### Database (MySQL)
+
+Character set: `utf8mb4`  
+Collation: `utf8mb4_bin`
+
 ## Swoole
 
 ```

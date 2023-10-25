@@ -213,6 +213,9 @@ return new class extends Migration
 
     Schema::create('transactions', function (Blueprint $table) {
       //$table->bigIncrements('id');
+      $table->charset = 'utf8mb4';
+      $table->collation = 'utf8mb4_bin';
+     
       
       $table->string('address',50)->index()->comment('rAddress');
       $table->unsignedInteger('l')->comment('LedgerIndex');
@@ -239,8 +242,8 @@ return new class extends Migration
       $table->json('nftoffers')->comment('List of NFTOfferIDs that are affected in specific transaction');
       $table->string('pc',64)->nullable()->default(null)->comment('Payment channel');
       $table->json('hooks')->comment('List of executed hook hashes');
-      $table->bigInteger('dt')->nullable()->default(null)->comment('Destination Tag');
-      $table->bigInteger('st')->nullable()->default(null)->comment('Source Tag');
+      $table->unsignedBigInteger('dt')->nullable()->default(null)->comment('Destination Tag');
+      $table->unsignedBigInteger('st')->nullable()->default(null)->comment('Source Tag');
 
       $table->primary(['address', 'l', 'li', 'xwatype']);
     });

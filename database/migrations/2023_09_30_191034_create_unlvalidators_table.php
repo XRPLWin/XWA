@@ -89,6 +89,8 @@ return new class extends Migration
       return;
 
     Schema::create('unlvalidators', function (Blueprint $table) {
+      $table->charset = 'utf8mb4';
+      $table->collation = 'utf8mb4_bin';
       //$table->bigIncrements('id');
       $table->string('validator',66)->index()->comment('Validator Public Key'); //eg EDA4A1278B9FDCABFAE094956DB1D7A0FCB9E99E40FB02C8ED26E6B2C4B83DB932
       $table->string('account',50)->index()->comment('Account (r-address) of this validator');
