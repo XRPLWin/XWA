@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class EscrowCancel extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','UNKNOWN']; //todo add SET
 
   /**
    * Parses EscrowCancel type fields and maps them to $this->data
@@ -54,6 +54,7 @@ final class EscrowCancel extends XRPLParserBase
       'h' => (string)$this->data['hash'],
       'offers' => [],
       'nftoffers' => [],
+      'hooks' => [],
     ];
 
     if(\array_key_exists('Amount', $this->data))

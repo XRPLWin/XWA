@@ -39,6 +39,7 @@ final class AccountDelete extends XRPLParserBase
       'h' => $this->data['hash'],
       'offers' => [],
       'nftoffers' => [],
+      'hooks' => [],
     ];
 
     if(\array_key_exists('Amount', $this->data))

@@ -73,6 +73,7 @@ final class CheckCash extends XRPLParserBase
       'h' => (string)$this->data['hash'],
       'offers' => [],
       'nftoffers' => [],
+      'hooks' => [],
     ];
 
     if(\array_key_exists('Amount', $this->data))

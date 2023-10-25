@@ -74,6 +74,7 @@ final class OfferCancel extends XRPLParserBase
       'h' => (string)$this->data['hash'],
       'offers' => (array)$this->data['offers'],
       'nftoffers' => [],
+      'hooks' => [],
     ];
 
     # Standard fields:

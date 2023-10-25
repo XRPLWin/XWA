@@ -51,6 +51,7 @@ final class CheckCancel extends XRPLParserBase
       'h' => (string)$this->data['hash'],
       'offers' => [],
       'nftoffers' => [],
+      'hooks' => [],
     ];
 
     # Standard fields:

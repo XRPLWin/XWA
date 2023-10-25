@@ -72,6 +72,7 @@ final class URITokenBuy extends XRPLParserBase
       'offers' => [],
       'nft' => $this->data['nft'],
       'nftoffers' => [],
+      'hooks' => [],
     ];
 
     if(\array_key_exists('Amount', $this->data))

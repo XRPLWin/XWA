@@ -74,6 +74,7 @@ final class NFTokenAcceptOffer extends XRPLParserBase
       'offers' => [],
       'nft' => $this->data['nft'],
       'nftoffers' => (array)$this->data['nftoffers'],
+      'hooks' => [],
     ];
 
     //if($this->data['nft'] !== null)
