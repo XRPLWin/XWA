@@ -452,6 +452,7 @@ class XwaAccountSync extends Command
           'isin' => true,
           'offers' => [],
           'nftoffers' => [],
+          'hooks' => [],
         ]);
         $batch->queueModelChanges($Activation);
         //$Activation->save();

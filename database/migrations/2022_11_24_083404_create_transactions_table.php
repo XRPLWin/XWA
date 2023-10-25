@@ -223,7 +223,7 @@ return new class extends Migration
       $table->string('h',64)->comment('Transaction HASH');
       $table->string('r',50)->comment('Counterparty');
       $table->boolean('isin')->default(true)->comment('Direction (in or out)');
-      $table->unsignedInteger('fee')->comment('Fee in drops');
+      $table->unsignedInteger('fee')->nullable()->default(null)->comment('Fee in drops');
       //-999,999,999,999,999,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000
       // 999,999,999,999,999,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000
       // length: 96
@@ -239,10 +239,10 @@ return new class extends Migration
       $table->json('nftoffers')->comment('List of NFTOfferIDs that are affected in specific transaction');
       $table->string('pc',64)->nullable()->default(null)->comment('Payment channel');
       $table->json('hooks')->comment('List of executed hook hashes');
-      $table->integer('dt')->nullable()->default(null)->comment('Destination Tag');
-      $table->integer('st')->nullable()->default(null)->comment('Source Tag');
+      $table->bigInteger('dt')->nullable()->default(null)->comment('Destination Tag');
+      $table->bigInteger('st')->nullable()->default(null)->comment('Source Tag');
 
-      $table->primary(['address', 'l', 'li']);
+      $table->primary(['address', 'l', 'li', 'xwatype']);
     });
   }
 
