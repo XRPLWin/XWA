@@ -31,9 +31,11 @@ class AccountsRepository extends Repository
       return (array)$r->first();
   }
 
-  public static function getFirstTransactionAllInfo(): array
+  public static function getFirstTransactionAllInfo(string $address): array
   {
-    $results = DB::table('transactions')->select('xwatype',DB::raw('MIN(`t`) as t'))->orderBy('t','asc')
+    $results = DB::table('transactions')->select('xwatype',DB::raw('MIN(`t`) as t'))
+      ->where('address',$address)
+      ->orderBy('t','asc')
       ->groupBy('xwatype')
       ->get();
 

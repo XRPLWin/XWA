@@ -23,7 +23,7 @@ class Search
 {
   private string $address;
   private readonly array $params;
-  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','offer','nft','nftoffer','types','page'];
+  private array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','offer','nft','nftoffer','types','page']; //todo add hook and pc
   private bool $isExecuted = false;
   private array $errors = [];
   private int $last_error_code = 0; //0 - no error
@@ -60,6 +60,7 @@ class Search
   public function execute(): self
   {
     $acct = AccountLoader::get($this->address);
+   // dd($acct);
     
     if(!$acct) {
       $this->errors[] = 'Account not synced yet';

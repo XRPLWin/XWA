@@ -16,10 +16,11 @@ class AccountsRepository extends Repository
     return self::fetchOne('address = """'.$address.'"""');
   }
 
-  public static function getFirstTransactionAllInfo(): array
+  public static function getFirstTransactionAllInfo(string $address): array
   {
+    //TODO check query, dodan address
     $bigqueryresults = self::query(
-      'SELECT xwatype,t FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE TRUE QUALIFY ROW_NUMBER() OVER (PARTITION BY xwatype ORDER BY t ASC) = 1'
+      'SELECT xwatype,t FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE address="""'.$address.'""" AND TRUE QUALIFY ROW_NUMBER() OVER (PARTITION BY xwatype ORDER BY t ASC) = 1'
     );
 
     $collection = [];
