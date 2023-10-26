@@ -33,33 +33,4 @@ class TransactionsRepository extends Repository
     return $results->get();
   }
   
-  # OLD BELOW
-
-  /**
-   * Inserts one record to database.
-   * @return bool true on success
-   */
-  public static function insert(array $values): bool
-  {
-    if(!count($values))
-      throw new \Exception('Values missing');
-
-
-    $insert ='INSERT INTO `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` ('.\implode(',',\array_keys($values)).') VALUES (';
-    $castedValues = self::valuesToCastedValues(BTransaction::BQCASTS, $values);
-    $insert .= \implode(',',$castedValues);
-    $insert .= ')';
-
-    try {
-      \BigQuery::runQuery(\BigQuery::query($insert));
-    } catch (\Throwable $e) {
-      //dd($e->getMessage());
-      throw $e;
-      return false;
-    }
-    return true;
-  }
-
-
-  
 }

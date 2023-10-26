@@ -32,7 +32,9 @@ class BUnlvalidator extends B
     'active_fl_count'
   ];
 
-  protected $casts = [];
+  protected $casts = [
+    //
+  ];
 
   const BQCASTS = [
     'validator' => 'STRING',
@@ -49,9 +51,9 @@ class BUnlvalidator extends B
     return 'validator = """'.$this->validator.'"""';
   }
 
-  public static function repo_find(string $validator, ?string $select = null): ?self
+  public static function repo_find(string $validator, array $select = []): ?self
   {
-    $data = UnlvalidatorsRepository::fetchByValidator($validator,$select);
+    $data = self::getRepository()::fetchByValidator($validator,$select);
     
     if($data === null)
       return null;
@@ -70,7 +72,7 @@ class BUnlvalidator extends B
 
   public static function repo_insert(array $values): ?BUnlreport
   {
-    $saved = UnlvalidatorsRepository::insert($values);
+    $saved = self::getRepository()::insert($values);
     if($saved)
       return self::hydrate([$values])->first();
     return null;

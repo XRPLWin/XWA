@@ -76,7 +76,8 @@ class UnlReportController extends Controller
       $httpttl = 300; //5 mins, maybe 10 min? (ledger flag time is 12mins)
     }
 
-    $reports = BUnlreport::fetchByRange($li_start,$li_end);
+    $reports = BUnlreport::repo_fetchByRange($li_start,$li_end);
+    //dd($reports);
     return response()->json([
       'success' => true,
       'updated' => now(),
@@ -104,7 +105,7 @@ class UnlReportController extends Controller
     $httpttl = 600; //10 mins
 
     //
-    $lastCheckedLedgerIndex = BUnlreport::last('last_l');
+    $lastCheckedLedgerIndex = BUnlreport::repo_last(['last_l']);
     if(!$lastCheckedLedgerIndex) {
       $lastCheckedLedgerIndex = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger');
     } else {
@@ -114,7 +115,7 @@ class UnlReportController extends Controller
     //
 
     $codec = new AddressCodec();
-    $validators = BUnlvalidator::fetchAll();
+    $validators = BUnlvalidator::repo_fetchAll();
     $data = [];
     foreach($validators as $v) {
 
@@ -182,7 +183,7 @@ class UnlReportController extends Controller
         abort(425,'Too early (resync job is running)');
 
       //
-      $lastCheckedLedgerIndex = BUnlreport::last('last_l');
+      $lastCheckedLedgerIndex = BUnlreport::repo_last(['last_l']);
       if(!$lastCheckedLedgerIndex) {
         $lastCheckedLedgerIndex = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger');
       } else {
@@ -333,8 +334,8 @@ class UnlReportController extends Controller
     }
 
     //$reports = BUnlreport::fetchByRangeForValidator($validator,$li_start,$li_end);
-    $reports = BUnlreport::fetchByRange($li_start,$li_end);
-    $v = BUnlvalidator::find($validator,'first_l');
+    $reports = BUnlreport::repo_fetchByRange($li_start,$li_end);
+    $v = BUnlvalidator::repo_find($validator,['first_l']);
     
     $reports = \array_reverse($reports);
     $days = CarbonPeriod::create($from,$to);
@@ -364,7 +365,7 @@ class UnlReportController extends Controller
         $l2 = Ledger::getFromDate($_day);
       unset($_day);
       $list = $reports->where('first_l','>=',$l)->where('first_l','<',$l2);
-      
+
       if($list->count()) {
         $aggr[$day->format('Y-m-d')] = [
           'total' => $list->count(),
@@ -372,7 +373,6 @@ class UnlReportController extends Controller
           'inactive_num' => 0,
           'data' => []
         ];
-        
         foreach($list as $item) {
           $_validators = [];
           foreach($item['validators'] as $_v){

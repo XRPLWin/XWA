@@ -44,7 +44,7 @@ class ValidatorController extends Controller
       } else {
         $validators[$v->validation_public_key]['validator'] = $codec->decodeNodePublic($v->validation_public_key)->toString(); //ED
         $validators[$v->validation_public_key]['validator_n'] = $v->validation_public_key; //nX
-        $validators[$v->validation_public_key]['account'] = CoreUtilities::deriveAddress(\strtoupper($validators[$v->validation_public_key]['public_key_ed'])); //rX
+        $validators[$v->validation_public_key]['account'] = CoreUtilities::deriveAddress(\strtoupper($validators[$v->validation_public_key]['validator'])); //rX
       }
 
       //Sequence:

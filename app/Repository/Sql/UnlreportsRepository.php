@@ -30,35 +30,32 @@ class UnlreportsRepository extends Repository
     return $result;
   }
 
-  public static function fetchByLedgerIndexRange(int $start_li, int $end_li, ?string $select = null, string $where = '')
+  public static function fetchByLedgerIndexRange(int $start_li, int $end_li): array
   {
-    if($select === null)
-      $select = 'first_l,last_l,vlkey,validators';
-
-    $query = 'SELECT '.$select.' FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.unlreports` WHERE ('.
-             //'WHERE first_l BETWEEN '.$start_li.' AND '.$end_li.' ORDER BY first_l ASC';
-             //'WHERE (first_l BETWEEN '.$start_li.' AND '.$end_li.') OR (last_l BETWEEN '.$start_li.' AND '.$end_li.') ORDER BY first_l ASC';
-             //INNER:
-             '(first_l between '.$start_li.' AND '.$end_li.' AND last_l between '.$start_li.' AND '.$end_li.')'.
-             //BORDER RIGHT:
-             ' OR (first_l between '.$start_li.' AND '.$end_li.' AND last_l >= '.$end_li.')'.
-             //BORDER LEFT:
-             ' OR (first_l <= '.$start_li.' AND last_l between '.$start_li.' AND '.$end_li.')'.
-             //OUTER:
-             ' OR (first_l <= '.$start_li.' AND last_l >= '.$end_li.')) '.$where.' ORDER BY first_l ASC';
-    //dd($query);
-    try {
-      $results = \BigQuery::runQuery(\BigQuery::query(\trim($query)));
-    } catch (\Throwable $e) {
-      //dd($e->getMessage());
-      throw $e;
-    }
+    $query = DB::table('unlreports')->select(['first_l','last_l','vlkey','validators'])
+      //INNER:
+      ->orWhere(function($q) use ($start_li,$end_li) {
+        $q->whereBetween('first_l',[$start_li,$end_li]);
+        $q->whereBetween('last_l',[$start_li,$end_li]);
+      })
+      //BORDER RIGHT:
+      ->orWhere(function($q) use ($start_li,$end_li) {
+        $q->whereBetween('first_l',[$start_li,$end_li]);
+        $q->where('last_l','>=',$end_li);
+      })
+      //BORDER LEFT:
+      ->orWhere(function($q) use ($start_li,$end_li) {
+        $q->where('first_l','<=',$start_li);
+        $q->whereBetween('last_l',[$start_li,$end_li]);
+      })
+      //OUTER:
+      ->orWhere(function($q) use ($start_li,$end_li) {
+        $q->where('first_l','<=',$start_li);
+        $q->where('last_l','>=',$end_li);
+      })
+      ->orderBy('first_l','ASC');
     
-    $r = [];
-    foreach($results->rows(['returnRawResults' => false]) as $row) {
-      $r[] = $row;
-    }
-    return $r;
+    return $query->get()->toArray();
   }
 
 

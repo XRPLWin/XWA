@@ -85,20 +85,11 @@ class BUnlreport extends B
     return null;
   }
 
-  public static function fetchByRange(int $start_li, int $end_li)
+  public static function repo_fetchByRange(int $start_li, int $end_li)
   {
-    $data = UnlreportsRepository::fetchByLedgerIndexRange($start_li, $end_li);
+    $data = self::getRepository()::fetchByLedgerIndexRange($start_li, $end_li);
     return self::expandReports($data, $start_li, $end_li);
   }
-
-  /*public static function fetchByRangeForValidator(string $validator, int $start_li, int $end_li)
-  {
-    //$where = 'AND EXISTS(SELECT 1 FROM UNNEST(validators) AS v WHERE v="""'.$validator.'""")';
-    $where = '';
-    $data = UnlreportsRepository::fetchByLedgerIndexRange($start_li, $end_li,null,$where);
-    dd($data);
-    return self::expandReports($data, $start_li, $end_li);
-  }*/
 
   /**
    * @param array $compactedRows - result from bigquery db
@@ -127,12 +118,17 @@ class BUnlreport extends B
 
       //echo $x.' - ('.$first_fl.' - '.$flag.')<br>';
       foreach($compactedRows as $row) {
+        $row = (array)$row;
         if($row['first_l'] < $flag && $row['last_l'] >= $flag) {
           $is_started = true;
           $row['first_l'] = $flag-255;
           $row['last_l'] = $flag;
-
+          if(\is_string($row['validators'])) {
+            $row['validators'] = \json_decode($row['validators']);
+          }
+            
           $r[$flag] = $row;
+
           break;
         }
       }

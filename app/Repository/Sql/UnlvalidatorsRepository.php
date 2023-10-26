@@ -28,9 +28,22 @@ class UnlvalidatorsRepository extends Repository
    * Load account data by validator key.
    * @return ?array
    */
-  public static function fetchByValidator(string $validator, ?string $select = null): ?array
+  public static function fetchByValidator(string $validator, array $select = []): ?array
   {
-    return self::fetchOne('WHERE validator = """'.$validator.'"""',$select);
+    if(count($select) == 0)
+      $select = [
+        'validator',
+        'account',
+        'first_l',
+        'last_l',
+        'current_successive_fl_count',
+        'max_successive_fl_count',
+        'active_fl_count'
+      ];
+    $r = DB::table('unlvalidators')->select($select)->where('validator',$validator)->first();
+    if($r !== null)
+      return (array)$r;
+    return null;
   }
 
   /**
@@ -58,28 +71,4 @@ class UnlvalidatorsRepository extends Repository
     return $r;
   }
 
-  /**
-   * Inserts one record to database.
-   * @return bool true on success
-   */
-  public static function insert(array $values): bool
-  {
-   
-    if(!count($values))
-      throw new \Exception('Values missing');
-
-    $insert ='INSERT INTO `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.unlvalidators` ('.\implode(',',\array_keys($values)).') VALUES (';
-    $castedValues = self::valuesToCastedValues(BUnlvalidator::BQCASTS, $values);
-    $insert .= \implode(',',$castedValues);
-    $insert .= ')';
-    
-    try {
-      \BigQuery::runQuery(\BigQuery::query($insert));
-    } catch (\Throwable $e) {
-      //dd($e->getMessage());
-      throw $e;
-      return false;
-    }
-    return true;
-  }
 }

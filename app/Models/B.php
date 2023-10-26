@@ -193,7 +193,7 @@ abstract class B extends Model
     //if ($this->usesTimestamps()) {
     //    $this->updateTimestamps();
     //}
-    $saved = $data['model']::repositoryclass::insert($data['fields']);
+    $saved = $data['model']::repositoryclass::insert($data['fields']); //TODO
     if(!$saved)
       return false;
 
