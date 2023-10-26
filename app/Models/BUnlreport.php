@@ -1,11 +1,9 @@
 <?php
 
 namespace App\Models;
-#use Illuminate\Support\Facades\DB;
-#use App\Repository\UnlreportsRepository;
 use XRPLWin\UNLReportReader\UNLReportReader;
 use XRPLWin\XRPL\Utilities\UNLReportFlagLedger;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+#use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 
 class BUnlreport extends B
 {
@@ -14,8 +12,6 @@ class BUnlreport extends B
   protected $primaryKey = 'first_l';
   protected $keyType = 'int';
   public $incrementing = false;
-  #const repositoryclass = UnlreportsRepository::class;
-
 
   public static function getRepository(): string
   {
@@ -52,14 +48,14 @@ class BUnlreport extends B
     return 'first_l = '.$this->first_l;
   }
 
-  public static function find(int $ledger_index, ?string $select = null): ?self
+  /*public static function find(int $ledger_index, ?string $select = null): ?self
   {
     $data = UnlreportsRepository::fetchByLedgerIndex($ledger_index,$select);
     
     if($data === null)
       return null;
     return self::hydrate([$data])->first();
-  }
+  }*/
 
   public static function repo_last(array $select = []): ?self //OK
   {
@@ -102,10 +98,7 @@ class BUnlreport extends B
 
     //Collect variables
     $first_fl = UNLReportFlagLedger::next($start_li); //1 to 256 (+255)
-    //$endRow = \end($compactedRows);
-    //$last_fl = $endRow['last_l']; //512
     $last_fl = UNLReportFlagLedger::next($end_li);
-    //unset($endRow);
     $count = UNLReportReader::calcNumFlagsBetweenLedgers($first_fl,$last_fl);
 
     $r = [];
@@ -113,10 +106,6 @@ class BUnlreport extends B
     for($x=1; $x<=$count; $x++) {
       $flag = ($first_fl+(256*($x-1)));
 
-      
-
-
-      //echo $x.' - ('.$first_fl.' - '.$flag.')<br>';
       foreach($compactedRows as $row) {
         $row = (array)$row;
         if($row['first_l'] < $flag && $row['last_l'] >= $flag) {
@@ -176,9 +165,7 @@ class BUnlreport extends B
     $seed = (string)$this->vlkey.'_';
     $validators_seed_array = [];
 
-   
     foreach($this->validators as $v) {
-      //$validators_seed_array[] = $v['pk'].'-'.(string)$v['acc'];
       $validators_seed_array[] = (string)$v;
     }
     \sort($validators_seed_array);

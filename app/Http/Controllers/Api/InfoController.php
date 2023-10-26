@@ -76,29 +76,22 @@ class InfoController extends Controller
       ];
       $endpoints[] = [
         'action' => 'Get Validators list',
-        'route' => '/v1/unlvalidators',
+        'route' => '/v1/validators/unl',
         'method' => 'GET',
-        'example' => config('app.url').'/v1/unlvalidators',
+        'example' => config('app.url').'/v1/validators/unl',
       ];
       $endpoints[] = [
         'action' => 'Get Validator info',
-        'route' => '/v1/unlvalidator/{validator}',
+        'route' => '/v1/validators/unl/{validator}',
         'method' => 'GET',
-        'example' => config('app.url').'/v1/unlvalidator/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69',
+        'example' => config('app.url').'/v1/validators/unl/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69',
       ];
       $endpoints[] = [
         'action' => 'Get aggregated Validator reports (per day)',
-        'route' => '/v1/unlvalidator/{validator}/reports/daily/{from}/{to}',
+        'route' => '/v1/validators/unl/{validator}/reports/daily/{from}/{to}',
         'method' => 'GET',
-        'example' => config('app.url').'/v1/unlvalidator/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69/reports/daily/2023-10-01/2023-10-03',
+        'example' => config('app.url').'/v1/validators/unl/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69/reports/daily/2023-10-01/2023-10-03',
       ];
-      $endpoints[] = [
-        'action' => 'Get Validator reports for day',
-        'route' => '/v1/unlvalidator/{validator}/reports/{day}',
-        'method' => 'GET',
-        'example' => config('app.url').'/v1/unlvalidator/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69/reports/2023-10-01',
-      ];
-
     }
     return response()->json([
       'version' => config('xwa.version'),

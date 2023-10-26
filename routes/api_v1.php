@@ -33,4 +33,3 @@ Route::get('/unlreport/{from}/{to?}', [App\Http\Controllers\Api\UnlReportControl
 Route::get('/validators/unl', [App\Http\Controllers\Api\UnlReportController::class, 'validators'])->name('unlreport.validators');
 Route::get('/validators/unl/{validator}', [App\Http\Controllers\Api\UnlReportController::class, 'validator'])->name('unlreport.validator');
 Route::get('/validators/unl/{validator}/reports/daily/{from}/{to}', [App\Http\Controllers\Api\UnlReportController::class, 'validator_reports_daily'])->name('unlreport.validator_reports_daily');
-Route::get('/validators/unl/{validator}/reports/{day}', [App\Http\Controllers\Api\UnlReportController::class, 'validator_reports_day'])->name('unlreport.validator_reports_day');
