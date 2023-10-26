@@ -10,7 +10,9 @@ namespace App\Utilities\Sql;
 
 use App\Models\BAccount;
 use App\Models\BTransaction;
-use App\Utilities\Mapper;
+use App\Utilities\Base\Mapper as BaseMapper;
+use App\Utilities\Sql\Mapper;
+use Illuminate\Support\Facades\DB;
 #use App\Utilities\AccountLoader;
 
 #use Illuminate\Http\Request;
@@ -40,7 +42,7 @@ class Search extends \App\Utilities\Base\Search
     $mapper = new Mapper();
     $mapper->setAddress($this->address);
     $mapper->setPage($page);
-
+    
     $mapper
       ->addCondition('from',$this->param('from'))
       ->addCondition('to',$this->param('to'));
@@ -89,6 +91,7 @@ class Search extends \App\Utilities\Base\Search
       ];*/
       throw new \Exception('No synced transactions found');
     }
+   
     $c1 = $dateRanges[1]->setTimeFromTimeString('10:00:00');
     $c2 = Carbon::createFromFormat('U',$firstTxInfo['first'])->setTimeFromTimeString('10:00:00');
     
@@ -103,7 +106,7 @@ class Search extends \App\Utilities\Base\Search
       //throw new \Exception('No transactions found to requested date');
     }
       
-
+    
     if(!$typesIsAll) {
       //only specific types are requested
       $_txtypesrangeisvalid = false;
@@ -220,75 +223,36 @@ class Search extends \App\Utilities\Base\Search
     $mapper->checkRequirements($acct);
 
     //Now the fun part.
-    //$repo = self::getRepository()::search($mapper);
-    //dd($repo);
-    # Build query for BQ
+
+    # Build query for SQL
     $limit = $mapper->getLimit();
 
-    //$repo = self::getRepository()::search();
+    $SQL = DB::table('transactions');
+    $SQL = $mapper->generateConditionsSQL($SQL);
 
-    
-    //$limit = 1;
-    //$start = microtime(true);
-    $SQL = 'SELECT '.\implode(',',\array_keys(BTransaction::BQCASTS)).' FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE ';
-    //$SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE ';
-    
-    # Add all conditions
-    $SQL .= $mapper->generateConditionsSQL();
     # Limit and offset, always get +1 result to see if there are more pages
-    $SQL .= ' ORDER BY t ASC LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
-    //dd($mapper,$limit,$SQL);
-    //dump(' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset());
+    $SQL->orderBy('t','ASC')->limit(($limit+1))->offset($mapper->getOffset());
 
-    //https://github.com/googleapis/google-cloud-php-bigquery/blob/main/tests/Snippet/CopyJobConfigurationTest.php
-    ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2014-08-15&to=2017-08-15&types[0]=Payment
-    ///v1/account/search/rDCgaaSBAWYfsxUYhCk1n26Na7x8PQGmkq?from=2016-09-06&to=2016-09-06&types[0]=Payment&dir=in
-    //https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert
-    $query = \BigQuery::query($SQL)->useQueryCache($dateRanges[1]->isToday() ? false:true); //we do not use cache on queries that envelop today
+    // Test start
+    //DB::enableQueryLog(); // Enable query log
+    //$testresult = $SQL->get();
+    //dump(DB::getQueryLog()); // Show results of log
+    //dd($SQL, $testresult);
+    // Test end
 
-    $timeoutMs = 10000;
-    # Run query and wait for results
-    $results = \BigQuery::runQuery($query,[
-      'timeoutMs' => $timeoutMs
-    ]); //run query
-
-    
-    /*$backoff = new \Google\Cloud\Core\ExponentialBackoff(8);
-    $backoff->execute(function () use ($results) {
-        $results->reload();
-        
-        if (!$results->isComplete()) {
-            throw new \Exception();
-        }
-    });*/
-
-    if (!$results->isComplete()) {
-      //Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('Query did not complete within the allotted time');
-      throw new \Exception('Query did not complete within the allotted time');
-    }
-    //$_info = $results->job()->info();
-    //$_info['statistics']['finalExecutionDurationMs'] = isset($_info['statistics']['finalExecutionDurationMs']) ? $_info['statistics']['finalExecutionDurationMs']:'-';
-    //$_log = $_info['statistics']['finalExecutionDurationMs'].'ms - '.$_info['selfLink']. ' with timeoutMs '.$timeoutMs.'ms';
-    //Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info($_log);
-    //dd($_log);
-
-    
-    // All results are loaded at this point
-    //echo  microtime(true)- $start;
-
-    //dd('stop');
-
+    $results = $SQL->get();
+    //dd($results);
 
     # Loop raw results and create models
     $i = 1;
     $hasMorePages = false;
     $collection = [];
-    foreach($results->rows(['returnRawResults' => false]) as $row) {
+    foreach($results as $row) {
       if($i > $limit) {
         $hasMorePages = true;
         break;
       }
-      $collection[] = $this->mutateRowToModel($row);
+      $collection[] = $this->mutateRowToModel((array)$row);
       $i++;
     }
     
@@ -304,7 +268,7 @@ class Search extends \App\Utilities\Base\Search
    * @throws \Exception
    * @return int
    */
-  protected function _runCount(Mapper $mapper, array $dateRanges): int
+  protected function _runCount(BaseMapper $mapper, array $dateRanges): int
   {
 
     $cache_key = 'searchcount:'.$this->_generateSearchIndentifier($mapper);
@@ -312,33 +276,9 @@ class Search extends \App\Utilities\Base\Search
     if($count === null) {
 
       # Count Start
-
-      $SQL = 'SELECT COUNT(*) as c FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE ';
-      # Add all conditions
-      $SQL .= $mapper->generateConditionsSQL();
-      $query = \BigQuery::query($SQL)->useQueryCache($dateRanges[1]->isToday() ? false:true); //we do not use cache on queries that envelop today
-      # Run query and wait for results
-      $results = \BigQuery::runQuery($query); //run query
-  
-      /*$backoff = new \Google\Cloud\Core\ExponentialBackoff(8);
-      $backoff->execute(function () use ($results) {
-          $results->reload();
-          if (!$results->isComplete()) {
-              throw new \Exception();
-          }
-      });*/
-  
-      if (!$results->isComplete()) {
-        throw new \Exception('Count Query did not complete within the allotted time');
-      }
-      $count = null;
-      foreach($results->rows() as $v) {
-        $count = $v['c'];
-        break;
-      }
-      if($count === null)
-        throw new \Exception('Count Query did not returned expected single row');
-
+      $SQL = DB::table('transactions');
+      $SQL = $mapper->generateConditionsSQL($SQL);
+      $count = $SQL->count();
       # Count End
       Cache::put($cache_key, $count, 86400); //86400 seconds = 24 hours
     }

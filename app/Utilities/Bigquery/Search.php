@@ -10,7 +10,8 @@ namespace App\Utilities\Bigquery;
 
 use App\Models\BAccount;
 use App\Models\BTransaction;
-use App\Utilities\Mapper;
+use App\Utilities\Base\Mapper as BaseMapper;
+use App\Utilities\Bigquery\Mapper;
 #use App\Utilities\AccountLoader;
 
 #use Illuminate\Http\Request;
@@ -304,7 +305,7 @@ class Search extends \App\Utilities\Base\Search
    * @throws \Exception
    * @return int
    */
-  protected function _runCount(Mapper $mapper, array $dateRanges): int
+  protected function _runCount(BaseMapper $mapper, array $dateRanges): int
   {
 
     $cache_key = 'searchcount:'.$this->_generateSearchIndentifier($mapper);

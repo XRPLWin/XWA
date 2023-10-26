@@ -58,12 +58,9 @@ class AccountController extends Controller
     else
       $search = new SqlSearch($address);
     
-    
-    
     $search->buildFromRequest($request);
     
     $search->execute();
-    dd($search);
     if($search->hasErrors()) {
       return response()->json(['success' => false, 'error_code' => $search->getErrorCode(), 'errors' => $search->getErrors()],422);
     }
