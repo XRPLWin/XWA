@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
+use XRPLWin\XRPL\WSSClient;
+
 class XwaContinuousSync extends Command
 {
     /**
