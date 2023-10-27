@@ -69,6 +69,12 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 
+        'syncjobcontinuous' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/syncjobcontinuous.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Repository\Base\BatchInterface;
 use App\Repository\Sql\Batch as SqlBatch;
 use App\Repository\Bigquery\Batch as BigqueryBatch;
-use App\Repository\TransactionsRepository;
+#use App\Repository\TransactionsRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -96,6 +96,9 @@ class XwaAccountSync extends Command
      */
     public function handle()
     {
+      if(config('xwa.sync_type') != 'account')
+        return self::FAILURE;
+
       $this->debug = config('app.debug');
       $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
       

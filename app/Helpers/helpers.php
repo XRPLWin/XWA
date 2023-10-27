@@ -1,5 +1,19 @@
 <?php
 
+
+if (!function_exists('instanceid')) {
+  /**
+  * Config on demand, Laravel way.
+  * @param string $namespace - dot seperated namespace where first param is config_static/FILE.php
+  * @return mixed
+  */
+  function instanceid()
+  {
+    return \substr(config('app.key'),7,4);
+  }
+}
+
+
 if (!function_exists('config_static')) {
   /**
   * Config on demand, Laravel way.
