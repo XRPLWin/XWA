@@ -413,7 +413,6 @@ class XwaAccountSync extends Command
       $batch->queueModelChanges($model);
       //$model->save();
       return $parsedData;
-      return []; //TODO
     }
 
     /**
@@ -786,9 +785,12 @@ class XwaAccountSync extends Command
       $batch->queueModelChanges($model);
       //$model->save();
       return $parsedData;
-   
     }
 
+    /**
+     * PaymentChannelFund
+     * @return array
+     */
     private function processTransaction_PaymentChannelFund(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
     {
       /** @var \App\XRPLParsers\Types\PaymentChannelFund */
@@ -808,6 +810,10 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    /**
+     * PaymentChannelClaim
+     * @return array
+     */
     private function processTransaction_PaymentChannelClaim(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
     {
       /** @var \App\XRPLParsers\Types\PaymentChannelClaim */
@@ -852,7 +858,7 @@ class XwaAccountSync extends Command
     }
 
     /**
-     * DepositPreauth
+     * TicketCreate
      * ex. 7458B6FD22827B3C141CDC88F1F0C72658C9B5D2E40961E45AF6CD31DECC0C29 - rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn
      * @return array
      */
@@ -994,6 +1000,10 @@ class XwaAccountSync extends Command
 
     # HOOKS start
 
+    /**
+     * SetHook
+     * @return array
+     */
     private function processTransaction_SetHook(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
     {
       /** @var \App\XRPLParsers\Types\SetHook */
@@ -1012,6 +1022,10 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    /**
+     * Invoke
+     * @return array
+     */
     private function processTransaction_Invoke(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
     {
       /** @var \App\XRPLParsers\Types\Invoke */
@@ -1030,6 +1044,12 @@ class XwaAccountSync extends Command
       return $parsedData;
     }
 
+    # HOOKS end
+
+    /**
+     * URITokenBuy
+     * @return array
+     */
     private function processTransaction_URITokenBuy(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
     {
       /** @var \App\XRPLParsers\Types\URITokenBuy */
@@ -1051,7 +1071,7 @@ class XwaAccountSync extends Command
 
 
 
-    # HOOKS end
+    
 
     /**
      * Flush account maps and cache for this day.

@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Utilities\Ledger;
+#use App\Utilities\Ledger;
 use Illuminate\Support\Facades\Log;
 use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
 use App\Utilities\AccountLoader;
@@ -12,6 +12,7 @@ use App\Repository\Sql\Batch as SqlBatch;
 use App\Repository\Bigquery\Batch as BigqueryBatch;
 use App\XRPLParsers\Parser;
 use App\Models\BAccount;
+use App\Models\BTransactionActivation;
 
 class XwaContinuousSync extends Command
 {
@@ -36,7 +37,7 @@ class XwaContinuousSync extends Command
      * 
      * @var int
      */
-    protected int $wsbatchlimit = 1; //10
+    protected int $wsbatchlimit = 10; //10
 
     /**
      * How much transactions will be prepared before batch-insert
@@ -44,7 +45,7 @@ class XwaContinuousSync extends Command
      * 
      * @var int
      */
-    protected int $txbatchlimit = 10; //400
+    protected int $txbatchlimit = 400; //400
 
     /**
      * Ledger index tracking variables
@@ -89,12 +90,12 @@ class XwaContinuousSync extends Command
 
       $this->client = new \WebSocket\Client($ws_uri,[
         'context' => $context,
-        'filter' => ['text', 'binary', 'ping'],
+        'filter' => ['text'],// ['text', 'binary', 'ping'],
         'headers' => [ // Additional headers, used to specify subprotocol
           'User-Agent' => 'XRPLWin XWA (v'.config('xwa.version').') instanceid: '.instanceid(),
         ],
         'persistent' => true,
-        'timeout' => 10
+        'timeout' => 30
       ]);
 
       //this is max ledger we can query
@@ -144,41 +145,6 @@ class XwaContinuousSync extends Command
       
       $this->log('Disconnecting...');
       $this->client->close();
-
-
-      //Do tx parse on $ledgerdata:
-      
-      dd(count($transactions));
-
-      # Setup end
-
-      
-
-      $this->client->text('{"id" : 1, "command" : "ping"}');
-      $this->line($this->client->receive());
-      /*$client->text('{"id" : 2, "command" : "ping"}');
-      $this->line($client->receive());
-      $client->text('{"id" : 9, "command" : "ping"}');
-      $this->line($client->receive());
-      $client->text('{"id" : 1, "command" : "ping"}');
-      $this->line($client->receive());*/
-      /*$client->text('{"id" : 2, "command" : "ping"}');
-      $this->line($client->receive());
-      $client->text('{"id" : 9, "command" : "ping"}');
-      $this->line($client->receive());
-      $client->text('{"id" : 1, "command" : "ping"}');
-      $this->line($client->receive());
-      $client->text('{"id" : 2, "command" : "ping"}');
-      $this->line($client->receive());
-      $client->text('{"id" : 9, "command" : "ping"}');
-      $this->line($client->receive());*/
-
-
-      //$client->text('{"id" : 1, "command" : "ping"}');
-      //echo $client->receive();
-      $this->client->close();
-
-  
       return Command::SUCCESS;
     }
 
@@ -189,13 +155,14 @@ class XwaContinuousSync extends Command
     private function processTransactions(array $txs): void
     {
       $parsedDatas = []; //list of sub-method results (parsed transactions)
+      $accounts = []; //list of account models which will be pushed to queue
       # Prepare Batch instance which will hold list of queries to be executed at once to BigQuery
-      if(config('xwa.database_engine') == 'bigquery')
-        $batch = new BigqueryBatch;
-      else
-        $batch = new SqlBatch;
+      $batch = (config('xwa.database_engine') == 'bigquery') ? new BigqueryBatch : new SqlBatch;
 
       $this->log('Starting processing batch of '.count($txs).' transactions...');
+      $bar = $this->output->createProgressBar(count($txs));
+      $bar->start();
+
 
       foreach($txs as $transaction) {
         if($transaction->metaData->TransactionResult != 'tesSUCCESS')
@@ -212,23 +179,36 @@ class XwaContinuousSync extends Command
         $participants = $extractor->result();
         foreach($participants as $participant) {
           $this->log('- '.$participant);
-          $account = AccountLoader::getOrCreate($participant);
+
+          if(!isset($accounts[$participant]))
+            $accounts[$participant] = AccountLoader::getOrCreate($participant);
           
-          $parsedDatas[] = $this->{$method}($account, $transaction, $batch);
+          $parsedDatas[] = $this->{$method}($accounts[$participant], $transaction, $batch);
+
+          //update last synced ledger index to account metadata
+          $accounts[$participant]->l = $transaction->ledger_index;
+          $accounts[$participant]->li = $transaction->metaData->TransactionIndex;
+          $accounts[$participant]->lt = ripple_epoch_to_carbon($transaction->date)->format('Y-m-d H:i:s.uP');
+          //dd($account);
         }
 
 
         //dd($transaction->_xwa_ledger_index);
 
-        dd($parsedDatas);
+        //dd($parsedDatas);
         //this is faster than call_user_func()
         //return $this->{$method}($account, $transaction, $batch);
+        $bar->advance();
       }
-      
+      $bar->finish();
 
+      foreach($accounts as $a) {
+        $batch->queueModelChanges($a);
+      }
 
+      $processed_rows = $batch->execute();
+      $this->log('- DONE (processed '.$processed_rows.' rows)');
 
-      dd($txs[0]);
     }
 
     /**
@@ -252,6 +232,670 @@ class XwaContinuousSync extends Command
       //$model->save();
       return $parsedData;
     }
+
+    /**
+     * Canceled offer
+     * @return array
+     */
+    private function processTransaction_OfferCancel(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\OfferCancel */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+    * Payment to or from in any currency.
+    * @return array
+    */
+    private function processTransaction_Payment(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\Payment */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      //dd($TransactionClassName);
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      
+      $batch->queueModelChanges($model);
+      //$model->save();
+      
+      # Activations by payment:
+      $parser->detectActivations();
+
+      if($activatedAddress = $parser->getActivated()) {
+        //$this->log('');
+        //$this->log('Activation: '.$activatedAddress. ' on index '.$parser->SK());
+        $Activation = new BTransactionActivation([
+          'address' => $account->address,//.'-'.BTransactionActivation::TYPE,
+          'xwatype' => BTransactionActivation::TYPE,
+          'l' => $parsedData['l'],
+          'li' => $parsedData['li'],
+          'h' => $parsedData['h'],
+          't' => ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('Y-m-d H:i:s.uP'),
+          'r' => $activatedAddress,
+          'isin' => true,
+          'offers' => [],
+          'nftoffers' => [],
+          'hooks' => [],
+        ]);
+        $batch->queueModelChanges($Activation);
+        //$Activation->save();
+      }
+
+      if($activatedByAddress = $parser->getActivatedBy()) {
+        $this->log('');
+        $this->log('Activation: Activated by '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
+        $account->activatedBy = $activatedByAddress;
+        $account->isdeleted = false; //in case it is reactivated, this will remove field on model save
+        $batch->queueModelChanges($account);
+        //$account->save();
+      }
+      return $parsedData;
+    }
+
+    /**
+     * TrustSet (set or unset)
+     * @return array
+     */
+    private function processTransaction_TrustSet(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\TrustSet */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * AccountSet
+     * @return array
+     */
+    private function processTransaction_AccountSet(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\AccountSet */
+
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * AccountDelete
+     * @return array
+     */
+    private function processTransaction_AccountDelete(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\AccountDelete */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      
+      if(!$parsedData['isin']) {
+        //outgoing, this is deleted account, flag account deleted
+        $this->log('');
+        $this->log('Deleted');
+        $account->isdeleted = true;
+        $batch->queueModelChanges($account);
+        //$account->save();
+      }
+
+      return $parsedData;
+    }
+
+    /**
+     * SetRegularKey
+     * ex. rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn
+     * @return array
+     */
+    private function processTransaction_SetRegularKey(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\SetRegularKey */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * SignerListSet
+     * ex. 09A9C86BF20695735AB03620EB1C32606635AC3DA0B70282F37C674FC889EFE7
+     * @return array
+     */
+    private function processTransaction_SignerListSet(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\SignerListSet */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * CheckCreate
+     * ex. 4E0AA11CBDD1760DE95B68DF2ABBE75C9698CEB548BEA9789053FCB3EBD444FB
+     * @return array
+     */
+    private function processTransaction_CheckCreate(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\CheckCreate */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * CheckCash
+     * ex. 67B71B13601CDA5402920691841AC27A156463678E106FABD45357175F9FF406
+     * @return array
+     */
+    private function processTransaction_CheckCash(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\CheckCash */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * CheckCancel
+     * ex. D3328000315C6DCEC1426E4E549288E3672752385D86A40D56856DBD10382953
+     * @return array
+     */
+    private function processTransaction_CheckCancel(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\CheckCancel */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * EscrowCreate
+     * ex. C44F2EB84196B9AD820313DBEBA6316A15C9A2D35787579ED172B87A30131DA7
+     * @return array
+     */
+    private function processTransaction_EscrowCreate(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\EscrowCreate */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * EscrowFinish
+     * ex. 317081AF188CDD4DBE55C418F41A90EC3B959CDB3B76105E0CBE6B7A0F56C5F7
+     * @return array
+     */
+    private function processTransaction_EscrowFinish(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\EscrowFinish */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * EscrowCancel
+     * ex. B24B9D7843F99AED7FB8A3929151D0CCF656459AE40178B77C9D44CED64E839B
+     * @return array
+     */
+    private function processTransaction_EscrowCancel(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\EscrowCancel */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * PaymentChannelCreate
+     * @return array
+     */
+    private function processTransaction_PaymentChannelCreate(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\PaymentChannelCreate */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * PaymentChannelFund
+     * @return array
+     */
+    private function processTransaction_PaymentChannelFund(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\PaymentChannelFund */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * PaymentChannelClaim
+     * @return array
+     */
+    private function processTransaction_PaymentChannelClaim(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\PaymentChannelClaim */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * DepositPreauth
+     * ex. CB1BF910C93D050254C049E9003DA1A265C107E0C8DE4A7CFF55FADFD39D5656
+     * @return array
+     */
+    private function processTransaction_DepositPreauth(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\DepositPreauth */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * TicketCreate
+     * ex. 7458B6FD22827B3C141CDC88F1F0C72658C9B5D2E40961E45AF6CD31DECC0C29 - rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn
+     * @return array
+     */
+    private function processTransaction_TicketCreate(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\TicketCreate */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * NFTokenCreateOffer
+     * ex. 36E42A76F46711318C27247E4DA3AE962E6976EC6F44917F15E37EC5A9DA2352
+     * @return array
+     */
+    private function processTransaction_NFTokenCreateOffer(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\NFTokenCreateOffer */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * NFTokenAcceptOffer
+     * ex. 9D9BC8AA88DC3ED64F7A7CBD1F7676438751E01A3A94CA8A606022EC2CAE3BE5 - rBKXVs4NBYLVBvaeCBVFsdJSYBjoHhf1yY
+     * @return array
+     */
+    private function processTransaction_NFTokenAcceptOffer(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\NFTokenAcceptOffer */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * NFTokenCancelOffer
+     * ex. DF3137FA90575D6F75EE6F5B9D51DFA9722AF7CBB18B19ADBBB8E20D15CFD238 - rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw
+     * @return array
+     */
+    private function processTransaction_NFTokenCancelOffer(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\NFTokenCancelOffer */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * NFTokenMint
+     * ex. 97F547EEDD12D5FC8F555B359FB7098A26D09C9E4E8B7FD9CEC1560ABEBF4341 - rKgR5LMCU1opzENpP7Qz7bRsQB4MKPpJb4
+     * @return array
+     */
+    private function processTransaction_NFTokenMint(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\NFTokenMint */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * NFTokenBurn
+     * ex. 97F547EEDD12D5FC8F555B359FB7098A26D09C9E4E8B7FD9CEC1560ABEBF4341 - rKgR5LMCU1opzENpP7Qz7bRsQB4MKPpJb4
+     * @return array
+     */
+    private function processTransaction_NFTokenBurn(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\NFTokenBurn */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    # HOOKS start
+
+    /**
+     * SetHook
+     * @return array
+     */
+    private function processTransaction_SetHook(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\SetHook */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      $parsedData = $parser->toBArray();
+
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * Invoke
+     * @return array
+     */
+    private function processTransaction_Invoke(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\Invoke */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      $parsedData = $parser->toBArray();
+      
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    # HOOKS end
+
+    /**
+     * URITokenBuy
+     * @return array
+     */
+    private function processTransaction_URITokenBuy(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\URITokenBuy */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      $parsedData = $parser->toBArray();
+      
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    
+
 
     /**
      * Pulls x ledgers. If returned null - no more ledgers to pull.
@@ -290,7 +934,34 @@ class XwaContinuousSync extends Command
         ];
         //dd(\json_encode($params));
         $this->client->text(\json_encode($params));
-        $response = \json_decode($this->client->receive());
+        //$receive = $this->client->receive();
+        //$response = \json_decode($receive);
+        $response = null;
+        # Mini loop to ensure rate limiting...
+
+        while(true) {
+          $receive = $this->client->receive();
+          
+          if($receive === null) {
+            $this->log('Connection closed');
+            $this->client->close();
+            $this->log('Cooling down (3 seconds)...');
+            sleep(3);
+            $this->client->text(\json_encode($params));
+            //dump($params,$receive);
+            
+          } elseif($receive === '') {
+            dd('Unknown response (Ping?)');
+          } else {
+            $response = \json_decode($receive);
+            break;
+          }
+        }
+
+        if($response === null)
+          throw new \Exception('Unhandled: ws response not filled');
+
+        # Mini loop end
         if($response->status != 'success') {
           throw new \Exception('Unsucessful response from wss endpoint');
           //retry?
