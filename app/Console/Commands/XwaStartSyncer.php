@@ -40,7 +40,7 @@ class XwaStartSyncer extends Command
     dd($chromedriverPath);
     exit;*/
 
-    $numberOfProcess = 6;
+    $numberOfProcess = 16;
     $ledgersPerProcess = 1000;
 
     $first_l = config('xrpl.genesis_ledger'); //starting ledger
@@ -63,6 +63,7 @@ class XwaStartSyncer extends Command
       $process->disableOutput();
       $process->start();
       $processes[] = ['proc' => $process,'start_l' => $start_l, 'end_l' => $end_l];
+      sleep(3);
     }
     // wait for above processes to complete
     while (count($processes)) {

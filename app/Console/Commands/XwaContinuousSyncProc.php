@@ -153,8 +153,8 @@ class XwaContinuousSyncProc extends Command
       $this->log('Job params: '.$this->ledger_index_start.' '.$this->ledger_index_end);
 
       # Setup start
-      $ws_uri = 'wss://'.config('xrpl.'.config('xrpl.net').'.server_wss');
-      //dd($ws_uri);
+      $ws_uri = config('xrpl.'.config('xrpl.net').'.server_wss_syncer');
+      
       //$ws_uri = 'wss://s.altnet.rippletest.net';
       $context = stream_context_create();
       stream_context_set_option($context, 'ssl', 'verify_peer', false);
