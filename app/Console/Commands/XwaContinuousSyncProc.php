@@ -14,14 +14,14 @@ use App\XRPLParsers\Parser;
 use App\Models\BAccount;
 use App\Models\BTransactionActivation;
 
-class XwaContinuousSync extends Command
+class XwaContinuousSyncProc extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'xwa:continuoussync
+    protected $signature = 'xwa:continuoussyncproc
                            {ledger_index_start : Starting ledger index}
                            {ledger_index_end? : Ending ledger index}';
 
@@ -30,7 +30,7 @@ class XwaContinuousSync extends Command
      *
      * @var string
      */
-    protected $description = 'Sync transactions in ledgers, one by one.';
+    protected $description = 'Sync transactions in ledgers, one by one. This is single process. In production env it if recommended to invoke this via other command.';
 
     /**
      * How much commands will be sent in single loop to XRPL Node
