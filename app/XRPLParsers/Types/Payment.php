@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class Payment extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED','TRADE','REGULARKEYSIGNER','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','TRADE','REGULARKEYSIGNER','SET','UNKNOWN'];
   /**
    * Parses Payment type fields and maps them to $this->data
    * Accepted parsedType: SENT|RECEIVED|TRADE|UNKNOWN
@@ -21,7 +21,7 @@ final class Payment extends XRPLParserBase
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     # Sub-Type
-    if($parsedType === 'TRADE') {
+    if($parsedType === 'TRADE' || $parsedType === 'SET') {
 
       //Eg. Trade based on offer, or self to self, trustline shift, ...
 
@@ -35,8 +35,11 @@ final class Payment extends XRPLParserBase
          */
         $this->transaction_type_class = 'Payment_Exchange';
       }
+    } else {
+      //set this as balance change if ref account is issuer of traded currency
+      if(isset($this->tx->Amount->issuer) && $this->tx->Amount->issuer == $this->reference_address)
+        $this->transaction_type_class = 'Payment_BalanceChange';
     }
-
 
     # Counterparty
     if($parsedType === 'SENT') {
@@ -49,9 +52,14 @@ final class Payment extends XRPLParserBase
       $this->data['Counterparty'] = $this->tx->Account;
     } elseif( $parsedType === 'UNKNOWN' ) {
       $this->data['Counterparty'] = $this->tx->Account;
+      if(!isset($this->data['eventList']['primary']) && !isset($this->data['eventList']['secondary']) && !\array_key_exists('Fee', $this->data)) {
+        $this->persist = false; //do not persist if no balance changes at this account
+      }
     } elseif( $parsedType === 'REGULARKEYSIGNER' ) {
       $this->data['Counterparty'] = $this->tx->Account;
       $this->persist = false;
+    } elseif($parsedType === 'SET') {
+      $this->data['Counterparty'] = $this->tx->Destination;
     } else {
       //todo get counterparty from $this->tx->Account if this is intermediate - check this
       throw new \Exception('Unhandled Counterparty for parsedtype ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');

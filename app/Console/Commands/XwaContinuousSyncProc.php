@@ -13,6 +13,7 @@ use App\Repository\Bigquery\Batch as BigqueryBatch;
 use App\XRPLParsers\Parser;
 use App\Models\BAccount;
 use App\Models\BTransactionActivation;
+use App\Models\Synctracker;
 
 class XwaContinuousSyncProc extends Command
 {
@@ -47,6 +48,8 @@ class XwaContinuousSyncProc extends Command
      */
     protected int $txbatchlimit = 400; //400
 
+    protected int $proc_timeout = 600; //600 - must be same as in XWAStartSyncer
+
     /**
      * Ledger index tracking variables
      */
@@ -59,6 +62,8 @@ class XwaContinuousSyncProc extends Command
      */
     protected \WebSocket\Client $client;
 
+    protected ?Synctracker $synctracker;
+
     /**
      * When debugging enabled it will log output to log file.
      */
@@ -66,7 +71,7 @@ class XwaContinuousSyncProc extends Command
     private string $debug_id = '';
 
     /**
-     * Execute the console command.
+     * Synces ledger between provided ledger indexes. Does not validate ledger index range.
      * @see https://github.com/Textalk/websocket-php/blob/master/docs/Client.md#exceptions
      * Sample: php artisan xwa:continuoussync 32570 32610
      * Sample: php artisan xwa:continuoussync 73806933 73806953
@@ -79,6 +84,73 @@ class XwaContinuousSyncProc extends Command
 
       $this->debug = config('app.debug');
       $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
+
+      
+      /*$this->log('started proc '.$this->debug_id);
+      sleep(rand(5,20));
+      $this->log('ended proc '.$this->debug_id);
+      //throw new \Exception('test '.$this->debug_id);
+      return self::SUCCESS;*/
+
+
+      $this->ledger_index_start = $start_li = (int)$this->argument('ledger_index_start'); //32570
+      $this->ledger_index_current = $this->ledger_index_start;
+      $this->ledger_index_end = $end_li = $this->argument('ledger_index_end');
+
+      $this->synctracker = Synctracker::select(['id','first_l','progress_l','last_l','updated_at'])
+      //INNER:
+      ->orWhere(function($q) use ($start_li,$end_li) {
+        $q->whereBetween('first_l',[$start_li,$end_li]);
+        $q->whereBetween('last_l',[$start_li,$end_li]);
+      })
+      //BORDER RIGHT:
+      ->orWhere(function($q) use ($start_li,$end_li) {
+        $q->whereBetween('first_l',[$start_li,$end_li]);
+        $q->where('last_l','>=',$end_li);
+      })
+      //BORDER LEFT:
+      ->orWhere(function($q) use ($start_li,$end_li) {
+        $q->where('first_l','<=',$start_li);
+        $q->whereBetween('last_l',[$start_li,$end_li]);
+      })
+      //OUTER:
+      ->orWhere(function($q) use ($start_li,$end_li) {
+        $q->where('first_l','<=',$start_li);
+        $q->where('last_l','>=',$end_li);
+      })
+      ->orderBy('id','ASC')->first();
+
+      if($this->synctracker !== null) {
+        //check if job timed out, if yes continue
+        if($this->synctracker->updated_at->addSeconds($this->proc_timeout)->isPast()) {
+          //Job has timed out
+          $this->log('Job has previously timed out, adjusting tracker...');
+          $this->ledger_index_start = $start_li = $this->synctracker->progress_l+1;
+          $this->ledger_index_current = $this->ledger_index_start;
+          $this->ledger_index_end = $end_li = $this->synctracker->last_l;
+          $this->synctracker->delete();
+          $this->synctracker = null;
+
+        }
+      }
+      
+      if($this->synctracker !== null) {
+        $this->log('Job already running');
+        return self::SUCCESS;
+      } else {
+        //reserve spot
+        $this->synctracker = new Synctracker();
+        $this->synctracker->first_l = $start_li;
+        $this->synctracker->progress_l = $start_li;
+        $this->synctracker->last_l = $end_li;
+        $this->synctracker->is_completed = false;
+        $this->synctracker->save();
+      }
+      unset($start_li);
+      unset($end_li);
+      unset($check);
+
+      $this->log('Job params: '.$this->ledger_index_start.' '.$this->ledger_index_end);
 
       # Setup start
       $ws_uri = 'wss://'.config('xrpl.'.config('xrpl.net').'.server_wss');
@@ -103,9 +175,7 @@ class XwaContinuousSyncProc extends Command
       //$this->ledger_current = (int)config('xrpl.genesis_ledger');
       //todo check tracker where $start_ledger left of...
 
-      $this->ledger_index_start = (int)$this->argument('ledger_index_start'); //32570
-      $this->ledger_index_current = $this->ledger_index_start;
-      $this->ledger_index_end = $this->argument('ledger_index_end');
+      
 
       // Validate parameters:
       if($this->ledger_index_end !== null) $this->ledger_index_end = (int)$this->ledger_index_end;
@@ -128,7 +198,12 @@ class XwaContinuousSyncProc extends Command
 
           if($this->txbatchlimit <= count($transactions)) {
             //Process queued transactions:
-            $this->processTransactions($transactions);
+            try {
+              $this->processTransactions($transactions);
+            } catch (\Throwable $e) {
+              $this->logError($e->getMessage());
+              throw $e;
+            }
             //Empty queue:
             $transactions = [];
           }
@@ -138,13 +213,23 @@ class XwaContinuousSyncProc extends Command
 
       if(count($transactions) > 0) {
         //Process queued transactions (what is left over):
-        $this->processTransactions($transactions);
+        try {
+          $this->processTransactions($transactions);
+        } catch (\Throwable $e) {
+          $this->log($e->getMessage());
+          throw $e;
+        }
+        
         //Empty queue:
         $transactions = [];
       }
       
       $this->log('Disconnecting...');
       $this->client->close();
+      $this->log('Saving tracker...');
+      $this->synctracker->is_completed = true;
+      $this->synctracker->save();
+      $this->log('Done');
       return Command::SUCCESS;
     }
 
@@ -159,7 +244,7 @@ class XwaContinuousSyncProc extends Command
       # Prepare Batch instance which will hold list of queries to be executed at once to BigQuery
       $batch = (config('xwa.database_engine') == 'bigquery') ? new BigqueryBatch : new SqlBatch;
 
-      $this->log('Starting processing batch of '.count($txs).' transactions...');
+      $this->log('Starting processing batch of '.count($txs).' transactions (curr: '.$this->ledger_index_current.') ...');
       $bar = $this->output->createProgressBar(count($txs));
       $bar->start();
 
@@ -170,7 +255,7 @@ class XwaContinuousSyncProc extends Command
 
         $type = $transaction->TransactionType;
         $method = 'processTransaction_'.$type;
-        $this->log('Inserting: '.$transaction->hash.' ('.$method.') l: '.$transaction->ledger_index.' li: '.$transaction->metaData->TransactionIndex);
+        //$this->log('Inserting: '.$transaction->hash.' ('.$method.') l: '.$transaction->ledger_index.' li: '.$transaction->metaData->TransactionIndex);
         
 
         
@@ -178,17 +263,17 @@ class XwaContinuousSyncProc extends Command
         $extractor = new TxParticipantExtractor($transaction);
         $participants = $extractor->result();
         foreach($participants as $participant) {
-          $this->log('- '.$participant);
+          //$this->log('- '.$participant);
 
           if(!isset($accounts[$participant]))
             $accounts[$participant] = AccountLoader::getOrCreate($participant);
           
           $parsedDatas[] = $this->{$method}($accounts[$participant], $transaction, $batch);
 
-          //update last synced ledger index to account metadata
-          $accounts[$participant]->l = $transaction->ledger_index;
-          $accounts[$participant]->li = $transaction->metaData->TransactionIndex;
-          $accounts[$participant]->lt = ripple_epoch_to_carbon($transaction->date)->format('Y-m-d H:i:s.uP');
+          //update last synced ledger index to account metadata (not used in continuous syncer)
+          //$accounts[$participant]->l = $transaction->ledger_index;
+          //$accounts[$participant]->li = $transaction->metaData->TransactionIndex;
+          //$accounts[$participant]->lt = ripple_epoch_to_carbon($transaction->date)->format('Y-m-d H:i:s.uP');
           //dd($account);
         }
 
@@ -207,6 +292,8 @@ class XwaContinuousSyncProc extends Command
       }
 
       $processed_rows = $batch->execute();
+      $this->synctracker->progress_l = $this->ledger_index_current-1;
+      $this->synctracker->save();
       $this->log('- DONE (processed '.$processed_rows.' rows)');
 
     }
@@ -301,8 +388,8 @@ class XwaContinuousSyncProc extends Command
       }
 
       if($activatedByAddress = $parser->getActivatedBy()) {
-        $this->log('');
-        $this->log('Activation: Activated by '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
+        //$this->log('');
+        //$this->log('Activation: Activated by '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
         $account->activatedBy = $activatedByAddress;
         $account->isdeleted = false; //in case it is reactivated, this will remove field on model save
         $batch->queueModelChanges($account);
@@ -381,8 +468,8 @@ class XwaContinuousSyncProc extends Command
       
       if(!$parsedData['isin']) {
         //outgoing, this is deleted account, flag account deleted
-        $this->log('');
-        $this->log('Deleted');
+        //$this->log('');
+        //$this->log('Deleted');
         $account->isdeleted = true;
         $batch->queueModelChanges($account);
         //$account->save();
@@ -894,9 +981,6 @@ class XwaContinuousSyncProc extends Command
       return $parsedData;
     }
 
-    
-
-
     /**
      * Pulls x ledgers. If returned null - no more ledgers to pull.
      * @return ?array
@@ -998,5 +1082,16 @@ class XwaContinuousSyncProc extends Command
         return;
 
       Log::channel('syncjobcontinuous')->info($logline);
+    }
+
+    private function logError(string $logline)
+    {
+      $logline = '['.$this->debug_id.'] '.$logline;
+      $this->error($logline);
+
+      if(!$this->debug)
+        return;
+
+      Log::channel('syncjobcontinuous_error')->info($logline);
     }
 }

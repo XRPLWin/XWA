@@ -34,19 +34,19 @@ return new class extends Migration
           'description' => 'rAddress'
       ],
       [
-        'name' => 'l',
+        'name' => 'l',  //not used in continous syncer
         'type' => 'INTEGER',
         'mode' => 'REQUIRED',
         'description' => 'Last synced ledger index'
       ],
       [
-        'name' => 'li',
+        'name' => 'li',  //not used in continous syncer
         'type' => 'INTEGER',
         'mode' => 'REQUIRED',
         'description' => 'TransactionIndex' //position inside ledgerindex
       ],
       [
-        'name' => 'lt',
+        'name' => 'lt',  //not used in continous syncer
         'type' => 'TIMESTAMP',
         'mode' => 'REQUIRED',
         'description' => 'Last synced ledger timestamp (Y-m-d H:i:s.uP)',
@@ -83,9 +83,9 @@ return new class extends Migration
       $table->collation = 'utf8mb4_bin';
       
       $table->string('address',50);
-      $table->unsignedInteger('l');
-      $table->unsignedSmallInteger('li');
-      $table->dateTimeTz('lt',0); //Last synced ledger timestamp
+      $table->unsignedInteger('l'); //not used in continous syncer
+      $table->unsignedSmallInteger('li'); //not used in continous syncer
+      $table->dateTimeTz('lt',0); //Last synced ledger timestamp //not used in continous syncer
       $table->string('activatedBy',50)->nullable()->default(null)->comment('rAddress which activated this account'); //first one
       $table->boolean('isdeleted')->default(false);
 
