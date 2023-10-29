@@ -63,13 +63,13 @@ class XwaStartSyncer extends Command
       $process->disableOutput();
       $process->start();
       $processes[] = ['proc' => $process,'start_l' => $start_l, 'end_l' => $end_l];
-      sleep(3);
+      sleep(2);
     }
     // wait for above processes to complete
     while (count($processes)) {
       foreach ($processes as $i => $v) {
         // specific process is finished, so we remove it   
-        if (! $v['proc']->isRunning()) {
+        if (!$v['proc']->isRunning()) {
           
           if(!$v['proc']->isSuccessful()){
             $this->error('Process '.$i.' failed');
