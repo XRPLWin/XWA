@@ -40,8 +40,8 @@ class XwaStartSyncer extends Command
     dd($chromedriverPath);
     exit;*/
 
-    $numberOfProcess = 16;
-    $ledgersPerProcess = 1000;
+    $numberOfProcess = 2; //16
+    $ledgersPerProcess = 100; //1000
 
     $first_l = config('xrpl.genesis_ledger'); //starting ledger
     $tracker = Synctracker::select('last_l')->orderBy('last_l','DESC')->first();

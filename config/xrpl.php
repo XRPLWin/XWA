@@ -14,7 +14,7 @@ return [
     'rippled_fullhistory_server_uri' => 'https://xrplcluster.com',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 'xrplcluster.com',
-    'server_wss_syncer' => 'wss://xrplcluster.com',
+    'server_wss_syncer' => 'ws://185.239.60.22:20400',
     //enable or disable unlreport
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
@@ -63,7 +63,7 @@ return [
     //enable or disable unlreport
     'feature_unlreport' => true,
     'feature_unlreport_first_flag_ledger' => 512, //512 is first flag
-    'feature_unlreport_first_flag_ledger_close_time' => 750177810, //ripple epoch
+    'feature_unlreport_first_flag_ledger_close_time' => 751985211, //ripple epoch
     'unl_vl' => 'https://vl.xahau.org',
   ],
 

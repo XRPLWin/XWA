@@ -221,6 +221,7 @@ class UnlReportController extends Controller
     //todo validate $validator input
     $ttl = 5259487; //5 259 487 = 2 months
     $httpttl = 172800; //172 800 = 2 days
+    
 
     $li_start = null;
     $from = Carbon::createFromFormat('Y-m-d', $from)->startOfDay()->timezone('UTC');
