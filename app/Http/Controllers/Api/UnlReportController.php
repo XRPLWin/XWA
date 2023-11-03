@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Cache;
 use XRPL_PHP\Core\RippleAddressCodec\AddressCodec;
+use XRPL_PHP\Core\CoreUtilities;
 use XRPL_PHP\Core\Buffer;
 #use XRPL_PHP\Core\CoreUtilities;
 #use Illuminate\Http\Request;
@@ -170,6 +171,10 @@ class UnlReportController extends Controller
     if(!config('xrpl.'.config('xrpl.net').'.feature_unlreport'))
       abort(404);
 
+    if(!\str_starts_with($validator,'nH')) {
+      abort(404);
+    }
+
     $ttl = 600; //10 mins
     $httpttl = 600; //10 mins
     $success = true;
@@ -178,6 +183,18 @@ class UnlReportController extends Controller
     $v = BUnlvalidator::find($validator);
     if(!$v) {
       $success = false;
+
+      $r = [
+        'validator' => $validator,
+        'account' => CoreUtilities::deriveAddress(\strtoupper($validator)), //rX, //todo extract address
+        'reliability' => null,
+        'reliability_sort' => 0,
+        'first_active_ledger_index' => null,
+        'last_active_ledger_index' => null,
+        'max_successive_ledger_indexes' => null,
+        'current_successive_ledger_indexes' => null,
+        'is_active' => null
+      ];
     } else {
       if(Cache::get('job_xwaunlreports_sync_running'))
         abort(425,'Too early (resync job is running)');
