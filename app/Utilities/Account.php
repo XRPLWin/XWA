@@ -35,7 +35,7 @@ class Account
     //bitstamp acc: rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B
     
     $this->address = $address;
-    
+
     try {
       $this->fetch();
     } catch (\Exception $e) {
@@ -96,6 +96,27 @@ class Account
 
     $r = $this->template();
     $name_processed = false;
+
+    if($this->address == 'rrrrrrrrrrrrrrrrrrrrrhoLvTp') {
+      $r['name'] = 'ACCOUNT_ZERO';
+      $this->data = $r;
+      return;
+    }
+    if($this->address == 'rrrrrrrrrrrrrrrrrrrrBZbvji') {
+      $r['name'] = 'ACCOUNT_ONE';
+      $this->data = $r;
+      return;
+    }
+    if($this->address == 'rrrrrrrrrrrrrrrrrNAMEtxvNvQ') {
+      $r['name'] = 'Ripple Name black-hole';
+      $this->data = $r;
+      return;
+    }
+    if($this->address == 'rrrrrrrrrrrrrrrrrrrn5RM1rHd') {
+      $r['name'] = 'ACCOUNT_NAN';
+      $this->data = $r;
+      return;
+    }
 
     //Check if is genesis
     $genesis_name = config_static('xrpl.genesis_'.config('xrpl.net').'.'.$this->address);
