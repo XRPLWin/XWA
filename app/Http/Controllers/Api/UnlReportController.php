@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use XRPL_PHP\Core\RippleAddressCodec\AddressCodec;
 use XRPL_PHP\Core\CoreUtilities;
 use XRPL_PHP\Core\Buffer;
+use XRPLWin\XRPL\Client as XRPLWinApiClient;
 #use XRPL_PHP\Core\CoreUtilities;
 #use Illuminate\Http\Request;
 #use Illuminate\Support\Facades\DB;
@@ -133,7 +134,9 @@ class UnlReportController extends Controller
         'last_active_ledger_index' => $v->last_l,
         'max_successive_ledger_indexes' => ($v->max_successive_fl_count*256),
         'current_successive_ledger_indexes' => ($v->current_successive_fl_count*256),
-        'is_active' => $stats['is_active']
+        'is_active' => $stats['is_active'],
+        'domain' => $v->domain,
+        'seq' => $v->seq,
       ];
       unset($stats);
     }
@@ -166,7 +169,33 @@ class UnlReportController extends Controller
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
   }
 
-  public function validator(string $validator)
+  private function xrplFetchValidatorManifest(string $validator): array
+  {
+    $success = false;
+    //Domain and sequence:
+    $domain = $seq = null;
+    //query node to check if this validator is live, might fail for non-unl validators, in that case set 3 min ttl to check again next time
+    $manifestReq = app(XRPLWinApiClient::class)->api('manifest')
+    ->params([
+        'public_key' => $validator, //public_key (nH..) or epidermal_key (n9..)
+    ])
+    ->send();
+    $manifest = $manifestReq->finalResult();
+    if(isset($manifest->details)) {
+      //we have info
+      $success = true;
+      $domain = $manifest->details->domain;
+      //Sequence
+      $seq = $manifest->details->seq;
+    }
+    return [
+      'success' => $success,
+      'domain' => $domain,
+      'seq' => $seq,
+    ];
+  }
+
+  public function validator(string $validator) //nH
   {
     if(!config('xrpl.'.config('xrpl.net').'.feature_unlreport'))
       abort(404);
@@ -180,26 +209,54 @@ class UnlReportController extends Controller
     $success = true;
     $r = null;
 
-    $v = BUnlvalidator::find($validator);
+    $codec = new AddressCodec();
+    
+    $validator_ed = $codec->decodeNodePublic($validator)->toString(); //ED
+
+    $v = BUnlvalidator::find($validator_ed); //This accepts only strtoupper ED ...
+   
     if(!$v) {
-      $success = false;
+      $success = true;
+      $ttl = 3600; //1hr
+      $httpttl = 3600; //1hr
+
+      $manifest = $this->xrplFetchValidatorManifest($validator);
+      if(!$manifest['success']) {
+        //current serving node does not have the info for requested validator
+        $ttl = 180; //3 min
+        $httpttl = 180; //3 min
+      }
 
       $r = [
-        'validator' => $validator,
-        'account' => CoreUtilities::deriveAddress(\strtoupper($validator)), //rX, //todo extract address
+        'validator' => $validator, //nH
+        'isgov' => false, //never been in unlreports - no governance
+        'account' => CoreUtilities::deriveAddress(\strtoupper($validator_ed)), //rX, //todo extract address
+        'domain' => $manifest['domain'],
+        'seq' => $manifest['seq'],
         'reliability' => null,
         'reliability_sort' => 0,
         'first_active_ledger_index' => null,
         'last_active_ledger_index' => null,
         'max_successive_ledger_indexes' => null,
         'current_successive_ledger_indexes' => null,
-        'is_active' => null
+        'is_active' => null,
+        
       ];
     } else {
+
       if(Cache::get('job_xwaunlreports_sync_running'))
         abort(425,'Too early (resync job is running)');
 
-      //
+      if($v->domain === null) {
+        //no domain stored:
+        $manifest = $this->xrplFetchValidatorManifest($validator);
+        if($manifest['success']) {
+          $v->domain = $manifest['domain'];
+          $v->seq = $manifest['seq'];
+          $v->save();
+        }
+      }
+      
       $lastCheckedLedgerIndex = BUnlreport::repo_last(['last_l']);
       if(!$lastCheckedLedgerIndex) {
         $lastCheckedLedgerIndex = config('xrpl.'.config('xrpl.net').'.feature_unlreport_first_flag_ledger');
@@ -211,7 +268,10 @@ class UnlReportController extends Controller
       $stats = $v->getStatistics($lastCheckedLedgerIndex);
 
       $r = [
-        'validator' => $v->validator,
+        'validator' => $codec->encodeNodePublic(Buffer::from($v->validator)), //nH
+        'isgov' => true,
+        'domain' => $v->domain,
+        'seq' => $v->seq,
         'account' => $v->account,
         'reliability' => number_format($stats['reliability'],0),
         'reliability_sort' => $stats['reliability'],
@@ -290,8 +350,19 @@ class UnlReportController extends Controller
 
     //$reports = BUnlreport::fetchByRangeForValidator($validator,$li_start,$li_end);
     $reports = BUnlreport::repo_fetchByRange($li_start,$li_end);
+    //dd($validator);
     $v = BUnlvalidator::repo_find($validator,['first_l']);
-    
+    if(!$v) {
+      return response()->json([
+        'success' => true,
+        'updated' => now(),
+        'ledger_index_start' => $li_start,
+        'ledger_index_end' => $li_end,
+        'validator' => $validator,
+        'data' => []
+      ])->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+        ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
+    }
     $reports = \array_reverse($reports);
     $days = CarbonPeriod::create($from,$to);
 

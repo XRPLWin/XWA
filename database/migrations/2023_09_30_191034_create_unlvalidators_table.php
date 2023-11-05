@@ -70,6 +70,24 @@ return new class extends Migration
         'mode' => 'REQUIRED',
         'description' => 'Number of flag ledgers this validator appeared in'
       ],
+      [
+        'name' => 'domain',
+        'type' => 'STRING',
+        'mode' => 'NULLABLE',
+        'description' => 'Validator domain'
+      ],
+      /*[
+        'name' => 'domain_verified',
+        'type' => 'BOOLEAN',
+        'mode' => 'REQUIRED',
+        'description' => 'Domain is verifed or not (if filled)'
+      ],*/
+      [
+        'name' => 'seq',
+        'type' => 'STRING',
+        'mode' => 'NULLABLE',
+        'description' => 'Sequence'
+      ],
       /*[
         'name' => 'total_claimed',
         'type' => 'INTEGER',
@@ -99,6 +117,9 @@ return new class extends Migration
       $table->unsignedInteger('current_successive_fl_count')->comment('Current flag ledger for sucessive counting');
       $table->unsignedInteger('max_successive_fl_count')->comment('Number of flag ledgers this validator ran without interruptions');
       $table->unsignedInteger('active_fl_count')->comment('Number of flag ledgers this validator appeared in');
+      $table->string('domain',250)->nullable()->default(null)->comment('Validator domain');
+      $table->string('seq')->nullable()->default(null)->comment('Sequence');
+      //$table->boolean('domain_verified')->default(false)->comment('Domain is verifed or not (if filled)');
       
       //Add primary key:
       $table->primary('validator');

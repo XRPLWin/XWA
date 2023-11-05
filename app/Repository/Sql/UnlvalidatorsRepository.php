@@ -18,7 +18,9 @@ class UnlvalidatorsRepository extends Repository
         'last_l',
         'current_successive_fl_count',
         'max_successive_fl_count',
-        'active_fl_count'
+        'active_fl_count',
+        'domain',
+        'seq'
       ];
 
     return DB::table('unlvalidators')->select($select)->get()->toArray();

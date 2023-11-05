@@ -10,7 +10,7 @@ class UnlvalidatorsRepository extends Repository
   public static function fetchAll(?string $select = null): array
   {
     if($select === null)
-    $select = 'validator,account,first_l,last_l,current_successive_fl_count,max_successive_fl_count,active_fl_count';
+    $select = 'validator,account,first_l,last_l,current_successive_fl_count,max_successive_fl_count,active_fl_count,domain,seq';
     
       $query = 'SELECT '.$select.' FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.unlvalidators`';
       try {
