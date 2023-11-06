@@ -125,10 +125,14 @@ class Account
       $r['name'] = $genesis_name;
       $name_processed = true;
     }
-    
 
+    //Avatar check start:
+    //Check if there is known genesis avatar included in this project
+    if(\is_file(resource_path('static/avatars/'.$this->address.'.webp'))) {
+      $r['avatar'] = route('static.avatar_serve',['address' => $this->address]);
+    }
+    //Avatar check end
     
-
     $result = null;
     $fails = [
       'xrpscan_account_info' => false,
@@ -137,10 +141,10 @@ class Account
 
     # Get ledger data
     $account_data = app(XRPLWinApiClient::class)->api('account_info')
-        ->params([
-            'account' => $this->address,
-            'strict' => true
-        ])->send();
+      ->params([
+        'account' => $this->address,
+        'strict' => true
+      ])->send();
     if($account_data->isSuccess()) {
       $result = $account_data->finalResult();
     } else {
@@ -274,13 +278,15 @@ class Account
     }
 
     # Avatar
-    $r['avatar'] = $this->getXummCustomAvatarUrl();
-    if($r['avatar'] === null && $r['emailhash'] !== null) {
-      $gravatarInfo = $this->getGravatarInformation($r['emailhash']);
-      if($gravatarInfo !== null) {
-        $r['avatar'] = 'https://secure.gravatar.com/avatar/'.\strtolower($r['emailhash']);
-        if($gravatarInfo['username'] !== null && $r['name'] === null) {
-          $r['name'] = $gravatarInfo['username'];
+    if($r['avatar'] === null) {
+      $r['avatar'] = $this->getXummCustomAvatarUrl();
+      if($r['avatar'] === null && $r['emailhash'] !== null) {
+        $gravatarInfo = $this->getGravatarInformation($r['emailhash']);
+        if($gravatarInfo !== null) {
+          $r['avatar'] = 'https://secure.gravatar.com/avatar/'.\strtolower($r['emailhash']);
+          if($gravatarInfo['username'] !== null && $r['name'] === null) {
+            $r['name'] = $gravatarInfo['username'];
+          }
         }
       }
     }
@@ -392,11 +398,16 @@ class Account
     return \json_decode($response->getBody(),true);
   }
 
-  private function xrpscan_account_info(): array
+  private function xrpscan_account_info(): ?array
   {
+    $api_url = config('xrpl.'.config('xrpl.net').'.api_xrpscan');
+
+    if($api_url === null)
+      return null; //disabled
+
     //dd('https://api.xrpscan.com/api/v1/account/'.$this->address);
     $client = new \GuzzleHttp\Client();
-    $response = $client->request('GET', 'https://api.xrpscan.com/api/v1/account/'.$this->address, [
+    $response = $client->request('GET', $api_url.'/api/v1/account/'.$this->address, [
       'http_errors' => false,
       'headers' => [
         'accept' => 'application/json',

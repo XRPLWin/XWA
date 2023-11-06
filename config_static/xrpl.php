@@ -143,6 +143,44 @@ return [
     'r4HabKLiKYtCbwnGG3Ev4HqncmXWsCtF9F' => 'miltonquinnine3',
     'rKHD6m92oprEVdi1FwGfTzxbgKt8eQfUYL' => 'arij',
     'rhxbkK9jGqPVLZSWPvCEmmf15xHBfJfCEy' => 'GENESIS',
-  ]
+  ],
+
+  'genesis_xahau' => [ //genesis_env(XRPL_NET)
+    # GENESIS ACCOUNTS (https://xahauexplorer.com/api/v2/genesis) for Xahau
+    'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh' => 'GENESIS HOOK', //Genesis hook installed here
+    
+    'rD74dUPRFNfgnY2NzrxxYRXN4BrfGSN6Mv' => 'XRPL-Labs',
+    'rN7XCq12KBvBLKad3wWsVUwmb3dNx1fx3e' => 'Titanium',
+    
+    'ra7MQw7YoMjUw6thxmSGE6jpAEY3LTHxev' => 'Evernode',
+    'rfMB6RCNdWSB6TJXYwCEU5HvDC2eArJp8h' => 'Digital Governance', //https://digitalgoverning.eu/
+    'r9EzMEYr5zuRasrfVKdry9JWLbw9mBe6Jg' => 'FYEO',
+    
+    'r4FRPZbLnyuVeGiSi1Ap6uaaPvPXYZh1XN' => 'Xahau Dev Table',
+      'r47tpT8LUoymNgRWzfUq2LdkPRfo4UZSkB' => 'Xahau Dev Table - GENESIS member 1',
+      'rxah6E9kpp1Zw98MxYFMoWMQ1NHCZSmyx'  => 'Xahau Dev Table - GENESIS member 2',
+      'riLD4RiZcmFLijuBkBr1qLa5tXbojgNSN'  => 'Xahau Dev Table - GENESIS member 3',
+      'rscan6NzxxSFxEQST8qALrc5v9mpM8fU1j' => 'XRPScan',
+      'rtequsfcSxEerbj18TdS6hUd89vTbaWec'  => 'Tequ',
+      'r42noEGvAqfwXnDBebeEPfYVswZVe6CKPo' => 'Bithomp',
+      'rWiNRBZaEHFptxtkdohBbk36UxoHVwvEa'  => 'XRPLWin',
+
+    'rHsh4MNWJKXN2YGtSf95aEzFYzMqwGiBve' => 'Xahau Exchange Table',
+      'rB3egB3cm51DpFENKH2CameyQJf2fmvN72' => 'Xahau Exchange Table - GENESIS member 1',
+      'rGshbE2xPc2Jw66iTAXuX5RjXmJW4ohbrY' => 'Xahau Exchange Table - GENESIS member 2',
+      'r4vv7gFjtWAUxPWfj5puGNeW9U8FGSn7iu' => 'Xahau Exchange Table - GENESIS member 3',
+      'r4FF5jjJMS2XqWDyTYStWrgARsj3FjaJ2J' => 'GateHub UAB',
+      'rfKsmLP6sTfVGDvga6rW6XbmSFUzc3G9f3' => 'Bitrue',
+    
+    'r6QZ6zfK37ZSec5hWiQDtbTxUaU2NWG3F'  => 'Xahau Auditors and Enterprise',
+      'rpuQonHVeMk1qEz9bWMhDRBDSjvLu2gU1B' => 'Xahau Auditors and Enterprise - GENESIS member 1',
+      'rHrptekd18qAGCADzK1kg2QyREiRPuVpTJ' => 'Xahau Auditors and Enterprise - GENESIS member 2',
+      'rpZuvdsDzCLxii1ag9TAyf11Wc43qg4QAG' => 'Xahau Auditors and Enterprise - GENESIS member 3',
+      'rwcL4h6ix5VrxjE6GXNq2svJjnj6H3ZJjv' => 'Xahau Auditors and Enterprise - GENESIS member 4',
+
+    'rwyypATD1dQxDbdQjMvrqnsHr2cQw5rjMh' => 'Xahau Projects Table',
+      'rHMtqVuvEESUhPrsgb8tSa5ghjyoQySfVC' => 'xSPECTAR',
+      'rJFxdrd1BuMeJshRAZBuHP3hex9DjH1nnr' => 'Eminence',
+  ],
 
 ];

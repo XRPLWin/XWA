@@ -26,6 +26,7 @@ return [
     'feature_unlreport_first_flag_ledger' => env('XRPL_NET_FEATURE_UNLREPORT_FIRST_FLAG_LEDGER', 512),
     'feature_unlreport_first_flag_ledger_close_time' => env('XRPL_NET_FEATURE_UNLREPORT_FIRST_FLAG_LEDGER_CLOSE_TIME', 0),
     'unl_vl' => env('XRPL_NET_UNL_VL', 'http://vl.test'),
+    'api_xrpscan' => env('XRPL_NET_API_XRPSCAN', null),
   ],
 
   'mainnet' => [
@@ -44,6 +45,7 @@ return [
     'feature_unlreport_first_flag_ledger' => 0,
     'feature_unlreport_first_flag_ledger_close_time' => 0,
     'unl_vl' => 'https://vl.xrplf.org',
+    'api_xrpscan' => 'https://api.xrpscan.com',
   ],
 
   'testnet' => [
@@ -62,6 +64,7 @@ return [
     'feature_unlreport_first_flag_ledger' => 0,
     'feature_unlreport_first_flag_ledger_close_time' => 0,
     'unl_vl' => 'https://vl.altnet.rippletest.net',
+    'api_xrpscan' => 'https://api.xrpscan.com',
   ],
 
   'xahautest' => [
@@ -80,6 +83,7 @@ return [
     'feature_unlreport_first_flag_ledger' => 6869247, //6869248 is first flag
     'feature_unlreport_first_flag_ledger_close_time' => 748958191, //ripple epoch
     'unl_vl' => 'https://vl.test.xahauexplorer.com',
+    'api_xrpscan' => 'https://api.xahscan.com',
   ],
 
   'xahau' => [
@@ -98,6 +102,7 @@ return [
     'feature_unlreport_first_flag_ledger' => 512, //512 is first flag
     'feature_unlreport_first_flag_ledger_close_time' => 751985211, //ripple epoch
     'unl_vl' => 'https://vl.xahau.org',
+    'api_xrpscan' => 'https://api.xahscan.com',
   ],
 
 

@@ -189,6 +189,8 @@ class AccountController extends Controller
       $ttl = 1800; //30 min
       $httpttl = 1800; //30 min
     }
+
+    $AInfo['address'] = $address;
     
     #Log::build(['driver' => 'single','path' => storage_path('logs/bq.log')])->info('# End '.$_rand);
     return response()->json($AInfo)
