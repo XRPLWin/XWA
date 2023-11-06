@@ -17,7 +17,7 @@ class XwaStartSyncer extends Command
    *
    * @var string
    */
-  protected $signature = 'xwa:startsyncer';
+  protected $signature = 'xwa:startsyncer {--emulate=0}';
 
   /**
    * The console command description.
@@ -40,19 +40,26 @@ class XwaStartSyncer extends Command
     dd($chromedriverPath);
     exit;*/
 
-    $numberOfProcess = 2; //16
+    $numberOfProcess = 1; //16
     $ledgersPerProcess = 100; //1000
 
+    $emulate = (int)$this->option('emulate'); //int
     $first_l = config('xrpl.genesis_ledger'); //starting ledger
     $tracker = Synctracker::select('last_l')->orderBy('last_l','DESC')->first();
     if($tracker) {
       $first_l = $tracker->last_l+1;
     }
 
-    //$plan = [];
-
-    //dd($first_l);
-
+    if($emulate) {
+      $this->info('Emaulate enabled, no jobs will be started');
+      for ($i = 0; $i < $numberOfProcess; $i++) {
+        $start_l = $first_l+($i*$ledgersPerProcess);
+      $end_l = $start_l+$ledgersPerProcess-1;
+      $this->info('Emulating '.$i. ': php artisan xwa:continuoussyncproc '.$start_l.' '.$end_l);
+      }
+      $this->info('Exiting');
+      return;
+    }
     $processes = [];
     for ($i = 0; $i < $numberOfProcess; $i++) {
       $start_l = $first_l+($i*$ledgersPerProcess);

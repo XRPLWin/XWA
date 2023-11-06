@@ -21,7 +21,7 @@ class AccountLoader
         'address' => $address,
         'l' => (int)config('xrpl.genesis_ledger'), //initial
         'li' => 0,
-        'lt' => ripple_epoch_to_carbon(config('xrpl.genesis_ledger_close_time'))->format('Y-m-d H:i:s.uP'),
+        'lt' => ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'))->format('Y-m-d H:i:s.uP'),
         'activatedBy' => null,
         'isdeleted' => false,
       ]);

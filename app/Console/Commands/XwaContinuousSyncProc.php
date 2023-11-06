@@ -94,6 +94,8 @@ class XwaContinuousSyncProc extends Command
 
 
       $this->ledger_index_start = $start_li = (int)$this->argument('ledger_index_start'); //32570
+      if($this->ledger_index_start < 1) $this->ledger_index_start = $start_li = 1;
+
       $this->ledger_index_current = $this->ledger_index_start;
       $this->ledger_index_end = $end_li = $this->argument('ledger_index_end');
 
@@ -130,7 +132,6 @@ class XwaContinuousSyncProc extends Command
           $this->ledger_index_end = $end_li = $this->synctracker->last_l;
           $this->synctracker->delete();
           $this->synctracker = null;
-
         }
       }
       
@@ -966,6 +967,28 @@ class XwaContinuousSyncProc extends Command
     private function processTransaction_URITokenBuy(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
     {
       /** @var \App\XRPLParsers\Types\URITokenBuy */
+      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      $parsedData = $parser->toBArray();
+      
+      if($parser->getPersist() === false)
+        return $parsedData;
+      
+      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
+      $model = new $TransactionClassName($parsedData);
+      $model->address = $account->address;
+      $model->xwatype = $TransactionClassName::TYPE;
+      $batch->queueModelChanges($model);
+      //$model->save();
+      return $parsedData;
+    }
+
+    /**
+     * EnableAmendment
+     * @return array
+     */
+    private function processTransaction_EnableAmendment(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    {
+      /** @var \App\XRPLParsers\Types\EnableAmendment */
       $parser = Parser::get($transaction, $transaction->metaData, $account->address);
       $parsedData = $parser->toBArray();
       
