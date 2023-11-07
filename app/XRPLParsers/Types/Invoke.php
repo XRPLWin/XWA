@@ -65,7 +65,7 @@ final class Invoke extends XRPLParserBase
       'h' => (string)$this->data['hash'],
       'offers' => [],
       'nftoffers' => [],
-      'hooks' => [],
+      'hooks' => $this->data['hooks'],
     ];
 
     if(\array_key_exists('Amount', $this->data))

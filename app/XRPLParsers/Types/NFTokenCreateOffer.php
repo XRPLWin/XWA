@@ -66,7 +66,7 @@ final class NFTokenCreateOffer extends XRPLParserBase
       'offers' => [],
       'nft' => (string)$this->data['nft'],
       'nftoffers' => (array)$this->data['nftoffers'],
-      'hooks' => [],
+      'hooks' => $this->data['hooks'],
     ];
 
     if(\array_key_exists('Amount', $this->data))

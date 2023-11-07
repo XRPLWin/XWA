@@ -3,6 +3,7 @@
 namespace App\XRPLParsers;
 
 use XRPLWin\XRPLTxMutatationParser\TxMutationParser;
+use XRPLWin\XRPLHookParser\TxHookParser;
 
 /**
  * This class takes full Transaction object returned from XRPL and parses it.
@@ -14,6 +15,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
   protected array $data = [];
   protected array $parsedData = [];
   protected readonly string $reference_address;
+  protected readonly TxHookParser $hook_parser;
 
   /**
    * Flag to indicate if this parsed transaction needs to be persisted in reference_address transaction store.
@@ -27,8 +29,6 @@ abstract class XRPLParserBase implements XRPLParserInterface
     'reference_activated_by' => null,
     'reference_activated' => [],
   ];
-
-  protected array $hooks = [];
 
   /**
    * Eg. Payment for DTransactionPayment, or Payment_BalanceChange for DTransactionPayment_BalanceChange ...
@@ -74,6 +74,13 @@ abstract class XRPLParserBase implements XRPLParserInterface
      * Modifies $this->persist
      */
     $this->parseType();
+
+    /**
+     * Parses hooks (if any)
+     * Modifies $this->data['hooks']
+     * Initializas $this->hook_parser
+     */
+    $this->detectHooks();
     
     /**
      * Modifies $this->data
@@ -87,7 +94,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
      */
     $this->detectActivations();
 
-    $this->detectHooks();
+    
   }
 
   /**
@@ -256,14 +263,8 @@ abstract class XRPLParserBase implements XRPLParserInterface
    */
   public function detectHooks(): self
   {
-    $hooks = [
-      'executed' => [],
-      'installed' => [],
-      'removed' => []
-    ];
-    if(isset($this->meta->AffectedNodes)) {
-
-    }
+    $this->hook_parser = new TxHookParser($this->tx);
+    $this->data['hooks'] = $this->hook_parser->accountHooks($this->reference_address);
     return $this;
   }
 

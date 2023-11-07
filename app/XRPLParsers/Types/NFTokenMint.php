@@ -66,7 +66,7 @@ final class NFTokenMint extends XRPLParserBase
       'offers' => [],
       'nft' => (string)$this->data['nft'],
       'nftoffers' => [],
-      'hooks' => [],
+      'hooks' => $this->data['hooks'],
     ];
 
     if(\array_key_exists('Fee', $this->data))

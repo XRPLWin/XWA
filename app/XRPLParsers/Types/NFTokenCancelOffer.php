@@ -62,7 +62,7 @@ final class NFTokenCancelOffer extends XRPLParserBase
       'offers' => [],
       //no nft here
       'nftoffers' => (array)$this->data['nftoffers'],
-      'hooks' => [],
+      'hooks' => $this->data['hooks'],
     ];
 
     if(\array_key_exists('Amount', $this->data))

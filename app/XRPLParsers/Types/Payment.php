@@ -142,7 +142,7 @@ final class Payment extends XRPLParserBase
       'h' => (string)$this->data['hash'],
       'offers' => (array)$this->data['offers'],
       'nftoffers' => [],
-      'hooks' => [],
+      'hooks' => $this->data['hooks'],
     ];
 
     if(\array_key_exists('Amount', $this->data))

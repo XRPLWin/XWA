@@ -6,11 +6,12 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class SetHook extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
-   * Parses TrustSet type fields and maps them to $this->data
-   * @see https://xrpl.org/transaction-types.html
+   * Parses SetHook type fields and maps them to $this->data
+   * The SetHook transaction allows users to install, update, delete, or perform other operations on hooks in the XRP Ledger.
+   * @see https://docs.xahau.network/features/transaction-types/sethook
    * @return void
    */
   protected function parseTypeFields(): void
@@ -19,22 +20,25 @@ final class SetHook extends XRPLParserBase
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on SetHook with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
-    if($parsedType == 'REGULARKEYSIGNER')
+    if($this->tx->Account != $this->reference_address)
       $this->persist = false;
 
     # Counterparty is always transaction account (creator)
     $this->data['Counterparty'] = $this->tx->Account;
     $this->data['In'] = true;
 
-    # Balance changes from eventList (primary/secondary, both, one, or none)
-    if(isset($this->data['eventList']['primary'])) {
-      $this->data['Amount'] = $this->data['eventList']['primary']['value'];
-      if($this->data['eventList']['primary']['currency'] !== 'XRP') {
-        $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
-        $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
-      }
-    }
+    //dd($this->hook_parser->installedHooks(),$this->hook_parser->uninstalledHooks());
+    //$this->transaction_type_class = 'SetHook'; //this includes updates and no-op
 
+    //Good thing is here to split to: hook install, hook deinstall and hook update
+    if(count($this->hook_parser->installedHooks()))
+      $this->transaction_type_class = 'SetHook_Install';
+    elseif($this->hook_parser->uninstalledHooks())
+      $this->transaction_type_class = 'SetHook_Deinstall';
+    else (false)
+      $this->transaction_type_class = 'SetHook_Reset'; //Reset hook namespace
+
+    
   }
 
   /**
@@ -53,7 +57,7 @@ final class SetHook extends XRPLParserBase
       'h' => (string)$this->data['hash'],
       'offers' => [],
       'nftoffers' => [],
-      'hooks' => [],
+      'hooks' => $this->data['hooks'],
     ];
 
     if(\array_key_exists('Amount', $this->data))
