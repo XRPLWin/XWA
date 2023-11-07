@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class EnableAmendment extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','UNKNOWN'];
 
   /**
    * Parses TrustSet type fields and maps them to $this->data
@@ -22,7 +22,10 @@ final class EnableAmendment extends XRPLParserBase
     # Counterparty is always transaction account (creator)
     $this->data['Counterparty'] = $this->tx->Account;
     $this->data['In'] = true;
+    if($this->reference_address == $this->tx->Account)
+      $this->data['In'] = false;
 
+    
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
@@ -31,9 +34,6 @@ final class EnableAmendment extends XRPLParserBase
         $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
       }
     }
-
-    # Hooks
-    
 
   }
 
@@ -53,7 +53,7 @@ final class EnableAmendment extends XRPLParserBase
       'h' => (string)$this->data['hash'],
       'offers' => [],
       'nftoffers' => [],
-      'hooks' => [],
+      'hooks' => $this->data['hooks'],
     ];
 
     if(\array_key_exists('Amount', $this->data))

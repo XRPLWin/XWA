@@ -25,8 +25,10 @@ abstract class XRPLParserBase implements XRPLParserInterface
 
   protected array $activations = [
     'reference_activated_by' => null,
-    'reference_activated' => null,
+    'reference_activated' => [],
   ];
+
+  protected array $hooks = [];
 
   /**
    * Eg. Payment for DTransactionPayment, or Payment_BalanceChange for DTransactionPayment_BalanceChange ...
@@ -43,6 +45,12 @@ abstract class XRPLParserBase implements XRPLParserInterface
     $this->tx = $tx;
     $this->meta = $meta;
     $this->reference_address = $reference_address;
+    
+
+    //Normalize Account field:
+    if(isset($this->tx->Account) && $this->tx->Account === "") {
+      $this->tx->Account = 'rrrrrrrrrrrrrrrrrrrrrhoLvTp'; //ACCOUNT_ZERO (happens in UNLReport transaction)
+    }
 
     /**
      * Modifies $this->data
@@ -58,7 +66,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
      * @fills $this->transaction_type_class
      */
     $this->parseCommonFields();
-
+    
     /**
      * Modifies $this->data
      * @createsKey bool In
@@ -66,13 +74,20 @@ abstract class XRPLParserBase implements XRPLParserInterface
      * Modifies $this->persist
      */
     $this->parseType();
-
+    
     /**
      * Modifies $this->data
      * @fills (maybe) $this->transaction_type_class
      * @see underlying classes
      */
     $this->parseTypeFields();
+    
+    /**
+     * @fills (maybe) $this->activations
+     */
+    $this->detectActivations();
+
+    $this->detectHooks();
   }
 
   /**
@@ -197,25 +212,21 @@ abstract class XRPLParserBase implements XRPLParserInterface
   }*/
 
   /**
-   * This will detect activations from meta field. It is know that Payment type activates account.
-   * If in future some other transaction type creates new account it can be easily adopted.
+   * This will detect activations from meta field.
+   * It is known that Payment type activates single account. Also Offers can activate, ammendments and other types.
    * Fills $this->activations array.
    * @throws Exception
    * @return self
    */
   public function detectActivations(): self
   {
-    $i = $i2 = 0;
+    //$i = $i2 = 0;
     if(isset($this->meta->AffectedNodes)) {
       foreach($this->meta->AffectedNodes as $AffectedNode) {
         if(isset($AffectedNode->CreatedNode)) {
           if(isset($AffectedNode->CreatedNode->LedgerEntryType) && $AffectedNode->CreatedNode->LedgerEntryType == 'AccountRoot') {
-            if($this->data['In']) {
+            if($this->data['In'] && $this->activations['reference_activated_by'] === null) {
 
-              //Sanity check:
-              if($i > 0)
-                throw new \Exception('More than one activated by detected for transaction hash: '.$this->tx->hash);
-              
               # Reference address is activated by Counterpary address
               $this->activations['reference_activated_by'] = $this->data['Counterparty'];
 
@@ -223,20 +234,35 @@ abstract class XRPLParserBase implements XRPLParserInterface
               if($this->activations['reference_activated_by'] == $AffectedNode->CreatedNode->NewFields->Account) {
                 throw new \Exception('Equal data in detectActivations (Counterparty and NewFields Account match for transaction hash: '.$this->tx->hash);
               }
-              $i++;
-            } else {
-
-              //Sanity check:
-              if($i2 > 0)
-                throw new \Exception('More than one activations detected for transaction hash: '.$this->tx->hash);
-
-              $this->activations['reference_activated'] = $AffectedNode->CreatedNode->NewFields->Account;
-
-              $i2++;
+              //$i++;
+            } else if(!$this->data['In']) {
+              $this->activations['reference_activated'][] = $AffectedNode->CreatedNode->NewFields->Account;
+              //$i2++;
             }
           }
         }
       }
+    }
+    return $this;
+  }
+
+  /**
+   * Detects executed (HookExecutions[]/HookExecution->HookAccount) - testnet: 82B1673BE11752C045EE70BD2A223B7AE7A2BB56EF296BF6B6F739B6D79ED8E1
+   * Removed
+   * Created Hook (HookDefinition) (first unique hook intruduced to ledger (unowned))
+   * Installed hooks for reference account, via HookDefinition or Hook (created)
+   * @modifies $this->data['hooks']
+   * @return void
+   */
+  public function detectHooks(): self
+  {
+    $hooks = [
+      'executed' => [],
+      'installed' => [],
+      'removed' => []
+    ];
+    if(isset($this->meta->AffectedNodes)) {
+
     }
     return $this;
   }
@@ -246,7 +272,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
     return $this->activations['reference_activated_by'];
   }
 
-  public function getActivated(): ?string
+  public function getActivated(): array
   {
     return $this->activations['reference_activated'];
   }

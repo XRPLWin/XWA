@@ -258,10 +258,7 @@ class XwaContinuousSyncProc extends Command
         $method = 'processTransaction_'.$type;
         //$this->log('Inserting: '.$transaction->hash.' ('.$method.') l: '.$transaction->ledger_index.' li: '.$transaction->metaData->TransactionIndex);
         
-
-        
-        
-        $extractor = new TxParticipantExtractor($transaction);
+        $extractor = new TxParticipantExtractor($transaction,['allowSpecialAccounts' => true]);
         $participants = $extractor->result();
         foreach($participants as $participant) {
           //$this->log('- '.$participant);
@@ -367,7 +364,7 @@ class XwaContinuousSyncProc extends Command
       
       # Activations by payment:
       $parser->detectActivations();
-
+      dd('Todo handle multiactivations');
       if($activatedAddress = $parser->getActivated()) {
         //$this->log('');
         //$this->log('Activation: '.$activatedAddress. ' on index '.$parser->SK());

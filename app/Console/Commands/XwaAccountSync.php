@@ -439,7 +439,7 @@ class XwaAccountSync extends Command
       
       # Activations by payment:
       $parser->detectActivations();
-
+      dd('Todo handle multiactivations');
       if($activatedAddress = $parser->getActivated()) {
         //$this->log('');
         //$this->log('Activation: '.$activatedAddress. ' on index '.$parser->SK());
