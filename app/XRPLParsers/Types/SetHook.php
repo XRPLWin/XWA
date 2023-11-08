@@ -30,15 +30,13 @@ final class SetHook extends XRPLParserBase
     //dd($this->hook_parser->installedHooks(),$this->hook_parser->uninstalledHooks());
     //$this->transaction_type_class = 'SetHook'; //this includes updates and no-op
 
-    //Good thing is here to split to: hook install, hook deinstall and hook update
-    if(count($this->hook_parser->installedHooks()))
+    //Cant split txs, we can use context later ad-hoc (see trustlines)
+    /*if(count($this->hook_parser->installedHooks()))
       $this->transaction_type_class = 'SetHook_Install';
     elseif($this->hook_parser->uninstalledHooks())
       $this->transaction_type_class = 'SetHook_Deinstall';
-    else (false)
-      $this->transaction_type_class = 'SetHook_Reset'; //Reset hook namespace
-
-    
+    elseif (false)
+      $this->transaction_type_class = 'SetHook_Reset'; //Reset hook namespace*/
   }
 
   /**
