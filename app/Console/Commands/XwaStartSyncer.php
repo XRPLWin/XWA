@@ -67,7 +67,8 @@ class XwaStartSyncer extends Command
       $this->info('Starting '.$i. ': php artisan xwa:continuoussyncproc '.$start_l.' '.$end_l);
       $process = new Process(['php', base_path('artisan'),'xwa:continuoussyncproc',(string)$start_l,(string)$end_l]);
       $process->setTimeout($this->proc_timeout); //10 mins max run
-      $process->disableOutput();
+      //$process->disableOutput();
+      
       $process->start();
       $processes[] = ['proc' => $process,'start_l' => $start_l, 'end_l' => $end_l];
       sleep(2);
@@ -79,7 +80,9 @@ class XwaStartSyncer extends Command
         if (!$v['proc']->isRunning()) {
           
           if(!$v['proc']->isSuccessful()){
-            $this->error('Process '.$i.' failed');
+            //dd($v['proc']->getErrorOutput(),$v['proc']->getIncrementalOutput(),$v['proc']->getIncrementalErrorOutput());
+            echo $v['proc']->getIncrementalOutput();
+            $this->error('Process '.$i.' failed, tracker removed (error outputed above and logged in job error log).');
             //remove failed tracker
             DB::table('synctrackers')
               ->where('first_l',$v['start_l'])

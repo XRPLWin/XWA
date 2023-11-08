@@ -126,7 +126,7 @@ class XwaContinuousSyncProc extends Command
         //check if job timed out, if yes continue
         if($this->synctracker->updated_at->addSeconds($this->proc_timeout)->isPast()) {
           //Job has timed out
-          $this->log('Job has previously timed out, adjusting tracker...');
+          $this->log('Job has previously timed out, adjusting tracker...'); //it might timed out somewhere in the middle, mozda ovo ni ne treba?
           $this->ledger_index_start = $start_li = $this->synctracker->progress_l+1;
           $this->ledger_index_current = $this->ledger_index_start;
           $this->ledger_index_end = $end_li = $this->synctracker->last_l;
@@ -205,7 +205,7 @@ class XwaContinuousSyncProc extends Command
               $this->logError($e->getMessage());
               throw $e;
             }
-            //Empty queue:
+            //Empty the queue:
             $transactions = [];
           }
           
@@ -217,7 +217,8 @@ class XwaContinuousSyncProc extends Command
         try {
           $this->processTransactions($transactions);
         } catch (\Throwable $e) {
-          $this->log($e->getMessage());
+          $this->log('Error logged: '.$e->getMessage());
+          $this->logError($e->getMessage());
           throw $e;
         }
         
@@ -302,6 +303,8 @@ class XwaContinuousSyncProc extends Command
      */
     private function processTransactions_sub(string $method, BAccount $account, \stdClass $transaction, BatchInterface $batch): array
     {
+      $is_account_changed = false;
+
       /** @var \App\XRPLParsers\Types\XRPLParserBase */
       $parser = Parser::get($transaction, $transaction->metaData, $account->address);
       $parsedData = $parser->toBArray();
@@ -320,7 +323,7 @@ class XwaContinuousSyncProc extends Command
       foreach($activatedAddresses as $activatedAddress) {
         //$this->log('');$this->log('Activation: '.$activatedAddress. ' on hash '.$parser->getData()['hash']);
         $Activation = new BTransactionActivation([
-          'address' => $activatedAddress,//.'-'.BTransactionActivation::TYPE,
+          'address' => $activatedAddress,
           'xwatype' => BTransactionActivation::TYPE,
           'l' => $parsedData['l'],
           'li' => $parsedData['li'],
@@ -333,54 +336,30 @@ class XwaContinuousSyncProc extends Command
           'hooks' => [],
         ]);
         $batch->queueModelChanges($Activation);
-        //$Activation->save();
       }
 
       # Activations by
       if($activatedByAddress = $parser->getActivatedBy()) {
+        $is_account_changed = true;
         //$this->log('');$this->log('Activation: Activated by '.$activatedByAddress. ' on hash '.$parser->getData()['hash']);
         $account->activatedBy = $activatedByAddress;
         $account->isdeleted = false; //in case it is reactivated, this will remove field on model save
-        $batch->queueModelChanges($account);
-        //$account->save();
       }
 
       //TODO ACCOUNT DELETE
-
-      //$model->save();
-      return $parsedData;
-    }
-
-
-    /**
-     * AccountDelete
-     * @return array
-     */
-    private function processTransaction_AccountDelete(BAccount $account, \stdClass $transaction, BatchInterface $batch): array
-    {
-      /** @var \App\XRPLParsers\Types\AccountDelete */
-      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
-
-      $parsedData = $parser->toBArray();
-
-      if($parser->getPersist() === false)
-        return $parsedData;
-
-      $TransactionClassName = '\\App\\Models\\BTransaction'.$parser->getTransactionTypeClass();
-      $model = new $TransactionClassName($parsedData);
-      $model->address = $account->address;
-      $model->xwatype = $TransactionClassName::TYPE;
-      $batch->queueModelChanges($model);
-      //$model->save();
-      
-      if(!$parsedData['isin']) { //TODO IMPLEMENT THIS ABOVE!!!
-        //outgoing, this is deleted account, flag account deleted
-        //$this->log('');
-        //$this->log('Deleted');
-        $account->isdeleted = true;
-        $batch->queueModelChanges($account);
-        //$account->save();
+      if($method == 'AccountDelete') {
+        dd('account delete todo check code below');
+        if(!$parsedData['isin']) {
+          //outgoing, this is deleted account, flag account deleted
+          //$this->log('');
+          //$this->log('Deleted');
+          $is_account_changed = true;
+          $account->isdeleted = true;
+        }
       }
+
+      if($is_account_changed)
+        $batch->queueModelChanges($account);
 
       return $parsedData;
     }
@@ -407,7 +386,7 @@ class XwaContinuousSyncProc extends Command
         if($curr_l >= $this->ledger_index_end)
           $do = false;
 
-        $this->line('Pulling ledger '.$curr_l);
+        
 
         //Do node lookup:
         $params = [
@@ -454,8 +433,8 @@ class XwaContinuousSyncProc extends Command
           throw new \Exception('Unsucessful response from wss endpoint');
           //retry?
         }
-
-        $this->info('Found '.count($response->result->ledger->transactions).' txs');
+        if(count($response->result->ledger->transactions) > 0)
+          $this->log('Pulled ledger '.$curr_l.' found '.count($response->result->ledger->transactions).' txs');
         foreach($response->result->ledger->transactions as $tx) {
           $tx->ledger_index = $curr_l;
           if(isset($tx->date)) {
