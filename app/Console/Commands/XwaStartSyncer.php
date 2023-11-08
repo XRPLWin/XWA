@@ -41,7 +41,7 @@ class XwaStartSyncer extends Command
     exit;*/
 
     $numberOfProcess = 1; //16
-    $ledgersPerProcess = 100; //1000
+    $ledgersPerProcess = 1000; //1000
 
     $emulate = (int)$this->option('emulate'); //int
     $first_l = config('xrpl.genesis_ledger'); //starting ledger

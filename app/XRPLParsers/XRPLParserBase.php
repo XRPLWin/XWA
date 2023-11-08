@@ -225,7 +225,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
    * @throws Exception
    * @return self
    */
-  public function detectActivations(): self
+  protected function detectActivations(): self
   {
     //$i = $i2 = 0;
     if(isset($this->meta->AffectedNodes)) {
