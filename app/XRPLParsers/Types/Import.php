@@ -3,46 +3,33 @@
 namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
-use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
-use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
 
-final class URITokenBuy extends XRPLParserBase
+final class Import extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','SET','UNKNOWN'];
+private array $acceptedParsedTypes = ['SENT','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
-   * Parses TrustSet type fields and maps them to $this->data
-   * @see https://xrpl.org/transaction-types.html
+   * Parses Import type fields and maps them to $this->data
+   * @see https://docs.xahau.network/technical/protocol-reference/transactions/transaction-types/import
+   * @see 762384317F504BF6AAE8480AD8D79FC0F5EC3338A07B72837824405731E8EF81 xahau - regularkey
+   * @see D9611904CC4CF9B871672DB4805114D18E22BC738671015ED96326EEB13E01D6 - emitted tx
    * @return void
    */
   protected function parseTypeFields(): void
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on URITokenBuy with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on Import with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
-      
-    $nftparser = new NFTTxMutationParser($this->reference_address, $this->tx);
-    $nftparserResult = $nftparser->result();
-    //dd($nftparserResult);
-
-    $this->data['In'] = false;
+    # Counterparty is always transaction account (creator)
     $this->data['Counterparty'] = $this->tx->Account;
-    $this->data['nft'] = $nftparserResult['nft'];
-
-    if($nftparserResult['ref']['direction'] == 'IN') {
+    $this->data['In'] = false;
+    if($this->reference_address == $this->tx->Account)
       $this->data['In'] = true;
-      //counterparty is other acc
-      $participants = new TxParticipantExtractor($this->tx);
-      $participants = $participants->accounts();
 
-      foreach($participants as $pAcc => $pRoles) {
-        if($pAcc == $this->tx->Account) continue;
-        if(\in_array('ACCOUNTROOT_NFTOKENOWNER',$pRoles)) {
-          $this->data['Counterparty'] = $pAcc;
-          break;
-        }
-      }
+    if($parsedType === 'UNKNOWN') {
+      //this participant can come from emmitted tx see 
+      $this->persist = false;
     }
     
     # Balance changes from eventList (primary/secondary, both, one, or none)
@@ -53,7 +40,6 @@ final class URITokenBuy extends XRPLParserBase
         $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
       }
     }
-
   }
 
   /**
@@ -71,7 +57,6 @@ final class URITokenBuy extends XRPLParserBase
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
       'offers' => [],
-      'nft' => $this->data['nft'],
       'nftoffers' => [],
       'hooks' => $this->data['hooks'],
     ];

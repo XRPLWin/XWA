@@ -3,47 +3,43 @@
 namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
-use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
-use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
 
-final class URITokenBuy extends XRPLParserBase
+final class ClaimReward extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','SET','UNKNOWN'];
+private array $acceptedParsedTypes = ['SET','UNKNOWN'];
 
   /**
-   * Parses TrustSet type fields and maps them to $this->data
-   * @see https://xrpl.org/transaction-types.html
+   * Parses ClaimReward type fields and maps them to $this->data
+   * @see https://docs.xahau.network/technical/protocol-reference/transactions/transaction-types/claimreward
    * @return void
    */
   protected function parseTypeFields(): void
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on URITokenBuy with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on ClaimReward with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
-      
-    $nftparser = new NFTTxMutationParser($this->reference_address, $this->tx);
-    $nftparserResult = $nftparser->result();
-    //dd($nftparserResult);
+    if($parsedType == 'UNKNOWN')
+      $this->persist = false;
 
-    $this->data['In'] = false;
+    # Counterparty is always transaction account (creator)
     $this->data['Counterparty'] = $this->tx->Account;
-    $this->data['nft'] = $nftparserResult['nft'];
-
-    if($nftparserResult['ref']['direction'] == 'IN') {
+    $this->data['In'] = false;
+    if($this->reference_address == $this->tx->Account)
       $this->data['In'] = true;
-      //counterparty is other acc
-      $participants = new TxParticipantExtractor($this->tx);
-      $participants = $participants->accounts();
 
-      foreach($participants as $pAcc => $pRoles) {
-        if($pAcc == $this->tx->Account) continue;
-        if(\in_array('ACCOUNTROOT_NFTOKENOWNER',$pRoles)) {
-          $this->data['Counterparty'] = $pAcc;
-          break;
-        }
+    $this->transaction_type_class = 'ClaimReward_OptIn';
+    if(isset($this->tx->Flags) && $this->tx->Flags == 1) {
+      $this->transaction_type_class = 'ClaimReward_OptOut';
+    } else {
+      if(isset($this->tx->Issuer) && $this->tx->Issuer) {
+        //SPECIAL CASE: we store Issuer in 'i' field, to be searchable (may not be needed)
+        //$this->data['Amount'] = '0';
+        $this->data['Issuer'] =  $this->tx->Issuer;
+        //$this->data['Currency'] = 'XRP';
       }
     }
+    
     
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
@@ -52,6 +48,10 @@ final class URITokenBuy extends XRPLParserBase
         $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
         $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
       }
+    }
+
+    if(isset($this->data['Amount'])) {
+      $this->transaction_type_class = 'ClaimReward_Claim';
     }
 
   }
@@ -71,7 +71,6 @@ final class URITokenBuy extends XRPLParserBase
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
       'offers' => [],
-      'nft' => $this->data['nft'],
       'nftoffers' => [],
       'hooks' => $this->data['hooks'],
     ];

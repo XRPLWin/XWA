@@ -40,7 +40,7 @@ class XwaStartSyncer extends Command
     dd($chromedriverPath);
     exit;*/
 
-    $numberOfProcess = 3; //16
+    $numberOfProcess = 12; //16
     $ledgersPerProcess = 1000; //1000
 
     $emulate = (int)$this->option('emulate'); //int
