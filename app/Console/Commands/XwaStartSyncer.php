@@ -4,11 +4,11 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
+#use Symfony\Component\Process\Exception\ProcessFailedException;
 #use Symfony\Component\Process\ExecutableFinder;
 use App\Models\Synctracker;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+#use Illuminate\Support\Facades\Log;
 
 class XwaStartSyncer extends Command
 {
@@ -28,12 +28,26 @@ class XwaStartSyncer extends Command
 
   protected int $proc_timeout = 600; //600 - must be same as in XwaContinuousSyncProc
 
+  protected int $numberOfProcess = 8; //16
+  protected int $ledgersPerProcess = 10; //1000
+  
   /**
    * Execute the console command.
    *
    * @return int
    */
-  public function handle()
+  public function handle_old()
+  {
+
+
+  }
+
+  /**
+   * Execute the console command.
+   *
+   * @return int
+   */
+  public function handle_old()
   {
     //$this->normalizeSynctrackers();return;
     /*$executableFinder = new ExecutableFinder();
@@ -41,15 +55,67 @@ class XwaStartSyncer extends Command
     dd($chromedriverPath);
     exit;*/
 
-    $numberOfProcess = 4; //16
-    $ledgersPerProcess = 1000; //1000
+    $this->cleanupStuckTrackers();
+
+    $numberOfProcess = 8; //16
+    $ledgersPerProcess = 10; //1000
 
     $emulate = (int)$this->option('emulate'); //int
-    $first_l = config('xrpl.genesis_ledger'); //starting ledger
-    $tracker = Synctracker::select('last_l')->orderBy('last_l','DESC')->first();
-    if($tracker) {
-      $first_l = $tracker->last_l+1;
+    $first_l = (int)config('xrpl.'.config('xrpl.net').'.genesis_ledger'); //starting ledger
+    $firstTwoTrackers = Synctracker::select('first_l','progress_l','last_l','is_completed')
+      ->orderBy('first_l','ASC')
+      ->limit(2)
+      ->get();
+
+    if($firstTwoTrackers->count() > 1) {
+      
+      if($firstTwoTrackers->first()->isCompleted() && $firstTwoTrackers->last()->isCompleted()) {
+        
+        if($firstTwoTrackers->first()->last_l+1 == $firstTwoTrackers->last()->first_l) {
+          dd('Trackers not merged correctly!');
+        } else {
+          $this->info('Catching up missed tracker with single job...');
+
+          //there might be missed trackers before this one
+          /*if($firstTwoTrackers->first()->first_l > $first_l) {
+            //start from genesis
+            $numberOfProcess = 1;
+          } else {
+            $first_l = $firstTwoTrackers->first()->last_l+1;
+          }*/
+
+          $first_l = $firstTwoTrackers->first()->last_l+1;
+          $numberOfProcess = 1;
+          $wantLedgers = $firstTwoTrackers->last()->first_l - $first_l;
+          if($ledgersPerProcess >= $wantLedgers)
+            $ledgersPerProcess = $wantLedgers;
+          
+          //dd($first_l,$numberOfProcess,$ledgersPerProcess );
+        }
+      } else {
+        $this->info('Trackers are in progress, continuing...');
+        $last = Synctracker::select('last_l')->orderBy('first_l','desc')->first();
+        $first_l = $last->last_l+1;
+        //dd($last,$first_l);
+      }
+    } elseif ($firstTwoTrackers->count() == 1) {
+      
+
+      //there might be missed trackers before this one
+      if($firstTwoTrackers->first()->first_l > $first_l) {
+        //start from genesis
+        $numberOfProcess = 1;
+      } else {
+        $first_l = $firstTwoTrackers->first()->last_l+1;
+      }
+      
+    } else {
+      //No trackers yet
     }
+    //exit;
+    //if($tracker) {
+    //  $first_l = $tracker->last_l+1;
+    //}
 
     if($emulate) {
       $this->info('Emaulate enabled, no jobs will be started');
@@ -85,10 +151,10 @@ class XwaStartSyncer extends Command
             echo $v['proc']->getIncrementalOutput();
             $this->error('Process '.$i.' failed, tracker removed (error outputed above and logged in job error log).');
             //remove failed tracker
-            DB::table('synctrackers')
+            /*DB::table('synctrackers')
               ->where('first_l',$v['start_l'])
               ->where('last_l',$v['end_l'])
-              ->delete();
+              ->delete();*/
             //$exception = new ProcessFailedException($v['proc']);
             //dump( $exception->getTraceAsString() );
             //Log::error($exception->getTraceAsString());
@@ -137,6 +203,13 @@ class XwaStartSyncer extends Command
     return Command::SUCCESS;*/
   }
 
+  private function cleanupStuckTrackers(): void
+  {
+    //delete stuck trackers (updated_at > proc_timeout + 300 seconds)
+
+    //TODO
+  }
+
   /**
    * Merges consecutive trackers into one.
    */
@@ -144,17 +217,21 @@ class XwaStartSyncer extends Command
   {
     DB::beginTransaction();
     $all = Synctracker::orderBy('first_l','ASC')->limit(500)->get();
+    
     $prev = null;
     foreach($all as $t) {
       if($prev === null) {
-        if($t->isCompleted())
+        if($t->isCompleted()) {
           $prev = $t;
+          //$this->info('initial prev is '.$t->id);
+        }
         continue;
       }
-
       if($t->isCompleted()) {
+        
         //Check if prev and $t can be merged
         if($t->isCompleted() && $prev->isCompleted()) {
+          
           if(($prev->last_l+1) == $t->first_l) {
             //merge them
             $prev->progress_l = $t->progress_l;
@@ -163,6 +240,9 @@ class XwaStartSyncer extends Command
             //$this->info('save '.$prev->id);
             $t->delete();
             //$this->info('delete '.$t->id);
+          } else {
+            //$this->info('set prev to '.$t->id);
+            $prev = $t;
           }
         }
       } else {

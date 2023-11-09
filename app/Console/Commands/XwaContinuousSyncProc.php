@@ -174,7 +174,7 @@ class XwaContinuousSyncProc extends Command
 
       //this is max ledger we can query
       //$this->latest_ledger = Ledger::current();
-      //$this->ledger_current = (int)config('xrpl.genesis_ledger');
+      //$this->ledger_current = (int)config('xrpl.'.config('xrpl.net').'.genesis_ledger');
       //todo check tracker where $start_ledger left of...
 
       
@@ -207,6 +207,8 @@ class XwaContinuousSyncProc extends Command
               $this->logError($e->getMessage(),$e);
               throw $e;
             }
+            $this->synctracker->progress_l = $this->ledger_index_current-1;
+            $this->synctracker->save();
             //Empty the queue:
             $transactions = [];
           }
@@ -223,7 +225,6 @@ class XwaContinuousSyncProc extends Command
           $this->logError($e->getMessage(),$e);
           throw $e;
         }
-        
         //Empty queue:
         $transactions = [];
       }
@@ -231,6 +232,7 @@ class XwaContinuousSyncProc extends Command
       $this->log('Disconnecting...');
       $this->client->close();
       $this->log('Saving tracker...');
+      $this->synctracker->progress_l = $this->ledger_index_current-1;
       $this->synctracker->is_completed = true;
       $this->synctracker->save();
       $this->log('Done');
@@ -294,8 +296,7 @@ class XwaContinuousSyncProc extends Command
       }
 
       $processed_rows = $batch->execute();
-      $this->synctracker->progress_l = $this->ledger_index_current-1;
-      $this->synctracker->save();
+      
       $this->log('- DONE (processed '.$processed_rows.' rows)');
 
     }
@@ -427,7 +428,7 @@ class XwaContinuousSyncProc extends Command
             //dump($params,$receive);
             
           } elseif($receive === '') {
-            dd('Unknown response (Ping?)');
+            throw new \Exception('WSS: Unknown response (Ping?)');
           } else {
             $response = \json_decode($receive);
             break;
@@ -444,6 +445,7 @@ class XwaContinuousSyncProc extends Command
         }
         if(count($response->result->ledger->transactions) > 0)
           $this->log('Pulled ledger '.$curr_l.' found '.count($response->result->ledger->transactions).' txs');
+
         foreach($response->result->ledger->transactions as $tx) {
           $tx->ledger_index = $curr_l;
           if(isset($tx->date)) {
@@ -460,7 +462,7 @@ class XwaContinuousSyncProc extends Command
       }
       
       $this->ledger_index_current = $curr_l+1;
-
+      $this->line('set to: '.$this->ledger_index_current);
       $this->info('Total txs is: '.count($data));
       return $data;
     }
