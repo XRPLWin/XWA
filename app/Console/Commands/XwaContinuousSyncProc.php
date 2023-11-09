@@ -86,6 +86,7 @@ class XwaContinuousSyncProc extends Command
       $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
 
       
+     
       /*$this->log('started proc '.$this->debug_id);
       sleep(rand(5,20));
       $this->log('ended proc '.$this->debug_id);
@@ -202,7 +203,8 @@ class XwaContinuousSyncProc extends Command
             try {
               $this->processTransactions($transactions);
             } catch (\Throwable $e) {
-              $this->logError($e->getMessage());
+              $this->log('Error logged (1): '.$e->getMessage());
+              $this->logError($e->getMessage(),$e);
               throw $e;
             }
             //Empty the queue:
@@ -217,8 +219,8 @@ class XwaContinuousSyncProc extends Command
         try {
           $this->processTransactions($transactions);
         } catch (\Throwable $e) {
-          $this->log('Error logged: '.$e->getMessage());
-          $this->logError($e->getMessage());
+          $this->log('Error logged (2): '.$e->getMessage());
+          $this->logError($e->getMessage(),$e);
           throw $e;
         }
         
@@ -265,7 +267,7 @@ class XwaContinuousSyncProc extends Command
           //$this->log('- '.$participant);
 
           if(!isset($accounts[$participant]))
-            $accounts[$participant] = AccountLoader::getOrCreate($participant);
+            $accounts[$participant] = AccountLoader::getForUpdateOrCreate($participant);
           
           //$parsedDatas[] = $this->{$method}($accounts[$participant], $transaction, $batch);
           $parsedDatas[] = $this->processTransactions_sub($method,$accounts[$participant], $transaction, $batch);
@@ -306,7 +308,14 @@ class XwaContinuousSyncProc extends Command
       $is_account_changed = false;
 
       /** @var \App\XRPLParsers\Types\XRPLParserBase */
-      $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      
+      try {
+        $parser = Parser::get($transaction, $transaction->metaData, $account->address);
+      } catch (\Throwable $e) {
+        $this->logError($method.' '.$transaction->hash.' '.$account->address);
+        throw $e;
+      }
+      
       $parsedData = $parser->toBArray();
 
       if($parser->getPersist() === false)
@@ -467,14 +476,17 @@ class XwaContinuousSyncProc extends Command
       Log::channel('syncjobcontinuous')->info($logline);
     }
 
-    private function logError(string $logline)
+    private function logError(string $logline, ?\Throwable $e = null)
     {
       $logline = '['.$this->debug_id.'] '.$logline;
       $this->error($logline);
 
-      if(!$this->debug)
-        return;
+      //if(!$this->debug)
+      //  return;
 
-      Log::channel('syncjobcontinuous_error')->info($logline);
+      if($e)
+        Log::channel('syncjobcontinuous_error')->error($e);
+      else
+        Log::channel('syncjobcontinuous_error')->error($logline);
     }
 }

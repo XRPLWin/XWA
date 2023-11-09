@@ -13,7 +13,7 @@ class AccountsRepository extends Repository
    * @see https://github.com/GoogleCloudPlatform/php-docs-samples/tree/master/bigquery/api/src
    * @return ?array
    */
-  public static function fetchByAddress(string $address): ?array
+  public static function fetchByAddress(string $address, bool $lockforupdate = false): ?array
   {
     $r = DB::table('accounts')
       ->select([
@@ -24,8 +24,12 @@ class AccountsRepository extends Repository
         'activatedBy',
         'isdeleted'
       ])
-      ->where('address',$address)
-      ->get();
+      ->where('address',$address);
+      if($lockforupdate) {
+        $r = $r->lockForUpdate()->get();
+      } else {
+        $r = $r->get();
+      }
       if(!$r->count()) return null;
 
       return (array)$r->first();

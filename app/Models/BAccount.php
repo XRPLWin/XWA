@@ -73,9 +73,9 @@ class BAccount extends B
     return 'address = """'.$this->address.'"""';
   }
 
-  public static function repo_find(string $address): ?self
+  public static function repo_find(string $address, bool $lockforupdate = false): ?self
   {
-    $data = self::getRepository()::fetchByAddress($address);
+    $data = self::getRepository()::fetchByAddress($address,$lockforupdate);
     
     if($data === null)
       return null;

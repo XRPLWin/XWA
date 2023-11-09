@@ -11,7 +11,7 @@ class AccountsRepository extends Repository
    * @see https://github.com/GoogleCloudPlatform/php-docs-samples/tree/master/bigquery/api/src
    * @return ?array
    */
-  public static function fetchByAddress(string $address): ?array
+  public static function fetchByAddress(string $address, bool $lockforupdate = false): ?array
   {
     return self::fetchOne('address = """'.$address.'"""');
   }
