@@ -35,12 +35,13 @@ class XwaStartSyncer extends Command
    */
   public function handle()
   {
+    //$this->normalizeSynctrackers();return;
     /*$executableFinder = new ExecutableFinder();
     $phpPath = $executableFinder->find('php');
     dd($chromedriverPath);
     exit;*/
 
-    $numberOfProcess = 12; //16
+    $numberOfProcess = 4; //16
     $ledgersPerProcess = 1000; //1000
 
     $emulate = (int)$this->option('emulate'); //int
@@ -102,7 +103,11 @@ class XwaStartSyncer extends Command
       }
     }
 
+    
     $this->info('Normalizing sync trackers...');
+    $this->normalizeSynctrackers();
+
+    
     //TODO
 
     $this->info('Shutting down manager');
@@ -130,5 +135,41 @@ class XwaStartSyncer extends Command
     }
 
     return Command::SUCCESS;*/
+  }
+
+  /**
+   * Merges consecutive trackers into one.
+   */
+  private function normalizeSynctrackers(): void
+  {
+    DB::beginTransaction();
+    $all = Synctracker::orderBy('first_l','ASC')->limit(500)->get();
+    $prev = null;
+    foreach($all as $t) {
+      if($prev === null) {
+        if($t->isCompleted())
+          $prev = $t;
+        continue;
+      }
+
+      if($t->isCompleted()) {
+        //Check if prev and $t can be merged
+        if($t->isCompleted() && $prev->isCompleted()) {
+          if(($prev->last_l+1) == $t->first_l) {
+            //merge them
+            $prev->progress_l = $t->progress_l;
+            $prev->last_l = $t->last_l;
+            $prev->save();
+            //$this->info('save '.$prev->id);
+            $t->delete();
+            //$this->info('delete '.$t->id);
+          }
+        }
+      } else {
+        $prev = null;
+        //$this->info('set prev to null');
+      }
+    }
+    DB::commit();
   }
 }

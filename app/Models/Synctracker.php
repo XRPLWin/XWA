@@ -15,4 +15,11 @@ class Synctracker extends Model
   protected $casts = [
     'is_completed' => 'boolean',
   ];
+
+  public function isCompleted(): bool
+  {
+    if($this->progress_l == $this->last_l && $this->is_completed)
+      return true;
+    return false;
+  }
 }
