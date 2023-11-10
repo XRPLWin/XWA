@@ -41,13 +41,6 @@ class InfoController extends Controller
         'route' => '/v1/account/search/{address}?from=DD-MM-YYYY&to=DD-MM-YYYY[&dir=in|out][&st=Int32][&dt=Int32][&cp=rCounterpartyAccount]',
         'method' => 'GET'
       ],
-      
-      [
-        'action' => 'Get queue info',
-        'route' => '/server/queue',
-        'method' => 'GET',
-        'example' => config('app.url').'/server/queue',
-      ],
       [
         'action' => 'Get currency exchange rate',
         'route' => '/v1/currency_rates/{from}/{to}/{amount?}',
@@ -93,6 +86,26 @@ class InfoController extends Controller
         'example' => config('app.url').'/v1/validators/unl/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69/reports/daily/2023-10-01/2023-10-03',
       ];
     }
+
+
+    if(config('xwa.sync_type') == 'account') {
+      $endpoints[] = [
+        'action' => 'Get account queue info',
+        'route' => '/server/queue',
+        'method' => 'GET',
+        'example' => config('app.url').'/server/queue',
+      ];
+    } elseif(config('xwa.sync_type') == 'continuous') {
+      $endpoints[] = [
+        'action' => 'Get sync status',
+        'route' => '/server/syncstatus',
+        'method' => 'GET',
+        'example' => config('app.url').'/server/syncstatus',
+      ];
+    }
+    
+
+
     return response()->json([
       'version' => config('xwa.version'),
       'description' => config('app.name'),

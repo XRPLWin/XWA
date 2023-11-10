@@ -85,7 +85,7 @@ return new class extends Migration
       $table->string('address',50);
       $table->unsignedInteger('l'); //not used in continous syncer
       $table->unsignedSmallInteger('li'); //not used in continous syncer
-      $table->dateTimeTz('lt',0); //Last synced ledger timestamp //not used in continous syncer
+      $table->dateTimeTz('lt',0); //Last synced ledger timestamp - not used in continous syncer
       $table->string('activatedBy',50)->nullable()->default(null)->comment('rAddress which activated this account'); //first one
       $table->boolean('isdeleted')->default(false);
 

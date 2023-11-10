@@ -41,6 +41,7 @@ class XwaStartSyncer extends Command
    */
   public function handle()
   {
+    //$this->normalizeSynctrackers();return;
     //Check if is enabled
     if(config('xwa.sync_type') != 'continuous') {
       $this->info('Continous sync is not enabled');
@@ -200,6 +201,7 @@ class XwaStartSyncer extends Command
             //merge them
             $prev->last_synced_l = $t->last_synced_l;
             $prev->last_l = $t->last_l;
+            $prev->last_lt = $t->last_lt;
             $prev->save();
             //$this->info('save '.$prev->id);
             $t->delete();

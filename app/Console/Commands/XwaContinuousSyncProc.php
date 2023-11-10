@@ -126,6 +126,7 @@ class XwaContinuousSyncProc extends Command
         $this->synctracker->first_l = $this->ledger_index_start;
         $this->synctracker->last_synced_l = $this->ledger_index_current-1;
         $this->synctracker->last_l = $this->ledger_index_end;
+        $this->synctracker->last_lt = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'))->format('Y-m-d H:i:s.uP');
         $this->synctracker->is_completed = false;
         //dd('new:',$this->synctracker);
         $this->synctracker->save();
@@ -157,6 +158,7 @@ class XwaContinuousSyncProc extends Command
       //todo check tracker where $start_ledger left of...
       
       $transactions = [];
+      $last_ledger_date = null;
 
       $do = true;
       while($do) {
@@ -172,14 +174,17 @@ class XwaContinuousSyncProc extends Command
 
           if($this->txbatchlimit <= count($transactions)) {
             //Process queued transactions:
+            $last_ledger_date = null;
             try {
-              $this->processTransactions($transactions);
+              $last_ledger_date = $this->processTransactions($transactions);
             } catch (\Throwable $e) {
               $this->log('Error logged (1): '.$e->getMessage());
               $this->logError($e->getMessage(),$e);
               throw $e;
             }
-            $this->synctracker->last_synced_l = $this->ledger_index_current-1; //todo check
+            $this->synctracker->last_synced_l = $this->ledger_index_current-1;
+            if($last_ledger_date !== null)
+              $this->synctracker->last_lt = ripple_epoch_to_carbon($last_ledger_date)->format('Y-m-d H:i:s.uP');
             $this->synctracker->save();
             //Empty the queue:
             $transactions = [];
@@ -189,21 +194,22 @@ class XwaContinuousSyncProc extends Command
 
       if(count($transactions) > 0) {
         //Process queued transactions (what is left over):
+        $last_ledger_date = null;
         try {
-          $this->processTransactions($transactions);
+          $last_ledger_date = $this->processTransactions($transactions);
         } catch (\Throwable $e) {
           $this->log('Error logged (2): '.$e->getMessage());
           $this->logError($e->getMessage(),$e);
           throw $e;
         }
-        //Empty queue:
-        $transactions = [];
       }
       
       $this->log('Disconnecting...');
       $this->client->close();
       $this->log('Saving tracker...');
       $this->synctracker->last_synced_l = $this->ledger_index_current-1;
+      if($last_ledger_date !== null)
+        $this->synctracker->last_lt = ripple_epoch_to_carbon($last_ledger_date)->format('Y-m-d H:i:s.uP');
       $this->synctracker->is_completed = true;
       $this->synctracker->save();
       $this->log('Done');
@@ -212,10 +218,11 @@ class XwaContinuousSyncProc extends Command
 
     /**
      * Loop all $txs, process them and store them in database.
-     * @return void
+     * @return ?int
      */
-    private function processTransactions(array $txs): void
+    private function processTransactions(array $txs): ?int
     {
+      $last_ledger_date = null;
       $parsedDatas = []; //list of sub-method results (parsed transactions)
       $accounts = []; //list of account models which will be pushed to queue
       # Prepare Batch instance which will hold list of queries to be executed at once to BigQuery
@@ -229,7 +236,7 @@ class XwaContinuousSyncProc extends Command
       foreach($txs as $transaction) {
         if($transaction->metaData->TransactionResult != 'tesSUCCESS')
           continue; //do not log failed transactions
-
+        $last_ledger_date = $transaction->date;
         $type = $transaction->TransactionType;
         $method = 'processTransaction_'.$type;
         //$this->log('Inserting: '.$transaction->hash.' ('.$method.') l: '.$transaction->ledger_index.' li: '.$transaction->metaData->TransactionIndex);
@@ -269,7 +276,7 @@ class XwaContinuousSyncProc extends Command
       $processed_rows = $batch->execute();
       
       $this->log('- DONE (processed '.$processed_rows.' rows)');
-
+      return $last_ledger_date;
     }
 
     /**

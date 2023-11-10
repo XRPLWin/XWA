@@ -198,6 +198,7 @@ class BAccount extends B
 
   /**
    * Is account synced or not depending of input parameters.
+   * Use only for 'account' sync_type!
    * @return bool
    */
   public function isSynced($leeway_minutes = 1, ?Carbon $referenceTime = null): bool

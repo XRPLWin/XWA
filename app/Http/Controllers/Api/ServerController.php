@@ -14,6 +14,9 @@ class ServerController extends Controller
   */
   public function queue()
   {
+    if(config('xwa.sync_type') != 'account')
+      abort(404);
+
     $jobs = DB::table('jobs')->select([
       'id',
       'queue',
@@ -27,5 +30,25 @@ class ServerController extends Controller
       ->get();
 
     return response()->json($jobs);
+  }
+
+  public function syncstatus()
+  {
+    if(config('xwa.sync_type') != 'continuous')
+      abort(404);
+    
+    $trackers = DB::table('synctrackers')->select([
+      'id',
+      'first_l',
+      'last_synced_l',
+      'last_l',
+      'is_completed',
+      'updated_at'
+      ])
+      ->orderBy('first_l','asc')
+      ->limit(100)
+      ->get();
+
+    return response()->json($trackers);
   }
 }

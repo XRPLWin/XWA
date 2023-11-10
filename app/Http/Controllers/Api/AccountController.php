@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Models\Synctracker;
 
 #use App\Statics\XRPL;
 #use App\Statics\Account as StaticAccount;
@@ -124,34 +125,61 @@ class AccountController extends Controller
     ];
 
     /** @var \App\Models\BAccount */
-    $acct = AccountLoader::getOrCreate($address);
+    if(config('xwa.sync_type') == 'account')
+      $acct = AccountLoader::getOrCreate($address);
+    else
+      $acct = AccountLoader::get($address);
+
     if($acct) {
       $firstTxInfo = $acct->getFirstTransactionAllInfo();
+      
       $offset = $firstTxInfo['first'] ? $firstTxInfo['first']:0;
       
-      $r['progress_current_time'] = $acct->lt;
-      $r['progress_current'] = $acct->lt->timestamp - $offset;
-      if($r['progress_current'] < 0) $r['progress_current'] = 0;
-      $r['progress_total'] = $r['progress_total'] - $offset;
-      $r['synced'] = true;
+      if(config('xwa.sync_type') == 'account') { //account
 
-      if(!$acct->isSynced(10,$referenceTime)) {
-        $ttl = 5; //5 seconds for latest
-        $queuedJob = DB::table('jobs')->select('id','queue','started_at')->where('qtype_data',$acct->address)->first();
+        $r['progress_current_time'] = $acct->lt;
+        $r['progress_current'] = $acct->lt->timestamp - $offset;
+        if($r['progress_current'] < 0) $r['progress_current'] = 0;
+        $r['progress_total'] = $r['progress_total'] - $offset;
+        $r['synced'] = true;
 
-        if($queuedJob) {
-          $r['queued'] = true;
-          if($queuedJob->started_at !== null) $r['running'] = true;
-          $r['no_in_queue'] = DB::table('jobs')
-            ->where('queue',$queuedJob->queue)
-            ->where('id','<',$queuedJob->id)
-            ->count();
+        if(!$acct->isSynced(10,$referenceTime)) {
+          $ttl = 5; //5 seconds for latest
+          $queuedJob = DB::table('jobs')->select('id','queue','started_at')->where('qtype_data',$acct->address)->first();
+
+          if($queuedJob) {
+            $r['queued'] = true;
+            if($queuedJob->started_at !== null) $r['running'] = true;
+            $r['no_in_queue'] = DB::table('jobs')
+              ->where('queue',$queuedJob->queue)
+              ->where('id','<',$queuedJob->id)
+              ->count();
+          }
+
+          $r['synced'] = false;
+          if(!$r['queued']) {
+            $acct->sync(false,false,1500);
+          }
         }
 
-        $r['synced'] = false;
-        if(!$r['queued']) {
-          $acct->sync(false,false,1500);
-        }
+      } else { //continous
+        // dd($firstTxInfo,$acct->lt);
+        //First completed tracker
+        $completedSynctracker = Synctracker::select('last_l','last_lt')
+          ->where('is_completed',true)
+          ->orderBy('first_l','ASC')
+          ->first();
+
+        $r['progress_current_time'] = $completedSynctracker->last_lt;
+        $r['progress_current'] = $completedSynctracker->last_lt->timestamp - $offset;
+        if($r['progress_current'] < 0) $r['progress_current'] = 0;
+        $r['progress_total'] = $r['progress_total'] - $offset;
+        $r['synced'] = true;
+
+        $lt = clone $completedSynctracker->last_lt;
+        $lt->addMinutes(10);
+        if($referenceTime->greaterThan($lt))
+          $r['synced'] = false;
       }
     }
    

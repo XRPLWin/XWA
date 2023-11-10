@@ -14,6 +14,7 @@ class Synctracker extends Model
    */
   protected $casts = [
     'is_completed' => 'boolean',
+    'last_lt' => 'datetime',
   ];
 
   public function isCompleted(): bool
