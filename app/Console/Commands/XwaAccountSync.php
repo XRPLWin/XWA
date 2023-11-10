@@ -122,8 +122,8 @@ class XwaAccountSync extends Command
       
       //$this->ledger_current = $this->XRPLClient->api('ledger_current')->send()->finalResult();
       
-      $this->ledger_current = Ledger::current();
-      $this->ledger_current_time = \Carbon\Carbon::now()->format('Y-m-d H:i:s.uP'); //not 100% on point due to Ledger::current() can be stale up to 10 seconds
+      $this->ledger_current = Ledger::validated();
+      $this->ledger_current_time = \Carbon\Carbon::now()->format('Y-m-d H:i:s.uP'); //not 100% on point due to Ledger::validated() can be stale up to 10 seconds
      
       //clear account cache
       Cache::forget('daccount:'.$address);

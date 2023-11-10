@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 class Ledger
 {
   /**
-   * Gets current ledger, cached for 10 seconds.
+   * Gets last current ledger, cached for 10 seconds.
    * @return int
    */
   public static function current(): int
@@ -22,6 +22,31 @@ class Ledger
       Cache::put('ledger_current', $ledger_index, 10); //10 seconds
     }
     return $ledger_index;
+  }
+
+  /**
+   * Gets last closed ledger, cached for 10 seconds.
+   * @return int
+   */
+  public static function closed(): int
+  {
+    $ledger_index = Cache::get('ledger_closed');
+    if($ledger_index === null) {
+      $ledger_index = app(Client::class)->api('ledger_closed')->send()->finalResult();
+      Cache::put('ledger_closed', $ledger_index, 10); //10 seconds
+    }
+    return $ledger_index;
+  }
+
+  /**
+   * Gets last validated ledger, cached for 10 seconds.
+   * Always one behind closed ledger.
+   * @return int
+   */
+  public static function validated(): int
+  {
+    //return 1205;
+    return self::closed()-1;
   }
 
   /**

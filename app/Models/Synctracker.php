@@ -18,7 +18,7 @@ class Synctracker extends Model
 
   public function isCompleted(): bool
   {
-    if($this->progress_l == $this->last_l && $this->is_completed)
+    if($this->last_synced_l == $this->last_l && $this->is_completed)
       return true;
     return false;
   }

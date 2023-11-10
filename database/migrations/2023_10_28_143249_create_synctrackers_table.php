@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('synctrackers', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('first_l');
-            $table->unsignedInteger('progress_l');
+            $table->unsignedInteger('last_synced_l');
             $table->unsignedInteger('last_l');
             $table->boolean('is_completed')->default(false);
             $table->timestamps();

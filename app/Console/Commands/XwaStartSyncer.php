@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\B;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 #use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -9,6 +10,8 @@ use Symfony\Component\Process\Process;
 use App\Models\Synctracker;
 use Illuminate\Support\Facades\DB;
 #use Illuminate\Support\Facades\Log;
+use App\Utilities\Ledger;
+use Illuminate\Support\Facades\Cache;
 
 class XwaStartSyncer extends Command
 {
@@ -26,120 +29,61 @@ class XwaStartSyncer extends Command
    */
   protected $description = 'This will start continous syncer threads.';
 
-  protected int $proc_timeout = 600; //600 - must be same as in XwaContinuousSyncProc
+  protected int $proc_timeout = 600; //600s  - must be same as in XwaContinuousSyncProc
 
-  protected int $numberOfProcess = 8; //16
-  protected int $ledgersPerProcess = 10; //1000
+  protected int $numberOfProcess = 16; //16
+  protected int $ledgersPerProcess = 1000; //1000
   
   /**
    * Execute the console command.
    *
    * @return int
    */
-  public function handle_old()
+  public function handle()
   {
-
-
-  }
-
-  /**
-   * Execute the console command.
-   *
-   * @return int
-   */
-  public function handle_old()
-  {
-    //$this->normalizeSynctrackers();return;
-    /*$executableFinder = new ExecutableFinder();
-    $phpPath = $executableFinder->find('php');
-    dd($chromedriverPath);
-    exit;*/
-
-    $this->cleanupStuckTrackers();
-
-    $numberOfProcess = 8; //16
-    $ledgersPerProcess = 10; //1000
-
-    $emulate = (int)$this->option('emulate'); //int
-    $first_l = (int)config('xrpl.'.config('xrpl.net').'.genesis_ledger'); //starting ledger
-    $firstTwoTrackers = Synctracker::select('first_l','progress_l','last_l','is_completed')
-      ->orderBy('first_l','ASC')
-      ->limit(2)
-      ->get();
-
-    if($firstTwoTrackers->count() > 1) {
-      
-      if($firstTwoTrackers->first()->isCompleted() && $firstTwoTrackers->last()->isCompleted()) {
-        
-        if($firstTwoTrackers->first()->last_l+1 == $firstTwoTrackers->last()->first_l) {
-          dd('Trackers not merged correctly!');
-        } else {
-          $this->info('Catching up missed tracker with single job...');
-
-          //there might be missed trackers before this one
-          /*if($firstTwoTrackers->first()->first_l > $first_l) {
-            //start from genesis
-            $numberOfProcess = 1;
-          } else {
-            $first_l = $firstTwoTrackers->first()->last_l+1;
-          }*/
-
-          $first_l = $firstTwoTrackers->first()->last_l+1;
-          $numberOfProcess = 1;
-          $wantLedgers = $firstTwoTrackers->last()->first_l - $first_l;
-          if($ledgersPerProcess >= $wantLedgers)
-            $ledgersPerProcess = $wantLedgers;
-          
-          //dd($first_l,$numberOfProcess,$ledgersPerProcess );
-        }
-      } else {
-        $this->info('Trackers are in progress, continuing...');
-        $last = Synctracker::select('last_l')->orderBy('first_l','desc')->first();
-        $first_l = $last->last_l+1;
-        //dd($last,$first_l);
-      }
-    } elseif ($firstTwoTrackers->count() == 1) {
-      
-
-      //there might be missed trackers before this one
-      if($firstTwoTrackers->first()->first_l > $first_l) {
-        //start from genesis
-        $numberOfProcess = 1;
-      } else {
-        $first_l = $firstTwoTrackers->first()->last_l+1;
-      }
-      
-    } else {
-      //No trackers yet
+    //Check if is enabled
+    if(config('xwa.sync_type') != 'continuous') {
+      $this->info('Continous sync is not enabled');
+      return Command::SUCCESS;
     }
-    //exit;
-    //if($tracker) {
-    //  $first_l = $tracker->last_l+1;
-    //}
+    
+    //Check if already running
+    $check = Cache::get('job_xwastartsyncer_sync_running');
+    if($check !== null) {
+      $this->info('Another instance already active, exiting.');
+      return Command::SUCCESS;
+    }
+    
+    
+    $emulate = (int)$this->option('emulate'); //int
+    
+    if($emulate) {
+      $this->info('Emulate enabled, no jobs will be started.');
+    } else {
+      Cache::put('job_xwastartsyncer_sync_running', true, ($this->proc_timeout+60));
+    }
+
+    $plan = $this->threadPlan();
+    $processes = [];
+    $i = 0;
+    foreach($plan as $ranges) {
+      $i++;
+      $this->line('['.$i.'/'.$this->numberOfProcess.'] '.($emulate ? 'Emulating':'Starting').': php artisan xwa:continuoussyncproc '.$ranges[0].' '.$ranges[1]);
+      if(!$emulate) {
+        $process = new Process(['php', base_path('artisan'),'xwa:continuoussyncproc',(string)$ranges[0],(string)$ranges[1]]);
+        $process->setTimeout($this->proc_timeout); //10 mins max run
+        //$process->disableOutput();
+        $process->start();
+        $processes[] = ['proc' => $process,'start_l' => $ranges[0], 'end_l' => $ranges[1]];
+        sleep(2);
+      }
+    }
 
     if($emulate) {
-      $this->info('Emaulate enabled, no jobs will be started');
-      for ($i = 0; $i < $numberOfProcess; $i++) {
-        $start_l = $first_l+($i*$ledgersPerProcess);
-      $end_l = $start_l+$ledgersPerProcess-1;
-      $this->info('Emulating '.$i. ': php artisan xwa:continuoussyncproc '.$start_l.' '.$end_l);
-      }
       $this->info('Exiting');
-      return;
+      return Command::SUCCESS;
     }
-    $processes = [];
-    for ($i = 0; $i < $numberOfProcess; $i++) {
-      $start_l = $first_l+($i*$ledgersPerProcess);
-      $end_l = $start_l+$ledgersPerProcess-1;
-      $this->info('Starting '.$i. ': php artisan xwa:continuoussyncproc '.$start_l.' '.$end_l);
-      $process = new Process(['php', base_path('artisan'),'xwa:continuoussyncproc',(string)$start_l,(string)$end_l]);
-      $process->setTimeout($this->proc_timeout); //10 mins max run
-      //$process->disableOutput();
-      
-      $process->start();
-      $processes[] = ['proc' => $process,'start_l' => $start_l, 'end_l' => $end_l];
-      sleep(2);
-    }
+
     // wait for above processes to complete
     while (count($processes)) {
       foreach ($processes as $i => $v) {
@@ -150,11 +94,6 @@ class XwaStartSyncer extends Command
             //dd($v['proc']->getErrorOutput(),$v['proc']->getIncrementalOutput(),$v['proc']->getIncrementalErrorOutput());
             echo $v['proc']->getIncrementalOutput();
             $this->error('Process '.$i.' failed, tracker removed (error outputed above and logged in job error log).');
-            //remove failed tracker
-            /*DB::table('synctrackers')
-              ->where('first_l',$v['start_l'])
-              ->where('last_l',$v['end_l'])
-              ->delete();*/
             //$exception = new ProcessFailedException($v['proc']);
             //dump( $exception->getTraceAsString() );
             //Log::error($exception->getTraceAsString());
@@ -168,46 +107,70 @@ class XwaStartSyncer extends Command
         sleep(1);
       }
     }
-
-    
     $this->info('Normalizing sync trackers...');
     $this->normalizeSynctrackers();
 
-    
-    //TODO
-
+    Cache::delete('job_xwastartsyncer_sync_running');
     $this->info('Shutting down manager');
     return Command::SUCCESS;
-
-
-
-    /*
-    $process = new Process(['php', base_path('artisan'),'xwa:continuoussyncproc','73807163','73807173']);
-    $process2 = new Process(['php', base_path('artisan'),'xwa:continuoussyncproc','73808163','73808173']);
-    //$process->disableOutput();
-    $process->setTimeout(0);
-    $process2->setTimeout(0);
-    $process->start();
-    sleep(5);
-    $this->info('killed');
-    return;
-    //dd($process);
-    foreach ($process as $type => $data) {
-        if ($process::OUT === $type) {
-            echo "\nRead from stdout: ".$data;
-        } else { // $process::ERR === $type
-            echo "\nRead from stderr: ".$data;
-        }
-    }
-
-    return Command::SUCCESS;*/
   }
 
-  private function cleanupStuckTrackers(): void
+  private function threadPlan(): array
   {
-    //delete stuck trackers (updated_at > proc_timeout + 300 seconds)
+    $plan = [];
+    $absMin = (int)config('xrpl.'.config('xrpl.net').'.genesis_ledger');
+    $absMax = Ledger::validated();
+    $min = $absMin;
+    //Generate x number of processes
+    for ($i = 0; $i < $this->numberOfProcess; $i++) {
+      
+      $threadPlanItem = $this->threadPlanItem($min);
+      $min = $threadPlanItem[0];
+      //dump($threadPlanItem);
 
-    //TODO
+      //Do process with starting as $min to $min + 10
+      //$this->info('['.$i.'] php artisan xwa:continuoussyncproc '.$min.' '.($min+$this->ledgersPerProcess).' max: '.$absMax);
+      if($min < $absMax) {
+        //start range allowed
+
+        if(($min+$this->ledgersPerProcess-1) < $absMax) {
+          //end range allowed
+          
+          if($threadPlanItem[1] !== null)
+            $plan['k'.$min] = [$min,$threadPlanItem[1]];
+          else
+            $plan['k'.$min] = [$min,($min+$this->ledgersPerProcess-1)];
+          $min += $this->ledgersPerProcess;
+        } else {
+          //end range not allowed (max ledger reached)
+          if($threadPlanItem[1] !== null)
+            $plan['k'.$min] = [$min,$threadPlanItem[1]];
+          else
+            $plan['k'.$min] = [$min,$absMax];
+          break;
+        }
+        
+      }
+        
+      
+    }
+    return $plan;
+  }
+
+  private function threadPlanItem(int $min): array
+  {
+    $max = null;
+    $synctracker = Synctracker::where('first_l',$min)->first();
+    
+    if($synctracker) {
+      $max = $synctracker->last_l;
+      //Tracker already found
+      return $synctracker->isCompleted() ? 
+        $this->threadPlanItem($synctracker->last_l+1) : [$min,$max,'incomplete'];
+    }
+    
+    //Tracker not found
+    return [$min,$max,'end'];
   }
 
   /**
@@ -220,6 +183,7 @@ class XwaStartSyncer extends Command
     
     $prev = null;
     foreach($all as $t) {
+      
       if($prev === null) {
         if($t->isCompleted()) {
           $prev = $t;
@@ -234,7 +198,7 @@ class XwaStartSyncer extends Command
           
           if(($prev->last_l+1) == $t->first_l) {
             //merge them
-            $prev->progress_l = $t->progress_l;
+            $prev->last_synced_l = $t->last_synced_l;
             $prev->last_l = $t->last_l;
             $prev->save();
             //$this->info('save '.$prev->id);

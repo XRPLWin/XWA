@@ -73,7 +73,7 @@ class UnlReportController extends Controller
     if($to) { 
       $li_end = Ledger::getFromDate($to);
     } else {
-      $li_end = Ledger::current();
+      $li_end = Ledger::validated();
       $ttl = 300; //5 mins, maybe 10 min? (ledger flag time is 12mins)
       $httpttl = 300; //5 mins, maybe 10 min? (ledger flag time is 12mins)
     }
@@ -341,7 +341,7 @@ class UnlReportController extends Controller
       $_to = clone $to;
       $li_end = Ledger::getFromDate($_to->addDay());
     } else {
-      $li_end = Ledger::current();
+      $li_end = Ledger::validated();
       
       $to = now();
       $ttl = 300; //5 mins, maybe 10 min? (ledger flag time is 12mins)

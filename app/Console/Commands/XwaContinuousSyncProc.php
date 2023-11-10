@@ -24,7 +24,7 @@ class XwaContinuousSyncProc extends Command
      */
     protected $signature = 'xwa:continuoussyncproc
                            {ledger_index_start : Starting ledger index}
-                           {ledger_index_end? : Ending ledger index}';
+                           {ledger_index_end : Ending ledger index}';
 
     /**
      * The console command description.
@@ -54,7 +54,7 @@ class XwaContinuousSyncProc extends Command
      * Ledger index tracking variables
      */
     private int $ledger_index_start;
-    private ?int $ledger_index_end = null;
+    private int $ledger_index_end;
     private int $ledger_index_current;
 
     /**
@@ -84,76 +84,55 @@ class XwaContinuousSyncProc extends Command
 
       $this->debug = config('app.debug');
       $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
-
       
-     
-      /*$this->log('started proc '.$this->debug_id);
-      sleep(rand(5,20));
-      $this->log('ended proc '.$this->debug_id);
-      //throw new \Exception('test '.$this->debug_id);
-      return self::SUCCESS;*/
+      # Set initial ranges:
+      $this->ledger_index_start = (int)$this->argument('ledger_index_start'); //32570
+      $this->ledger_index_current = $this->ledger_index_start; //ledger to be pulled next
+      $this->ledger_index_end = (int)$this->argument('ledger_index_end');
 
+      # Validate ranges:
+      if($this->ledger_index_start < 1)
+        throw new \Exception('Invalid starting range');
+      if($this->ledger_index_start > $this->ledger_index_end)
+        throw new \Exception('Starting range can not be bigger than ending range');
 
-      $this->ledger_index_start = $start_li = (int)$this->argument('ledger_index_start'); //32570
-      if($this->ledger_index_start < 1) $this->ledger_index_start = $start_li = 1;
-
-      $this->ledger_index_current = $this->ledger_index_start;
-      $this->ledger_index_end = $end_li = $this->argument('ledger_index_end');
-
-      $this->synctracker = Synctracker::select(['id','first_l','progress_l','last_l','updated_at'])
-      //INNER:
-      ->orWhere(function($q) use ($start_li,$end_li) {
-        $q->whereBetween('first_l',[$start_li,$end_li]);
-        $q->whereBetween('last_l',[$start_li,$end_li]);
-      })
-      //BORDER RIGHT:
-      ->orWhere(function($q) use ($start_li,$end_li) {
-        $q->whereBetween('first_l',[$start_li,$end_li]);
-        $q->where('last_l','>=',$end_li);
-      })
-      //BORDER LEFT:
-      ->orWhere(function($q) use ($start_li,$end_li) {
-        $q->where('first_l','<=',$start_li);
-        $q->whereBetween('last_l',[$start_li,$end_li]);
-      })
-      //OUTER:
-      ->orWhere(function($q) use ($start_li,$end_li) {
-        $q->where('first_l','<=',$start_li);
-        $q->where('last_l','>=',$end_li);
-      })
-      ->orderBy('id','ASC')->first();
+      $this->synctracker = Synctracker::select(['id','first_l','last_synced_l','last_l','created_at','updated_at'])
+        ->where('first_l',$this->ledger_index_start)
+        ->first();
+        
 
       if($this->synctracker !== null) {
         //check if job timed out, if yes continue
         if($this->synctracker->updated_at->addSeconds($this->proc_timeout)->isPast()) {
           //Job has timed out
           $this->log('Job has previously timed out, adjusting tracker...'); //it might timed out somewhere in the middle, mozda ovo ni ne treba?
-          $this->ledger_index_start = $start_li = $this->synctracker->progress_l+1;
-          $this->ledger_index_current = $this->ledger_index_start;
-          $this->ledger_index_end = $end_li = $this->synctracker->last_l;
-          $this->synctracker->delete();
-          $this->synctracker = null;
+          $this->ledger_index_current = $this->synctracker->last_synced_l+1;
+          $this->ledger_index_end = $this->synctracker->last_l;
+          
+        } else {
+          $this->log('Job already running, exiting.');
+          return self::SUCCESS;
         }
       }
+
+      //dd($this->ledger_index_start,$this->ledger_index_current,$this->ledger_index_end,$this->synctracker);
+
+      ## OLD BELOW
+
       
-      if($this->synctracker !== null) {
-        $this->log('Job already running');
-        return self::SUCCESS;
-      } else {
+      if($this->synctracker === null) {
         //reserve spot
         $this->synctracker = new Synctracker();
-        $this->synctracker->first_l = $start_li;
-        $this->synctracker->progress_l = $start_li;
-        $this->synctracker->last_l = $end_li;
+        $this->synctracker->first_l = $this->ledger_index_start;
+        $this->synctracker->last_synced_l = $this->ledger_index_current-1;
+        $this->synctracker->last_l = $this->ledger_index_end;
         $this->synctracker->is_completed = false;
+        //dd('new:',$this->synctracker);
         $this->synctracker->save();
       }
-      unset($start_li);
-      unset($end_li);
-      unset($check);
 
-      $this->log('Job params: '.$this->ledger_index_start.' '.$this->ledger_index_end);
-
+      $this->log('Job params: s'.$this->ledger_index_start.' c'.$this->ledger_index_current.' e'.$this->ledger_index_end);
+      
       # Setup start
       $ws_uri = config('xrpl.'.config('xrpl.net').'.server_wss_syncer');
       
@@ -173,16 +152,9 @@ class XwaContinuousSyncProc extends Command
       ]);
 
       //this is max ledger we can query
-      //$this->latest_ledger = Ledger::current();
+      //$this->latest_ledger = Ledger::validated();
       //$this->ledger_current = (int)config('xrpl.'.config('xrpl.net').'.genesis_ledger');
       //todo check tracker where $start_ledger left of...
-
-      
-
-      // Validate parameters:
-      if($this->ledger_index_end !== null) $this->ledger_index_end = (int)$this->ledger_index_end;
-      if($this->ledger_index_start > $this->ledger_index_end)
-        throw new \Exception('Ledger index parameters invalid');
       
       $transactions = [];
 
@@ -207,12 +179,11 @@ class XwaContinuousSyncProc extends Command
               $this->logError($e->getMessage(),$e);
               throw $e;
             }
-            $this->synctracker->progress_l = $this->ledger_index_current-1;
+            $this->synctracker->last_synced_l = $this->ledger_index_current-1; //todo check
             $this->synctracker->save();
             //Empty the queue:
             $transactions = [];
           }
-          
         }
       }
 
@@ -232,7 +203,7 @@ class XwaContinuousSyncProc extends Command
       $this->log('Disconnecting...');
       $this->client->close();
       $this->log('Saving tracker...');
-      $this->synctracker->progress_l = $this->ledger_index_current-1;
+      $this->synctracker->last_synced_l = $this->ledger_index_current-1;
       $this->synctracker->is_completed = true;
       $this->synctracker->save();
       $this->log('Done');
@@ -358,7 +329,10 @@ class XwaContinuousSyncProc extends Command
 
       //TODO ACCOUNT DELETE
       if($method == 'AccountDelete') {
-        dd('account delete todo check code below');
+        $e = new \Exception('account delete todo check code below');
+        $this->log('Error logged (1): '.$e->getMessage());
+        $this->logError($e->getMessage(),$e);
+        throw $e;
         if(!$parsedData['isin']) {
           //outgoing, this is deleted account, flag account deleted
           //$this->log('');
@@ -384,7 +358,11 @@ class XwaContinuousSyncProc extends Command
       if($this->ledger_index_current > $this->ledger_index_end)
         return null;
 
-      $this->info('Pulling ledgers from '.$this->ledger_index_current.' to '.($this->ledger_index_current+$this->wsbatchlimit-1).' (overflow)');
+      $lbl_to = $this->ledger_index_current+$this->wsbatchlimit-1;
+      if($lbl_to > $this->ledger_index_end)
+        $lbl_to = $this->ledger_index_end;
+      $this->info('Pulling ledgers from '.$this->ledger_index_current.' to '.$lbl_to);
+      
       $data = [];
       $do = true;
       $i = 0;
@@ -414,8 +392,8 @@ class XwaContinuousSyncProc extends Command
         //$receive = $this->client->receive();
         //$response = \json_decode($receive);
         $response = null;
-        # Mini loop to ensure rate limiting...
 
+        # Mini loop to ensure rate limiting...
         while(true) {
           $receive = $this->client->receive();
           
@@ -425,24 +403,35 @@ class XwaContinuousSyncProc extends Command
             $this->log('Cooling down (3 seconds)...');
             sleep(3);
             $this->client->text(\json_encode($params));
-            //dump($params,$receive);
-            
           } elseif($receive === '') {
-            throw new \Exception('WSS: Unknown response (Ping?)');
+            $e = new \Exception('WSS: Unknown response (Ping?)');
+            $this->logError($e->getMessage(),$e);
+            throw $e;
           } else {
             $response = \json_decode($receive);
             break;
           }
         }
 
-        if($response === null)
-          throw new \Exception('Unhandled: ws response not filled');
+        if($response === null) {
+          $e = new \Exception('Unhandled: ws response not filled');
+          $this->logError($e->getMessage(),$e);
+          throw $e;
+        }
 
         # Mini loop end
         if($response->status != 'success') {
-          throw new \Exception('Unsucessful response from wss endpoint');
-          //retry?
+          if($response->error == 'lgrNotFound') {
+            //skip this
+            $this->log('Skipped ledger '.$curr_l.' (lgrNotFound)');
+            continue;
+          } else {
+            $e = new \Exception('Unsupported response from wss endpoint (status: '.$response->error.')');
+            $this->logError($e->getMessage(),$e);
+            throw $e;
+          }
         }
+
         if(count($response->result->ledger->transactions) > 0)
           $this->log('Pulled ledger '.$curr_l.' found '.count($response->result->ledger->transactions).' txs');
 
@@ -455,14 +444,10 @@ class XwaContinuousSyncProc extends Command
           $tx->date = $response->result->ledger->close_time;
           \array_push($data,$tx);
         }
-       
-        
-        //$this->line($response);
-        //exit;
-      }
+      } //end while($do)
       
-      $this->ledger_index_current = $curr_l+1;
-      $this->line('set to: '.$this->ledger_index_current);
+      $this->ledger_index_current = $curr_l+1; //+1 next ledger in line to be synced
+      //$this->line('Set to: '.$this->ledger_index_current);
       $this->info('Total txs is: '.count($data));
       return $data;
     }
