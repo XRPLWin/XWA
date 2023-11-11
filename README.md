@@ -31,6 +31,7 @@ CD to xwa project dir.
 ```
 cp ./documentation/supervisor/octane.ini /etc/supervisor/conf.d/octane.conf
 ```
+Note: edit `octane.conf` and make sure path to artisan is correct, you would want to also change log name.
 
 ### Account sync queue workers
 Currently 3 jobs supported.  
