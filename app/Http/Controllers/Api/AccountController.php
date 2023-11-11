@@ -181,6 +181,8 @@ class AccountController extends Controller
           $r['running'] = true;
         }
       }
+    } else {
+      $ttl = 60; //non-existing account 60s refresh
     }
    
     /*if($r['progress_total'] == 0 || $r['progress_current'] == 0)
