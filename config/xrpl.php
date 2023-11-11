@@ -20,7 +20,7 @@ return [
     'rippled_fullhistory_server_uri' => env('XRPL_NET_RIPPLED_FULLHISTORY_SERVER_URI', 'http://localhost:51234'),
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => env('XRPL_NET_SERVER_WSS', 'localhost:6006'),
-    'server_wss_syncer' => env('XRPL_NET_SERVER_WSS_SYNCER', 'ws://localhost:6006'),
+    'server_wss_syncer' => [env('XRPL_NET_SERVER_WSS_SYNCER', 'ws://localhost:6006')],
     //enable or disable unlreport
     'feature_unlreport' => env('XRPL_NET_FEATURE_UNLREPORT', false),
     'feature_unlreport_first_flag_ledger' => env('XRPL_NET_FEATURE_UNLREPORT_FIRST_FLAG_LEDGER', 512),
@@ -39,7 +39,7 @@ return [
     'rippled_fullhistory_server_uri' => 'https://xrplcluster.com',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 'xrplcluster.com',
-    'server_wss_syncer' => 'ws://185.239.60.22:20400',
+    'server_wss_syncer' => ['ws://185.239.60.22:20400','wss://s2.ripple.com'],
     //enable or disable unlreport
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
@@ -58,7 +58,7 @@ return [
     'rippled_fullhistory_server_uri' => 'https://s.altnet.rippletest.net:51234',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 's.altnet.rippletest.net',
-    'server_wss_syncer' => 'wss://s.altnet.rippletest.net',
+    'server_wss_syncer' => ['wss://s.altnet.rippletest.net'],
     //enable or disable unlreport
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
@@ -77,7 +77,7 @@ return [
     'rippled_fullhistory_server_uri' => 'https://xahau-test.net',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 'xahau-test.net',
-    'server_wss_syncer' => 'wss://xahau-test.net',
+    'server_wss_syncer' => ['wss://xahau-test.net'],
     //enable or disable unlreport
     'feature_unlreport' => true,
     'feature_unlreport_first_flag_ledger' => 6869247, //6869248 is first flag
@@ -96,7 +96,7 @@ return [
     'rippled_fullhistory_server_uri' => 'https://xahau.network',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 'xahau.network',
-    'server_wss_syncer' => 'wss://xahau.network',
+    'server_wss_syncer' => ['wss://xahau.network'],
     //enable or disable unlreport
     'feature_unlreport' => true,
     'feature_unlreport_first_flag_ledger' => 512, //512 is first flag
