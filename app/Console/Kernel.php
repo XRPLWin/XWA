@@ -27,9 +27,9 @@ class Kernel extends ConsoleKernel
       ->onOneServer(); 
 
     $schedule->command('xwa:startsyncer')
-      ->withoutOverlapping(4) //lock expires every 4 mins, flag ledgers are approx every 12 mins
+      ->withoutOverlapping(1) //lock expires every 1 min
       ->everyThreeMinutes()
-      ->onOneServer();  
+      ->everyMinute();  
   }
 
   /**
