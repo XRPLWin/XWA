@@ -4,6 +4,8 @@ XRP Ledger Analyzer (WORK IN PROGRESS)
 
 ## Installation
 
+Install [composer](https://getcomposer.org/download/) to composer.phar
+
 Set permissions:
 ```
 cp .env.example .env
