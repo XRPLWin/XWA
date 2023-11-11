@@ -37,6 +37,8 @@ Note: edit `octane.conf` and make sure path to artisan is correct, you would wan
 Currently 3 jobs supported.  
 Copy `/documentation/supervisor/queue.ini` to `/etc/supervisor.d/queue.conf`
 
+
+### Enabling and restarting supervisor
 ```
 # Tell supervisor to bring the changes into effect
 sudo supervisorctl update
