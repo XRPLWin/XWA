@@ -47,6 +47,7 @@ Customize depending of your needs, 12 workers per 1 CPU tested optimal.
 CD to xwa project dir.
 ```
 cp ./documentation/supervisor/octane.ini /etc/supervisor/conf.d/octane.conf
+# change name, log filename and port to match nginx vhost
 ```
 Note: edit `octane.conf` and make sure path to artisan is correct, you would want to also change log name.
 
