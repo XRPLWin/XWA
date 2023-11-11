@@ -84,6 +84,8 @@ class XwaContinuousSyncProc extends Command
 
       $this->debug = config('app.debug');
       $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
+
+      set_time_limit(($this->proc_timeout+30));
       
       # Set initial ranges:
       $this->ledger_index_start = (int)$this->argument('ledger_index_start'); //32570
@@ -407,8 +409,8 @@ class XwaContinuousSyncProc extends Command
           $receive = $this->client->receive();
           
           if($receive === null) {
-            $this->log('Connection closed');
             $this->client->close();
+            $this->log('Connection closed');
             $this->log('Cooling down (3 seconds)...');
             sleep(3);
             $this->client->text(\json_encode($params));
@@ -435,6 +437,7 @@ class XwaContinuousSyncProc extends Command
             $this->log('Skipped ledger '.$curr_l.' (lgrNotFound)');
             continue;
           } else {
+            //known errors: slowDown
             $e = new \Exception('Unsupported response from wss endpoint (status: '.$response->error.')');
             $this->logError($e->getMessage(),$e);
             throw $e;
