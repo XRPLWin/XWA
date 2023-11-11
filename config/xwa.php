@@ -80,6 +80,9 @@ $dirlist = \scandir($dir);
 foreach($dirlist as $v) {
   if(\str_starts_with($v,'BTransaction') && $v !== 'BTransaction.php' && \str_ends_with($v,'.php')) {
     $modelname = '\\App\\Models\\'.\substr($v,0,-4);
+    if(isset($r['transaction_types'][$modelname::TYPE])) {
+      throw new \Exception('Misconfigured models - duplicate TYPE '.$modelname::TYPE);
+    }
     $r['transaction_types'][$modelname::TYPE] = \substr(\substr($v,0,-4),12);
   }
 }

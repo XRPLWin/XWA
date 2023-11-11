@@ -217,5 +217,6 @@ class XwaStartSyncer extends Command
       }
     }
     DB::commit();
+    Cache::delete('lastcompletedsyncedledgerdata');
   }
 }

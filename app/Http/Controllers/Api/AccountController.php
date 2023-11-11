@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use App\Models\Synctracker;
+use App\Utilities\SynctrackerLoader;
 
 #use App\Statics\XRPL;
 #use App\Statics\Account as StaticAccount;
@@ -91,6 +92,7 @@ class AccountController extends Controller
 
   public function syncinfo(string $address, string $to_datetime = null): JsonResponse
   {
+    
     validateXRPAddressOrFail($address);
 
     if($to_datetime) {
@@ -119,11 +121,11 @@ class AccountController extends Controller
       'queued' => false,  //bool
       'no_in_queue' => 0,  //int
       'running' => false, //bool
-      'progress_current' => 0, //unix timestamp - offset
-      'progress_current_time' => null, //current time
+      'progress_current' => config('xrpl.'.config('xrpl.net').'.genesis_ledger'), //unix timestamp - offset
+      'progress_current_time' => ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time')), //current time
       'progress_total' => $referenceTime->format('U'),
     ];
-
+    
     /** @var \App\Models\BAccount */
     if(config('xwa.sync_type') == 'account')
       $acct = AccountLoader::getOrCreate($address);
@@ -163,23 +165,19 @@ class AccountController extends Controller
         }
 
       } else { //continous
-        // dd($firstTxInfo,$acct->lt);
         //First completed tracker
-        $completedSynctracker = Synctracker::select('last_l','last_lt')
-          ->where('is_completed',true)
-          ->orderBy('first_l','ASC')
-          ->first();
-
-        $r['progress_current_time'] = $completedSynctracker->last_lt;
-        $r['progress_current'] = $completedSynctracker->last_lt->timestamp - $offset;
+        $completedSynctracker = SynctrackerLoader::lastCompletedSyncedLedgerData();
+        $r['progress_current_time'] = $completedSynctracker['last_lt'];
+        $r['progress_current'] = Carbon::parse($completedSynctracker['last_lt'])->timestamp - $offset;
         if($r['progress_current'] < 0) $r['progress_current'] = 0;
         $r['progress_total'] = $r['progress_total'] - $offset;
         $r['synced'] = true;
 
-        $lt = clone $completedSynctracker->last_lt;
-        $lt->addMinutes(10);
-        if($referenceTime->greaterThan($lt))
+        if(!$acct->isSynced(10,$referenceTime)) {
           $r['synced'] = false;
+          $r['queued'] = true;
+          $r['running'] = true;
+        }
       }
     }
    

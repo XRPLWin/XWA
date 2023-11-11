@@ -11,6 +11,7 @@ use App\Utilities\Ledger;
 use Illuminate\Support\Facades\Cache;
 use XRPLWin\XRPL\Client as XRPLWinApiClient;
 use Carbon\Carbon;
+use App\Utilities\SynctrackerLoader;
 
 class BAccount extends B
 {
@@ -206,7 +207,14 @@ class BAccount extends B
     if($referenceTime === null)
       $referenceTime = now();
     
-    $lt = clone $this->lt;
+    if(config('xwa.sync_type') == 'account') {
+      $lt = clone $this->lt;
+    } else {
+      $completedSynctracker = SynctrackerLoader::lastCompletedSyncedLedgerData();
+      $lt = Carbon::parse($completedSynctracker['last_lt']);
+      //dd($completedSynctracker,$lt);
+    }
+    
     
     $lt->addMinutes($leeway_minutes); //x min leeway time (eg sync can be 10 min stale)
 
