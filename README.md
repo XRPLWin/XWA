@@ -53,7 +53,7 @@ Note: edit `octane.conf` and make sure path to artisan is correct, you would wan
 
 ### Account sync queue workers (only if you using sync_type=account)
 Currently 3 jobs supported.  
-Copy `/documentation/supervisor/queue.ini` to `/etc/supervisor.d/queue.conf`
+Copy `/documentation/supervisor/queue.ini` to `/etc/supervisor/conf.d/queue.conf`
 
 
 ### Enabling and restarting supervisor
