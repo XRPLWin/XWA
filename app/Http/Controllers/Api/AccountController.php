@@ -10,12 +10,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Utilities\Bigquery\Search as BigquerySearch;
 use App\Utilities\Sql\Search as SqlSearch;
-use XRPLWin\XRPL\Api\Methods\LedgerCurrent;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
-use App\Models\Synctracker;
+#use Illuminate\Support\Facades\Log;
+#use App\Models\Synctracker;
 use App\Utilities\SynctrackerLoader;
 
 #use App\Statics\XRPL;
@@ -240,50 +239,58 @@ class AccountController extends Controller
       'deleted' => false
     ];
 
-    $acct = AccountLoader::getOrCreate($address);
-
-    if(!$acct->isSynced(3))
-    {
-      $acct->sync(false,false,1500);
-      $r['sync_queued'] = true;
-      $r['synced'] = false;
-    }
-
-    $r['synced_info'] = $acct->getFirstTransactionAllInfo();
-
-    $account_data = app(XRPLWinApiClient::class)->api('account_info')
-        ->params([
-            'account' => $address,
-            'strict' => true
-        ])
-        ->send();
-    
-    
-    if(!$account_data->isSuccess()) {
-      if($account_data->result()->result->error == 'actNotFound') {
-        $result = (object)[
-          'Balance' => 0,
-          'Flags' => null
-        ];
-        $r['deleted'] = true;
+    if(config('xwa.sync_type') == 'account') {
+      $acct = AccountLoader::getOrCreate($address);
+      if(!$acct->isSynced(3))
+      {
+        $acct->sync(false,false,1500);
+        $r['sync_queued'] = true;
+        $r['synced'] = false;
       }
     } else {
-      $result = $account_data->finalResult();
+      $acct = AccountLoader::get($address);
+      
     }
     
-    
-    $r['Balance'] = $result->Balance;
-    $r['Flags'] = $result->Flags;
-    if(isset($result->RegularKey))
-      $r['RegularKey'] = $result->RegularKey;
-    if(isset($result->Domain))
-      $r['Domain'] = $result->Domain;
-    if(isset($result->EmailHash))
-      $r['EmailHash'] = $result->EmailHash;
+    if($acct) {
+      $r['synced_info'] = $acct->getFirstTransactionAllInfo();
+      
 
-    //get if this account is issuer or not by checking obligations
-    if($acct->t === 1)
-      $r['type'] = 'issuer';
+      $account_data = app(XRPLWinApiClient::class)->api('account_info')
+        ->params([
+          'account' => $address,
+          'strict' => true
+        ])
+        ->send();
+
+
+      if(!$account_data->isSuccess()) {
+        if($account_data->result()->result->error == 'actNotFound') {
+          $result = (object)[
+            'Balance' => 0,
+            'Flags' => null
+          ];
+          $r['deleted'] = true;
+        }
+      } else {
+        $result = $account_data->finalResult();
+      }
+
+
+      $r['Balance'] = $result->Balance;
+      $r['Flags'] = $result->Flags;
+      if(isset($result->RegularKey))
+        $r['RegularKey'] = $result->RegularKey;
+      if(isset($result->Domain))
+        $r['Domain'] = $result->Domain;
+      if(isset($result->EmailHash))
+        $r['EmailHash'] = $result->EmailHash;
+
+      //get if this account is issuer or not by checking obligations
+      if($acct->t === 1)
+        $r['type'] = 'issuer';
+    }
+    
     
     return response()->json($r);
   }
@@ -294,6 +301,8 @@ class AccountController extends Controller
    */
   public function issued(string $address): JsonResponse
   {
+    abort(403); //TODO
+
     validateXRPAddressOrFail($address);
     $issued = [];
     $acct = AccountLoader::getOrCreate($address);
@@ -338,6 +347,7 @@ class AccountController extends Controller
    */
   public function trustlines(string $address): JsonResponse
   {
+    abort(403); //TODO
     validateXRPAddressOrFail($address);
     $account_lines = app(XRPLWinApiClient::class)->api('account_lines')
     ->params([
@@ -390,6 +400,7 @@ class AccountController extends Controller
   */
   public function chart_spending(string $account)
   {
+    abort(403); //TODO
     validateXRPAddressOrFail($account);
     $acct = new AccountLoader($account);
     if(!$acct->synced)
@@ -398,7 +409,7 @@ class AccountController extends Controller
     $end = now();
     $start = now()->addDays(-330);
 
-  //  dd($acct->account);
+    //  dd($acct->account);
     $aggr = AggregatDailyPayment::select('amount','balance','date')
       ->where('account_id',$acct->account->id)
       ->whereBetween('date',[$start,$end])
