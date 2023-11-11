@@ -56,7 +56,7 @@ class XwaStartSyncer extends Command
     }
 
     $this->numberOfProcess = (int)config('xwa.sync_type_continuous.processes');
-    
+
     $emulate = (int)$this->option('emulate'); //int
     
     if($emulate) {
