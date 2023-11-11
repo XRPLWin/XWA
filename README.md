@@ -2,6 +2,14 @@
 
 XRP Ledger Analyzer (WORK IN PROGRESS)
 
+## Requirements
+
+- PHP 8.1.x, 8.2.x
+- swoole (PECL)
+- Nginx
+- Supervisor (too keep web server up)
+- Varnish (optional)
+
 ## Installation
 
 Install [composer](https://getcomposer.org/download/) to composer.phar
@@ -28,12 +36,6 @@ chmod +x reload.sh
 
 Character set: `utf8mb4`  
 Collation: `utf8mb4_bin`
-
-## Swoole
-
-```
-pecl install swoole
-```
 
 ## Supervisor
 
