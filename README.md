@@ -6,8 +6,9 @@ XRP Ledger Analyzer (WORK IN PROGRESS)
 
 Set permissions:
 ```
-find storage/ -type d -exec chmod 770 {} \;
-find storage/ -type f -exec chmod 760 {} \;
+cp .env.example .env
+php artisan key:generate
+# set .env variables now
 ```
 
 ### Database (MySQL)
