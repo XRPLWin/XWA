@@ -2,10 +2,14 @@
 echo 'Reloading XWA instance (nginx, octane, redis cache, nginx cache)...'
 echo 'php artisan config:cache'
 php artisan config:cache
+echo 'php artisan route:cache'
+php artisan route:cache
 echo 'php artisan view:cache'
 php artisan view:cache
 echo 'php artisan cache:clear'
 php artisan cache:clear
+echo 'rm -rf /var/nginxcache/*'
 rm -rf /var/nginxcache/*
+echo 'systemctl restart supervisor nginx'
 systemctl restart supervisor nginx
 echo 'Done'
