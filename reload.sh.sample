@@ -7,5 +7,5 @@ php artisan view:cache
 echo 'php artisan cache:clear'
 php artisan cache:clear
 rm -rf /var/nginxcache/*
-systemctl restart supervisord nginx
+systemctl restart supervisor nginx
 echo 'Done'
