@@ -27,6 +27,10 @@ pecl install swoole
 ### Swoole worker
 Customize depending of your needs, 12 workers per 1 CPU tested optimal.  
 Copy `/documentation/supervisor/octane.ini` to `/etc/supervisor.d/octane.ini`  
+CD to xwa project dir.
+```
+cp ./documentation/supervisor/octane.ini /etc/supervisor.d/octane.ini
+```
 
 ### Account sync queue workers
 Currently 3 jobs supported.  
