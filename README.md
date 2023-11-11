@@ -7,7 +7,7 @@ XRP Ledger Analyzer (WORK IN PROGRESS)
 Install [composer](https://getcomposer.org/download/) to composer.phar
 
 ```SHELL
-php composre.phar install --no-dev
+php composer.phar install --no-dev
 ```
 
 Set permissions:
