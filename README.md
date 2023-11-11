@@ -21,6 +21,7 @@ Prepare reaload.sh
 ```
 cp reload.sh.sample reload.sh
 chmod +x reload.sh
+# edit reload.sh to change nginx cache folder if needed
 ```
 
 ### Database (MySQL)
