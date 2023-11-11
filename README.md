@@ -6,7 +6,7 @@ XRP Ledger Analyzer (WORK IN PROGRESS)
 
 Install [composer](https://getcomposer.org/download/) to composer.phar
 
-```SHELL
+```
 php composer.phar install --no-dev
 ```
 
@@ -15,6 +15,12 @@ Set permissions:
 cp .env.example .env
 php artisan key:generate
 # set .env variables now
+```
+
+Prepare reaload.sh
+```
+cp reload.sh.sample reload.sh
+chmod +x reload.sh
 ```
 
 ### Database (MySQL)
