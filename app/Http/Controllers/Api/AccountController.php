@@ -166,6 +166,8 @@ class AccountController extends Controller
       } else { //continous
         //First completed tracker
         $completedSynctracker = SynctrackerLoader::lastCompletedSyncedLedgerData();
+        //dd($completedSynctracker);
+        
         $r['progress_current_time'] = $completedSynctracker['last_lt'];
         $r['progress_current'] = Carbon::parse($completedSynctracker['last_lt'])->timestamp - $offset;
         if($r['progress_current'] < 0) $r['progress_current'] = 0;
@@ -173,6 +175,7 @@ class AccountController extends Controller
         $r['synced'] = true;
 
         if(!$acct->isSynced(10,$referenceTime)) {
+          $ttl = 5; //5 seconds for latest
           $r['synced'] = false;
           $r['queued'] = true;
           $r['running'] = true;
