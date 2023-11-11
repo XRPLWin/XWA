@@ -31,7 +31,7 @@ class XwaStartSyncer extends Command
 
   protected int $proc_timeout = 600; //600s  - must be same as in XwaContinuousSyncProc
 
-  protected int $numberOfProcess = 2; //16
+  protected int $numberOfProcess = 4; //16
   protected int $ledgersPerProcess = 1000; //1500, 1000 was ok
   
   /**
