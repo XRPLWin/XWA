@@ -25,6 +25,10 @@ $r = [
   | Options: account,continuous
   */
   'sync_type' => env('XWA_SYNC_TYPE', 'account'),
+  'sync_type_continuous' => [
+    //Number of parallel processes that will be spawned
+    'processes' => env('XWA_SYNC_TYPE_CONTINUOUS_PROCESSES', 4),                    
+  ],
 
   /*
   |--------------------------------------------------------------------------

@@ -31,7 +31,7 @@ class XwaStartSyncer extends Command
 
   protected int $proc_timeout = 600; //600s  - must be same as in XwaContinuousSyncProc
 
-  protected int $numberOfProcess = 4; //16
+  protected int $numberOfProcess = 1; //16 - overriden from config
   protected int $ledgersPerProcess = 1000; //1500, 1000 was ok
   
   /**
@@ -54,7 +54,8 @@ class XwaStartSyncer extends Command
       $this->info('Another instance already active, exiting.');
       return Command::SUCCESS;
     }
-    
+
+    $this->numberOfProcess = (int)config('xwa.sync_type_continuous.processes');
     
     $emulate = (int)$this->option('emulate'); //int
     
