@@ -47,6 +47,14 @@ sudo supervisorctl update
 sudo supervisorctl restart all
 ```
 
+### Nginx vhost
+Now while we have swoole workers running locally on port 8000 we need to expose them to public using nginx.  
+CD to xwa project dir.
+```
+cp ./documentation/nginx/xwa_swoole.conf /opt/nginx/htdocs/vhosts/xwa_swoole.conf
+```
+
+
 ### Permissions
 
 ```
