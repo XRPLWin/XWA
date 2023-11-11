@@ -29,7 +29,7 @@ Customize depending of your needs, 12 workers per 1 CPU tested optimal.
 Copy `/documentation/supervisor/octane.ini` to `/etc/supervisor.d/octane.ini`  
 CD to xwa project dir.
 ```
-cp ./documentation/supervisor/octane.ini /etc/supervisor.d/octane.ini
+cp ./documentation/supervisor/octane.ini /etc/supervisor/conf.d/octane.conf
 ```
 
 ### Account sync queue workers
