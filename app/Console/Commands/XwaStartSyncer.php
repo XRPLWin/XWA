@@ -31,8 +31,8 @@ class XwaStartSyncer extends Command
 
   protected int $proc_timeout = 600; //600s  - must be same as in XwaContinuousSyncProc
 
-  protected int $numberOfProcess = 24; //16
-  protected int $ledgersPerProcess = 1000; //1000
+  protected int $numberOfProcess = 24; //24
+  protected int $ledgersPerProcess = 4000; //4000
   
   /**
    * Execute the console command.
@@ -65,6 +65,7 @@ class XwaStartSyncer extends Command
     }
 
     $plan = $this->threadPlan();
+    
     $processes = [];
     $i = 0;
     foreach($plan as $ranges) {
