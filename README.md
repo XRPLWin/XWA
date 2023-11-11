@@ -16,13 +16,16 @@ Install [composer](https://getcomposer.org/download/) to composer.phar
 
 ```
 php composer.phar install --no-dev
-```
-
-Set permissions:
-```
 cp .env.example .env
 php artisan key:generate
 # set .env variables now
+```
+
+Permissions
+```
+chown -R root:daemon .
+find storage/ -type d -exec chmod 770 {} \;
+find storage/ -type f -exec chmod 760 {} \;
 ```
 
 Prepare reaload.sh
@@ -41,7 +44,6 @@ Collation: `utf8mb4_bin`
 
 ### Swoole worker
 Customize depending of your needs, 12 workers per 1 CPU tested optimal.  
-Copy `/documentation/supervisor/octane.ini` to `/etc/supervisor.d/octane.ini`  
 CD to xwa project dir.
 ```
 cp ./documentation/supervisor/octane.ini /etc/supervisor/conf.d/octane.conf
@@ -67,31 +69,11 @@ Now while we have swoole workers running locally on port 8000 we need to expose 
 CD to xwa project dir.
 ```
 cp ./documentation/nginx/xwa_swoole.conf /opt/nginx/conf/vhosts/xwa_swoole.conf
-```
-
-
-### Permissions
-
-```
-chown -R root:daemon .
-find storage/ -type d -exec chmod 770 {} \;
-find storage/ -type f -exec chmod 760 {} \;
-```
-
-### Restarting workers
-
-```
-php artisan octane:reload
+# edit to match swoole port and nginx cache directory
 ```
 
 ### Full restart
 
-```
-php artisan cache:clear
-rm -rf /var/nginxcache/*
-systemctl restart supervisord nginx
-```
-or use .sh script (copy reload.sh.sample to reload.sh) and make it executable `chmod +x reload.sh`
 ```
 ./reload.sh
 ```
