@@ -33,6 +33,11 @@ cp ./documentation/supervisor/octane.ini /etc/supervisor/conf.d/octane.conf
 ```
 Note: edit `octane.conf` and make sure path to artisan is correct, you would want to also change log name.
 
+Only if you are using sync_type = account copy queue.ini:
+```
+cp ./documentation/supervisor/queue.ini /etc/supervisor/conf.d/queue.conf
+```
+
 ### Account sync queue workers
 Currently 3 jobs supported.  
 Copy `/documentation/supervisor/queue.ini` to `/etc/supervisor.d/queue.ini`
