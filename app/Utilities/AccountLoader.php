@@ -39,9 +39,11 @@ class AccountLoader
    */
   public static function getForUpdateOrCreate(string $address): BAccount
   {
+    Cache::delete('daccount:'.$address);
+
     DB::beginTransaction();
     $Account = self::get($address,true);
-  
+    
     if(!$Account)
     {
       $Account = new BAccount([
