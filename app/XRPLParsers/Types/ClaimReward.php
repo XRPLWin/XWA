@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class ClaimReward extends XRPLParserBase
 {
-private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+private array $acceptedParsedTypes = ['SET','UNKNOWN','REGULARKEYSIGNER'];
 
   /**
    * Parses ClaimReward type fields and maps them to $this->data
@@ -19,7 +19,7 @@ private array $acceptedParsedTypes = ['SET','UNKNOWN'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on ClaimReward with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
-    if($parsedType == 'UNKNOWN')
+    if($parsedType == 'UNKNOWN' || $parsedType == 'REGULARKEYSIGNER')
       $this->persist = false;
 
     # Counterparty is always transaction account (creator)
