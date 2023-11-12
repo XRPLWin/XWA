@@ -231,10 +231,10 @@ return new class extends Migration
       // 999,999,999,999,999,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000
       // length: 96
       //$table->decimal('a',96,0)->comment('Amount');
-      $table->string('a',97)->nullable()->default(null)->comment('Amount');
+      $table->string('a',194)->nullable()->default(null)->comment('Amount');
       $table->string('i',50)->nullable()->default(null)->comment('Issuer');
       $table->string('c',40)->nullable()->default(null)->comment('Currency');
-      $table->string('a2',97)->nullable()->default(null)->comment('Amount (secondary)');
+      $table->string('a2',194)->nullable()->default(null)->comment('Amount (secondary)');
       $table->string('i2',50)->nullable()->default(null)->comment('Issuer (secondary)');
       $table->string('c2',40)->nullable()->default(null)->comment('Currency (secondary)');
       $table->json('offers')->comment('List of offers that are affected in specific transaction in format: rAccount:sequence');
