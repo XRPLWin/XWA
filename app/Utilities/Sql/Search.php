@@ -226,8 +226,7 @@ class Search extends \App\Utilities\Base\Search
 
     # Build query for SQL
     $limit = $mapper->getLimit();
-
-    $SQL = DB::table('transactions');
+    $SQL = DB::table(transactions_db_name($dateRanges[0]->format('Ym')));
     $SQL = $mapper->generateConditionsSQL($SQL);
 
     # Limit and offset, always get +1 result to see if there are more pages
@@ -270,13 +269,12 @@ class Search extends \App\Utilities\Base\Search
    */
   protected function _runCount(BaseMapper $mapper, array $dateRanges): int
   {
-
     $cache_key = 'searchcount:'.$this->_generateSearchIndentifier($mapper);
     $count = Cache::get($cache_key);
     if($count === null) {
 
       # Count Start
-      $SQL = DB::table('transactions');
+      $SQL = DB::table(transactions_db_name($dateRanges[0]->format('Ym')));
       $SQL = $mapper->generateConditionsSQL($SQL);
       $count = $SQL->count();
       # Count End

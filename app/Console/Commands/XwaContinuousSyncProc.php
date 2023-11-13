@@ -85,7 +85,7 @@ class XwaContinuousSyncProc extends Command
       $this->debug = config('app.debug');
       $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
 
-      set_time_limit(($this->proc_timeout+30));
+      set_time_limit(($this->proc_timeout+15));
       
       # Set initial ranges:
       $this->ledger_index_start = (int)$this->argument('ledger_index_start'); //32570
@@ -208,15 +208,16 @@ class XwaContinuousSyncProc extends Command
         }
       }
       
-      $this->log('Disconnecting...');
-      $this->client->close();
+      
       $this->log('Saving tracker...');
       $this->synctracker->last_synced_l = $this->ledger_index_current-1;
       if($last_ledger_date !== null)
         $this->synctracker->last_lt = ripple_epoch_to_carbon($last_ledger_date)->format('Y-m-d H:i:s.uP');
       $this->synctracker->is_completed = true;
       $this->synctracker->save();
-      $this->log('Done');
+      $this->log('Tracker saved.');
+      $this->client->close();
+      $this->log('Disconnected.');
       return Command::SUCCESS;
     }
 
@@ -232,6 +233,7 @@ class XwaContinuousSyncProc extends Command
       # Prepare Batch instance which will hold list of queries to be executed at once to BigQuery
       $batch = (config('xwa.database_engine') == 'bigquery') ? new BigqueryBatch : new SqlBatch;
 
+      
       $this->log('Starting processing batch of '.count($txs).' transactions (curr: '.$this->ledger_index_current.') ...');
       $bar = $this->output->createProgressBar(count($txs));
       $bar->start();
@@ -340,10 +342,6 @@ class XwaContinuousSyncProc extends Command
 
       //TODO ACCOUNT DELETE
       if($method == 'AccountDelete') {
-        $e = new \Exception('account delete todo check code below');
-        $this->log('Error logged (1): '.$e->getMessage());
-        $this->logError($e->getMessage(),$e);
-        throw $e;
         if(!$parsedData['isin']) {
           //outgoing, this is deleted account, flag account deleted
           //$this->log('');

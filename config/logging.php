@@ -69,6 +69,12 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 
+        'syncjob_error' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/syncjob_error.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+        ],
+
         'syncjobcontinuous' => [
             'driver' => 'single',
             'path' => storage_path('logs/syncjobcontinuous.log'),

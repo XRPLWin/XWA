@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Carbon\CarbonPeriod;
 
 return new class extends Migration
 {
@@ -204,49 +205,62 @@ return new class extends Migration
   }
 
   /**
+   * Create 10 years of monthly tables (future)
+   * Horizontal sharding by month.
+   */
+  private function period(): CarbonPeriod
+  {
+    $startdate = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
+    $enddate = now()->addYears(10);
+    return CarbonPeriod::create($startdate, '1 month', $enddate);
+  }
+
+  /**
    * Create transactions table on SQL database.
    */
   protected function up_sql()
   {
     if(config('xwa.database_engine') != 'sql')
       return;
-
-    Schema::create('transactions', function (Blueprint $table) {
-      //$table->bigIncrements('id');
-      $table->charset = 'utf8mb4';
-      $table->collation = 'utf8mb4_bin';
-     
-      
-      $table->string('address',50)->index()->comment('rAddress');
-      $table->unsignedInteger('l')->comment('LedgerIndex');
-      $table->unsignedSmallInteger('li')->comment('TransactionIndex');
-      $table->dateTimeTz('t',0)->comment('Transaction Timestamp');
-      
-      $table->unsignedSmallInteger('xwatype')->comment('XWA Transaction Type');
-      $table->string('h',64)->comment('Transaction HASH');
-      $table->string('r',50)->comment('Counterparty');
-      $table->boolean('isin')->default(true)->comment('Direction (in or out)');
-      $table->unsignedInteger('fee')->nullable()->default(null)->comment('Fee in drops');
-      //-999,999,999,999,999,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000
-      // 999,999,999,999,999,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000
-      // length: 96
-      //$table->decimal('a',96,0)->comment('Amount');
-      $table->string('a',194)->nullable()->default(null)->comment('Amount');
-      $table->string('i',50)->nullable()->default(null)->comment('Issuer');
-      $table->string('c',40)->nullable()->default(null)->comment('Currency');
-      $table->string('a2',194)->nullable()->default(null)->comment('Amount (secondary)');
-      $table->string('i2',50)->nullable()->default(null)->comment('Issuer (secondary)');
-      $table->string('c2',40)->nullable()->default(null)->comment('Currency (secondary)');
-      $table->json('offers')->comment('List of offers that are affected in specific transaction in format: rAccount:sequence');
-      $table->string('nft',64)->nullable()->default(null)->comment('NFTokenID');
-      $table->json('nftoffers')->comment('List of NFTOfferIDs that are affected in specific transaction');
-      $table->string('pc',64)->nullable()->default(null)->comment('Payment channel');
-      $table->json('hooks')->comment('List of executed hook hashes');
-      $table->unsignedBigInteger('dt')->nullable()->default(null)->comment('Destination Tag');
-      $table->unsignedBigInteger('st')->nullable()->default(null)->comment('Source Tag');
-
-      $table->primary(['address', 'l', 'li', 'xwatype']);
-    });
+    $period = $this->period();
+    foreach($period as $m) {
+      Schema::create(transactions_db_name($m->format('Ym')), function (Blueprint $table) {
+        //$table->bigIncrements('id');
+        $table->charset = 'utf8mb4';
+        $table->collation = 'utf8mb4_bin';
+       
+        $table->string('address',50)->index()->comment('rAddress');
+        $table->unsignedInteger('l')->comment('LedgerIndex');
+        $table->unsignedSmallInteger('li')->comment('TransactionIndex');
+        $table->dateTimeTz('t',0)->comment('Transaction Timestamp');
+        
+        $table->unsignedSmallInteger('xwatype')->comment('XWA Transaction Type');
+        $table->string('h',64)->comment('Transaction HASH');
+        $table->string('r',50)->comment('Counterparty');
+        $table->boolean('isin')->default(true)->comment('Direction (in or out)');
+        $table->unsignedInteger('fee')->nullable()->default(null)->comment('Fee in drops');
+        //-999,999,999,999,999,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000
+        // 999,999,999,999,999,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000
+        // length: 96
+        //$table->decimal('a',96,0)->comment('Amount');
+        $table->string('a',194)->nullable()->default(null)->comment('Amount');
+        $table->string('i',50)->nullable()->default(null)->comment('Issuer');
+        $table->string('c',40)->nullable()->default(null)->comment('Currency');
+        $table->string('a2',194)->nullable()->default(null)->comment('Amount (secondary)');
+        $table->string('i2',50)->nullable()->default(null)->comment('Issuer (secondary)');
+        $table->string('c2',40)->nullable()->default(null)->comment('Currency (secondary)');
+        $table->json('offers')->comment('List of offers that are affected in specific transaction in format: rAccount:sequence');
+        $table->string('nft',64)->nullable()->default(null)->comment('NFTokenID');
+        $table->json('nftoffers')->comment('List of NFTOfferIDs that are affected in specific transaction');
+        $table->string('pc',64)->nullable()->default(null)->comment('Payment channel');
+        $table->json('hooks')->comment('List of executed hook hashes');
+        $table->unsignedBigInteger('dt')->nullable()->default(null)->comment('Destination Tag');
+        $table->unsignedBigInteger('st')->nullable()->default(null)->comment('Source Tag');
+  
+        $table->primary(['address', 'l', 'li', 'xwatype']);
+      });
+    }
+    
   }
 
   /**
@@ -274,8 +288,9 @@ return new class extends Migration
   {
     if(config('xwa.database_engine') != 'sql')
       return;
-      
-    Schema::dropIfExists('transactions');
+    $period = $this->period();
+    foreach($period as $m) {
+      Schema::dropIfExists(transactions_db_name($m->format('Ym')));
+    }
   }
-
 };

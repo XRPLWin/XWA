@@ -10,9 +10,9 @@ class TransactionsRepository extends Repository
    * Fetches one record from database.
    * @return ?\stdClass
    */
-  public static function fetchOne(string $where, ?string $columns = null, string $orderBy = ''): ?\stdClass
+  public static function fetchOne(string $yyyymm, string $where, ?string $columns = null, ?array $orderBy = null): ?\stdClass
   {
-    $results = self::fetchMany($where, $columns, $orderBy, 1);
+    $results = self::fetchMany($yyyymm, $where, $columns, $orderBy, 1); //TODO ORDER BY
     $r = null;
     foreach ($results as $row) {
       $r = (object)$row;
@@ -20,8 +20,8 @@ class TransactionsRepository extends Repository
     }
     return $r;
   }
-
-  public static function fetchMany(string $where, ?string $columns = null, string $orderBy = '', int $limit): \Google\Cloud\BigQuery\QueryResults
+//todo orderby
+  public static function fetchMany(string $yyyymm, string $where, ?string $columns = null, ?array $orderBy = null, int $limit): \Google\Cloud\BigQuery\QueryResults
   {
     if($columns === null)
       $columns = 'SK,PK,h,t,r,isin,fee,a,i,c,a2,i2,c2,dt,st'; //todo fix this

@@ -37,7 +37,26 @@ class AccountsRepository extends Repository
 
   public static function getFirstTransactionAllInfo(string $address): array
   {
-    $results = DB::table('transactions')->select('xwatype',DB::raw('MIN(`t`) as t'))
+    //search for first info in all sharded databases:
+    $shards = transactions_shard_period();
+    $collection = [];
+
+    foreach($shards as $ym) {
+      $results = DB::table(transactions_db_name($ym))->select('xwatype',DB::raw('MIN(`t`) as t'))
+        ->where('address',$address)
+        ->orderBy('t','asc')
+        ->groupBy('xwatype')
+        ->get();
+      foreach($results as $row) {
+        if(!isset($collection[$row->xwatype]))
+          $collection[$row->xwatype] = Carbon::parse($row->t)->format('U');
+      }
+    }
+    return $collection;
+
+
+    //OLD BELOW:
+    /*$results = DB::table('transactions')->select('xwatype',DB::raw('MIN(`t`) as t'))
       ->where('address',$address)
       ->orderBy('t','asc')
       ->groupBy('xwatype')
@@ -47,7 +66,7 @@ class AccountsRepository extends Repository
     foreach($results as $row) {
       $collection[$row->xwatype] = Carbon::parse($row->t)->format('U');
     }
-    return $collection;
+    return $collection;*/
   }
 
 }

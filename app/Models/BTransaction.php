@@ -91,14 +91,34 @@ class BTransaction extends B
     'pc'      => 'NULLABLE STRING',
   ];
 
+  /**
+   * Get the table associated with the model.
+   *
+   * @return string
+   */
+  public function getTable()
+  {
+    if(config('xwa.database_engine') !== 'sql')
+      return $this->table;
+
+    if(!isset($this->attributes['t'])) {
+      //dd($this);
+      return $this->table; //hydration
+      throw new \Exception('Unable to determine sharded transaction tablename');
+    }
+      
+    
+    return transactions_db_name($this->t->format('Ym'));
+  }
+
   protected function bqPrimaryKeyCondition(): string
   {
     return 'address = """'.$this->address.'""" AND t = '.$this->t;
   }
 
-  public static function repo_fetchone(array $select, array $where, array $order): ?self
+  public static function repo_fetchone(string $yyyymm, array $select, array $where, array $order): ?self
   {
-    $data = self::getRepository()::fetchOne($where, $select, $order);
+    $data = self::getRepository()::fetchOne($yyyymm, $where, $select, $order);
     if($data === null)
       return null;
     return self::hydrate([$data])->first();

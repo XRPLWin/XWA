@@ -53,6 +53,40 @@ if (!function_exists('bqtimestamp_to_carbon')) {
   }
 }
 
+if (!function_exists('transactions_db_name')) {
+  /**
+   * Returns table name (depending of configuration variables)
+   * @param string $yyyymm eg 202303 or $m->format('Ym')
+   * @return string
+   */
+  function transactions_db_name(string $yyyymm): string
+  {
+    if(config('xwa.database_engine') == 'sql')
+      return 'transactions'.$yyyymm;
+    return 'transactions';
+  }
+}
+
+if (!function_exists('transactions_shard_period')) {
+  /**
+   * Returns array of strings (suffixes) for transactions_db_name() generation.
+   * @return array
+   */
+  function transactions_shard_period(): array
+  {
+    if(config('xwa.database_engine') == 'sql') {
+      $startdate = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
+      $period = \Carbon\CarbonPeriod::create($startdate, '1 month', now());
+      $r = [];
+      foreach($period as $m) {
+        $r[] = $m->format('Ym');
+      }
+      return $r;
+    }
+    return [];
+  }
+}
+
 if (!function_exists('xrpl_has_flag')) {
   /**
    * Check if $check is included in $flags using bitwise-and operator.
