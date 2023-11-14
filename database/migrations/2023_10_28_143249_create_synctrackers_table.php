@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedInteger('first_l');
             $table->unsignedInteger('last_synced_l');
             $table->unsignedInteger('last_l');
-            $table->dateTimeTz('last_lt',0); //Last synced ledger timestamp - used in continous syncer
+            $table->dateTimeTz('last_lt',0)->nullable()->default(null); //Last synced ledger timestamp - used in continous syncer
             $table->boolean('is_completed')->default(false);
             $table->timestamps();
             $table->unique(['first_l','last_l']);

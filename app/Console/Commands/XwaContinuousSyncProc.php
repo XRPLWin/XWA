@@ -85,7 +85,7 @@ class XwaContinuousSyncProc extends Command
       $this->debug = config('app.debug');
       $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
 
-      set_time_limit(($this->proc_timeout+15));
+      set_time_limit(($this->proc_timeout+10));
       
       # Set initial ranges:
       $this->ledger_index_start = (int)$this->argument('ledger_index_start'); //32570
@@ -116,11 +116,6 @@ class XwaContinuousSyncProc extends Command
           return self::SUCCESS;
         }
       }
-
-      //dd($this->ledger_index_start,$this->ledger_index_current,$this->ledger_index_end,$this->synctracker);
-
-      ## OLD BELOW
-
       
       if($this->synctracker === null) {
         //reserve spot
@@ -128,9 +123,9 @@ class XwaContinuousSyncProc extends Command
         $this->synctracker->first_l = $this->ledger_index_start;
         $this->synctracker->last_synced_l = $this->ledger_index_current-1;
         $this->synctracker->last_l = $this->ledger_index_end;
-        $this->synctracker->last_lt = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'))->format('Y-m-d H:i:s.uP');
+        $this->synctracker->last_lt = null;
+        //$this->synctracker->last_lt = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'))->format('Y-m-d H:i:s.uP');
         $this->synctracker->is_completed = false;
-        //dd('new:',$this->synctracker);
         $this->synctracker->save();
       }
 
@@ -189,6 +184,8 @@ class XwaContinuousSyncProc extends Command
             $this->synctracker->last_synced_l = $this->ledger_index_current-1;
             if($last_ledger_date !== null)
               $this->synctracker->last_lt = ripple_epoch_to_carbon($last_ledger_date)->format('Y-m-d H:i:s.uP');
+            else
+              $this->synctracker->last_lt = null;
             $this->synctracker->save();
             //Empty the queue:
             $transactions = [];
@@ -213,6 +210,8 @@ class XwaContinuousSyncProc extends Command
       $this->synctracker->last_synced_l = $this->ledger_index_current-1;
       if($last_ledger_date !== null)
         $this->synctracker->last_lt = ripple_epoch_to_carbon($last_ledger_date)->format('Y-m-d H:i:s.uP');
+      else
+        $this->synctracker->last_lt = null;
       $this->synctracker->is_completed = true;
       $this->synctracker->save();
       $this->log('Tracker saved.');

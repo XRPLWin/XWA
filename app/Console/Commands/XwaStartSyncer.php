@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\B;
+#use App\Models\B;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 #use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -32,7 +32,7 @@ class XwaStartSyncer extends Command
   protected int $proc_timeout = 600; //600s  - must be same as in XwaContinuousSyncProc
 
   protected int $numberOfProcess = 1; //16 - overriden from config
-  protected int $ledgersPerProcess = 1000; //1500, 1000 was ok
+  protected int $ledgersPerProcess = 1000; //1000
   
   /**
    * Execute the console command.
@@ -181,8 +181,14 @@ class XwaStartSyncer extends Command
    */
   private function normalizeSynctrackers(): void
   {
+    //return;
     DB::beginTransaction();
-    $all = Synctracker::orderBy('first_l','ASC')->limit(500)->get();
+    $all = Synctracker::select([
+        'id','first_l','last_synced_l',
+        'last_l','last_lt','is_completed',
+        'created_at','updated_at'
+      ])
+      ->orderBy('first_l','ASC')->limit(500)->get();
     
     $prev = null;
     foreach($all as $t) {
@@ -203,7 +209,7 @@ class XwaStartSyncer extends Command
             //merge them
             $prev->last_synced_l = $t->last_synced_l;
             $prev->last_l = $t->last_l;
-            $prev->last_lt = $t->last_lt;
+            if($t->last_lt !== null) $prev->last_lt = $t->last_lt;
             $prev->save();
             //$this->info('save '.$prev->id);
             $t->delete();
