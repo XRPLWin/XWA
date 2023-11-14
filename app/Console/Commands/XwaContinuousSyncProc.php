@@ -205,7 +205,6 @@ class XwaContinuousSyncProc extends Command
         }
       }
       
-      
       $this->log('Saving tracker...');
       $this->synctracker->last_synced_l = $this->ledger_index_current-1;
       if($last_ledger_date !== null)
