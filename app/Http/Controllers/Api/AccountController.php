@@ -122,26 +122,28 @@ class AccountController extends Controller
       'running' => false, //bool
       'progress_current' => config('xrpl.'.config('xrpl.net').'.genesis_ledger'), //unix timestamp - offset
       'progress_current_time' => ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time')), //current time
-      'progress_total' => $referenceTime->format('U'),
+      'progress_total' => (int)$referenceTime->format('U'),
     ];
-    
+    //dd($r);
+   
     /** @var \App\Models\BAccount */
     if(config('xwa.sync_type') == 'account')
       $acct = AccountLoader::getOrCreate($address);
     else
       $acct = AccountLoader::get($address);
-
+      
     if($acct) {
       $firstTxInfo = $acct->getFirstTransactionAllInfo();
-      
-      $offset = $firstTxInfo['first'] ? $firstTxInfo['first']:0;
+      //dd($firstTxInfo);
+      $offset = $firstTxInfo['first'] ? $firstTxInfo['first']:ripple_epoch_to_epoch(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
+      $r['progress_total'] = $r['progress_total'] - $offset;
       
       if(config('xwa.sync_type') == 'account') { //account
 
         $r['progress_current_time'] = $acct->lt;
         $r['progress_current'] = $acct->lt->timestamp - $offset;
         if($r['progress_current'] < 0) $r['progress_current'] = 0;
-        $r['progress_total'] = $r['progress_total'] - $offset;
+        
         $r['synced'] = true;
 
         if(!$acct->isSynced(10,$referenceTime)) {
@@ -167,11 +169,10 @@ class AccountController extends Controller
         //First completed tracker
         $completedSynctracker = SynctrackerLoader::lastCompletedSyncedLedgerData();
         //dd($completedSynctracker);
-        
+        //dd($offset);
         $r['progress_current_time'] = $completedSynctracker['last_lt'];
         $r['progress_current'] = Carbon::parse($completedSynctracker['last_lt'])->timestamp - $offset;
-        if($r['progress_current'] < 0) $r['progress_current'] = 0;
-        $r['progress_total'] = $r['progress_total'] - $offset;
+        //$r['progress_total'] = $r['progress_total'] - $offset;
         $r['synced'] = true;
 
         if(!$acct->isSynced(10,$referenceTime)) {
@@ -182,8 +183,24 @@ class AccountController extends Controller
         }
       }
     } else {
+      if(config('xwa.sync_type') == 'continuous') {
+        $offset = ripple_epoch_to_epoch(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
+        //dd($offset);
+        $r['synced'] = false;
+        $r['queued'] = true;
+        $r['running'] = true;
+        $completedSynctracker = SynctrackerLoader::lastCompletedSyncedLedgerData();
+        $r['progress_current_time'] = $completedSynctracker['last_lt'];
+        $r['progress_current'] = Carbon::parse($completedSynctracker['last_lt'])->timestamp - $offset;
+        
+        $r['progress_total'] = $r['progress_total'] - $offset;
+        
+      }
+      
       $ttl = 60; //non-existing account 60s refresh
     }
+
+    if($r['progress_current'] < 0) $r['progress_current'] = 0;
    
     /*if($r['progress_total'] == 0 || $r['progress_current'] == 0)
       $r['progress_percent'] = 0;
