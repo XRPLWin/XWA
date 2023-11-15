@@ -14,6 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('ledgerindextimes', function (Blueprint $table) {
+            $table->engine = 'ROCKSDB';
             $table->id();
             $table->date('day_start');
             $table->bigInteger('ledger_index');

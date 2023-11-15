@@ -105,6 +105,7 @@ return new class extends Migration
       return;
 
     Schema::create('unlreports', function (Blueprint $table) {
+      $table->engine = 'ROCKSDB';
       $table->charset = 'utf8mb4';
       $table->collation = 'utf8mb4_bin';
       

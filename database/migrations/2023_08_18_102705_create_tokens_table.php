@@ -14,12 +14,14 @@ return new class extends Migration
     public function up()
     {
       Schema::create('tokens', function (Blueprint $table) {
+        $table->engine = 'InnoDB';
+        
         $table->charset = 'utf8mb4';
         $table->collation = 'utf8mb4_bin';
 
         $table->bigIncrements('id');
         $table->bigInteger('issuer_id')->unsigned();
-        $table->foreign('issuer_id')->references('id')->on('issuers')->onDelete('cascade');
+        $table->foreign('issuer_id')->references('id')->on('issuers')->onDelete('cascade'); //not suppported in rocksdb
         $table->string('currency',45);
         $table->string('amount');
         $table->integer('num_trustlines');

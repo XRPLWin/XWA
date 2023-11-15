@@ -225,6 +225,7 @@ return new class extends Migration
     $period = $this->period();
     foreach($period as $m) {
       Schema::create(transactions_db_name($m->format('Ym')), function (Blueprint $table) {
+        $table->engine = 'ROCKSDB';
         //$table->bigIncrements('id');
         $table->charset = 'utf8mb4';
         $table->collation = 'utf8mb4_bin';
