@@ -243,11 +243,14 @@ abstract class XRPLParserBase implements XRPLParserInterface
                   throw new \Exception('Equal data in detectActivations (Counterparty and NewFields Account match for transaction hash: '.$this->tx->hash);
                 }
               }
-              
-              //$i++;
+
             } else if(!$this->data['In']) {
-              $this->activations['reference_activated'][] = $AffectedNode->CreatedNode->NewFields->Account;
-              //$i2++;
+
+              if($this->reference_address == $this->tx->Account) {
+                //It is important that only single participant in transaction has list of activated accounts as activator
+                $this->activations['reference_activated'][] = $AffectedNode->CreatedNode->NewFields->Account;
+              }
+
             }
           }
         }

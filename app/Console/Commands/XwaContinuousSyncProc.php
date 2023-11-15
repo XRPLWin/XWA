@@ -314,7 +314,7 @@ class XwaContinuousSyncProc extends Command
       $batch->queueModelChanges($model);
 
       # Activations
-      if($iteration == 1) {
+      //if($iteration == 1) {
         $activatedAddresses = $parser->getActivated();
         foreach($activatedAddresses as $activatedAddress) {
           //$this->log('');$this->log('Activation: '.$activatedAddress. ' on hash '.$parser->getData()['hash']);
@@ -338,7 +338,7 @@ class XwaContinuousSyncProc extends Command
           ]);
           $batch->queueModelChanges($Activation);
         }
-      }
+      //}
 
      
       # Activations by
