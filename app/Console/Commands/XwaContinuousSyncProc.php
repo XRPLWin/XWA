@@ -247,6 +247,7 @@ class XwaContinuousSyncProc extends Command
         
         $extractor = new TxParticipantExtractor($transaction,['allowSpecialAccounts' => true]);
         $participants = $extractor->result();
+        $iteration = 1;
         foreach($participants as $participant) {
           //$this->log('- '.$participant);
 
@@ -254,13 +255,14 @@ class XwaContinuousSyncProc extends Command
             $accounts[$participant] = AccountLoader::getForUpdateOrCreate($participant);
           
           //$parsedDatas[] = $this->{$method}($accounts[$participant], $transaction, $batch);
-          $parsedDatas[] = $this->processTransactions_sub($method,$accounts[$participant], $transaction, $batch);
+          $parsedDatas[] = $this->processTransactions_sub($method, $accounts[$participant], $transaction, $batch, $iteration);
 
           //update last synced ledger index to account metadata (not used in continuous syncer)
           //$accounts[$participant]->l = $transaction->ledger_index;
           //$accounts[$participant]->li = $transaction->metaData->TransactionIndex;
           //$accounts[$participant]->lt = ripple_epoch_to_carbon($transaction->date)->format('Y-m-d H:i:s.uP');
           //dd($account);
+          $iteration++;
         }
 
 
@@ -286,9 +288,10 @@ class XwaContinuousSyncProc extends Command
     /**
      * One function to accommodate all transaction types
      */
-    private function processTransactions_sub(string $method, BAccount $account, \stdClass $transaction, BatchInterface $batch): array
+    private function processTransactions_sub(string $method, BAccount $account, \stdClass $transaction, BatchInterface $batch, int $iteration): array
     {
       $is_account_changed = false;
+      //$this->line($transaction->hash);
 
       /** @var \App\XRPLParsers\Types\XRPLParserBase */
       
@@ -311,25 +314,33 @@ class XwaContinuousSyncProc extends Command
       $batch->queueModelChanges($model);
 
       # Activations
-      $activatedAddresses = $parser->getActivated();
-      foreach($activatedAddresses as $activatedAddress) {
-        //$this->log('');$this->log('Activation: '.$activatedAddress. ' on hash '.$parser->getData()['hash']);
-        $Activation = new BTransactionActivation([
-          'address' => $activatedAddress,
-          'xwatype' => BTransactionActivation::TYPE,
-          'l' => $parsedData['l'],
-          'li' => $parsedData['li'],
-          'h' => $parsedData['h'],
-          't' => ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('Y-m-d H:i:s.uP'),
-          'r' => $account->address,
-          'isin' => true,
-          'offers' => [],
-          'nftoffers' => [],
-          'hooks' => [],
-        ]);
-        $batch->queueModelChanges($Activation);
+      if($iteration == 1) {
+        $activatedAddresses = $parser->getActivated();
+        foreach($activatedAddresses as $activatedAddress) {
+          //$this->log('');$this->log('Activation: '.$activatedAddress. ' on hash '.$parser->getData()['hash']);
+          //if($parser->getData()['hash'] == '88C746B8EB9405D46817973F6868C337D3BD633D7EE9342E043D01AEF6D919BE')
+          // {
+            //dump($parsedData);
+            //dump($activatedAddresses);
+          // } 
+          $Activation = new BTransactionActivation([
+            'address' => $activatedAddress,
+            'xwatype' => BTransactionActivation::TYPE,
+            'l' => $parsedData['l'],
+            'li' => $parsedData['li'],
+            'h' => $parsedData['h'],
+            't' => ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('Y-m-d H:i:s.uP'),
+            'r' => $account->address,
+            'isin' => true,
+            'offers' => [],
+            'nftoffers' => [],
+            'hooks' => [],
+          ]);
+          $batch->queueModelChanges($Activation);
+        }
       }
 
+     
       # Activations by
       if($activatedByAddress = $parser->getActivatedBy()) {
         $is_account_changed = true;
@@ -338,7 +349,6 @@ class XwaContinuousSyncProc extends Command
         $account->isdeleted = false; //in case it is reactivated, this will remove field on model save
       }
 
-      //TODO ACCOUNT DELETE
       if($method == 'AccountDelete') {
         if(!$parsedData['isin']) {
           //outgoing, this is deleted account, flag account deleted
@@ -445,7 +455,8 @@ class XwaContinuousSyncProc extends Command
 
         foreach($response->result->ledger->transactions as $tx) {
           $tx->ledger_index = $curr_l;
-          if(isset($tx->date)) {
+
+          if(isset($tx->date)) { //this can be removed
             dd("WARNING!!! DATE ALREDY RESERVED");
           }
 
