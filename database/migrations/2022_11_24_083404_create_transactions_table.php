@@ -211,7 +211,7 @@ return new class extends Migration
   private function period(): CarbonPeriod
   {
     $startdate = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
-    $enddate = now()->addYears(10);
+    $enddate = now()->addYears(2);
     return CarbonPeriod::create($startdate, '1 month', $enddate);
   }
 
