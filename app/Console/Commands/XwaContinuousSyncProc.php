@@ -161,7 +161,8 @@ class XwaContinuousSyncProc extends Command
 
       $do = true;
       while($do) {
-        $pulledTxs = $this->pullData();
+        $pullData = $this->pullData();
+        $pulledTxs = $pullData['data'];
         if($pulledTxs === null) {
           $do = false;
           $this->log('Disconnecting...');
@@ -170,10 +171,12 @@ class XwaContinuousSyncProc extends Command
           foreach($pulledTxs as $_v) {
             \array_push($transactions,$_v);
           }
-
+          $last_ledger_date = $pullData['closed'];
+          //dd($pullData['closed'],count($transactions),$this->txbatchlimit <= count($transactions));
           if($this->txbatchlimit <= count($transactions)) {
             //Process queued transactions:
-            $last_ledger_date = null;
+            //$last_ledger_date = $pullData['closed']; //latest pulled close time
+            //dd($last_ledger_date);
             try {
               $last_ledger_date = $this->processTransactions($transactions);
             } catch (\Throwable $e) {
@@ -195,9 +198,10 @@ class XwaContinuousSyncProc extends Command
 
       if(count($transactions) > 0) {
         //Process queued transactions (what is left over):
-        $last_ledger_date = null;
+        //$last_ledger_date = null;
         try {
-          $last_ledger_date = $this->processTransactions($transactions);
+          //$last_ledger_date = 
+          $this->processTransactions($transactions);
         } catch (\Throwable $e) {
           $this->log('Error logged (2): '.$e->getMessage());
           $this->logError($e->getMessage(),$e);
@@ -366,14 +370,14 @@ class XwaContinuousSyncProc extends Command
     }
 
     /**
-     * Pulls x ledgers. If returned null - no more ledgers to pull.
-     * @return ?array
+     * Pulls x ledgers. If returned [data=null] - no more ledgers to pull.
+     * @return array [closed => ?int ,data => ?array]
      */
-    private function pullData(): ?array
+    private function pullData(): array
     {
       //check if reached end:
       if($this->ledger_index_current > $this->ledger_index_end)
-        return null;
+        return ['closed' => null, 'data' => null];
 
       $lbl_to = $this->ledger_index_current+$this->wsbatchlimit-1;
       if($lbl_to > $this->ledger_index_end)
@@ -381,6 +385,7 @@ class XwaContinuousSyncProc extends Command
       $this->info('Pulling ledgers from '.$this->ledger_index_current.' to '.$lbl_to);
       
       $data = [];
+      $closed = null;
       $do = true;
       $i = 0;
       while($do) {
@@ -450,6 +455,8 @@ class XwaContinuousSyncProc extends Command
           }
         }
 
+        $closed = $response->result->ledger->close_time;
+
         if(count($response->result->ledger->transactions) > 0)
           $this->log('Pulled ledger '.$curr_l.' found '.count($response->result->ledger->transactions).' txs');
 
@@ -468,7 +475,7 @@ class XwaContinuousSyncProc extends Command
       $this->ledger_index_current = $curr_l+1; //+1 next ledger in line to be synced
       //$this->line('Set to: '.$this->ledger_index_current);
       $this->info('Total txs is: '.count($data));
-      return $data;
+      return ['closed' => $closed, 'data' => $data];
     }
 
     private function log(string $logline)
