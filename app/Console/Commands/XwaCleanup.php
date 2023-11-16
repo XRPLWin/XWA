@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
-class Banner extends Command
+class XwaCleanup extends Command
 {
     /**
      * The name and signature of the console command.
