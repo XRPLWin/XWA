@@ -28,8 +28,13 @@ class Kernel extends ConsoleKernel
 
     $schedule->command('xwa:startsyncer')
       ->withoutOverlapping(1) //lock expires every 1 min
-      ->everyThreeMinutes()
-      ->everyMinute();  
+      ->everyMinute()
+      ->onOneServer();
+
+    $schedule->command('xwa:cleanup')
+      ->withoutOverlapping(10) //lock expires every 10 mins
+      ->daily()
+      ->onOneServer();  
   }
 
   /**
