@@ -16,7 +16,7 @@
             <directory suffix="Test.php">./tests/Redis</directory>
         </testsuite>-->
     </testsuites>
-    <coverage processUncoveredFiles="true">
+    <coverage>
         <include>
             <directory suffix=".php">./app</directory>
         </include>

@@ -27,7 +27,7 @@ $r = [
   | Default: true
   | Options: true,false
   */
-  'database_engine_userocksdb' => env('XWA_DATABASE_ENGINE_USEROCKSDB', true),
+  'database_engine_userocksdb' => (bool) env('XWA_DATABASE_ENGINE_USEROCKSDB', true),
 
   /*
   |--------------------------------------------------------------------------

@@ -15,6 +15,8 @@ class Kernel extends ConsoleKernel
    */
   protected function schedule(Schedule $schedule)
   {
+    $schedule->command('cache:prune-stale-tags')->hourly();
+    
     $schedule->command('xwa:downloadtokendata')
         ->withoutOverlapping(10) //lock expires every 10 mins
         ->daily()
@@ -24,12 +26,15 @@ class Kernel extends ConsoleKernel
     $schedule->command('xwa:unlreportssync')
       ->withoutOverlapping(4) //lock expires every 4 mins, flag ledgers are approx every 12 mins
       ->everyFiveMinutes()
-      ->onOneServer(); 
+      ->onOneServer()
+      ->runInBackground(); 
 
     $schedule->command('xwa:startsyncer')
-      ->withoutOverlapping(1) //lock expires every 1 min
-      ->everyMinute()
-      ->onOneServer();
+      ->withoutOverlapping(11) //lock expires every 11 min
+      //->everyMinute()
+      ->everyThirtySeconds() //Laravel 10 only
+      ->onOneServer()
+      ->runInBackground();
 
     $schedule->command('xwa:cleanup')
       ->withoutOverlapping(10) //lock expires every 10 mins
