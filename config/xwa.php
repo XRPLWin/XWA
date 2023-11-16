@@ -19,6 +19,18 @@ $r = [
 
   /*
   |--------------------------------------------------------------------------
+  | Database engine use ROCKSDB when first creating database tables
+  |--------------------------------------------------------------------------
+  | If true, it will create SQL database tables with ROCKSDB storage engine.
+  | If false, it will omit rocksdb rule, and tables will be created with
+  |   default storage engine defined in SQL.
+  | Default: true
+  | Options: true,false
+  */
+  'database_engine_userocksdb' => env('XWA_DATABASE_ENGINE_USEROCKSDB', true),
+
+  /*
+  |--------------------------------------------------------------------------
   | Sync type
   |--------------------------------------------------------------------------
   | Default: account

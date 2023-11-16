@@ -14,7 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('synctrackers', function (Blueprint $table) {
-            $table->engine = 'InnoDB';
+            if(config('xwa.database_engine_userocksdb'))
+                $table->engine = 'InnoDB';
             $table->id();
             $table->unsignedInteger('first_l');
             $table->unsignedInteger('last_synced_l');

@@ -14,7 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('ledgerindextimes', function (Blueprint $table) {
-            $table->engine = 'ROCKSDB';
+            if(config('xwa.database_engine_userocksdb'))
+                $table->engine = 'ROCKSDB';
             $table->id();
             $table->date('day_start');
             $table->bigInteger('ledger_index');
