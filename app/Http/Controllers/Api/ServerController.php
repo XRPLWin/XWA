@@ -42,6 +42,7 @@ class ServerController extends Controller
       'first_l',
       'last_synced_l',
       'last_l',
+      'last_lt',
       'is_completed',
       'updated_at'
       ])
