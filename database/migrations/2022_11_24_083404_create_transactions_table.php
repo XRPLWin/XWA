@@ -259,7 +259,7 @@ return new class extends Migration
         $table->unsignedBigInteger('dt')->nullable()->default(null)->comment('Destination Tag');
         $table->unsignedBigInteger('st')->nullable()->default(null)->comment('Source Tag');
   
-        $table->primary(['address', 'l', 'li', 'xwatype']);
+        $table->primary(['address', 'l', 'li', 'xwatype', 'r']);
       });
     }
     

@@ -324,13 +324,13 @@ class XwaContinuousSyncProc extends Command
             //dump($activatedAddresses);
           // } 
           $Activation = new BTransactionActivation([
-            'address' => $activatedAddress,
+            'address' => $account->address,
             'xwatype' => BTransactionActivation::TYPE,
             'l' => $parsedData['l'],
             'li' => $parsedData['li'],
             'h' => $parsedData['h'],
             't' => ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('Y-m-d H:i:s.uP'),
-            'r' => $account->address,
+            'r' => $activatedAddress,
             'isin' => true,
             'offers' => [],
             'nftoffers' => [],
