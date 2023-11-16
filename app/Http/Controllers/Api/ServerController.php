@@ -44,6 +44,7 @@ class ServerController extends Controller
       'last_l',
       'last_lt',
       'is_completed',
+      'created_at',
       'updated_at'
       ])
       ->orderBy('first_l','asc')
