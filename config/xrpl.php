@@ -39,8 +39,8 @@ return [
     'rippled_fullhistory_server_uri' => 'https://xrplcluster.com',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 'xrplcluster.com',
-    'server_wss_syncer' => ['ws://185.239.60.22:20400','ws://185.239.60.22:20400','wss://s2.ripple.com'], // 185.239.60.22 has more chance to be picked than s2
-    //'server_wss_syncer' => ['ws://185.239.60.22:20400'],
+    //'server_wss_syncer' => ['ws://185.239.60.22:20400','ws://185.239.60.22:20400'],
+    'server_wss_syncer' => ['ws://185.239.60.22:20400'],
     //'server_wss_syncer' => ['wss://s2.ripple.com'],
     //enable or disable unlreport
     'feature_unlreport' => false,
