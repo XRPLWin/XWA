@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class OfferCreate extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','TRADE','SENT','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','TRADE','SENT','REGULARKEYSIGNER','UNKNOWN'];
   /**
    * Parses TrustSet type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
@@ -14,6 +14,7 @@ final class OfferCreate extends XRPLParserBase
    *      Tis is older transaction with missing fileds txcontent is UNKNOWN
    * @see https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash=D78DB577E7726AF26D5F48A36C968C10B33AFDAF79C2D110E151D3A328DB45C1&ref=r9XRCuhi5uDZY9gPvpiCy6kWDjeH3wM4LU
    * @see MULTI: https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash=B36F2C42D4AEC872188BC2143D50936F8B3898F7D401ED014CF44ED062D2BBD3&ref=rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz
+   * @see EB7EECA6DBA1C9F9D6FE0848F9A1D8D3BBCF133C688ACF782B24D5AC885A11BE rhDdsLwq7xYxGWGgDbMzPkKPD6WS2bhHDQ - regularkeysigner
    * @return void
    */
   protected function parseTypeFields(): void
@@ -23,12 +24,13 @@ final class OfferCreate extends XRPLParserBase
       //dd($this->data);
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on OfferCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     }
-      
     
      # Sub-Type
     if($parsedType === 'TRADE' || $parsedType === 'SENT') {
       //Eg. Trade based on offer, this can be auto-furfilled offer or partially furfilled offer when creating new.
       $this->transaction_type_class = 'OfferCreate_Trade';
+    } elseif ($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
     }
 
     # Counterparty is always transaction account (creator)

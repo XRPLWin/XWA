@@ -13,6 +13,7 @@ final class SetRegularKey extends XRPLParserBase
    * @see https://xrpl.org/transaction-types.html
    * @see 7905E05FB8D6C696553CD5EFF0CBF749E4717E62C90E71E1BDD6CA87733F1065 - zero fee with SENT context
    * @see 6AA6F6EAAAB56E65F7F738A9A2A8A7525439D65BA990E9BA08F6F4B1C2D349B4
+   * @see F937FE8110AB2EACC3C43C514EE6C6A3509EA7054630E09986894D8E2C767EEB rhDdsLwq7xYxGWGgDbMzPkKPD6WS2bhHDQ - REGULARKEYSIGNER
    * @return void
    */
   protected function parseTypeFields(): void
