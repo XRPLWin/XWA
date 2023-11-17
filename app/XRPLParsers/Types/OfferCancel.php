@@ -6,12 +6,13 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class OfferCancel extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
   /**
    * Parses TrustSet type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
    * @see https://playground.xrpl.win/play/xrpl-transaction-mutation-parser?hash=E7697D162A606FCC138C5732BF0D2A4AED49386DC59235FC3E218650AAC19744&ref=rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn
    *      UNKNOWN transaction
+   * @see 497BA67FB285688B9D228B6E7D5D22029B01186A9F24D9BD6533A6DFB5DECCF0 r9PopPNjicgUZ6nMSxZE2pcr21sbBttcJC REGULARKEYSIGNER
    * @return void
    */
   protected function parseTypeFields(): void
@@ -20,7 +21,9 @@ final class OfferCancel extends XRPLParserBase
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on OfferCancel with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     
-  
+    if ($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
+    }
 
     # Counterparty is always transaction account (creator)
     $this->data['Counterparty'] = $this->tx->Account;
