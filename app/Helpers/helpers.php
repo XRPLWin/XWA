@@ -76,7 +76,7 @@ if (!function_exists('transactions_shard_period')) {
   {
     if(config('xwa.database_engine') == 'sql') {
       $startdate = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
-      $period = \Carbon\CarbonPeriod::create($startdate, '1 month', now());
+      $period = \Carbon\CarbonPeriod::create($startdate, '1 month', now()->addMonth());
       $r = [];
       foreach($period as $m) {
         $r[] = $m->format('Ym');
