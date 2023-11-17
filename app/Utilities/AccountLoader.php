@@ -40,6 +40,7 @@ class AccountLoader
   public static function getForUpdateOrCreate(string $address): BAccount
   {
     Cache::delete('daccount:'.$address);
+    Cache::forget('daccount_fti:'.$address);
 
     DB::beginTransaction();
     $Account = self::get($address,true);
