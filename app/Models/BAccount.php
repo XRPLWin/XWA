@@ -102,7 +102,7 @@ class BAccount extends B
     if($r === null) {
 
       $collection = self::getRepository()::getFirstTransactionAllInfo($this->address);
-      
+      dd($collection);
       /*$results = self::getRepository()::query(
         'SELECT xwatype,t FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE TRUE QUALIFY ROW_NUMBER() OVER (PARTITION BY xwatype ORDER BY t ASC) = 1'
       );*/
