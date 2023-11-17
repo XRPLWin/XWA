@@ -47,6 +47,7 @@ class AccountsRepository extends Repository
         ->orderBy('t','asc')
         ->groupBy('xwatype')
         ->get();
+        
       foreach($results as $row) {
         if(!isset($collection[$row->xwatype]))
           $collection[$row->xwatype] = Carbon::parse($row->t)->format('U');
