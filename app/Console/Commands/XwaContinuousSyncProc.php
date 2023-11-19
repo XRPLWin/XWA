@@ -85,7 +85,7 @@ class XwaContinuousSyncProc extends Command
       $this->debug = config('app.debug');
       $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
 
-      set_time_limit(($this->proc_timeout+10));
+      set_time_limit(($this->proc_timeout-10));
       
       # Set initial ranges:
       $this->ledger_index_start = (int)$this->argument('ledger_index_start'); //32570
