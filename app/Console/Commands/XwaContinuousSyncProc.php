@@ -397,7 +397,7 @@ class XwaContinuousSyncProc extends Command
           $do = false;
 
         
-
+        //if($curr_l == 1500) throw new \Exception('Debug exc');
         //Do node lookup:
         $params = [
           'id'            => $this->debug_id,

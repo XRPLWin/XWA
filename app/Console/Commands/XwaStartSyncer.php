@@ -154,8 +154,10 @@ class XwaStartSyncer extends Command
         }
         
       }
-        
-      
+
+      if($threadPlanItem[1] !== null)
+        $min = $threadPlanItem[1]+1;
+
     }
     return $plan;
   }
@@ -163,13 +165,25 @@ class XwaStartSyncer extends Command
   private function threadPlanItem(int $min): array
   {
     $max = null;
-    $synctracker = Synctracker::where('first_l',$min)->first();
+    $synctracker = Synctracker::where('first_l',$min)->orderBy('first_l','asc')->first();
     
     if($synctracker) {
       $max = $synctracker->last_l;
       //Tracker already found
       return $synctracker->isCompleted() ? 
         $this->threadPlanItem($synctracker->last_l+1) : [$min,$max,'incomplete'];
+    } else {
+      //Tracker not found with exact range,
+      // check if there is missing hole
+      $synctracker = Synctracker::where('first_l','>',$min)->orderBy('first_l','asc')->first();
+      if($synctracker) {
+        if(($synctracker->first_l-1 - $min) > $this->ledgersPerProcess) {
+          return [$min,$min+$this->ledgersPerProcess,'missing'];
+        } else {
+          return [$min,$synctracker->first_l-1,'missing'];
+        }
+      }
+      
     }
     
     //Tracker not found
