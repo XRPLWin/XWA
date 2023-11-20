@@ -3,7 +3,7 @@
 namespace App\Models;
 
 /**
- * Transaction model of type OfferCreate.
+ * Transaction model of type AccountSet.
  * PK: rAcct-10 SK: <INT> (Ledger index)
  */
 class BTransactionAccountSet extends BTransaction
