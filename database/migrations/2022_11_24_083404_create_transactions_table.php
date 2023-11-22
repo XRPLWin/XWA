@@ -240,7 +240,9 @@ return new class extends Migration
         $table->string('h',64)->comment('Transaction HASH');
         $table->string('r',50)->comment('Counterparty');
         $table->boolean('isin')->default(true)->comment('Direction (in or out)');
-        $table->unsignedInteger('fee')->nullable()->default(null)->comment('Fee in drops');
+
+        //tx 9A918161CD4418AF9851D03EA6A61D51C0723E58A306317CE0C0FDB01C9F45F1 has enormous fee of 11880878125 drops
+        $table->unsignedBigInteger('fee')->nullable()->default(null)->comment('Fee in drops');
         //-999,999,999,999,999,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000
         // 999,999,999,999,999,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000
         // length: 96
