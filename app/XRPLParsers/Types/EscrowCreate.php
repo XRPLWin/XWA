@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class EscrowCreate extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses EscrowCreate type fields and maps them to $this->data
@@ -29,7 +29,7 @@ final class EscrowCreate extends XRPLParserBase
     } elseif($parsedType == 'RECEIVED') {
       $this->data['Counterparty'] = $this->tx->Account;
       $this->data['In'] = true;
-    } elseif($parsedType == 'UNKNOWN') {
+    } elseif($parsedType == 'REGULARKEYSIGNER' || $parsedType == 'UNKNOWN') {
       $this->data['Counterparty'] = $this->tx->Account;
       $this->data['In'] = false;
       $this->persist = false;

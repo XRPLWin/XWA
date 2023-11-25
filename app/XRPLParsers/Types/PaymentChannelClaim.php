@@ -9,7 +9,7 @@ final class PaymentChannelClaim extends XRPLParserBase
   private array $acceptedParsedTypes = ['SENT','UNKNOWN','SET'];
 
   /**
-   * Parses TrustSet type fields and maps them to $this->data
+   * Parses PaymentChannelClaim type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
    * @see https://xrpl.org/paymentchannelcreate.html#paymentchannelcreate
    * @see 98ABAD54B58A12A025F510CA50DE3296501530097434FE556E4F6D082CE15D29
