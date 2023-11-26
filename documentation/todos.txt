@@ -103,3 +103,6 @@ rBgyjCQLVdSHwKVAhCZNTbmDsFHqLkzZdw
 
 # Multisigning:
 https://bithomp.com/explorer/rHwtsaA1X4mzVCEqcvEvk59uRLhVos9xnZ
+
+
+ Thu Mar 01 2018 04:36:11 ( 36,908,569 )  is ledger when excrowfinish handling is fixed, potentially escrowfinish txs before that ledgers are wrong.
