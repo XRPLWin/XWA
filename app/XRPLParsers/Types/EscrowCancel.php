@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class EscrowCancel extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED','SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses EscrowCancel type fields and maps them to $this->data
@@ -25,7 +25,7 @@ final class EscrowCancel extends XRPLParserBase
     if($this->reference_address == $this->tx->Owner)
       $this->data['In'] = true;
 
-    if($parsedType == 'UNKNOWN') {
+    if($parsedType == 'UNKNOWN' || $parsedType == 'REGULARKEYSIGNER') {
       if($this->reference_address != $this->tx->Owner && $this->reference_address != $this->tx->Account) {
         $this->data['In'] = false;
         $this->persist = false;
