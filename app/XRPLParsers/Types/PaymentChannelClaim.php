@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class PaymentChannelClaim extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','UNKNOWN','SET'];
+  private array $acceptedParsedTypes = ['SENT','SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses PaymentChannelClaim type fields and maps them to $this->data
@@ -28,6 +28,10 @@ final class PaymentChannelClaim extends XRPLParserBase
       $this->data['In'] = true;
     } else {
       $this->data['In'] = false;
+    }
+
+    if($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
     }
     
     # Balance changes from eventList (primary/secondary, both, one, or none)
