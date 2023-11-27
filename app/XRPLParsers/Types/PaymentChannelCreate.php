@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class PaymentChannelCreate extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED'];
+  private array $acceptedParsedTypes = ['SENT','RECEIVED','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses TrustSet type fields and maps them to $this->data
@@ -28,6 +28,10 @@ final class PaymentChannelCreate extends XRPLParserBase
     } else {
       $this->data['Counterparty'] = $this->tx->Account;
       $this->data['In'] = true;
+    }
+
+    if($parsedType == 'UNKNOWN' || $parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
     }
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
