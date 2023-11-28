@@ -3,10 +3,11 @@
 namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
+use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
 
 final class PaymentChannelFund extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses TrustSet type fields and maps them to $this->data
@@ -23,6 +24,8 @@ final class PaymentChannelFund extends XRPLParserBase
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on PaymentChannelFund with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     $this->data['Counterparty'] = $this->tx->Account;
+    $this->data['In'] = false;
+    
 
     //Counterparty is found in PayChannel Modified node
     if($this->reference_address == $this->tx->Account) {
@@ -35,15 +38,23 @@ final class PaymentChannelFund extends XRPLParserBase
         }
       }
     }
-    
-    //Fund is always out
-    $this->data['In'] = false;
 
-    /*if($this->reference_address == $this->tx->Account) {
-      $this->data['In'] = false;
-    } else {
-      $this->data['In'] = false;
-    }*/
+    $participants = new TxParticipantExtractor($this->tx);
+    $participants = $participants->accounts();
+    foreach($participants as $pacc => $proles) {
+      if($this->reference_address == $pacc) {
+        if(\in_array('PAYCHANNEL_DESTINATION',$proles)) {
+          $this->data['In'] = true;
+        }
+        break;
+      }
+    }
+
+    if(!isset($participants[$this->reference_address]))
+      $this->persist = false;
+    else if($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
+    }
     
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
@@ -52,7 +63,6 @@ final class PaymentChannelFund extends XRPLParserBase
         throw new \Exception('Unhandled non XRP value on PaymentChannelFund with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
     }
-
   }
 
   /**
