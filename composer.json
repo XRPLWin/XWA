@@ -1,13 +1,12 @@
 {
-    "name": "xrplwin/xrplwinanalyzer",
-    "version": "0.0.4",
+    "name": "xrplwin/xwa",
     "type": "project",
-    "description": "XRP Ledger Analyzer",
-    "keywords": ["xrpl", "xrpl", "xrp-ledger", "analyzer", "php", "bigquery", "google"],
+    "description": "XRPWin Analyzer",
+    "keywords": ["xrpl", "xrpl", "xrp-ledger", "analyzer", "php", "bigquery", "google", "xahau", "xah"],
     "license": "MIT",
     "readmeFilename": "README.md",
     "bugs" : {
-      "url" : "https://github.com/XRPLWin/xrplwinanalyzer/issues"
+      "url" : "https://github.com/XRPLWin/XWA/issues"
     },
     "require": {
         "php": "^8.0.2",
