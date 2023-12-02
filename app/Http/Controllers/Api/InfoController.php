@@ -52,7 +52,14 @@ class InfoController extends Controller
         'route' => '/v1/oracle/USD',
         'method' => 'GET',
         'example' => config('app.url').'/v1/oracle/USD',
-      ]
+      ],
+      [
+        'action' => 'Get specific hook information',
+        'route' => '/v1/hook/{hookhash}',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77',
+      ],
+
     ];
     $endpoints[] = [
       'action' => 'Get UNL Validators',

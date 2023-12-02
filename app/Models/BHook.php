@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Collection;
+
 class BHook extends B
 {
   protected $table = 'hooks';
@@ -48,14 +50,25 @@ class BHook extends B
     return 'hook = """'.$this->hook.'"""';
   }
 
-  public static function repo_find(string $hook, bool $lockforupdate = false): ?self
+  public static function repo_find(string $hook, int $l_from, bool $lockforupdate = false): ?self
   {
-    $data = self::getRepository()::fetchByHookHash($hook,$lockforupdate);
+    $data = self::getRepository()::fetchByHookHashAndLedgerFrom($hook,$l_from,$lockforupdate);
     
     if($data === null)
       return null;
 
     return self::hydrate([$data])->first();
+  }
+
+  public static function repo_fetch(string $hook): Collection
+  {
+    $data = self::getRepository()::fetchByHookHash($hook);
+    return self::hydrate($data);
+  }
+
+  public function getIsActiveAttribute()
+  {
+    return $this->l_to === 0;
   }
 
 }

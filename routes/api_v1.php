@@ -28,6 +28,7 @@ Route::get('/account/search/{address}', [App\Http\Controllers\Api\AccountControl
 //});
 
 Route::get('/oracle/USD', [App\Http\Controllers\Api\OracleController::class, 'usd'])->name('oracle.usd');
+Route::get('/hook/{hookhash}', [App\Http\Controllers\Api\HookController::class, 'hook'])->name('hook');
 Route::get('/validators/dunl', [App\Http\Controllers\Api\ValidatorController::class, 'dunl'])->name('validators.dunl');
 Route::get('/unlreport/{from}/{to?}', [App\Http\Controllers\Api\UnlReportController::class, 'report'])->name('unlreport.report');
 Route::get('/validators/unl', [App\Http\Controllers\Api\UnlReportController::class, 'validators'])->name('unlreport.validators');

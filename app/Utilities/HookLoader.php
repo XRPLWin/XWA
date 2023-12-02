@@ -2,6 +2,7 @@
 
 namespace App\Utilities;
 use App\Models\BHook;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -9,8 +10,8 @@ class HookLoader
 {
 
   /**
-   * Fetches BAccount model or creates new in DB.
-   * @return BAccount
+   * Fetches BHook model or creates new in DB.
+   * @return BHook
    * @throws \Exception
    */
   public static function getOrCreate(
@@ -20,7 +21,7 @@ class HookLoader
     array $params
     ): BHook
   {
-    $HookModel = self::get($hook);
+    $HookModel = self::get($hook,$txid);
   
     if(!$HookModel)
     {
@@ -40,7 +41,7 @@ class HookLoader
   }
 
   /**
-   * Fetches BAccount model or creates new in DB. Locks it.
+   * Fetches BHook model or creates new in DB. Locks it.
    * @return BHook
    * @throws \Exception
    */
@@ -52,7 +53,7 @@ class HookLoader
   ): BHook
   {
     DB::beginTransaction();
-    $HookModel = self::get($hook,true);
+    $HookModel = self::get($hook,$l_from,true);
     
     if(!$HookModel)
     {
@@ -69,7 +70,7 @@ class HookLoader
     }
     DB::commit();
 
-    Cache::delete('dhook:'.$hook);
+    Cache::delete('dhook:'.$hook.'_'.$l_from);
 
     return $HookModel;
   }
@@ -78,17 +79,27 @@ class HookLoader
    * Gets BHook from cache or database.
    * @return ?BHook
    */
-  public static function get(string $hook, bool $lockforupdate = false): ?BHook
+  public static function get(string $hook, int $l_from, bool $lockforupdate = false): ?BHook
   {
-    $HookArray = Cache::get('dhook:'.$hook);
+    $HookArray = Cache::get('dhook:'.$hook.'_'.$l_from);
     if($HookArray == null) {
-      $HookModel = BHook::repo_find($hook,$lockforupdate);
+      $HookModel = BHook::repo_find($hook,$l_from,$lockforupdate);
       if(!$HookModel)
         return null;
-      Cache::put('dhook:'.$hook, $HookModel->toArray(), 86400); //86400 seconds = 24 hours
+      Cache::put('dhook:'.$hook.'_'.$l_from, $HookModel->toArray(), 86400); //86400 seconds = 24 hours
     } else {
       $HookModel = BHook::hydrate([$HookArray])->first();
     }
     return $HookModel;
+  }
+
+  /**
+   * Gets BHook from cache or database.
+   * @return ?BHook
+   */
+  public static function getByHash(string $hook): Collection
+  {
+    $hooks = BHook::repo_fetch($hook);
+    return $hooks;
   }
 }

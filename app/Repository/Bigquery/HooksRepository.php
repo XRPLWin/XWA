@@ -11,9 +11,34 @@ class HooksRepository extends Repository
    * @see https://github.com/GoogleCloudPlatform/php-docs-samples/tree/master/bigquery/api/src
    * @return ?array
    */
-  public static function fetchByHookHash(string $hookhash, bool $lockforupdate = false): ?array
+  public static function fetchByHookHashAndLedgerFrom(string $hookhash, int $l_from, bool $lockforupdate = false): ?array
   {
-    return self::fetchOne('hook = """'.$hookhash.'"""');
+    return self::fetchOne('hook = """'.$hookhash.'""" and l_from = '.$l_from);
+  }
+
+  public static function fetchByHookHash(string $hookhash): array
+  {
+    return self::fetchMany('hook = """'.$hookhash.'""" ORDER BY l_from desc');
+  }
+
+  /**
+   * Fetches many records from database.
+   * @return ?array
+   */
+  public static function fetchMany($where): ?array
+  {
+    $query = 'SELECT hook,txid,l_from,l_to,params,title,descr FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where;
+    try {
+      $results = \BigQuery::runQuery(\BigQuery::query($query));
+    } catch (\Throwable $e) {
+      //dd($e->getMessage());
+      throw $e;
+    }
+    $r = [];
+    foreach($results as $row) {
+      $r[] = $row;
+    }
+    return $r;
   }
 
   /**

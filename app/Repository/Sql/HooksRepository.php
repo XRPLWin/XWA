@@ -8,7 +8,7 @@ use Carbon\Carbon;
 
 class HooksRepository extends Repository
 {
-  public static function fetchByHookHash(string $hookhash, bool $lockforupdate = false): ?array
+  public static function fetchByHookHashAndLedgerFrom(string $hookhash, int $l_from, bool $lockforupdate = false): ?array
   {
     $r = DB::table('hooks')
       ->select([
@@ -20,7 +20,8 @@ class HooksRepository extends Repository
         'title',
         'descr'
       ])
-      ->where('hook',$hookhash);
+      ->where('hook',$hookhash)
+      ->where('l_from',$l_from);
       if($lockforupdate) {
         $r = $r->lockForUpdate()->get();
       } else {
@@ -29,5 +30,24 @@ class HooksRepository extends Repository
       if(!$r->count()) return null;
 
       return (array)$r->first();
+  }
+
+  public static function fetchByHookHash(string $hookhash): array
+  {
+    $r = DB::table('hooks')
+      ->select([
+        'hook',
+        'txid',
+        'l_from',
+        'l_to',
+        'params',
+        'title',
+        'descr'
+      ])
+      ->where('hook',$hookhash)
+      ->orderBy('l_from','desc')
+      ->get();
+
+      return $r->toArray();
   }
 }

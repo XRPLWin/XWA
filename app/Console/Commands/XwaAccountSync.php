@@ -99,6 +99,8 @@ class XwaAccountSync extends Command
       if(config('xwa.sync_type') != 'account')
         return self::FAILURE;
 
+      dd('Disabled: missing hook create and destroy triggers!');
+
       $this->debug = config('app.debug');
       $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
       
