@@ -272,6 +272,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
     $this->hook_parser = new TxHookParser($this->tx);
     $this->data['hooks'] = $this->hook_parser->accountHooks($this->reference_address);
     $this->data['created_hooks'] = $this->hook_parser->createdHooksDetailed();
+    $this->data['destroyed_hooks'] = $this->hook_parser->destroyedHooks();
     return $this;
   }
 
@@ -285,17 +286,22 @@ abstract class XRPLParserBase implements XRPLParserInterface
     return $this->activations['reference_activated'];
   }
   
-  public function getTx()
+  public function getTx(): \stdClass
   {
     return $this->tx;
   }
 
-  public function getMeta()
+  public function getLedgerIndex(): int
+  {
+    return $this->tx->ledger_index;
+  }
+
+  public function getMeta(): \stdClass
   {
     return $this->meta;
   }
 
-  public function getData()
+  public function getData(): array
   {
     return $this->data;
   }

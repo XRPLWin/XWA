@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
 use App\Utilities\AccountLoader;
+use App\Utilities\HookLoader;
 use App\Repository\Base\BatchInterface;
 use App\Repository\Sql\Batch as SqlBatch;
 use App\Repository\Bigquery\Batch as BigqueryBatch;
@@ -14,6 +15,9 @@ use App\XRPLParsers\Parser;
 use App\Models\BAccount;
 use App\Models\BTransactionActivation;
 use App\Models\Synctracker;
+#use App\Models\BHook;
+use XRPLWin\XRPLHookParser\TxHookParser;
+use Illuminate\Support\Facades\Cache;
 
 class XwaContinuousSyncProc extends Command
 {
@@ -304,6 +308,28 @@ class XwaContinuousSyncProc extends Command
       } catch (\Throwable $e) {
         $this->logError($method.' '.$transaction->hash.' '.$account->address);
         throw $e;
+      }
+
+      # Save hook (if any)
+      if($iteration == 1) {
+        foreach($parser->getDataField('created_hooks') as $_hook => $_hookData) {
+          Cache::delete('dhook:'.$_hook);
+          //this will create hook in db
+          HookLoader::getOrCreate(
+            $_hook,
+            $_hookData->NewFields->HookSetTxnID,
+            $parser->getLedgerIndex(),
+            TxHookParser::toParams($_hookData)
+          );
+        }
+        foreach($parser->getDataField('destroyed_hooks') as $_hook) {
+          $hook = HookLoader::get($_hook);
+          if(!$hook)
+            throw new \Exception('Undefined hook '.$_hook);
+            
+          $hook->l_to = $parser->getLedgerIndex();
+          $batch->queueModelChanges($hook);
+        }
       }
       
       $parsedData = $parser->toBArray();

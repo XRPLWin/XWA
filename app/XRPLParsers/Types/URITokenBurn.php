@@ -4,51 +4,43 @@ namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
 use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
-#use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
 
-final class URITokenCreateSellOffer extends XRPLParserBase
+final class URITokenBurn extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','RECEIVED','UNKNOWN'];
+private array $acceptedParsedTypes = ['SET','UNKNOWN'];
 
   /**
-   * Parses URITokenCreateSellOffer type fields and maps them to $this->data
-   * Only thing that is persisted is Initiator (Account) perspective.
-   * @see https://xrpl.org/transaction-types.html
+   * Parses URITokenBurn type fields and maps them to $this->data
+   * @see https://docs.xahau.network/technical/protocol-reference/transactions/transaction-types/uritokenburn
+   * @see mint to different owner: D636ABADC71096929861F24261210F17A8BD8505A24AF74F614C9057D7C83B42 xahau
    * @return void
    */
   protected function parseTypeFields(): void
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on URITokenCreateSellOffer with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on URITokenBurn with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     $nftparser = new NFTTxMutationParser($this->reference_address, $this->tx);
     $nftparserResult = $nftparser->result();
-    //dd($nftparserResult);
 
-    $this->data['In'] = false;
-    $this->data['Counterparty'] = $this->tx->Account;
     $this->data['nft'] = $nftparserResult['nft'];
 
-    if($this->reference_address != $this->tx->Account) {
+    if(\in_array(NFTTxMutationParser::ROLE_OWNER,$nftparserResult['ref']['roles'])) { //owner or owner+burner
+      $this->data['In'] = true;
+      $this->data['Counterparty'] = $this->tx->Account;
+    } else {
+
+      //unknown or burner
+      $this->data['In'] = false;
       $this->persist = false;
-    }
+      $this->data['Counterparty'] = $this->tx->Account;
 
-    if(isset($this->tx->Destination)){
-      if($this->reference_address == $this->tx->Destination) {
-        $this->data['In'] = true;
+      if(\in_array(NFTTxMutationParser::ROLE_BURNER,$nftparserResult['ref']['roles'])) {
+        //burner
+        $this->persist = true;
       }
     }
-    
-    # Balance changes from eventList (primary/secondary, both, one, or none)
-    if(isset($this->data['eventList']['primary'])) {
-      $this->data['Amount'] = $this->data['eventList']['primary']['value'];
-      if($this->data['eventList']['primary']['currency'] !== 'XRP') {
-        $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
-        $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
-      }
-    }
-
   }
 
   /**
@@ -66,7 +58,7 @@ final class URITokenCreateSellOffer extends XRPLParserBase
       'r' => (string)$this->data['Counterparty'],
       'h' => (string)$this->data['hash'],
       'offers' => [],
-      'nft' => $this->data['nft'],
+      'nft' => (string)$this->data['nft'],
       'nftoffers' => [],
       'hooks' => $this->data['hooks'],
     ];

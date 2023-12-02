@@ -8,11 +8,12 @@ use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
 
 final class URITokenBuy extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses TrustSet type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
+   * @see DCE7F2DE79CF47C4B6006B1C9A8DC69614C2AC204B4465F0D9CAA16C7E3F9420
    * @return void
    */
   protected function parseTypeFields(): void
@@ -21,7 +22,10 @@ final class URITokenBuy extends XRPLParserBase
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on URITokenBuy with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
-      
+    if($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
+    }
+
     $nftparser = new NFTTxMutationParser($this->reference_address, $this->tx);
     $nftparserResult = $nftparser->result();
     //dd($nftparserResult);
