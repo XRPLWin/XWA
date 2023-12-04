@@ -18,10 +18,11 @@ class HookLoader
     string $hook,
     string $txid,
     int $l_from,
+    string $hookon,
     array $params
     ): BHook
   {
-    $HookModel = self::get($hook,$txid);
+    $HookModel = self::get($hook,$l_from);
   
     if(!$HookModel)
     {
@@ -30,6 +31,7 @@ class HookLoader
         'txid' => $txid,
         'l_from' => $l_from,
         'l_to' => 0, //0 = not deleted
+        'hookon' => $hookon,
         'params' => $params,
         'title' => '',
         'descr' => '',
@@ -49,6 +51,7 @@ class HookLoader
     string $hook,
     string $txid,
     int $l_from,
+    string $hookon,
     array $params
   ): BHook
   {
@@ -62,6 +65,7 @@ class HookLoader
         'txid' => $txid,
         'l_from' => $l_from,
         'l_to' => 0, //0 = not deleted yet
+        'hookon' => $hookon,
         'params' => $params,
         'title' => '',
         'descr' => '',

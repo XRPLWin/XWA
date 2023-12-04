@@ -16,6 +16,7 @@ class HooksRepository extends Repository
         'txid',
         'l_from',
         'l_to',
+        'hookon',
         'params',
         'title',
         'descr'
@@ -40,6 +41,7 @@ class HooksRepository extends Repository
         'txid',
         'l_from',
         'l_to',
+        'hookon',
         'params',
         'title',
         'descr'

@@ -25,6 +25,7 @@ class BHook extends B
     'txid',
     'l_from',
     'l_to',
+    'hookon',
     'params',
     'title',
     'descr'
@@ -40,6 +41,7 @@ class BHook extends B
     'txid' => 'STRING',
     'l_from' => 'INTEGER',
     'l_to' => 'INTEGER',
+    'hookon'  => 'STRING',
     'params'  => 'STRING', //store json here key value one dimensional array
     'title'  => 'STRING',
     'descr'  => 'STRING',

@@ -319,14 +319,17 @@ class XwaContinuousSyncProc extends Command
             $_hook,
             $_hookData->NewFields->HookSetTxnID,
             $parser->getLedgerIndex(),
+            $_hookData->NewFields->HookOn,
             TxHookParser::toParams($_hookData)
           );
         }
         foreach($parser->getDataField('destroyed_hooks') as $_hook) {
-          $hook = HookLoader::get($_hook);
-          if(!$hook)
+          $hooks = HookLoader::getByHash($_hook);
+          if(!$hooks->count())
             throw new \Exception('Undefined hook '.$_hook);
-            
+          $hook = $hooks->first(); //latest one
+          if($hook->l_to != 0)
+            throw new \Exception('Tried to flag hook '.$_hook.' as destroyed but hook already flagged as destroyed');
           $hook->l_to = $parser->getLedgerIndex();
           $batch->queueModelChanges($hook);
         }

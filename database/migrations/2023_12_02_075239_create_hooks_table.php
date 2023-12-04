@@ -22,6 +22,7 @@ return new class extends Migration
       $table->unsignedInteger('l_from')->comment('LedgerIndex at which this hook was created');
       $table->unsignedInteger('l_to')->default(0)->comment('LedgerIndex at which this hook was destroyed, zero if not yet destroyed');
       $table->char('txid',64)->comment('Transaction ID this hook was created at');
+      $table->char('hookon',64)->comment('HookOn value when hook was created');
       $table->json('params')->comment('Initial hook parameters as defined when hook is first created');
       $table->string('title')->comment('Identifying title of this hook');
       $table->string('descr')->comment('Identifying description of this hook');
