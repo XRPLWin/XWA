@@ -19,7 +19,8 @@ class HookLoader
     string $txid,
     int $l_from,
     string $hookon,
-    array $params
+    array $params,
+    string $namespace
     ): BHook
   {
     $HookModel = self::get($hook,$l_from);
@@ -33,6 +34,7 @@ class HookLoader
         'l_to' => 0, //0 = not deleted
         'hookon' => $hookon,
         'params' => $params,
+        'namespace' => $namespace,
         'title' => '',
         'descr' => '',
       ]);
@@ -52,7 +54,8 @@ class HookLoader
     string $txid,
     int $l_from,
     string $hookon,
-    array $params
+    array $params,
+    string $namespace
   ): BHook
   {
     DB::beginTransaction();
@@ -67,6 +70,7 @@ class HookLoader
         'l_to' => 0, //0 = not deleted yet
         'hookon' => $hookon,
         'params' => $params,
+        'namespace' => $namespace,
         'title' => '',
         'descr' => '',
       ]);

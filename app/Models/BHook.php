@@ -31,6 +31,7 @@ class BHook extends B
     'l_to',
     'hookon',
     'params',
+    'namespace',
     'title',
     'descr'
   ];
@@ -47,6 +48,7 @@ class BHook extends B
     'l_to' => 'INTEGER',
     'hookon'  => 'STRING',
     'params'  => 'STRING', //store json here key value one dimensional array
+    'namespace' => 'STRING',
     'title'  => 'STRING',
     'descr'  => 'STRING',
   ];

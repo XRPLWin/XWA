@@ -12,6 +12,7 @@ use App\Repository\Base\BatchInterface;
 use App\Repository\Sql\Batch as SqlBatch;
 use App\Repository\Bigquery\Batch as BigqueryBatch;
 use App\XRPLParsers\Parser;
+use App\XRPLParsers\XRPLParserBase;
 use App\Models\BAccount;
 use App\Models\BTransactionActivation;
 use App\Models\Synctracker;
@@ -301,9 +302,9 @@ class XwaContinuousSyncProc extends Command
       $is_account_changed = false;
       //$this->line($transaction->hash);
 
-      /** @var \App\XRPLParsers\Types\XRPLParserBase */
       
       try {
+        /** @var \App\XRPLParsers\XRPLParserBase */
         $parser = Parser::get($transaction, $transaction->metaData, $account->address);
       } catch (\Throwable $e) {
         $this->logError($method.' '.$transaction->hash.' '.$account->address);
@@ -312,27 +313,7 @@ class XwaContinuousSyncProc extends Command
 
       # Save hook (if any)
       if($iteration == 1) {
-        foreach($parser->getDataField('created_hooks') as $_hook => $_hookData) {
-          Cache::delete('dhook:'.$_hook);
-          //this will create hook in db
-          HookLoader::getOrCreate(
-            $_hook,
-            $_hookData->NewFields->HookSetTxnID,
-            $parser->getLedgerIndex(),
-            $_hookData->NewFields->HookOn,
-            TxHookParser::toParams($_hookData)
-          );
-        }
-        foreach($parser->getDataField('destroyed_hooks') as $_hook) {
-          $hooks = HookLoader::getByHash($_hook);
-          if(!$hooks->count())
-            throw new \Exception('Undefined hook '.$_hook);
-          $hook = $hooks->first(); //latest one
-          if($hook->l_to != 0)
-            throw new \Exception('Tried to flag hook '.$_hook.' as destroyed but hook already flagged as destroyed');
-          $hook->l_to = $parser->getLedgerIndex();
-          $batch->queueModelChanges($hook);
-        }
+        $this->processTransactions_sub_hook($parser,$batch);
       }
       
       $parsedData = $parser->toBArray();
@@ -396,6 +377,54 @@ class XwaContinuousSyncProc extends Command
         $batch->queueModelChanges($account);
 
       return $parsedData;
+    }
+
+    /**
+     * This method is executed only once per transaction.
+     * Extracts and stores hookdefinition to hooks table.
+     * Syncer can collect ledgers in async/random manner, this function handles cases such as
+     *   destroyed hook but not yet stored as created (syncer did not yet synced creation ledger).
+     * @return void
+     */
+    private function processTransactions_sub_hook(XRPLParserBase $parser, BatchInterface $batch): void
+    {
+      foreach($parser->getDataField('created_hooks') as $_hook => $_hookData) {
+        Cache::delete('dhook:'.$_hook);
+        //this will create hook in db
+        HookLoader::getOrCreate(
+          $_hook,
+          $_hookData->NewFields->HookSetTxnID,
+          $parser->getLedgerIndex(),
+          $_hookData->NewFields->HookOn,
+          TxHookParser::toParams($_hookData),
+          isset($_hookData->NewFields->Namespace)?$_hookData->NewFields->Namespace:'0000000000000000000000000000000000000000000000000000000000000000',
+        );
+      }
+
+
+      
+      foreach($parser->getDataField('destroyed_hooks') as $_hook) {
+        
+        $hooks = HookLoader::getByHash($_hook);
+        //find appropriate hook in $hooks, if does not exists (re)create it
+        if(!$hooks->count()) {
+          dd()
+          HookLoader::getOrCreate(
+            $_hook,
+            $_hookData->NewFields->HookSetTxnID,
+            $parser->getLedgerIndex(),
+            $_hookData->NewFields->HookOn,
+            TxHookParser::toParams($_hookData),
+            isset($_hookData->NewFields->Namespace)?$_hookData->NewFields->Namespace:'0000000000000000000000000000000000000000000000000000000000000000',
+          );
+        }
+          
+        $hook = $hooks->first(); //latest one
+        if($hook->l_to != 0)
+          throw new \Exception('Tried to flag hook '.$_hook.' as destroyed but hook already flagged as destroyed');
+        $hook->l_to = $parser->getLedgerIndex();
+        $batch->queueModelChanges($hook);
+      }
     }
 
     /**

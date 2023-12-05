@@ -27,7 +27,7 @@ class HooksRepository extends Repository
    */
   public static function fetchMany($where): ?array
   {
-    $query = 'SELECT hook,txid,l_from,l_to,hookon,params,title,descr FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where;
+    $query = 'SELECT hook,txid,l_from,l_to,hookon,params,namespace,title,descr FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where;
     try {
       $results = \BigQuery::runQuery(\BigQuery::query($query));
     } catch (\Throwable $e) {
@@ -47,7 +47,7 @@ class HooksRepository extends Repository
    */
   public static function fetchOne($where): ?array
   {
-    $query = 'SELECT hook,txid,l_from,l_to,hookon,params,title,descr FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where.' LIMIT 1';
+    $query = 'SELECT hook,txid,l_from,l_to,hookon,params,namespace,title,descr FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where.' LIMIT 1';
     try {
       $results = \BigQuery::runQuery(\BigQuery::query($query));
     } catch (\Throwable $e) {

@@ -18,6 +18,7 @@ class HooksRepository extends Repository
         'l_to',
         'hookon',
         'params',
+        'namespace',
         'title',
         'descr'
       ])
@@ -43,6 +44,7 @@ class HooksRepository extends Repository
         'l_to',
         'hookon',
         'params',
+        'namespace',
         'title',
         'descr'
       ])
