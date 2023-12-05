@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Support\Collection;
+use Thiagoprz\CompositeKey\HasCompositeKey;
 
 class BHook extends B
 {
+  use HasCompositeKey;
+
   protected $table = 'hooks';
   public $timestamps = false;
-  protected $primaryKey = 'hook';
+  #protected $primaryKey = 'hook';
+  protected $primaryKey = ['hook', 'l_from'];
   protected $keyType = 'string';
   public $incrementing = false;
 
@@ -49,7 +53,7 @@ class BHook extends B
 
   protected function bqPrimaryKeyCondition(): string
   {
-    return 'hook = """'.$this->hook.'"""';
+    return 'hook = """'.$this->hook.'""" and l_from='.$this->l_from;
   }
 
   public static function repo_find(string $hook, int $l_from, bool $lockforupdate = false): ?self

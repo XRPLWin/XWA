@@ -18,6 +18,7 @@
         "league/flysystem-aws-s3-v3": "^3.0",
         "schulzefelix/laravel-bigquery": "dev-master",
         "textalk/websocket": "^1.6",
+        "thiagoprz/eloquent-composite-key": "^1.0",
         "xrplwin/unlreportreader": "^1.0",
         "xrplwin/xrpl": "^1.0",
         "xrplwin/xrpl-hookparser": "^1.1",
