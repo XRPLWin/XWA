@@ -78,7 +78,7 @@ class HookLoader
     }
     DB::commit();
 
-    Cache::delete('dhook:'.$hook.'_'.$l_from);
+    Cache::tags(['hook'.$hook])->delete('dhook:'.$hook.'_'.$l_from);
 
     return $HookModel;
   }
@@ -89,12 +89,13 @@ class HookLoader
    */
   public static function get(string $hook, int $l_from, bool $lockforupdate = false): ?BHook
   {
-    $HookArray = Cache::get('dhook:'.$hook.'_'.$l_from);
+    //$HookArray = Cache::get('dhook:'.$hook.'_'.$l_from);
+    $HookArray = Cache::tags(['hook'.$hook])->get('dhook:'.$hook.'_'.$l_from);
     if($HookArray == null) {
       $HookModel = BHook::repo_find($hook,$l_from,$lockforupdate);
       if(!$HookModel)
         return null;
-      Cache::put('dhook:'.$hook.'_'.$l_from, $HookModel->toArray(), 86400); //86400 seconds = 24 hours
+      Cache::tags(['hook'.$hook])->put('dhook:'.$hook.'_'.$l_from, $HookModel->toArray(), 86400); //86400 seconds = 24 hours
     } else {
       $HookModel = BHook::hydrate([$HookArray])->first();
     }

@@ -389,7 +389,8 @@ class XwaContinuousSyncProc extends Command
     private function processTransactions_sub_hook(XRPLParserBase $parser, BatchInterface $batch): void
     {
       foreach($parser->getDataField('created_hooks') as $_hook => $_hookData) {
-        Cache::delete('dhook:'.$_hook);
+        Cache::tags(['hook'.$_hook])->delete('dhook:'.$_hook.'_'.$parser->getLedgerIndex());
+        //'dhook:'.$hook.'_'.$l_from
         //this will create hook in db
         HookLoader::getOrCreate(
           $_hook,
@@ -397,34 +398,105 @@ class XwaContinuousSyncProc extends Command
           $parser->getLedgerIndex(),
           $_hookData->NewFields->HookOn,
           TxHookParser::toParams($_hookData),
-          isset($_hookData->NewFields->Namespace)?$_hookData->NewFields->Namespace:'0000000000000000000000000000000000000000000000000000000000000000',
+          $_hookData->NewFields->HookNamespace
         );
       }
 
-
-      
       foreach($parser->getDataField('destroyed_hooks') as $_hook) {
-        
-        $hooks = HookLoader::getByHash($_hook);
+        //Cache::delete('dhook:'.$_hook);
+        Cache::tags(['hook'.$_hook])->flush();
+        //$createit = false;
+        //$hooks = HookLoader::getByHash($_hook); //sorted by newest first
+        $storedHook = null;
         //find appropriate hook in $hooks, if does not exists (re)create it
-        if(!$hooks->count()) {
-          dd()
-          HookLoader::getOrCreate(
-            $_hook,
-            $_hookData->NewFields->HookSetTxnID,
-            $parser->getLedgerIndex(),
-            $_hookData->NewFields->HookOn,
-            TxHookParser::toParams($_hookData),
-            isset($_hookData->NewFields->Namespace)?$_hookData->NewFields->Namespace:'0000000000000000000000000000000000000000000000000000000000000000',
-          );
+        /*if($hooks->count()) {
+          //find it and set to $storedHook or set $createit = true;
+          $storedHook = $hooks->where('l_to',0)
+            ->where('l_from','<=',$parser->getLedgerIndex())
+            ->first();
+        }*/
+
+        //find deleted hookdefinition in meta to extract creation vars from FinalFields
+        $createit_found = null;
+        foreach($parser->getMeta()->AffectedNodes as $n) {
+          if(isset($n->DeletedNode->LedgerEntryType) && $n->DeletedNode->LedgerEntryType == 'HookDefinition') {
+            if(isset($n->DeletedNode->FinalFields->HookHash) && $n->DeletedNode->FinalFields->HookHash == $_hook) {
+              $createit_found = $n->DeletedNode->FinalFields;
+              break;
+            }
+          }
         }
-          
-        $hook = $hooks->first(); //latest one
-        if($hook->l_to != 0)
+        if($createit_found === null) {
+          throw new \Exception('Tried to find creation in deleted definition of hook '.$_hook.' but unable to find it');
+        }
+
+        //Query xrpl to find ledger_index of transaction
+        $pulledTransaction = $this->pullTransaction($createit_found->HookSetTxnID);
+        //create it right away into database
+        $storedHook = HookLoader::getOrCreate(
+          $_hook, //OK
+          $createit_found->HookSetTxnID, //OK
+          $pulledTransaction->result->ledger_index, //find li of $createit_found->HookSetTxnID
+          $_hookData->NewFields->HookOn,
+          TxHookParser::toParams($_hookData),
+          $createit_found->HookNamespace
+        );
+        //dd($_hook,'stop at' .$parser->getLedgerIndex(),$createit_found);
+        if($storedHook === null)
+          throw new \Exception('Tried to flag hook '.$_hook.' as destroyed but stored hook not found');
+        
+        if($storedHook->l_to != 0)
           throw new \Exception('Tried to flag hook '.$_hook.' as destroyed but hook already flagged as destroyed');
-        $hook->l_to = $parser->getLedgerIndex();
-        $batch->queueModelChanges($hook);
+        $storedHook->l_to = $parser->getLedgerIndex();
+        $batch->queueModelChanges($storedHook);
       }
+    }
+
+    private function pullTransaction(string $transactionID)
+    {
+      $params = [
+        'id'            => $this->debug_id,
+        'command'       => 'tx',
+        'transaction'  => $transactionID
+      ];
+      $this->client->text(\json_encode($params));
+
+      $response = null;
+
+      # Mini loop to ensure rate limiting...
+      while(true) {
+        $receive = $this->client->receive();
+        
+        if($receive === null) {
+          $this->client->close();
+          $this->log('Connection closed');
+          $this->log('Cooling down (3 seconds)...');
+          sleep(3);
+          $this->client->text(\json_encode($params));
+        } elseif($receive === '') {
+          $e = new \Exception('WSS: Unknown response (Ping?)');
+          $this->logError($e->getMessage(),$e);
+          throw $e;
+        } else {
+          $response = \json_decode($receive);
+          break;
+        }
+      }
+
+      if($response === null) {
+        $e = new \Exception('Unhandled: ws response not filled (2)');
+        $this->logError($e->getMessage(),$e);
+        throw $e;
+      }
+
+      # Mini loop end
+      if($response->status != 'success') {
+        //known errors: slowDown
+        $e = new \Exception('Unsupported response from wss endpoint (status: '.$response->error.') (2)');
+        $this->logError($e->getMessage(),$e);
+        throw $e;
+      }
+      return $response;
     }
 
     /**
