@@ -398,7 +398,7 @@ class XwaContinuousSyncProc extends Command
           $parser->getLedgerIndex(),
           $_hookData->NewFields->HookOn,
           TxHookParser::toParams($_hookData),
-          $_hookData->NewFields->HookNamespace
+          isset($_hookData->NewFields->HookNamespace)?$_hookData->NewFields->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
         );
       }
 
@@ -439,7 +439,7 @@ class XwaContinuousSyncProc extends Command
           $pulledTransaction->result->ledger_index, //find li of $createit_found->HookSetTxnID
           $_hookData->NewFields->HookOn,
           TxHookParser::toParams($_hookData),
-          $createit_found->HookNamespace
+          isset($createit_found->HookNamespace)?$createit_found->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
         );
         //dd($_hook,'stop at' .$parser->getLedgerIndex(),$createit_found);
         if($storedHook === null)
