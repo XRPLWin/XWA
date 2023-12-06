@@ -7,7 +7,7 @@ use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
 final class URITokenMint extends XRPLParserBase
 {
-private array $acceptedParsedTypes = ['SET','RECEIVED','UNKNOWN'];
+private array $acceptedParsedTypes = ['SET','RECEIVED','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses URITokenMint type fields and maps them to $this->data
@@ -20,6 +20,10 @@ private array $acceptedParsedTypes = ['SET','RECEIVED','UNKNOWN'];
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on URITokenMint with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+    
+    if($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
+    }
 
     $nftparser = new NFTTxMutationParser($this->reference_address, $this->tx);
     $nftparserResult = $nftparser->result();

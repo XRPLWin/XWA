@@ -96,7 +96,7 @@ return [
     'rippled_server_uri' => 'https://xahau.network',
     //for connection via php GuzzleHttp (full history server)
     'rippled_fullhistory_server_uri' => 'https://xahau.network',
-    //websocket domain (example: 'xrplcluster.com')
+    //websocket domain (example: 'xahau.network')
     'server_wss' => 'xahau.network',
     'server_wss_syncer' => ['wss://xahau.network'],
     //enable or disable unlreport
