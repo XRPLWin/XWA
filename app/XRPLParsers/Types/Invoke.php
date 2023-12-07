@@ -24,13 +24,15 @@ final class Invoke extends XRPLParserBase
 
     # Counterparty
 
-    //$this->data['Counterparty'] = $this->tx->Account;
+    $this->data['Counterparty'] = $this->tx->Account;
     //$this->data['In'] = false;
     if($parsedType == 'SET') {
-      $this->data['Counterparty'] = $this->tx->Destination;
+      if(isset($this->tx->Destination))
+        $this->data['Counterparty'] = $this->tx->Destination;
       $this->data['In'] = false;
     } elseif($parsedType == 'RECEIVED') {
-      $this->data['Counterparty'] = $this->tx->Account;
+      if(isset($this->tx->Destination))
+        $this->data['Counterparty'] = $this->tx->Account;
       $this->data['In'] = true;
     } elseif($parsedType == 'UNKNOWN') {
       //those are: EMITTED_DESTINATION
