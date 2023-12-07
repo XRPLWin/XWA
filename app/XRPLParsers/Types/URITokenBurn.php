@@ -7,7 +7,7 @@ use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
 final class URITokenBurn extends XRPLParserBase
 {
-private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses URITokenBurn type fields and maps them to $this->data
@@ -20,6 +20,10 @@ private array $acceptedParsedTypes = ['SET','UNKNOWN'];
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on URITokenBurn with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+
+    if($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
+    }
 
     $nftparser = new NFTTxMutationParser($this->reference_address, $this->tx);
     $nftparserResult = $nftparser->result();
