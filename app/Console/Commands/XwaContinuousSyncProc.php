@@ -390,13 +390,12 @@ class XwaContinuousSyncProc extends Command
     {
       foreach($parser->getDataField('created_hooks') as $_hook => $_hookData) {
         Cache::tags(['hook'.$_hook])->delete('dhook:'.$_hook.'_'.$parser->getLedgerIndex());
-        //'dhook:'.$hook.'_'.$l_from
         //this will create hook in db
         HookLoader::getOrCreate(
           $_hook,
           $_hookData->NewFields->HookSetTxnID,
           $parser->getLedgerIndex(),
-          $_hookData->NewFields->HookOn,
+          isset($_hookData->NewFields->HookOn)?$_hookData->NewFields->HookOn:'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFF',
           TxHookParser::toParams($_hookData),
           isset($_hookData->NewFields->HookNamespace)?$_hookData->NewFields->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
         );
@@ -405,17 +404,7 @@ class XwaContinuousSyncProc extends Command
       foreach($parser->getDataField('destroyed_hooks') as $_hook) {
         //Cache::delete('dhook:'.$_hook);
         Cache::tags(['hook'.$_hook])->flush();
-        //$createit = false;
-        //$hooks = HookLoader::getByHash($_hook); //sorted by newest first
         $storedHook = null;
-        //find appropriate hook in $hooks, if does not exists (re)create it
-        /*if($hooks->count()) {
-          //find it and set to $storedHook or set $createit = true;
-          $storedHook = $hooks->where('l_to',0)
-            ->where('l_from','<=',$parser->getLedgerIndex())
-            ->first();
-        }*/
-
         //find deleted hookdefinition in meta to extract creation vars from FinalFields
         $createit_found = null;
         foreach($parser->getMeta()->AffectedNodes as $n) {
@@ -437,11 +426,10 @@ class XwaContinuousSyncProc extends Command
           $_hook, //OK
           $createit_found->HookSetTxnID, //OK
           $pulledTransaction->result->ledger_index, //find li of $createit_found->HookSetTxnID
-          $_hookData->NewFields->HookOn,
+          isset($_hookData->NewFields->HookOn)?$_hookData->NewFields->HookOn:'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFF',
           TxHookParser::toParams($_hookData),
           isset($createit_found->HookNamespace)?$createit_found->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
         );
-        //dd($_hook,'stop at' .$parser->getLedgerIndex(),$createit_found);
         if($storedHook === null)
           throw new \Exception('Tried to flag hook '.$_hook.' as destroyed but stored hook not found');
         
