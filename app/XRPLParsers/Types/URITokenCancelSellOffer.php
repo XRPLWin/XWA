@@ -23,9 +23,9 @@ final class URITokenCancelSellOffer extends XRPLParserBase
 
     $nftparser = new NFTTxMutationParser($this->reference_address, $this->tx);
     $nftparserResult = $nftparser->result();
-    //dd($nftparserResult);
+    
     $this->persist = true;
-    $this->data['In'] = false;
+    $this->data['In'] = true;
     $this->data['Counterparty'] = $this->tx->Account;
     $this->data['nft'] = $nftparserResult['nft'];
 
