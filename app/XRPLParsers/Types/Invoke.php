@@ -22,26 +22,30 @@ final class Invoke extends XRPLParserBase
     //if($parsedType == 'UNKNOWN' || $parsedType == 'REGULARKEYSIGNER')
     //  $this->persist = false;
 
-    # Counterparty
+    $this->persist = false;
+    $this->data['In'] = false;
 
-    $this->data['Counterparty'] = $this->tx->Account;
-    //$this->data['In'] = false;
-    if($parsedType == 'SET') {
-      if(isset($this->tx->Destination))
+    $this->data['Counterparty'] = $this->tx->Account; //default
+
+    if(isset($this->tx->Destination)) {
+      if($this->tx->Destination == $this->reference_address) {
+        $this->data['In'] = true;
+        $this->persist = true;
+      } elseif($this->tx->Account == $this->reference_address) {
+        $this->data['In'] = false;
+        $this->persist = true;
         $this->data['Counterparty'] = $this->tx->Destination;
-      $this->data['In'] = false;
-    } elseif($parsedType == 'RECEIVED') {
-      if(isset($this->tx->Destination))
-        $this->data['Counterparty'] = $this->tx->Account;
-      $this->data['In'] = true;
-    } elseif($parsedType == 'UNKNOWN') {
-      //those are: EMITTED_DESTINATION
-      $this->data['Counterparty'] = $this->tx->Account;
-      $this->data['In'] = true;
+      }
+    } else {
+      if($this->tx->Account == $this->reference_address) {
+        $this->data['In'] = true;
+        $this->persist = true;
+      }
     }
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
+      $this->persist = true;
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
         $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
