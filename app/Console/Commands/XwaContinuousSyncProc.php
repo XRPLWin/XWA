@@ -421,13 +421,18 @@ class XwaContinuousSyncProc extends Command
 
         //Query xrpl to find ledger_index of transaction
         $pulledTransaction = $this->pullTransaction($createit_found->HookSetTxnID);
+        
+        //Create TxHookParser::toParams($storedHook_params_prepared) compatible variable:
+        $storedHook_params_prepared = new \stdClass();
+        $storedHook_params_prepared->NewFields = $createit_found;
+
         //create it right away into database
         $storedHook = HookLoader::getOrCreate(
           $_hook, //OK
           $createit_found->HookSetTxnID, //OK
           $pulledTransaction->result->ledger_index, //find li of $createit_found->HookSetTxnID
-          isset($_hookData->NewFields->HookOn)?$_hookData->NewFields->HookOn:'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFF', //WRONG
-          TxHookParser::toParams($_hookData), //WRONG
+          isset($createit_found->HookOn)?$createit_found->HookOn:'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFF', //??
+          TxHookParser::toParams($storedHook_params_prepared), //WRONG
           isset($createit_found->HookNamespace)?$createit_found->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
         );
         if($storedHook === null)
