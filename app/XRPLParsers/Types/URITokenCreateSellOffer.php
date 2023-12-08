@@ -8,7 +8,7 @@ use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
 final class URITokenCreateSellOffer extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','RECEIVED','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','RECEIVED','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses URITokenCreateSellOffer type fields and maps them to $this->data
@@ -25,6 +25,10 @@ final class URITokenCreateSellOffer extends XRPLParserBase
     $nftparser = new NFTTxMutationParser($this->reference_address, $this->tx);
     $nftparserResult = $nftparser->result();
     //dd($nftparserResult);
+
+    if($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
+    }
 
     $this->data['In'] = false;
     $this->data['Counterparty'] = $this->tx->Account;
