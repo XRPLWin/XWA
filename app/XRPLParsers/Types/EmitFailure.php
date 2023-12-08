@@ -40,7 +40,7 @@ final class EmitFailure extends XRPLParserBase
           if($this->reference_address == $n->DeletedNode->FinalFields->EmittedTxn->Account) {
             $this->persist = true;
           }
-          if($this->reference_address == $n->DeletedNode->FinalFields->EmittedTxn->Destination) {
+          if(isset($n->DeletedNode->FinalFields->EmittedTxn->Destination) && $this->reference_address == $n->DeletedNode->FinalFields->EmittedTxn->Destination) {
             $this->persist = true;
           }
         }
