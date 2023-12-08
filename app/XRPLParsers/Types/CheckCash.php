@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class CheckCash extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses CheckCash type fields and maps them to $this->data
@@ -26,6 +26,10 @@ final class CheckCash extends XRPLParserBase
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on CheckCash with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     
+    if($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
+    }
+
     # Counterparty is always CheckCash initiator
     $this->data['Counterparty'] = $this->tx->Account;
     if($this->tx->Account == $this->reference_address)
