@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class CheckCash extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','REGULARKEYSIGNER','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','SENT','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses CheckCash type fields and maps them to $this->data
@@ -16,6 +16,7 @@ final class CheckCash extends XRPLParserBase
    * @see 67B71B13601CDA5402920691841AC27A156463678E106FABD45357175F9FF406 - rU2CAvi6DHACUMBTEKxHRSL2QLrdHgptnx - affected
    * @see 67B71B13601CDA5402920691841AC27A156463678E106FABD45357175F9FF406 - rKiCet8SdvWxPXnAgYarFUXMh1zCPz432Y - affected
    * @see 67B71B13601CDA5402920691841AC27A156463678E106FABD45357175F9FF406 - rw57FJjcRdZ6r3qgwxMNGCD8EJtVkjw1Am - affected
+   * @see 36C9AC1F1E94B9A8E4C88C0924EE114312E97BF0E755D3A1348965805EB70761 - rKDjeYvaDKhsBaaNDeo41JgPhkgSaSqMoR - xahau testnet - SET
    * http://xlanalyzer.test/txtest?tx=67B71B13601CDA5402920691841AC27A156463678E106FABD45357175F9FF406&acc=rw57FJjcRdZ6r3qgwxMNGCD8EJtVkjw1Am
    * @return void
    */
@@ -26,7 +27,7 @@ final class CheckCash extends XRPLParserBase
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on CheckCash with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     
-    if($parsedType == 'REGULARKEYSIGNER') {
+    if($parsedType == 'REGULARKEYSIGNER' || $parsedType == 'SET') {
       $this->persist = false;
     }
 
@@ -35,7 +36,10 @@ final class CheckCash extends XRPLParserBase
     if($this->tx->Account == $this->reference_address)
       $this->data['In'] = false; 
     else
-      $this->data['In'] = true; 
+      $this->data['In'] = true;
+
+    if(\array_key_exists('Fee', $this->data))
+      $this->persist = true;
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
