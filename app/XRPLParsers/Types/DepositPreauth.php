@@ -24,7 +24,6 @@ final class DepositPreauth extends XRPLParserBase
     if($parsedType == 'REGULARKEYSIGNER') {
       $this->persist = false;
     }
-  
 
     $this->transaction_type_class = 'DepositPreauth_Authorize';
     if(isset($this->tx->Unauthorize))

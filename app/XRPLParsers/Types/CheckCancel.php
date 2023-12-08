@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class CheckCancel extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER'];
   /**
    * Parses TrustSet type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
@@ -19,6 +19,10 @@ final class CheckCancel extends XRPLParserBase
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on CheckCancel with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     
+    if($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
+    }
+
     # Counterparty is always transaction account (creator)
     $this->data['Counterparty'] = $this->tx->Account;
 
