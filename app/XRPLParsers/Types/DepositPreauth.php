@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class DepositPreauth extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses DepositPreauth type fields and maps them to $this->data
@@ -20,6 +20,11 @@ final class DepositPreauth extends XRPLParserBase
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on DepositPreauth with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+
+    if($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
+    }
+  
 
     $this->transaction_type_class = 'DepositPreauth_Authorize';
     if(isset($this->tx->Unauthorize))
@@ -40,6 +45,7 @@ final class DepositPreauth extends XRPLParserBase
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
+      $this->persist = true;
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
         throw new \Exception('Unhandled non XRP value on DepositPreauth with HASH ['.$this->data['hash'].']');
