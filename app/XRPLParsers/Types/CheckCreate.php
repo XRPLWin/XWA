@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class CheckCreate extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','RECEIVED'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','RECEIVED'];
 
   /**
    * Parses CheckCreate type fields and maps them to $this->data
@@ -22,6 +22,11 @@ final class CheckCreate extends XRPLParserBase
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on CheckCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
+    if($parsedType == 'REGULARKEYSIGNER') {
+      $this->persist = false;
+    }
+    $this->data['Counterparty'] = $this->tx->Account;
+    
     if($parsedType == 'SET') {
       $this->data['Counterparty'] = $this->tx->Destination;
       $this->data['In'] = false;
