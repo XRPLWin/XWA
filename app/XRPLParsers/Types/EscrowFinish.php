@@ -14,6 +14,7 @@ final class EscrowFinish extends XRPLParserBase
    * @see https://xrpl.org/transaction-types.html
    * @see 317081AF188CDD4DBE55C418F41A90EC3B959CDB3B76105E0CBE6B7A0F56C5F7 - rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn - initiator, also unrelated to escrow but paid fee
    * @see 317081AF188CDD4DBE55C418F41A90EC3B959CDB3B76105E0CBE6B7A0F56C5F7 - rKDvgGUsNPZxsgmoemfrgXPS2Not4co2op - reciever (xrp destination)
+   * @see A265173EA0C13AA4E61DFD28EBBAB61084611E04E14E93EAA09FAAE9A4A9C7F9 - XAHAU TESTNET - IOU (if XLS34 is enabled)
    * @return void
    */
   protected function parseTypeFields(): void
@@ -68,10 +69,19 @@ final class EscrowFinish extends XRPLParserBase
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
+      //if XLS34 enabled:
+      if($this->data['eventList']['primary']['currency'] !== 'XRP') {
+        $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
+        $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
+      }
+      //:XLS34 enabled end
+    }
+    /*if(isset($this->data['eventList']['primary'])) {
+      $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
         throw new \Exception('Unhandled non XRP value on EscrowFinish with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
-    }
+    }*/
   }
 
   /**
@@ -95,6 +105,14 @@ final class EscrowFinish extends XRPLParserBase
 
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];
+
+    //if XLS34 enabled:
+    if(\array_key_exists('Issuer', $this->data))
+      $r['i'] = $this->data['Issuer'];
+
+    if(\array_key_exists('Currency', $this->data))
+      $r['c'] = $this->data['Currency'];
+    //:XLS34 enabled end
 
     if(\array_key_exists('Fee', $this->data))
       $r['fee'] = $this->data['Fee'];
