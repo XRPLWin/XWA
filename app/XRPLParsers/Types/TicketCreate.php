@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class TicketCreate extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses TicketCreate type fields and maps them to $this->data
@@ -23,8 +23,9 @@ final class TicketCreate extends XRPLParserBase
     $this->data['Counterparty'] = $this->tx->Account;
     $this->data['In'] = true;
 
-    if($parsedType == 'UNKNOWN')
+    if($parsedType == 'REGULARKEYSIGNER' || $parsedType == 'UNKNOWN') {
       $this->persist = false;
+    }
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
