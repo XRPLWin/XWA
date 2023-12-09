@@ -249,6 +249,13 @@ class XwaContinuousSyncProc extends Command
       foreach($txs as $transaction) {
         if($transaction->metaData->TransactionResult != 'tesSUCCESS')
           continue; //do not log failed transactions
+
+        if($transaction->TransactionType == 'Remit') {
+          //https://github.com/XRPLF/XRPL-Standards/discussions/156
+          //TODO MULTIPLE XWA rows for this!
+          //For now skipped
+          continue;
+        }
         $last_ledger_date = $transaction->date;
         $type = $transaction->TransactionType;
         $method = 'processTransaction_'.$type;

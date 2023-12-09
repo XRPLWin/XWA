@@ -10,7 +10,7 @@ final class GenesisMint extends XRPLParserBase
 
   /**
    * Parses GenesisMint type fields and maps them to $this->data
-   * @see https://xrpl.org/transaction-types.html
+   * @see C47FA26FD959F1F5981F3647212FDDCFBA11A644B68D4D63BE3559D34413B4A1 xahau testnet
    * @return void
    */
   protected function parseTypeFields(): void
