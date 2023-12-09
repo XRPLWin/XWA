@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class Import extends XRPLParserBase
 {
-private array $acceptedParsedTypes = ['SENT','REGULARKEYSIGNER','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses Import type fields and maps them to $this->data
