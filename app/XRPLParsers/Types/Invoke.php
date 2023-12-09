@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class Invoke extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','RECEIVED','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','RECEIVED','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses TrustSet type fields and maps them to $this->data
@@ -18,9 +18,6 @@ final class Invoke extends XRPLParserBase
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on Invoke with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-
-    //if($parsedType == 'UNKNOWN' || $parsedType == 'REGULARKEYSIGNER')
-    //  $this->persist = false;
 
     $this->persist = false;
     $this->data['In'] = false;
