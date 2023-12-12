@@ -112,7 +112,7 @@ class XwaStartSyncer extends Command
     }
     $this->info('Normalizing sync trackers...');
     $this->normalizeSynctrackers();
-
+    sleep(3);
     Cache::delete('job_xwastartsyncer_sync_running');
     $this->info('Shutting down manager');
     return Command::SUCCESS;
