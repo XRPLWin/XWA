@@ -63,6 +63,7 @@ final class PaymentChannelFund extends XRPLParserBase
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
+      $this->persist = true;
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
         $this->persist = true; //self issued currency sending to issuer
         $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
