@@ -7,7 +7,7 @@ use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
 
 final class PaymentChannelFund extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','REGULARKEYSIGNER','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','SENT','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses TrustSet type fields and maps them to $this->data
@@ -25,6 +25,10 @@ final class PaymentChannelFund extends XRPLParserBase
 
     $this->data['Counterparty'] = $this->tx->Account;
     $this->data['In'] = false;
+
+    if($parsedType == 'REGULARKEYSIGNER' || $parsedType == 'UNKNOWN') {
+      $this->persist = false;
+    }
     
 
     //Counterparty is found in PayChannel Modified node
@@ -60,8 +64,13 @@ final class PaymentChannelFund extends XRPLParserBase
     if(isset($this->data['eventList']['primary'])) {
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
-        throw new \Exception('Unhandled non XRP value on PaymentChannelFund with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+        $this->persist = true; //self issued currency sending to issuer
+        $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
+        $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
       }
+      //if($this->data['eventList']['primary']['currency'] !== 'XRP') {
+      //  throw new \Exception('Unhandled non XRP value on PaymentChannelFund with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      //}
     }
   }
 
@@ -86,6 +95,12 @@ final class PaymentChannelFund extends XRPLParserBase
 
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];
+
+    if(\array_key_exists('Issuer', $this->data))
+      $r['i'] = $this->data['Issuer'];
+
+    if(\array_key_exists('Currency', $this->data))
+      $r['c'] = $this->data['Currency'];
     
     if(\array_key_exists('Fee', $this->data))
       $r['fee'] = $this->data['Fee'];

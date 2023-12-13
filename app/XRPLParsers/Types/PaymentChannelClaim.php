@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class PaymentChannelClaim extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','SET','REGULARKEYSIGNER','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','SET','REGULARKEYSIGNER','TRADE','UNKNOWN'];
 
   /**
    * Parses PaymentChannelClaim type fields and maps them to $this->data
@@ -25,20 +25,23 @@ final class PaymentChannelClaim extends XRPLParserBase
     $this->data['Counterparty'] = $this->tx->Account;
     
     if($this->reference_address == $this->tx->Account) {
-      $this->data['In'] = true;
-    } else {
       $this->data['In'] = false;
+    } else {
+      $this->data['In'] = true;
     }
 
-    if($parsedType == 'REGULARKEYSIGNER') {
+    if($parsedType == 'REGULARKEYSIGNER' || $parsedType == 'TRADE') {
       $this->persist = false;
     }
     
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
+      $this->persist = true;
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
-        throw new \Exception('Unhandled non XRP value on PaymentChannelClaim with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+        $this->persist = true; //self issued currency sending to issuer
+        $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
+        $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
       }
     }
 
@@ -65,6 +68,12 @@ final class PaymentChannelClaim extends XRPLParserBase
 
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];
+
+    if(\array_key_exists('Issuer', $this->data))
+      $r['i'] = $this->data['Issuer'];
+
+    if(\array_key_exists('Currency', $this->data))
+      $r['c'] = $this->data['Currency'];
     
     if(\array_key_exists('Fee', $this->data))
       $r['fee'] = $this->data['Fee'];

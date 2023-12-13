@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class PaymentChannelCreate extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED','REGULARKEYSIGNER','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','SENT','RECEIVED','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses TrustSet type fields and maps them to $this->data
@@ -36,6 +36,7 @@ final class PaymentChannelCreate extends XRPLParserBase
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
+      $this->persist = true;
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
         throw new \Exception('Unhandled non XRP value on PaymentChannelCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
