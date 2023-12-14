@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class CheckCreate extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','RECEIVED'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','RECEIVED','UNKNOWN'];
 
   /**
    * Parses CheckCreate type fields and maps them to $this->data
@@ -22,7 +22,7 @@ final class CheckCreate extends XRPLParserBase
     if(!in_array($parsedType, $this->acceptedParsedTypes))
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on CheckCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
-    if($parsedType == 'REGULARKEYSIGNER') {
+    if($parsedType == 'REGULARKEYSIGNER' || $parsedType == 'UNKNOWN') {
       $this->persist = false;
     }
     $this->data['Counterparty'] = $this->tx->Account;
@@ -37,6 +37,7 @@ final class CheckCreate extends XRPLParserBase
 
     # Balance changes from eventList (primary/secondary, both, one, or none)
     if(isset($this->data['eventList']['primary'])) {
+      $this->persist = true;
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
         throw new \Exception('Unhandled non XRP value on CheckCreate with HASH ['.$this->data['hash'].']');
