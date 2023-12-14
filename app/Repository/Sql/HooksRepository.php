@@ -2,9 +2,9 @@
 
 namespace App\Repository\Sql;
 
-use App\Models\BHook;
+#use App\Models\BHook;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+#use Carbon\Carbon;
 
 class HooksRepository extends Repository
 {
@@ -19,8 +19,16 @@ class HooksRepository extends Repository
         'hookon',
         'params',
         'namespace',
-        'title',
-        'descr'
+        //'title',
+        //'descr',
+        'stat_installs',
+        'stat_uninstalls',
+        'stat_exec',
+        'stat_exec_rollbacks',
+        'stat_exec_accepts',
+        'stat_exec_fails',
+        'stat_fee_min',
+        'stat_fee_max',
       ])
       ->where('hook',$hookhash)
       ->where('l_from',$l_from);
@@ -45,8 +53,16 @@ class HooksRepository extends Repository
         'hookon',
         'params',
         'namespace',
-        'title',
-        'descr'
+        //'title',
+        //'descr',
+        'stat_installs',
+        'stat_uninstalls',
+        'stat_exec',
+        'stat_exec_rollbacks',
+        'stat_exec_accepts',
+        'stat_exec_fails',
+        'stat_fee_min',
+        'stat_fee_max',
       ])
       ->where('hook',$hookhash)
       ->orderBy('l_from','desc')

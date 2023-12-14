@@ -273,6 +273,8 @@ abstract class XRPLParserBase implements XRPLParserInterface
     $this->data['hooks'] = $this->hook_parser->accountHooks($this->reference_address);
     $this->data['created_hooks'] = $this->hook_parser->createdHooksDetailed();
     $this->data['destroyed_hooks'] = $this->hook_parser->destroyedHooks();
+    $this->data['installed_hooks'] = $this->hook_parser->installedHooksStats();
+    $this->data['uninstalled_hooks'] = $this->hook_parser->uninstalledHooksStats();
     return $this;
   }
 

@@ -41,6 +41,10 @@ class XwaStartSyncer extends Command
    */
   public function handle()
   {
+
+    //$hm = \App\Utilities\HookLoader::getClosestByHash('5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77',500);
+
+    //dd($hm);
     //$this->normalizeSynctrackers();return;
     //Check if is enabled
     if(config('xwa.sync_type') != 'continuous') {

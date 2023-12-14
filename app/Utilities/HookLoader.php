@@ -71,8 +71,17 @@ class HookLoader
         'hookon' => $hookon,
         'params' => $params,
         'namespace' => $namespace,
-        'title' => '',
-        'descr' => '',
+        //'title' => '',
+        //'descr' => '',
+        'stat_installs' => 0,
+        'stat_uninstalls' => 0,
+        'stat_exec' => 0,
+        'stat_exec_rollbacks' => 0,
+        'stat_exec_accepts' => 0,
+        'stat_exec_fails' => 0,
+        'stat_fee_min' => 0,
+        'stat_fee_max' => 0,
+
       ]);
       $HookModel->save(); //this should be save or update
     }
@@ -110,5 +119,25 @@ class HookLoader
   {
     $hooks = BHook::repo_fetch($hook);
     return $hooks;
+  }
+
+  public static function getClosestByHash(string $hook, int $ledger_index): ?BHook
+  {
+    $hooks = self::getByHash($hook);
+    $hookDef = null;
+    foreach($hooks as $h) {
+      if($h->l_to == 0) {
+        if($h->l_from <= $ledger_index) {
+          $hookDef = $h;
+          break;
+        }
+      } else {
+        if($h->l_from <= $ledger_index && $h->l_to >= $ledger_index) {
+          $hookDef = $h;
+          break;
+        }
+      }
+    }
+    return $hookDef;
   }
 }

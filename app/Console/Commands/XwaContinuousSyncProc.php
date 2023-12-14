@@ -14,6 +14,7 @@ use App\Repository\Bigquery\Batch as BigqueryBatch;
 use App\XRPLParsers\Parser;
 use App\XRPLParsers\XRPLParserBase;
 use App\Models\BAccount;
+use App\Models\BHook;
 use App\Models\BTransactionActivation;
 use App\Models\Synctracker;
 #use App\Models\BHook;
@@ -68,6 +69,11 @@ class XwaContinuousSyncProc extends Command
     protected \WebSocket\Client $client;
 
     protected ?Synctracker $synctracker;
+
+    /**
+     * A place to keep models in memory and referenced
+     */
+    protected array $_mem_hookmodels = [];
 
     /**
      * When debugging enabled it will log output to log file.
@@ -321,6 +327,10 @@ class XwaContinuousSyncProc extends Command
       # Save hook (if any)
       if($iteration == 1) {
         $this->processTransactions_sub_hook($parser,$batch);
+        foreach($this->_mem_hookmodels as $hm) {
+          if($hm !== null)
+            $batch->queueModelChanges($hm);
+        }
       }
       
       $parsedData = $parser->toBArray();
@@ -397,7 +407,7 @@ class XwaContinuousSyncProc extends Command
     {
       foreach($parser->getDataField('created_hooks') as $_hook => $_hookData) {
         Cache::tags(['hook'.$_hook])->delete('dhook:'.$_hook.'_'.$parser->getLedgerIndex());
-        //this will create hook in db
+        //this will create hook in db (immediately)
         HookLoader::getOrCreate(
           $_hook,
           $_hookData->NewFields->HookSetTxnID,
@@ -450,6 +460,65 @@ class XwaContinuousSyncProc extends Command
         $storedHook->l_to = $parser->getLedgerIndex();
         $batch->queueModelChanges($storedHook);
       }
+
+
+      # Increment stats (queued later outside this function):
+
+      //Increment installed
+      foreach($parser->getDataField('installed_hooks') as $_hook => $_hookInstallNum) {
+        $hookModel = $this->_getHookModel($_hook,$parser->getLedgerIndex());
+        $hookModel->stat_installs += $_hookInstallNum;
+      }
+
+      //Increment uninstalled
+      foreach($parser->getDataField('uninstalled_hooks') as $_hook => $_hookUnInstallNum) {
+        $hookModel = $this->_getHookModel($_hook,$parser->getLedgerIndex());
+        $hookModel->stat_uninstalls += $_hookUnInstallNum;
+      }
+
+      //Increment exec and status
+      $meta = $parser->getMeta();
+      $tx_fee = (int)$parser->getTx()->Fee;
+      if(isset($meta->HookExecutions)) {
+        foreach($meta->HookExecutions as $he) {
+          $hookModel = $this->_getHookModel($he->HookExecution->HookHash,$parser->getLedgerIndex());
+          if(!$hookModel) {
+            //throw new \Exception('Yet unindexed hook '.$he->HookExecution->HookHash);
+            continue; //skip it
+          }
+          $hookModel->stat_exec++;
+          if($he->HookExecution->HookResult == 3) {
+            $hookModel->stat_exec_accepts++;
+          } elseif($he->HookExecution->HookResult == 2) {
+            $hookModel->stat_exec_rollbacks++;
+          } else {
+            $hookModel->stat_exec_fails++;
+          }
+          //Max Fee
+          if($hookModel->stat_fee_max < $tx_fee) {
+            $hookModel->stat_fee_max = $tx_fee;
+          }
+          //Min fee
+          if($tx_fee != 0 && $hookModel->stat_fee_min > $tx_fee) {
+            $hookModel->stat_fee_min = $tx_fee;
+          }
+        }
+      }
+    }
+
+    private function _getHookModel($hook, $ledger_index): ?BHook
+    {
+      $k = $hook.'_'.$ledger_index;
+      if(!isset($this->_mem_hookmodels[$k])) {
+        $hm = HookLoader::get($hook,$ledger_index,false);
+        if(!$hm) {
+          //load closest to the provided ledger_index
+          $hm = HookLoader::getClosestByHash($hook,$ledger_index);
+        }
+        $this->_mem_hookmodels[$k] = HookLoader::get($hook,$ledger_index,false);
+
+      }
+      return $this->_mem_hookmodels[$k];
     }
 
     private function pullTransaction(string $transactionID)

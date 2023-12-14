@@ -32,8 +32,16 @@ class BHook extends B
     'hookon',
     'params',
     'namespace',
-    'title',
-    'descr'
+    //'title',
+    //'descr',
+    'stat_installs',
+    'stat_uninstalls',
+    'stat_exec',
+    'stat_exec_rollbacks',
+    'stat_exec_accepts',
+    'stat_exec_fails',
+    'stat_fee_min',
+    'stat_fee_max',
   ];
 
   protected $casts = [
@@ -49,8 +57,16 @@ class BHook extends B
     'hookon'  => 'STRING',
     'params'  => 'STRING', //store json here key value one dimensional array
     'namespace' => 'STRING',
-    'title'  => 'STRING',
-    'descr'  => 'STRING',
+    //'title'  => 'STRING',
+    //'descr'  => 'STRING',
+    'stat_installs' => 'INTEGER',
+    'stat_uninstalls' => 'INTEGER',
+    'stat_exec' => 'INTEGER',
+    'stat_exec_rollbacks' => 'INTEGER',
+    'stat_exec_accepts' => 'INTEGER',
+    'stat_exec_fails' => 'INTEGER',
+    'stat_fee_min' => 'INTEGER',
+    'stat_fee_max' => 'INTEGER',
   ];
 
   protected function bqPrimaryKeyCondition(): string
