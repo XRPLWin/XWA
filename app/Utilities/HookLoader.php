@@ -140,7 +140,6 @@ class HookLoader
         }
       }
     }
-    dd($hookDef);
     return $hookDef;
   }
 }

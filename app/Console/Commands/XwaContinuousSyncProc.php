@@ -521,8 +521,7 @@ class XwaContinuousSyncProc extends Command
           //load closest to the provided ledger_index
           $hm = HookLoader::getClosestByHash($hook,$ledger_index);
         }
-        $this->_mem_hookmodels[$k] = HookLoader::get($hook,$ledger_index,false);
-
+        $this->_mem_hookmodels[$k] = $hm;
       }
       return $this->_mem_hookmodels[$k];
     }
