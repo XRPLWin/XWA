@@ -467,12 +467,18 @@ class XwaContinuousSyncProc extends Command
       //Increment installed
       foreach($parser->getDataField('installed_hooks') as $_hook => $_hookInstallNum) {
         $hookModel = $this->_getHookModel($_hook,$parser->getLedgerIndex());
+        if(!$hookModel) {
+          throw new \Exception('Yet unindexed hook (installed_hooks) '.$_hook); //delay this job
+        }
         $hookModel->stat_installs += $_hookInstallNum;
       }
 
       //Increment uninstalled
       foreach($parser->getDataField('uninstalled_hooks') as $_hook => $_hookUnInstallNum) {
         $hookModel = $this->_getHookModel($_hook,$parser->getLedgerIndex());
+        if(!$hookModel) {
+          throw new \Exception('Yet unindexed hook (uninstalled_hooks) '.$_hook); //delay this job
+        }
         $hookModel->stat_uninstalls += $_hookUnInstallNum;
       }
 
@@ -483,8 +489,8 @@ class XwaContinuousSyncProc extends Command
         foreach($meta->HookExecutions as $he) {
           $hookModel = $this->_getHookModel($he->HookExecution->HookHash,$parser->getLedgerIndex());
           if(!$hookModel) {
-            //throw new \Exception('Yet unindexed hook '.$he->HookExecution->HookHash);
-            continue; //skip it
+            throw new \Exception('Yet unindexed hook (exec)'.$he->HookExecution->HookHash); //delay this job
+            //continue; //skip it
           }
           $hookModel->stat_exec++;
           if($he->HookExecution->HookResult == 3) {
