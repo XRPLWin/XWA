@@ -27,8 +27,10 @@ class BHook extends B
   public $fillable = [
     'hook', //Primary Key
     'txid',
+    'owner',
     'l_from',
     'l_to',
+    'txid_last',
     'hookon',
     'params',
     'namespace',
@@ -40,8 +42,8 @@ class BHook extends B
     'stat_exec_rollbacks',
     'stat_exec_accepts',
     'stat_exec_fails',
-    'stat_fee_min',
-    'stat_fee_max',
+    //'stat_fee_min',
+    //'stat_fee_max',
   ];
 
   protected $casts = [
@@ -52,8 +54,10 @@ class BHook extends B
   const BQCASTS = [
     'hook' => 'STRING',
     'txid' => 'STRING',
+    'owner' => 'STRING',
     'l_from' => 'INTEGER',
     'l_to' => 'INTEGER',
+    'txid_last' => 'NULLABLE STRING',
     'hookon'  => 'STRING',
     'params'  => 'STRING', //store json here key value one dimensional array
     'namespace' => 'STRING',
@@ -65,8 +69,8 @@ class BHook extends B
     'stat_exec_rollbacks' => 'INTEGER',
     'stat_exec_accepts' => 'INTEGER',
     'stat_exec_fails' => 'INTEGER',
-    'stat_fee_min' => 'INTEGER',
-    'stat_fee_max' => 'INTEGER',
+    //'stat_fee_min' => 'INTEGER',
+    //'stat_fee_max' => 'INTEGER',
   ];
 
   protected function bqPrimaryKeyCondition(): string

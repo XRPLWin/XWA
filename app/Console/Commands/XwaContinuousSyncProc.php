@@ -411,6 +411,7 @@ class XwaContinuousSyncProc extends Command
         HookLoader::getOrCreate(
           $_hook,
           $_hookData->NewFields->HookSetTxnID,
+          $parser->getTx()->Account, //OK
           $parser->getLedgerIndex(),
           isset($_hookData->NewFields->HookOn)?$_hookData->NewFields->HookOn:'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFF',
           TxHookParser::toParams($_hookData),
@@ -447,6 +448,7 @@ class XwaContinuousSyncProc extends Command
         $storedHook = HookLoader::getOrCreate(
           $_hook, //OK
           $createit_found->HookSetTxnID, //OK
+          $pulledTransaction->result->Account, //OK
           $pulledTransaction->result->ledger_index, //find li of $createit_found->HookSetTxnID
           isset($createit_found->HookOn)?$createit_found->HookOn:'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFF', //??
           TxHookParser::toParams($storedHook_params_prepared), //WRONG
@@ -458,6 +460,7 @@ class XwaContinuousSyncProc extends Command
         if($storedHook->l_to != 0)
           throw new \Exception('Tried to flag hook '.$_hook.' as destroyed but hook already flagged as destroyed');
         $storedHook->l_to = $parser->getLedgerIndex();
+        $storedHook->txid_last = $parser->getTx()->hash;
         $batch->queueModelChanges($storedHook);
       }
 
@@ -484,7 +487,7 @@ class XwaContinuousSyncProc extends Command
 
       //Increment exec and status
       $meta = $parser->getMeta();
-      $tx_fee = (int)$parser->getTx()->Fee;
+      //$tx_fee = (int)$parser->getTx()->Fee;
       if(isset($meta->HookExecutions)) {
         foreach($meta->HookExecutions as $he) {
           $hookModel = $this->_getHookModel($he->HookExecution->HookHash,$parser->getLedgerIndex());
@@ -500,7 +503,9 @@ class XwaContinuousSyncProc extends Command
           } else {
             $hookModel->stat_exec_fails++;
           }
-          //Max Fee
+
+          //Fee is set in stone, not needed to track:
+          /*//Max Fee
           if($hookModel->stat_fee_max < $tx_fee) {
             $hookModel->stat_fee_max = $tx_fee;
           }
@@ -508,16 +513,20 @@ class XwaContinuousSyncProc extends Command
           if($tx_fee != 0) { //there is a fee
             if($hookModel->stat_fee_min == 0)
               $hookModel->stat_fee_min = $tx_fee; //set initial value
-            
+
             if($hookModel->stat_fee_min > $tx_fee) {
               $hookModel->stat_fee_min = $tx_fee;
             }
-          }
+          }*/
           
         }
       }
     }
 
+    /**
+     * Gets hook Model and stores it to _mem_hookmodels array to be referenced for queue
+     * @return ?Bhook
+     */
     private function _getHookModel($hook, $ledger_index): ?BHook
     {
       $k = $hook.'_'.$ledger_index;

@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 
 class HookLoader
 {
-
   /**
    * Fetches BHook model or creates new in DB.
    * @return BHook
@@ -17,6 +16,7 @@ class HookLoader
   public static function getOrCreate(
     string $hook,
     string $txid,
+    string $owner,
     int $l_from,
     string $hookon,
     array $params,
@@ -30,13 +30,21 @@ class HookLoader
       $HookModel = new BHook([
         'hook' => $hook,
         'txid' => $txid,
+        'owner' => $owner, //address
         'l_from' => $l_from,
         'l_to' => 0, //0 = not deleted
+        'txid_last' => null,
         'hookon' => $hookon,
         'params' => $params,
         'namespace' => $namespace,
-        'title' => '',
-        'descr' => '',
+        //'title' => '',
+        //'descr' => '',
+        'stat_installs' => 0,
+        'stat_uninstalls' => 0,
+        'stat_exec' => 0,
+        'stat_exec_rollbacks' => 0,
+        'stat_exec_accepts' => 0,
+        'stat_exec_fails' => 0,
       ]);
       
       $HookModel->save(); //this should be save or update
@@ -52,6 +60,7 @@ class HookLoader
   public static function getForUpdateOrCreate(
     string $hook,
     string $txid,
+    string $owner,
     int $l_from,
     string $hookon,
     array $params,
@@ -66,8 +75,10 @@ class HookLoader
       $HookModel = new BHook([
         'hook' => $hook,
         'txid' => $txid,
+        'owner' => $owner, //address
         'l_from' => $l_from,
         'l_to' => 0, //0 = not deleted yet
+        'txid_last' => null,
         'hookon' => $hookon,
         'params' => $params,
         'namespace' => $namespace,
@@ -79,8 +90,8 @@ class HookLoader
         'stat_exec_rollbacks' => 0,
         'stat_exec_accepts' => 0,
         'stat_exec_fails' => 0,
-        'stat_fee_min' => 0,
-        'stat_fee_max' => 0,
+        //'stat_fee_min' => 0,
+        //'stat_fee_max' => 0,
 
       ]);
       $HookModel->save(); //this should be save or update

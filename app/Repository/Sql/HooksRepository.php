@@ -14,8 +14,10 @@ class HooksRepository extends Repository
       ->select([
         'hook',
         'txid',
+        'owner',
         'l_from',
         'l_to',
+        'txid_last',
         'hookon',
         'params',
         'namespace',
@@ -27,8 +29,8 @@ class HooksRepository extends Repository
         'stat_exec_rollbacks',
         'stat_exec_accepts',
         'stat_exec_fails',
-        'stat_fee_min',
-        'stat_fee_max',
+        //'stat_fee_min',
+        //'stat_fee_max',
       ])
       ->where('hook',$hookhash)
       ->where('l_from',$l_from);
@@ -48,8 +50,10 @@ class HooksRepository extends Repository
       ->select([
         'hook',
         'txid',
+        'owner',
         'l_from',
         'l_to',
+        'txid_last',
         'hookon',
         'params',
         'namespace',
@@ -61,8 +65,8 @@ class HooksRepository extends Repository
         'stat_exec_rollbacks',
         'stat_exec_accepts',
         'stat_exec_fails',
-        'stat_fee_min',
-        'stat_fee_max',
+        //'stat_fee_min',
+        //'stat_fee_max',
       ])
       ->where('hook',$hookhash)
       ->orderBy('l_from','desc')
