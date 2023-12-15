@@ -125,10 +125,11 @@ class HookLoader
   {
     $hooks = self::getByHash($hook);
     $hookDef = null;
-    dd($hook,$hooks,$ledger_index);
+    
     foreach($hooks as $h) {
       if($h->l_to == 0) {
-        if($h->l_from <= $ledger_index) {
+        dd($hook,$hooks,$ledger_index,($h->l_from <= $ledger_index));
+        if($h->l_from <= $ledger_index) { //140531 <= 141767
           $hookDef = $h;
           break;
         }
