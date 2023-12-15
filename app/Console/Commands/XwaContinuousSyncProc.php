@@ -505,9 +505,15 @@ class XwaContinuousSyncProc extends Command
             $hookModel->stat_fee_max = $tx_fee;
           }
           //Min fee
-          if($tx_fee != 0 && $hookModel->stat_fee_min > $tx_fee) {
-            $hookModel->stat_fee_min = $tx_fee;
+          if($tx_fee != 0) { //there is a fee
+            if($hookModel->stat_fee_min == 0)
+              $hookModel->stat_fee_min = $tx_fee; //set initial value
+            
+            if($hookModel->stat_fee_min > $tx_fee) {
+              $hookModel->stat_fee_min = $tx_fee;
+            }
           }
+          
         }
       }
     }
