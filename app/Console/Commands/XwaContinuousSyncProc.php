@@ -529,6 +529,8 @@ class XwaContinuousSyncProc extends Command
      */
     private function _getHookModel($hook, $ledger_index): ?BHook
     {
+      Cache::tags(['hook'.$hook])->flush();
+      
       $k = $hook.'_'.$ledger_index;
       if(!isset($this->_mem_hookmodels[$k])) {
         $hm = HookLoader::get($hook,$ledger_index,false);
