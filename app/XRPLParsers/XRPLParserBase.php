@@ -271,10 +271,11 @@ abstract class XRPLParserBase implements XRPLParserInterface
   {
     $this->hook_parser = new TxHookParser($this->tx);
     $this->data['hooks'] = $this->hook_parser->accountHooks($this->reference_address);
-    $this->data['created_hooks'] = $this->hook_parser->createdHooksDetailed();
-    $this->data['destroyed_hooks'] = $this->hook_parser->destroyedHooks();
-    $this->data['installed_hooks'] = $this->hook_parser->installedHooksStats();
-    $this->data['uninstalled_hooks'] = $this->hook_parser->uninstalledHooksStats();
+    //Below not needed, turn on if needed in parsers:
+    //$this->data['created_hooks'] = $this->hook_parser->createdHooksDetailed();
+    //$this->data['destroyed_hooks'] = $this->hook_parser->destroyedHooks();
+    //$this->data['installed_hooks'] = $this->hook_parser->installedHooksStats();
+    //$this->data['uninstalled_hooks'] = $this->hook_parser->uninstalledHooksStats();
     return $this;
   }
 

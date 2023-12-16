@@ -246,13 +246,25 @@ class XwaContinuousSyncProc extends Command
       # Prepare Batch instance which will hold list of queries to be executed at once to BigQuery
       $batch = (config('xwa.database_engine') == 'bigquery') ? new BigqueryBatch : new SqlBatch;
 
-      
       $this->log('Starting processing batch of '.count($txs).' transactions (curr: '.$this->ledger_index_current.') ...');
       $bar = $this->output->createProgressBar(count($txs));
       $bar->start();
 
-
       foreach($txs as $transaction) {
+
+        # Handle hooks
+        if(\in_array($transaction->metaData->TransactionResult,['tesSUCCESS','tecHOOK_REJECTED'])) {
+          $hook_parser = new TxHookParser($transaction);
+          $this->processHooks($hook_parser,$transaction);
+          
+          foreach($this->_mem_hookmodels as $hm) {
+            if($hm !== null)
+              $batch->queueModelChanges($hm);
+          }
+          $this->_mem_hookmodels = []; //cleanup
+        }
+        # Handle hooks end
+        
         if($transaction->metaData->TransactionResult != 'tesSUCCESS')
           continue; //do not log failed transactions
 
@@ -271,7 +283,7 @@ class XwaContinuousSyncProc extends Command
         $participants = $extractor->result();
         $iteration = 1;
         foreach($participants as $participant) {
-          //$this->log('- '.$participant);
+          //$this->log('- '.$participant.' - '.$transaction->hash);
 
           if(!isset($accounts[$participant]))
             $accounts[$participant] = AccountLoader::getForUpdateOrCreate($participant);
@@ -324,14 +336,8 @@ class XwaContinuousSyncProc extends Command
         throw $e;
       }
 
-      # Save hook (if any)
-      if($iteration == 1) {
-        $this->processTransactions_sub_hook($parser,$batch);
-        foreach($this->_mem_hookmodels as $hm) {
-          if($hm !== null)
-            $batch->queueModelChanges($hm);
-        }
-      }
+      # Do something once:
+      //if($iteration == 1) {}
       
       $parsedData = $parser->toBArray();
 
@@ -403,29 +409,31 @@ class XwaContinuousSyncProc extends Command
      *   destroyed hook but not yet stored as created (syncer did not yet synced creation ledger).
      * @return void
      */
-    private function processTransactions_sub_hook(XRPLParserBase $parser, BatchInterface $batch): void
+    private function processHooks(TxHookParser $parser, \stdClass $transaction): void
     {
-      foreach($parser->getDataField('created_hooks') as $_hook => $_hookData) {
-        Cache::tags(['hook'.$_hook])->delete('dhook:'.$_hook.'_'.$parser->getLedgerIndex());
+      $li = $transaction->ledger_index;
+      $meta =  $transaction->metaData;
+      foreach($parser->createdHooksDetailed() as $_hook => $_hookData) {
+        Cache::tags(['hook'.$_hook])->delete('dhook:'.$_hook.'_'.$li);
         //this will create hook in db (immediately)
         HookLoader::getOrCreate(
           $_hook,
           $_hookData->NewFields->HookSetTxnID,
-          $parser->getTx()->Account, //OK
-          $parser->getLedgerIndex(),
+          $transaction->Account, //OK
+          $li,
           isset($_hookData->NewFields->HookOn)?$_hookData->NewFields->HookOn:'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFF',
           TxHookParser::toParams($_hookData),
           isset($_hookData->NewFields->HookNamespace)?$_hookData->NewFields->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
         );
       }
 
-      foreach($parser->getDataField('destroyed_hooks') as $_hook) {
+      foreach($parser->destroyedHooks() as $_hook) {
         //Cache::delete('dhook:'.$_hook);
         Cache::tags(['hook'.$_hook])->flush();
         $storedHook = null;
         //find deleted hookdefinition in meta to extract creation vars from FinalFields
         $createit_found = null;
-        foreach($parser->getMeta()->AffectedNodes as $n) {
+        foreach($meta->AffectedNodes as $n) {
           if(isset($n->DeletedNode->LedgerEntryType) && $n->DeletedNode->LedgerEntryType == 'HookDefinition') {
             if(isset($n->DeletedNode->FinalFields->HookHash) && $n->DeletedNode->FinalFields->HookHash == $_hook) {
               $createit_found = $n->DeletedNode->FinalFields;
@@ -434,7 +442,7 @@ class XwaContinuousSyncProc extends Command
           }
         }
         if($createit_found === null) {
-          throw new \Exception('Tried to find creation in deleted definition of hook '.$_hook.' but unable to find it');
+          throw new \Exception('Tried to find creation in deleted definition of hook '.$_hook.' (li:'.$li.') but unable to find it');
         }
 
         //Query xrpl to find ledger_index of transaction
@@ -459,40 +467,41 @@ class XwaContinuousSyncProc extends Command
         
         if($storedHook->l_to != 0)
           throw new \Exception('Tried to flag hook '.$_hook.' as destroyed but hook already flagged as destroyed');
-        $storedHook->l_to = $parser->getLedgerIndex();
-        $storedHook->txid_last = $parser->getTx()->hash;
-        $batch->queueModelChanges($storedHook);
+        $storedHook->l_to = $li;
+        $storedHook->txid_last = $transaction->hash;
+        $storedHook->save();
+        //$batch->queueModelChanges($storedHook);
       }
 
 
       # Increment stats (queued later outside this function):
 
       //Increment installed
-      foreach($parser->getDataField('installed_hooks') as $_hook => $_hookInstallNum) {
-        $hookModel = $this->_getHookModel($_hook,$parser->getLedgerIndex());
+      foreach($parser->installedHooksStats() as $_hook => $_hookInstallNum) {
+        $hookModel = $this->_getHookModel($_hook,$li);
         if(!$hookModel) {
-          throw new \Exception('Yet unindexed hook (installed_hooks) '.$_hook.' li:'.$parser->getLedgerIndex()); //delay this job
+          throw new \Exception('Yet unindexed hook (installed_hooks) '.$_hook.' li:'.$li); //delay this job
         }
         $hookModel->stat_installs += $_hookInstallNum;
       }
 
       //Increment uninstalled
-      foreach($parser->getDataField('uninstalled_hooks') as $_hook => $_hookUnInstallNum) {
-        $hookModel = $this->_getHookModel($_hook,$parser->getLedgerIndex());
+      foreach($parser->uninstalledHooksStats() as $_hook => $_hookUnInstallNum) {
+        $hookModel = $this->_getHookModel($_hook,$li);
         if(!$hookModel) {
-          throw new \Exception('Yet unindexed hook (uninstalled_hooks) '.$_hook.' li:'.$parser->getLedgerIndex()); //delay this job
+          throw new \Exception('Yet unindexed hook (uninstalled_hooks) '.$_hook.' li:'.$li); //delay this job
         }
         $hookModel->stat_uninstalls += $_hookUnInstallNum;
       }
 
       //Increment exec and status
-      $meta = $parser->getMeta();
+      //$meta = $parser->getMeta();
       //$tx_fee = (int)$parser->getTx()->Fee;
       if(isset($meta->HookExecutions)) {
         foreach($meta->HookExecutions as $he) {
-          $hookModel = $this->_getHookModel($he->HookExecution->HookHash,$parser->getLedgerIndex());
+          $hookModel = $this->_getHookModel($he->HookExecution->HookHash,$li);
           if(!$hookModel) {
-            throw new \Exception('Yet unindexed hook (exec) '.$he->HookExecution->HookHash.' li:'.$parser->getLedgerIndex()); //delay this job
+            throw new \Exception('Yet unindexed hook (exec) '.$he->HookExecution->HookHash.' li:'.$li); //delay this job
             //continue; //skip it
           }
           $hookModel->stat_exec++;
@@ -501,7 +510,7 @@ class XwaContinuousSyncProc extends Command
           } elseif($he->HookExecution->HookResult == 2) {
             $hookModel->stat_exec_rollbacks++;
           } else {
-            $hookModel->stat_exec_fails++;
+            $hookModel->stat_exec_other++;
           }
 
           //Fee is set in stone, not needed to track:
@@ -681,7 +690,10 @@ class XwaContinuousSyncProc extends Command
         if(count($response->result->ledger->transactions) > 0)
           $this->log('Pulled ledger '.$curr_l.' found '.count($response->result->ledger->transactions).' txs');
 
-        foreach($response->result->ledger->transactions as $tx) {
+        
+        $txs_reversed = \array_reverse($response->result->ledger->transactions); //reverse order so we execute oldest to newest (important for hooks)
+        foreach($txs_reversed as $tx) {
+          
           $tx->ledger_index = $curr_l;
 
           if(isset($tx->date)) { //this can be removed

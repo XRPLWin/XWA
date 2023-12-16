@@ -44,7 +44,7 @@ class HookLoader
         'stat_exec' => 0,
         'stat_exec_rollbacks' => 0,
         'stat_exec_accepts' => 0,
-        'stat_exec_fails' => 0,
+        'stat_exec_other' => 0,
       ]);
       
       $HookModel->save(); //this should be save or update
@@ -89,7 +89,7 @@ class HookLoader
         'stat_exec' => 0,
         'stat_exec_rollbacks' => 0,
         'stat_exec_accepts' => 0,
-        'stat_exec_fails' => 0,
+        'stat_exec_other' => 0,
         //'stat_fee_min' => 0,
         //'stat_fee_max' => 0,
 

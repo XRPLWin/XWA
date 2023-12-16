@@ -27,7 +27,7 @@ class HooksRepository extends Repository
    */
   public static function fetchMany($where): ?array
   {
-    $query = 'SELECT hook,txid,owner,l_from,l_to,txid_last,hookon,params,namespace,stat_installs,stat_uninstalls,stat_exec,stat_exec_rollbacks,stat_exec_accepts,stat_exec_fails FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where;
+    $query = 'SELECT hook,txid,owner,l_from,l_to,txid_last,hookon,params,namespace,stat_installs,stat_uninstalls,stat_exec,stat_exec_rollbacks,stat_exec_accepts,stat_exec_other FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where;
     try {
       $results = \BigQuery::runQuery(\BigQuery::query($query));
     } catch (\Throwable $e) {
@@ -47,7 +47,7 @@ class HooksRepository extends Repository
    */
   public static function fetchOne($where): ?array
   {
-    $query = 'SELECT hook,txid,owner,l_from,l_to,txid_last,hookon,params,namespace,stat_installs,stat_uninstalls,stat_exec,stat_exec_rollbacks,stat_exec_accepts,stat_exec_fails FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where.' LIMIT 1';
+    $query = 'SELECT hook,txid,owner,l_from,l_to,txid_last,hookon,params,namespace,stat_installs,stat_uninstalls,stat_exec,stat_exec_rollbacks,stat_exec_accepts,stat_exec_other FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where.' LIMIT 1';
     try {
       $results = \BigQuery::runQuery(\BigQuery::query($query));
     } catch (\Throwable $e) {

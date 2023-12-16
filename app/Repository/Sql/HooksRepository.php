@@ -28,7 +28,7 @@ class HooksRepository extends Repository
         'stat_exec',
         'stat_exec_rollbacks',
         'stat_exec_accepts',
-        'stat_exec_fails',
+        'stat_exec_other',
         //'stat_fee_min',
         //'stat_fee_max',
       ])
@@ -64,7 +64,7 @@ class HooksRepository extends Repository
         'stat_exec',
         'stat_exec_rollbacks',
         'stat_exec_accepts',
-        'stat_exec_fails',
+        'stat_exec_other',
         //'stat_fee_min',
         //'stat_fee_max',
       ])

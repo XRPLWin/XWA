@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Support\Collection;
 use Thiagoprz\CompositeKey\HasCompositeKey;
+use Illuminate\Support\Facades\Cache;
 
 class BHook extends B
 {
@@ -41,7 +42,7 @@ class BHook extends B
     'stat_exec',
     'stat_exec_rollbacks',
     'stat_exec_accepts',
-    'stat_exec_fails',
+    'stat_exec_other',
     //'stat_fee_min',
     //'stat_fee_max',
   ];
@@ -68,7 +69,7 @@ class BHook extends B
     'stat_exec' => 'INTEGER',
     'stat_exec_rollbacks' => 'INTEGER',
     'stat_exec_accepts' => 'INTEGER',
-    'stat_exec_fails' => 'INTEGER',
+    'stat_exec_other' => 'INTEGER',
     //'stat_fee_min' => 'INTEGER',
     //'stat_fee_max' => 'INTEGER',
   ];
@@ -76,6 +77,19 @@ class BHook extends B
   protected function bqPrimaryKeyCondition(): string
   {
     return 'hook = """'.$this->hook.'""" and l_from='.$this->l_from;
+  }
+
+  public static function boot()
+  {
+    parent::boot();
+    static::saved(function (BHook $model) {
+        $model->flushCache();
+    });
+  }
+
+  public function flushCache()
+  {
+    Cache::tags(['hook'.$this->hook])->forget('dhook:'.$this->hook.'_'.$this->l_from);
   }
 
   public static function repo_find(string $hook, int $l_from, bool $lockforupdate = false): ?self
