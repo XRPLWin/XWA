@@ -153,4 +153,13 @@ class HookLoader
     }
     return $hookDef;
   }
+
+  /**
+   * Fetches transaction from hook_transactions table
+   * @return Collection (or paginator?)
+   */
+  public function getTransactionsTODO(string $hook): Collection
+  {
+
+  }
 }

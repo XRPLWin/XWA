@@ -428,8 +428,8 @@ class XwaContinuousSyncProc extends Command
         $r = $transaction->Account;
       }
       $txtype = $transaction->TransactionType;
-      $tec = $meta->TransactionResult;
-      
+      $tcode = $meta->TransactionResult;
+
       # Handle creations
       foreach($parser->createdHooks() as $ch) {
         $model = new BHookTransaction;
@@ -439,7 +439,7 @@ class XwaContinuousSyncProc extends Command
         $model->t = $t;
         $model->r = $r;
         $model->txtype = $txtype;
-        $model->tec = $tec;
+        $model->tcode = $tcode;
         $model->hookaction = 1; //created
         $model->hookresult = 0; //no execution
         $batch->queueModelChanges($model);
@@ -447,73 +447,73 @@ class XwaContinuousSyncProc extends Command
       }
       unset($ch);
 
-      # Handle installations
-      foreach($parser->installedHooks() as $ih) {
-        $model = new BHookTransaction;
-        $model->hook = $ih;
-        $model->h = $h;
-        $model->l = $l;
-        $model->t = $t;
-        $model->r = $r;
-        $model->txtype = $txtype;
-        $model->tec = $tec;
-        $model->hookaction = 3; //installed (can be many accounts, we store only one row)
-        $model->hookresult = 0; //no execution
-        $batch->queueModelChanges($model);
-        unset($model);
-      }
-      unset($ih);
+      foreach($parser->accounts() as $account) { //loop all affected accounts by hook(s)
+          //ACCOUNT+HOOK combo
+          # Handle installations
+          foreach($parser->lookup($account,'Hook','installed') as $_hook) {
+            $model = new BHookTransaction;
+            $model->hook = $_hook;
+            $model->h = $h;
+            $model->l = $l;
+            $model->t = $t;
+            $model->r = $account;
+            $model->txtype = $txtype;
+            $model->tcode = $tcode;
+            $model->hookaction = 3; //installed (can be many accounts, we store only one row)
+            $model->hookresult = 0; //no execution
+            $batch->queueModelChanges($model);
+            unset($model);
+          }
 
-      # Handle modifications
-      foreach($parser->modifiedHooks() as $mh) {
-        $model = new BHookTransaction;
-        $model->hook = $mh;
-        $model->h = $h;
-        $model->l = $l;
-        $model->t = $t;
-        $model->r = $r;
-        $model->txtype = $txtype;
-        $model->tec = $tec;
-        $model->hookaction = 5; //modified
-        $model->hookresult = 0; //no execution
-        $batch->queueModelChanges($model);
-        unset($model);
+          # Handle modifications
+          foreach($parser->lookup($account,'Hook','modified') as $_hook) {
+            $model = new BHookTransaction;
+            $model->hook = $_hook;
+            $model->h = $h;
+            $model->l = $l;
+            $model->t = $t;
+            $model->r = $account;
+            $model->txtype = $txtype;
+            $model->tcode = $tcode;
+            $model->hookaction = 5; //modified
+            $model->hookresult = 0; //no execution
+            $batch->queueModelChanges($model);
+            unset($model);
+          }
+
+          # Handle uninstallations (todo modify installation and update hookaction, do not store this below)
+          foreach($parser->lookup($account,'Hook','uninstalled') as $_hook) {
+            $model = new BHookTransaction;
+            $model->hook = $_hook;
+            $model->h = $h;
+            $model->l = $l;
+            $model->t = $t;
+            $model->r = $account;
+            $model->txtype = $txtype;
+            $model->tcode = $tcode;
+            $model->hookaction = 4; //uninstalled
+            $model->hookresult = 0; //no execution
+            $batch->queueModelChanges($model);
+            unset($model);
+          }
+
+          # Handle destroys
+          foreach($parser->lookup($account,'Hook','destroyed') as $_hook) {
+            $model = new BHookTransaction;
+            $model->hook = $_hook;
+            $model->h = $h;
+            $model->l = $l;
+            $model->t = $t;
+            $model->r = $account;
+            $model->txtype = $txtype;
+            $model->tcode = $tcode;
+            $model->hookaction = 2; //destroyed
+            $model->hookresult = 0; //no execution
+            $batch->queueModelChanges($model);
+            unset($model);
+          }
       }
 
-      # Handle uninstallations
-      foreach($parser->uninstalledHooks() as $uh) {
-        $model = new BHookTransaction;
-        $model->hook = $uh;
-        $model->h = $h;
-        $model->l = $l;
-        $model->t = $t;
-        $model->r = $r;
-        $model->txtype = $txtype;
-        $model->tec = $tec;
-        $model->hookaction = 4; //uninstalled
-        $model->hookresult = 0; //no execution
-        $batch->queueModelChanges($model);
-        unset($model);
-      }
-      unset($uh);
-
-      # Handle destroys
-      foreach($parser->destroyedHooks() as $dh) {
-        $model = new BHookTransaction;
-        $model->hook = $dh;
-        $model->h = $h;
-        $model->l = $l;
-        $model->t = $t;
-        $model->r = $r;
-        $model->txtype = $txtype;
-        $model->tec = $tec;
-        $model->hookaction = 2; //destroyed
-        $model->hookresult = 0; //no execution
-        $batch->queueModelChanges($model);
-        unset($model);
-      }
-      unset($dh);
-      
       # Handle executions
       if(isset($meta->HookExecutions)) {
         foreach($meta->HookExecutions as $he) {
@@ -524,7 +524,7 @@ class XwaContinuousSyncProc extends Command
           $model->t = $t;
           $model->r = $r;
           $model->txtype = $txtype;
-          $model->tec = $tec;
+          $model->tcode = $tcode;
           $model->hookaction = 0;
           $model->hookresult = (int)$he->HookExecution->HookResult;
           $batch->queueModelChanges($model);

@@ -33,7 +33,7 @@ class BHookTransaction extends B
     't',
     'r',
     'txtype',
-    'tec',
+    'tcode',
     'hookaction', //0 execution, 1 create, 2 destroy, 3 install, 4 uninstall, 5 modify
     'hookresult',
   ];
@@ -43,20 +43,20 @@ class BHookTransaction extends B
   ];
 
   const BQCASTS = [
-    'hook'    => 'STRING',
-    'h'       => 'STRING',
-    'l'       => 'INTEGER',
-    't'       => 'TIMESTAMP',
-    'r'       => 'STRING',
-    'txtype'  => 'STRING',
-    'tec'  => 'STRING',
-    'hookaction' => 'INTEGER',
+    'hook'        => 'STRING',
+    'h'           => 'STRING',
+    'l'           => 'INTEGER',
+    't'           => 'TIMESTAMP',
+    'r'           => 'STRING',
+    'txtype'      => 'STRING',
+    'tcode'       => 'STRING',
+    'hookaction'  => 'INTEGER',
     'hookresult'  => 'INTEGER',
   ];
 
   protected function bqPrimaryKeyCondition(): string
   {
-    return 'hook = """'.$this->hook.'""" and h = """'.$this->h.'"""';
+    return 'id="""'.$this->id.'"""'; //uuid
   }
 
   /*public static function repo_find(string $hook, int $l_from, bool $lockforupdate = false): ?self

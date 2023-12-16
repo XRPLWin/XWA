@@ -32,12 +32,13 @@ return new class extends Migration
       $table->dateTimeTz('t',0)->comment('Transaction Timestamp');
       $table->string('r',50)->comment('Transaction Initiator rAddress');
       $table->string('txtype',50)->comment('Transaction type name');
-      $table->string('tec',100)->comment('Transaction tec Code');
+      $table->string('tcode',100)->comment('TransactionResult from meta');
       $table->unsignedTinyInteger('hookaction')->comment('Hook action code'); //install,uninstall etc..
       $table->unsignedTinyInteger('hookresult')->default(0)->comment('HookResult code if hook was executed');
       #$table->timestamps();
       //$table->primary(['hook', 'h']);
       $table->index(['hook']);
+      $table->index(['hook','hookaction']);
     });
   }
 

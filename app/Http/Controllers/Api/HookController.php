@@ -14,6 +14,8 @@ class HookController extends Controller
    */
   public function hook(string $hookhash)
   {
+    //todo validate $hook input
+
     $ttl = 604800; //7 days - this should be purged
     $httpttl = 600; //10 mins
     $hooks = HookLoader::getByHash($hookhash);
@@ -27,5 +29,16 @@ class HookController extends Controller
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
     ;
+  }
+
+  public function hook_transactions(string $hook)
+  {
+    //todo validate $hook input
+
+    $ttl = 300; //5 mins todo if hook version is completed long cache time
+    $httpttl = 300; //5 mins todo if hook version is completed long cache time
+
+    $searchparams = [];
+    HookLoader::getTransactions($hook,$searchparams); //todo
   }
 }
