@@ -413,6 +413,9 @@ class XwaContinuousSyncProc extends Command
     {
       $li = $transaction->ledger_index;
       $meta =  $transaction->metaData;
+      /*if($transaction->hash == '412C45D323EEF756DD244C8680D7141CB618B329B3C9826D2C97E5F858A3E2EB') {
+        dd($parser->createdHooksDetailed());
+      }*/
       foreach($parser->createdHooksDetailed() as $_hook => $_hookData) {
         Cache::tags(['hook'.$_hook])->delete('dhook:'.$_hook.'_'.$li);
         //this will create hook in db (immediately)
@@ -472,6 +475,7 @@ class XwaContinuousSyncProc extends Command
           if($storedHook->l_to != $li) {
             throw new \Exception('Tried to flag hook '.$_hook.' (li:'.$li.') as destroyed but hook already flagged as destroyed in different li: '.$storedHook->l_to);
           }
+          //else retried operation, do nothing
         } else {
           $storedHook->l_to = $li;
           $storedHook->txid_last = $transaction->hash;
@@ -697,9 +701,10 @@ class XwaContinuousSyncProc extends Command
         if(count($response->result->ledger->transactions) > 0)
           $this->log('Pulled ledger '.$curr_l.' found '.count($response->result->ledger->transactions).' txs');
 
-        
-        $txs_reversed = \array_reverse($response->result->ledger->transactions); //reverse order so we execute oldest to newest (important for hooks)
-        foreach($txs_reversed as $tx) {
+        //dd($response->result->ledger->transactions);
+        //$txs_reversed = \array_reverse($response->result->ledger->transactions); //reverse order so we execute oldest to newest (important for hooks)
+        $txs_collection = collect($response->result->ledger->transactions)->sortBy('metaData.TransactionIndex');
+        foreach($txs_collection as $tx) {
           
           $tx->ledger_index = $curr_l;
 
