@@ -453,6 +453,7 @@ class XwaContinuousSyncProc extends Command
         $storedHook_params_prepared->NewFields = $createit_found;
 
         //create it right away into database
+        Cache::tags(['hook'.$_hook])->delete('dhook:'.$_hook.'_'.$pulledTransaction->result->ledger_index);
         $storedHook = HookLoader::getOrCreate(
           $_hook, //OK
           $createit_found->HookSetTxnID, //OK
@@ -462,8 +463,10 @@ class XwaContinuousSyncProc extends Command
           TxHookParser::toParams($storedHook_params_prepared), //WRONG
           isset($createit_found->HookNamespace)?$createit_found->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
         );
-        if($storedHook === null)
+        if($storedHook === null) {
           throw new \Exception('Tried to flag hook '.$_hook.' (li:'.$li.') as destroyed but stored hook not found');
+        }
+          
         
         if($storedHook->l_to != 0)
           throw new \Exception('Tried to flag hook '.$_hook.' (li:'.$li.') as destroyed but hook already flagged as destroyed');
