@@ -468,11 +468,15 @@ class XwaContinuousSyncProc extends Command
         }
           
         
-        if($storedHook->l_to != 0)
-          throw new \Exception('Tried to flag hook '.$_hook.' (li:'.$li.') as destroyed but hook already flagged as destroyed');
-        $storedHook->l_to = $li;
-        $storedHook->txid_last = $transaction->hash;
-        $storedHook->save();
+        if($storedHook->l_to != 0) {
+          if($storedHook->l_to != $li) {
+            throw new \Exception('Tried to flag hook '.$_hook.' (li:'.$li.') as destroyed but hook already flagged as destroyed in different li: '.$storedHook->l_to);
+          }
+        } else {
+          $storedHook->l_to = $li;
+          $storedHook->txid_last = $transaction->hash;
+          $storedHook->save();
+        }
         //$batch->queueModelChanges($storedHook);
       }
 
