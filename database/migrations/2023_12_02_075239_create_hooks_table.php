@@ -11,6 +11,8 @@ return new class extends Migration
    */
   public function up(): void
   {
+    //TODO BIGQUERY MIGRATION
+    
     Schema::create('hooks', function (Blueprint $table) {
       if(config('xwa.database_engine_userocksdb'))
         $table->engine = 'ROCKSDB';

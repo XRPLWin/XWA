@@ -15,6 +15,7 @@ use App\XRPLParsers\Parser;
 use App\XRPLParsers\XRPLParserBase;
 use App\Models\BAccount;
 use App\Models\BHook;
+use App\Models\BHookTransaction;
 use App\Models\BTransactionActivation;
 use App\Models\Synctracker;
 #use App\Models\BHook;
@@ -253,16 +254,19 @@ class XwaContinuousSyncProc extends Command
       foreach($txs as $transaction) {
 
         # Handle hooks
-        if(\in_array($transaction->metaData->TransactionResult,['tesSUCCESS','tecHOOK_REJECTED'])) {
+        //if(\in_array($transaction->metaData->TransactionResult,['tesSUCCESS','tecHOOK_REJECTED'])) {
           $hook_parser = new TxHookParser($transaction);
           $this->processHooks($hook_parser,$transaction);
+          
           
           foreach($this->_mem_hookmodels as $hm) {
             if($hm !== null)
               $batch->queueModelChanges($hm);
           }
           $this->_mem_hookmodels = []; //cleanup
-        }
+
+          $this->processHooksTransaction($hook_parser,$transaction,$batch);
+        //}
         # Handle hooks end
         
         if($transaction->metaData->TransactionResult != 'tesSUCCESS')
@@ -400,6 +404,133 @@ class XwaContinuousSyncProc extends Command
         $batch->queueModelChanges($account);
 
       return $parsedData;
+    }
+
+    /**
+     * This method is executed only once per transaction.
+     * Extracts and stores transaction to hook_transactions table, one or multiple rows
+     * depending of affected hooks.
+     * @return void
+     */
+    private function processHooksTransaction(TxHookParser $parser, \stdClass $transaction, BatchInterface $batch): void
+    {
+      $hooks = $parser->hooks();
+      if(!count($hooks))
+        return; //no hooks in this tx, nothing to do
+
+      $meta =  $transaction->metaData;
+      $h = $transaction->hash;
+      $l = $transaction->ledger_index;
+      $t = ripple_epoch_to_carbon((int)$transaction->date)->format('Y-m-d H:i:s.uP');
+      if(isset($transaction->Account) && $transaction->Account === "") {
+        $r = 'rrrrrrrrrrrrrrrrrrrrrhoLvTp'; //ACCOUNT_ZERO
+      } else {
+        $r = $transaction->Account;
+      }
+      $txtype = $transaction->TransactionType;
+      $tec = $meta->TransactionResult;
+      
+      # Handle creations
+      foreach($parser->createdHooks() as $ch) {
+        $model = new BHookTransaction;
+        $model->hook = $ch;
+        $model->h = $h;
+        $model->l = $l;
+        $model->t = $t;
+        $model->r = $r;
+        $model->txtype = $txtype;
+        $model->tec = $tec;
+        $model->hookaction = 1; //created
+        $model->hookresult = 0; //no execution
+        $batch->queueModelChanges($model);
+        unset($model);
+      }
+      unset($ch);
+
+      # Handle installations
+      foreach($parser->installedHooks() as $ih) {
+        $model = new BHookTransaction;
+        $model->hook = $ih;
+        $model->h = $h;
+        $model->l = $l;
+        $model->t = $t;
+        $model->r = $r;
+        $model->txtype = $txtype;
+        $model->tec = $tec;
+        $model->hookaction = 3; //installed (can be many accounts, we store only one row)
+        $model->hookresult = 0; //no execution
+        $batch->queueModelChanges($model);
+        unset($model);
+      }
+      unset($ih);
+
+      # Handle modifications
+      foreach($parser->modifiedHooks() as $mh) {
+        $model = new BHookTransaction;
+        $model->hook = $mh;
+        $model->h = $h;
+        $model->l = $l;
+        $model->t = $t;
+        $model->r = $r;
+        $model->txtype = $txtype;
+        $model->tec = $tec;
+        $model->hookaction = 5; //modified
+        $model->hookresult = 0; //no execution
+        $batch->queueModelChanges($model);
+        unset($model);
+      }
+
+      # Handle uninstallations
+      foreach($parser->uninstalledHooks() as $uh) {
+        $model = new BHookTransaction;
+        $model->hook = $uh;
+        $model->h = $h;
+        $model->l = $l;
+        $model->t = $t;
+        $model->r = $r;
+        $model->txtype = $txtype;
+        $model->tec = $tec;
+        $model->hookaction = 4; //uninstalled
+        $model->hookresult = 0; //no execution
+        $batch->queueModelChanges($model);
+        unset($model);
+      }
+      unset($uh);
+
+      # Handle destroys
+      foreach($parser->destroyedHooks() as $dh) {
+        $model = new BHookTransaction;
+        $model->hook = $dh;
+        $model->h = $h;
+        $model->l = $l;
+        $model->t = $t;
+        $model->r = $r;
+        $model->txtype = $txtype;
+        $model->tec = $tec;
+        $model->hookaction = 2; //destroyed
+        $model->hookresult = 0; //no execution
+        $batch->queueModelChanges($model);
+        unset($model);
+      }
+      unset($dh);
+      
+      # Handle executions
+      if(isset($meta->HookExecutions)) {
+        foreach($meta->HookExecutions as $he) {
+          $model = new BHookTransaction;
+          $model->hook = $he->HookExecution->HookHash;
+          $model->h = $h;
+          $model->l = $l;
+          $model->t = $t;
+          $model->r = $r;
+          $model->txtype = $txtype;
+          $model->tec = $tec;
+          $model->hookaction = 0;
+          $model->hookresult = (int)$he->HookExecution->HookResult;
+          $batch->queueModelChanges($model);
+          unset($model);
+        }
+      }
     }
 
     /**
