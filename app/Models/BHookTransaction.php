@@ -6,6 +6,7 @@ namespace App\Models;
 #use Thiagoprz\CompositeKey\HasCompositeKey;
 #use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Support\Collection;
 
 class BHookTransaction extends B
 {
@@ -64,9 +65,22 @@ class BHookTransaction extends B
     return 'id="""'.$this->id.'"""'; //uuid
   }
 
+  public static function repo_fetch(?array $select,array $AND, array $orderBy, int $limit = 1, int $offset = 0): Collection
+  {
+    $data = self::getRepository()::fetch($select,$AND,$orderBy,$limit,$offset);
+
+    if($data === null)
+      return collect();
+
+    return self::hydrate($data);
+  }
+
+  /**
+   * NOT USED YET ANYWHERE! but works
+   */
   public static function repo_fetch_last_by_account_action(string $hook, string $account, int $hookaction): ?BHookTransaction
   {
-    $dataset = self::getRepository()::fetch($hook,null,['r' => $account,'hookaction' => $hookaction],['l','desc'],1);
+    $dataset = self::getRepository()::fetch(null,['hook' => $hook, 'r' => $account,'hookaction' => $hookaction],['l','desc'],1,0);
 
     if($dataset === null)
       return null;

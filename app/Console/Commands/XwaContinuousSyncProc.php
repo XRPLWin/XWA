@@ -498,15 +498,14 @@ class XwaContinuousSyncProc extends Command
             $batch->queueModelChanges($model);
             unset($model);
 
-
-            //Check if exists if it does update hookaction to: 34
-            $modelInstalled = HookLoader::getTransactionLastByAccountAction($_hook,$account,3);
+            //Check if exists if it does update hookaction to: 34 - we wont do this here, but in seperate aggregator job
+            /*$modelInstalled = HookLoader::getTransactionLastByAccountAction($_hook,$account,3);
             
             if($modelInstalled) {
               $modelInstalled->hookaction = 34;
               $batch->queueModelChanges($modelInstalled);
               unset($modelInstalled);
-            }
+            }*/
             
           }
 

@@ -9,21 +9,30 @@ use Illuminate\Support\Facades\DB;
 class HookTransactionsRepository extends Repository
 {
 
-  public static function fetch(string $hookhash,?array $select,array $AND, array $orderBy, int $limit = 1)
+  public static function fetch(?array $select,array $AND, array $orderBy, int $limit = 1, int $offset = 0)
   {
     if($select === null)
       $select = ['id','hook','h','l','t','r','txtype','tcode','hookaction','hookresult'];
 
     $r = DB::table('hook_transactions')
       ->select($select)
-      ->where('hook',$hookhash)
       ->orderBy($orderBy[0],$orderBy[1])
-      ->limit($limit);
+      ->limit($limit)
+      ->offset($offset);
     
     //AND conditions:
-    foreach($AND as $k => $v) {
-      $r = $r->where($k,$v);
+    foreach($AND as $v) {
+      $c = count($v);
+      if($c == 3){
+        $r = $r->where($v[0],$v[1],$v[2]);
+      } elseif($c == 2){
+        $r = $r->where($v[0],$v[1]);
+      } else {
+        throw new \Exception('Invalid AND parameters');
+      }
+      unset($c);
     }
+    //dd($r);
     $r = $r->get();
 
     if(!$r->count()) return null;

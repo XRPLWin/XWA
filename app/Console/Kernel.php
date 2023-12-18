@@ -36,6 +36,12 @@ class Kernel extends ConsoleKernel
       ->onOneServer()
       ->runInBackground();
 
+    $schedule->command('xwa:aggrhooktransactions')
+      ->withoutOverlapping(10) //lock expires every 10 mins
+      ->everyFiveMinutes()
+      ->onOneServer()
+      ->runInBackground();  
+
     $schedule->command('xwa:cleanup')
       ->withoutOverlapping(10) //lock expires every 10 mins
       ->daily()
