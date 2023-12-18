@@ -451,6 +451,7 @@ class XwaContinuousSyncProc extends Command
           //ACCOUNT+HOOK combo
           # Handle installations
           foreach($parser->lookup($account,'Hook','installed') as $_hook) {
+            
             $model = new BHookTransaction;
             $model->hook = $_hook;
             $model->h = $h;
@@ -483,6 +484,7 @@ class XwaContinuousSyncProc extends Command
 
           # Handle uninstallations (todo modify installation and update hookaction, do not store this below)
           foreach($parser->lookup($account,'Hook','uninstalled') as $_hook) {
+
             $model = new BHookTransaction;
             $model->hook = $_hook;
             $model->h = $h;
@@ -495,6 +497,17 @@ class XwaContinuousSyncProc extends Command
             $model->hookresult = 0; //no execution
             $batch->queueModelChanges($model);
             unset($model);
+
+
+            //Check if exists if it does update hookaction to: 34
+            $modelInstalled = HookLoader::getTransactionLastByAccountAction($_hook,$account,3);
+            
+            if($modelInstalled) {
+              $modelInstalled->hookaction = 34;
+              $batch->queueModelChanges($modelInstalled);
+              unset($modelInstalled);
+            }
+            
           }
 
           # Handle destroys

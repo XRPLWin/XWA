@@ -2,6 +2,7 @@
 
 namespace App\Utilities;
 use App\Models\BHook;
+use App\Models\BHookTransaction;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -154,11 +155,16 @@ class HookLoader
     return $hookDef;
   }
 
+  public static function getTransactionLastByAccountAction(string $hook, string $account, int $hookaction): ?BHookTransaction
+  {
+    return BHookTransaction::repo_fetch_last_by_account_action($hook,$account,$hookaction);
+  }
+
   /**
    * Fetches transaction from hook_transactions table
    * @return Collection (or paginator?)
    */
-  public function getTransactionsTODO(string $hook): Collection
+  public static function getTransactionsTODO(string $hook): Collection
   {
 
   }

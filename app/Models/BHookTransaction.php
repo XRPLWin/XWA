@@ -15,7 +15,7 @@ class BHookTransaction extends B
   public $timestamps = false;
   #protected $primaryKey = 'id';
   #protected $primaryKey = ['hook', 'h'];
-  #protected $keyType = 'string';
+  protected $keyType = 'string';
   #public $incrementing = true;
 
   public static function getRepository(): string
@@ -34,7 +34,12 @@ class BHookTransaction extends B
     'r',
     'txtype',
     'tcode',
-    'hookaction', //0 execution, 1 create, 2 destroy, 3 install, 4 uninstall, 5 modify
+
+    //hookaction:
+    //0 execution, 1 create, 2 destroy, 3 install, 4 uninstall, 5 modify, 34 installed but later uninstalled
+    // Find accounts with active hooks hookaction=3
+    // Find accounts who used hook in the past but not anymore: hookaction=34
+    'hookaction',
     'hookresult',
   ];
 
@@ -57,6 +62,16 @@ class BHookTransaction extends B
   protected function bqPrimaryKeyCondition(): string
   {
     return 'id="""'.$this->id.'"""'; //uuid
+  }
+
+  public static function repo_fetch_last_by_account_action(string $hook, string $account, int $hookaction): ?BHookTransaction
+  {
+    $dataset = self::getRepository()::fetch($hook,null,['r' => $account,'hookaction' => $hookaction],['l','desc'],1);
+
+    if($dataset === null)
+      return null;
+
+    return self::hydrate($dataset)->first();
   }
 
   /*public static function repo_find(string $hook, int $l_from, bool $lockforupdate = false): ?self
