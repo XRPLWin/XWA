@@ -52,7 +52,7 @@ class XwaAggrHookTransactions extends Command
     $last_synced_ledger_index = $synctracker->last_l;
     $last_processed_ledger_index = Tracker::getInt('aggrhooktx',0);
     
-    $select = []; //todo and put below to first param
+    //$select = []; //todo and put below to first param
     $txs = BHookTransaction::repo_fetch(null,[
         ['l','<=',$last_synced_ledger_index], //10
         ['l','>',$last_processed_ledger_index] //0
