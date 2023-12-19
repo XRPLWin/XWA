@@ -54,20 +54,24 @@ class XwaAggrHookTransactions extends Command
     $last_processed_ledger_index = Tracker::getInt('aggrhooktx',0);
     
     //$select = []; //todo and put below to first param
+    //DB::connection()->enableQueryLog();
     $txs = BHookTransaction::repo_fetch(null,[
-        ['l','<=',$last_synced_ledger_index], //10
-        ['l','>',$last_processed_ledger_index] //0
+        ['l','>',$last_processed_ledger_index], //0
+        ['l','<=',$last_synced_ledger_index] //10
       ],['l','asc'],$this->_limit,0); //limit 1000
+    //$this->info(\json_encode(DB::getQueryLog(),JSON_PRETTY_PRINT));
+    //exit;
 
     //Reject last ledger index:
     if($txs->count()) {
       $reject_l = $txs->last()->l; //we reject last 'l' due to possible incomplete dataset, it will be fetched next time in full
 
+      #DB::connection()->enableQueryLog();
       DB::beginTransaction();
       $i = 0;
       $prevtx = null;
       foreach($txs as $tx) {
-        if($tx->l == $reject_l) break; //last l we do not process this batch
+        if($txs->count() == $this->_limit && $tx->l == $reject_l) break; //last l we do not process this batch if dataset is full
         $this->handleUninstalledHooks($tx);
         $this->aggrTx($tx,$prevtx);
         $last_processed_ledger_index = $tx->l;
@@ -122,8 +126,7 @@ class XwaAggrHookTransactions extends Command
    */
   private function aggrTx(BHookTransaction $tx,?BHookTransaction $prevtx): void
   {
-    $this->info('exec');
-    $metric = MetricHook::where('hook',$tx->hook)->where('day', $tx->t)->first();
+    $metric = MetricHook::where('hook',$tx->hook)->whereDay('day', $tx->t)->first();
     if(!$metric)
     {
       $metric = new MetricHook;
@@ -152,11 +155,45 @@ class XwaAggrHookTransactions extends Command
         $metric->num_exec_other++;
       }
     }
-
-    //if this is new day, process previous day sum of active accounts
-    //if($prevtx === null || ($prevtx !== null && dates do not match))
-    $this->info('save'.\json_encode($metric->toArray()));
     $metric->save();
+
+    # If this is new day, process previous day sum of active accounts:
+    if($prevtx === null || ($prevtx !== null && $prevtx->t->format('Y-m-d') != $tx->t->format('Y-m-d'))) {
+      $this->aggrTx_aggregateSum($tx->t->addDays(-1)->format('Y-m-d'));
+    }
+
+    //if($prevtx === null || ($prevtx !== null && dates do not match))
+    #$queries = DB::getQueryLog();
+    #$this->info('save'.\json_encode($metric->toArray()).\json_encode($queries,JSON_PRETTY_PRINT));
     
+    
+  }
+
+  /**
+   * Calculates sum of active accounts for hooks and stores them to metric_hooks.num_active_installs
+   * @param string $Ymd in sql format "2023-01-20"
+   */
+  private function aggrTx_aggregateSum(string $Ymd)
+  {
+    $day = \Carbon\Carbon::parse($Ymd)->addHours(12);
+    //get all rows and process them
+    $metrics = MetricHook::select('id','hook')->whereDay('day', $day)->get();
+    if(!$metrics->count()) return;
+
+    foreach($metrics as $metric) {
+      //Count all rows where hookaction = 3 (install) but not 34 (install and uninstall)
+      $count = BHookTransaction::repo_count(
+        [
+          ['hook',$metric->hook],
+          ['hookaction',3],
+          ['tcode','tesSUCCESS'],
+          ['t','>=',$Ymd.' 00:00:00'],
+          ['t','<=',$Ymd.' 23:59:59'],
+        ]
+      );
+      $metric->num_active_installs = $count;
+      $metric->save();
+      unset($count);
+    }
   }
 }

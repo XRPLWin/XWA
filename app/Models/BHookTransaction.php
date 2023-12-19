@@ -75,6 +75,11 @@ class BHookTransaction extends B
     return self::hydrate($data);
   }
 
+  public static function repo_count(array $AND)
+  {
+    return self::getRepository()::count($AND);
+  }
+
   /**
    * NOT USED YET ANYWHERE! but works
    */

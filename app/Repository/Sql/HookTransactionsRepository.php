@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class HookTransactionsRepository extends Repository
 {
 
-  public static function fetch(?array $select,array $AND, array $orderBy, int $limit = 1, int $offset = 0)
+  public static function fetch(?array $select, array $AND, array $orderBy, int $limit = 1, int $offset = 0)
   {
     if($select === null)
       $select = ['id','hook','h','l','t','r','txtype','tcode','hookaction','hookresult'];
@@ -37,5 +37,24 @@ class HookTransactionsRepository extends Repository
 
     if(!$r->count()) return null;
     return $r->toArray();
+  }
+
+  public static function count(array $AND)
+  {
+    $r = DB::table('hook_transactions');
+    
+    //AND conditions:
+    foreach($AND as $v) {
+      $c = count($v);
+      if($c == 3){
+        $r = $r->where($v[0],$v[1],$v[2]);
+      } elseif($c == 2){
+        $r = $r->where($v[0],$v[1]);
+      } else {
+        throw new \Exception('Invalid AND parameters');
+      }
+      unset($c);
+    }
+    return $r->count();
   }
 }
