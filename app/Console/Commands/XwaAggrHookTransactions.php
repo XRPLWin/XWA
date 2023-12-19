@@ -102,7 +102,7 @@ class XwaAggrHookTransactions extends Command
         ['hook',$tx->hook],
         ['r',$tx->r],
         ['hookaction', [3,34]],
-        ['l','<',$tx->l],
+        ['l','<=',$tx->l], //<= because ledger 6074486 (install and uninstall on same ledger)
         ['tcode','tesSUCCESS']
       ], //AND
       ['l','desc'], //sort
@@ -111,7 +111,7 @@ class XwaAggrHookTransactions extends Command
     );
 
     if(!$prev->count())
-      throw new \Exception('Prev hook record not found for '.$tx->hook);
+      throw new \Exception('Prev hook record not found for '.$tx->hook.' acc '.$tx->r);
     $prev = $prev->first();
 
     $prev->hookaction = 34;
