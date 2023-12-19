@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use App\Models\BHookTransaction;
 use App\Models\Synctracker;
 use App\Models\Tracker;
+use App\Models\MetricHook;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -64,12 +65,13 @@ class XwaAggrHookTransactions extends Command
 
       DB::beginTransaction();
       $i = 0;
+      $prevtx = null;
       foreach($txs as $tx) {
-        
         if($tx->l == $reject_l) break; //last l we do not process this batch
         $this->handleUninstalledHooks($tx);
-        $this->aggrTx($tx);
+        $this->aggrTx($tx,$prevtx);
         $last_processed_ledger_index = $tx->l;
+        $prevtx = $tx;
         $i++;
       }
       $this->info('Processed '.$i.' hook transactions last li: '.$last_processed_ledger_index);
@@ -81,6 +83,8 @@ class XwaAggrHookTransactions extends Command
 
   /**
    * Change status from 3 to 34 for install transactions if user is uninstalled.
+   * @param BHookTransaction $tx - transaction to process
+   * @return void
    */
   private function handleUninstalledHooks(BHookTransaction $tx): void
   {
@@ -111,10 +115,48 @@ class XwaAggrHookTransactions extends Command
 
   /**
    * Collect and store statistics
-   * Store aggragation (daily) data to seperate tables.
+   * Store aggragation (daily) data to metric_hooks table.
+   * @param BHookTransaction $tx - transaction to process
+   * @param ?BHookTransaction $prevtx - transaction that was processed previously
+   * @return void
    */
-  private function aggrTx(BHookTransaction $tx): void
+  private function aggrTx(BHookTransaction $tx,?BHookTransaction $prevtx): void
   {
+    $this->info('exec');
+    $metric = MetricHook::where('hook',$tx->hook)->where('day', $tx->t)->first();
+    if(!$metric)
+    {
+      $metric = new MetricHook;
+      $metric->hook = $tx->hook;
+      $metric->day = $tx->t;
+    }
+
+    # Num installs
+    if($tx->hookaction == 3 || $tx->hookaction == 34) {
+      $metric->num_installs++;
+    }
+
+    # Num uninstalls
+    if($tx->hookaction == 4) {
+      $metric->num_uninstalls++;
+    }
+
+    # Executions
+    if($tx->hookaction == 0) {
+      $metric->num_exec++;
+      if($tx->hookresult == 3) { //accept
+        $metric->num_exec_accepts++;
+      } elseif($tx->hookresult == 2) { //rollback
+        $metric->num_exec_rollbacks++;
+      } else {
+        $metric->num_exec_other++;
+      }
+    }
+
+    //if this is new day, process previous day sum of active accounts
+    //if($prevtx === null || ($prevtx !== null && dates do not match))
+    $this->info('save'.\json_encode($metric->toArray()));
+    $metric->save();
     
   }
 }
