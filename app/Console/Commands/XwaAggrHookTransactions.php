@@ -165,17 +165,28 @@ class XwaAggrHookTransactions extends Command
     foreach($metrics as $metric)
     {
       //Count all rows where hookaction = 3 (install) but not 34 (install and uninstall)
-      $count = BHookTransaction::repo_count(
+      $countInstalls = BHookTransaction::repo_count(
         [
           ['hook',$metric->hook],
-          ['hookaction',3],
+          ['hookaction',[3,34]],
           ['tcode','tesSUCCESS'],
           //['t','>=',$Ymd.' 00:00:00'],
           ['t','<=',$metric->day->format('Y-m-d').' 23:59:59'],
         ]
       );
-      $this->info($metric->id);
-      $metric->num_active_installs = $count;
+      $countUninstalls = BHookTransaction::repo_count(
+        [
+          ['hook',$metric->hook],
+          ['hookaction',4],
+          ['tcode','tesSUCCESS'],
+          //['t','>=',$Ymd.' 00:00:00'],
+          ['t','<=',$metric->day->format('Y-m-d').' 23:59:59'],
+        ]
+      );
+
+      $numActive = $countInstalls - $countUninstalls;
+      
+      $metric->num_active_installs = $numActive;
       $metric->is_processed = true;
       $metric->save();
       unset($count);
