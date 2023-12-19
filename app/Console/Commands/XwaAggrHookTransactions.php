@@ -78,6 +78,7 @@ class XwaAggrHookTransactions extends Command
         $prevtx = $tx;
         $i++;
       }
+      $this->postProcessMetric();
       $this->info('Processed '.$i.' hook transactions last li: '.$last_processed_ledger_index);
       Tracker::saveInt('aggrhooktx',$last_processed_ledger_index);
       DB::commit();
@@ -100,7 +101,7 @@ class XwaAggrHookTransactions extends Command
       [
         ['hook',$tx->hook],
         ['r',$tx->r],
-        ['hookaction',3],
+        ['hookaction', [3,34]],
         ['l','<',$tx->l],
         ['tcode','tesSUCCESS']
       ], //AND
@@ -156,42 +157,26 @@ class XwaAggrHookTransactions extends Command
       }
     }
     $metric->save();
-
-    # If this is new day, process previous day sum of active accounts:
-    if($prevtx === null || ($prevtx !== null && $prevtx->t->format('Y-m-d') != $tx->t->format('Y-m-d'))) {
-      $this->aggrTx_aggregateSum($tx->t->addDays(-1)->format('Y-m-d'));
-    }
-
-    //if($prevtx === null || ($prevtx !== null && dates do not match))
-    #$queries = DB::getQueryLog();
-    #$this->info('save'.\json_encode($metric->toArray()).\json_encode($queries,JSON_PRETTY_PRINT));
-    
-    
   }
 
-  /**
-   * Calculates sum of active accounts for hooks and stores them to metric_hooks.num_active_installs
-   * @param string $Ymd in sql format "2023-01-20"
-   */
-  private function aggrTx_aggregateSum(string $Ymd)
+  private function postProcessMetric()
   {
-    $day = \Carbon\Carbon::parse($Ymd)->addHours(12);
-    //get all rows and process them
-    $metrics = MetricHook::select('id','hook')->whereDay('day', $day)->get();
-    if(!$metrics->count()) return;
-
-    foreach($metrics as $metric) {
+    $metrics = MetricHook::select('id','hook','day')->where('is_processed', false)->orderBy('id','asc')->limit(1000)->get();
+    foreach($metrics as $metric)
+    {
       //Count all rows where hookaction = 3 (install) but not 34 (install and uninstall)
       $count = BHookTransaction::repo_count(
         [
           ['hook',$metric->hook],
           ['hookaction',3],
           ['tcode','tesSUCCESS'],
-          ['t','>=',$Ymd.' 00:00:00'],
-          ['t','<=',$Ymd.' 23:59:59'],
+          //['t','>=',$Ymd.' 00:00:00'],
+          ['t','<=',$metric->day->format('Y-m-d').' 23:59:59'],
         ]
       );
+      $this->info($metric->id);
       $metric->num_active_installs = $count;
+      $metric->is_processed = true;
       $metric->save();
       unset($count);
     }

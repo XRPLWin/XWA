@@ -25,8 +25,15 @@ class HookTransactionsRepository extends Repository
       $c = count($v);
       if($c == 3){
         $r = $r->where($v[0],$v[1],$v[2]);
-      } elseif($c == 2){
-        $r = $r->where($v[0],$v[1]);
+      } elseif($c == 2) {
+        if(\is_array($v[1])) {
+          $r = $r->where(function($q) use ($v) {
+            $q->where($v[0],$v[1][0])->orWhere($v[0],$v[1][1]); //($v[1][0] OR $v[1][1])
+          });
+        } else {
+          $r = $r->where($v[0],$v[1]);
+        }
+        
       } else {
         throw new \Exception('Invalid AND parameters');
       }
@@ -49,7 +56,13 @@ class HookTransactionsRepository extends Repository
       if($c == 3){
         $r = $r->where($v[0],$v[1],$v[2]);
       } elseif($c == 2){
-        $r = $r->where($v[0],$v[1]);
+        if(\is_array($v[1])) {
+          $r = $r->where(function($q) use ($v) {
+            $q->where($v[0],$v[1][0])->orWhere($v[0],$v[1][1]); //($v[1][0] OR $v[1][1])
+          });
+        } else {
+          $r = $r->where($v[0],$v[1]);
+        }
       } else {
         throw new \Exception('Invalid AND parameters');
       }

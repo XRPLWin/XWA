@@ -22,6 +22,7 @@ return new class extends Migration
             $table->unsignedInteger('num_exec_accepts')->default(0)->comment('Num executions that returned accept code');
             $table->unsignedInteger('num_exec_rollbacks')->default(0)->comment('Num executions that returned rollback code');
             $table->unsignedInteger('num_exec_other')->default(0)->comment('Num executions that returned other code');
+            $table->boolean('is_processed')->default(false); //post-processing done or not
             #$table->timestamps();
             $table->unique(['hook','day']);
         });

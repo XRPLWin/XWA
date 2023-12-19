@@ -14,6 +14,7 @@ class MetricHook extends Model
    * @var array
    */
   protected $casts = [
-    'day' => 'date'
+    'day' => 'date',
+    'is_processed' => 'boolean'
   ];
 }
