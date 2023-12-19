@@ -55,7 +55,7 @@ class XwaContinuousSyncProc extends Command
      */
     protected int $txbatchlimit = 400; //400
 
-    protected int $proc_timeout = 600; //600 - must be same as in XWAStartSyncer
+    protected int $proc_timeout = 1200; //1200 - must be same as in XWAStartSyncer
 
     /**
      * Ledger index tracking variables

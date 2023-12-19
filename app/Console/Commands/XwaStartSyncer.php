@@ -29,7 +29,7 @@ class XwaStartSyncer extends Command
    */
   protected $description = 'This will start continous syncer threads.';
 
-  protected int $proc_timeout = 600; //600s  - must be same as in XwaContinuousSyncProc
+  protected int $proc_timeout = 1200; //1200s  - must be same as in XwaContinuousSyncProc
 
   protected int $numberOfProcess = 1; //16 - overriden from config
   protected int $ledgersPerProcess = 1000; //1000
