@@ -74,7 +74,7 @@ class XwaContinuousSyncProc extends Command
     /**
      * A place to keep models in memory and referenced
      */
-    protected array $_mem_hookmodels = [];
+    //protected array $_mem_hookmodels = [];
 
     /**
      * When debugging enabled it will log output to log file.
@@ -259,11 +259,11 @@ class XwaContinuousSyncProc extends Command
           $this->processHooks($hook_parser,$transaction);
           
           
-          foreach($this->_mem_hookmodels as $hm) {
+          /*foreach($this->_mem_hookmodels as $hm) {
             if($hm !== null)
               $batch->queueModelChanges($hm);
           }
-          $this->_mem_hookmodels = []; //cleanup
+          $this->_mem_hookmodels = []; //cleanup*/
 
           $this->processHooksTransaction($hook_parser,$transaction,$batch);
         //}
@@ -624,71 +624,13 @@ class XwaContinuousSyncProc extends Command
         }
         //$batch->queueModelChanges($storedHook);
       }
-
-
-      # Increment stats (queued later outside this function):
-
-      //Increment installed
-      foreach($parser->installedHooksStats() as $_hook => $_hookInstallNum) {
-        $hookModel = $this->_getHookModel($_hook,$li);
-        if(!$hookModel) {
-          throw new \Exception('Yet unindexed hook (installed_hooks) '.$_hook.' li:'.$li); //delay this job
-        }
-        $hookModel->stat_installs += $_hookInstallNum;
-      }
-
-      //Increment uninstalled
-      foreach($parser->uninstalledHooksStats() as $_hook => $_hookUnInstallNum) {
-        $hookModel = $this->_getHookModel($_hook,$li);
-        if(!$hookModel) {
-          throw new \Exception('Yet unindexed hook (uninstalled_hooks) '.$_hook.' li:'.$li); //delay this job
-        }
-        $hookModel->stat_uninstalls += $_hookUnInstallNum;
-      }
-
-      //Increment exec and status
-      //$meta = $parser->getMeta();
-      //$tx_fee = (int)$parser->getTx()->Fee;
-      if(isset($meta->HookExecutions)) {
-        foreach($meta->HookExecutions as $he) {
-          $hookModel = $this->_getHookModel($he->HookExecution->HookHash,$li);
-          if(!$hookModel) {
-            throw new \Exception('Yet unindexed hook (exec) '.$he->HookExecution->HookHash.' li:'.$li); //delay this job
-            //continue; //skip it
-          }
-          $hookModel->stat_exec++;
-          if($he->HookExecution->HookResult == 3) {
-            $hookModel->stat_exec_accepts++;
-          } elseif($he->HookExecution->HookResult == 2) {
-            $hookModel->stat_exec_rollbacks++;
-          } else {
-            $hookModel->stat_exec_other++;
-          }
-
-          //Fee is set in stone, not needed to track:
-          /*//Max Fee
-          if($hookModel->stat_fee_max < $tx_fee) {
-            $hookModel->stat_fee_max = $tx_fee;
-          }
-          //Min fee
-          if($tx_fee != 0) { //there is a fee
-            if($hookModel->stat_fee_min == 0)
-              $hookModel->stat_fee_min = $tx_fee; //set initial value
-
-            if($hookModel->stat_fee_min > $tx_fee) {
-              $hookModel->stat_fee_min = $tx_fee;
-            }
-          }*/
-          
-        }
-      }
     }
 
     /**
      * Gets hook Model and stores it to _mem_hookmodels array to be referenced for queue
      * @return ?Bhook
      */
-    private function _getHookModel($hook, $ledger_index): ?BHook
+    /*private function _getHookModel($hook, $ledger_index): ?BHook
     {
       Cache::tags(['hook'.$hook])->flush();
       
@@ -702,7 +644,7 @@ class XwaContinuousSyncProc extends Command
         $this->_mem_hookmodels[$k] = $hm;
       }
       return $this->_mem_hookmodels[$k];
-    }
+    }*/
 
     private function pullTransaction(string $transactionID)
     {
