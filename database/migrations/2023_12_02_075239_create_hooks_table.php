@@ -35,11 +35,13 @@ return new class extends Migration
       $table->char('namespace',64)->comment('Initial hook namespace, null namespace is filled with zeros');
       //$table->string('title')->comment('Identifying title of this hook');
       //$table->string('descr')->comment('Identifying description of this hook');
+      
+      $table->unsignedInteger('stat_active_installs')->default(0)->comment('Number of current active installations');
       $table->unsignedInteger('stat_installs')->default(0)->comment('Number of installations');
       $table->unsignedInteger('stat_uninstalls')->default(0)->comment('Number of uninstallations');
       $table->unsignedInteger('stat_exec')->default(0)->comment('Number of executions');
-      $table->unsignedInteger('stat_exec_rollbacks')->default(0)->comment('Number of rollbacks');
       $table->unsignedInteger('stat_exec_accepts')->default(0)->comment('Number of accepts');
+      $table->unsignedInteger('stat_exec_rollbacks')->default(0)->comment('Number of rollbacks');
       $table->unsignedInteger('stat_exec_other')->default(0)->comment('Number of fails including unset');
       //$table->unsignedInteger('stat_fee_min')->default(0)->comment('Minimal fee detected');
       //$table->unsignedInteger('stat_fee_max')->default(0)->comment('Maximal fee detected');

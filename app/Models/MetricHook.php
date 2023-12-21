@@ -17,5 +17,6 @@ class MetricHook extends Model
     'day' => 'date',
     'is_processed' => 'boolean',
     'hook_ctid' => 'string',
+    'ctid_last' => 'string'
   ];
 }

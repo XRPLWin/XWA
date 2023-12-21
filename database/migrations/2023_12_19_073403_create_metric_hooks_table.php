@@ -16,6 +16,7 @@ return new class extends Migration
             $table->char('hook',64)->comment('Hook Hash');
             //$table->unsignedInteger('l')->comment('LedgerIndex at which this hook was created (hook version)');
             $table->unsignedBigInteger('hook_ctid')->comment('Hook creation CTID (hook version)'); //to identify hook version
+            $table->unsignedBigInteger('ctid_last')->comment('Last transaction for this day'); //for upper limit
             $table->date('day');
             $table->unsignedInteger('num_active_installs')->default(0)->comment('Sum of accounts which have this hook installed on this day');
             $table->unsignedInteger('num_installs')->default(0)->comment('Num installed to accounts');

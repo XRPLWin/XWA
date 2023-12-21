@@ -419,9 +419,9 @@ class XwaContinuousSyncProc extends Command
         return; //no hooks in this tx, nothing to do
 
       $meta =  $transaction->metaData;
-      $h = $transaction->hash;
-      $l = $transaction->ledger_index;
-      $li = $transaction->metaData->TransactionIndex;
+      //$h = $transaction->hash;
+      //$l = $transaction->ledger_index;
+      //$li = $transaction->metaData->TransactionIndex;
       $ctid = encodeCTID($transaction->ledger_index,$transaction->metaData->TransactionIndex,config('xrpl.'.config('xrpl.net').'.networkid'));
 
       $t = ripple_epoch_to_carbon((int)$transaction->date)->format('Y-m-d H:i:s.uP');

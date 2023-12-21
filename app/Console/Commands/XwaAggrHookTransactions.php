@@ -57,7 +57,7 @@ class XwaAggrHookTransactions extends Command
       $this->error('Nothing synced yet');
       return self::FAILURE;
     }
-    $last_synced_ctid_uint64 = bchexdec(encodeCTID($synctracker->last_l,0,config('xrpl.'.config('xrpl.net').'.networkid')));
+    $last_synced_ctid_uint64 = bchexdec(encodeCTID($synctracker->last_l,65535,config('xrpl.'.config('xrpl.net').'.networkid'))); //max form this ledger 65535
 
     //$last_synced_ledger_index = $synctracker->last_l;
     //$last_processed_ledger_index = Tracker::getInt('aggrhooktx',0);
@@ -70,7 +70,6 @@ class XwaAggrHookTransactions extends Command
         ['ctid','<=',$last_synced_ctid_uint64]
       ],['ctid','asc'],$this->_limit,0); //limit 1000
     //$this->info(\json_encode(DB::getQueryLog(),JSON_PRETTY_PRINT));exit;
-
     //Reject last ledger index:
     if($txs->count()) {
       $reject_ctid = $txs->last()->ctid; //we reject last 'ctid' due to possible incomplete dataset, it will be fetched next time in full
@@ -118,7 +117,7 @@ class XwaAggrHookTransactions extends Command
         ['hookaction', [3,34]],
         //['l','<=',$tx->l], //<= because ledger 6074486 (install and uninstall on same ledger)
         ['ctid','<=',$tx->ctid],
-        ['tcode','tesSUCCESS']
+        //['tcode',['tesSUCCESS']]
       ], //AND
       ['ctid','desc'], //sort
       1, //limit
@@ -142,10 +141,12 @@ class XwaAggrHookTransactions extends Command
    */
   private function aggrTx(BHookTransaction $tx): void
   {
+    //$this->info($tx->hook.'-'.$tx->ctid);
     $hookDef = $this->_getHookModel($tx->hook,$tx->ctid);
     if(!$hookDef)
       throw new \Exception('Unable to find hook definiton in aggrTx '.$tx->hook.' ctid:'.$tx->ctid);
 
+    //$this->info($hookDef->ctid_from.' ('.$tx->ctid.')');
     $metric = MetricHook::where('hook',$tx->hook)->where('hook_ctid',$hookDef->ctid_from)->whereDay('day', $tx->t)->first();
     
     if(!$metric)
@@ -155,6 +156,8 @@ class XwaAggrHookTransactions extends Command
       $metric->hook_ctid = $hookDef->ctid_from; //hook version
       $metric->day = $tx->t;
     }
+
+    $metric->ctid_last = $tx->ctid;
 
     # Num installs
     if($tx->hookaction == 3 || $tx->hookaction == 34) {
@@ -191,60 +194,59 @@ class XwaAggrHookTransactions extends Command
     //php artisan xwa:aggrhooktransactions
 
     
-    $metrics = MetricHook::select('id','hook','hook_ctid','day','num_active_installs','num_installs','num_uninstalls','num_exec','num_exec_accepts','num_exec_rollbacks','num_exec_other')
+    $metrics = MetricHook::select('id','hook','hook_ctid','ctid_last','day','num_active_installs','num_installs','num_uninstalls','num_exec','num_exec_accepts','num_exec_rollbacks','num_exec_other')
       ->where('is_processed', false)
       ->orderBy('id','asc')
-      ->limit(1000)
+      ->limit(($this->_limit+1))
       ->get();
-    
     foreach($metrics as $metric)
     {
       
-      //$hookDef = $this->_getHookModel($metric->hook,$metric->l);
-      //if(!$hookDef)
-      //  throw new \Exception('Unable to find hook definiton in postProcessMetric '.$metric->hook.' li:'.$metric->l);
-      //Count all rows where hookaction = 3 (install) but not 34 (install and uninstall)
-      $countInstalls = BHookTransaction::repo_count(
-        [
-          ['hook',$metric->hook],
-          ['ctid','>=',$metric->hook_ctid],
-          //['l','>=',$metric->l],
-          ['hookaction',[3,34]],
-          ['tcode','tesSUCCESS'],
-          //todo end range l from hookDef 
-          //['t','>=',$Ymd.' 00:00:00'],
-          ['t','<=',$metric->day->format('Y-m-d').' 23:59:59'],
-        ]
-      );
-      $countUninstalls = BHookTransaction::repo_count(
-        [
-          ['hook',$metric->hook],
-          ['ctid','>=',$metric->hook_ctid],
-          //['l','>=',$metric->l],
-          ['hookaction',4],
-          ['tcode','tesSUCCESS'],
-          //['t','>=',$Ymd.' 00:00:00'],
-          ['t','<=',$metric->day->format('Y-m-d').' 23:59:59'],
-        ]
-      );
+      $hookDef = $this->_getHookModel($metric->hook,$metric->hook_ctid);
+      if(!$hookDef)
+        throw new \Exception('Unable to find hook definiton in postProcessMetric '.$metric->hook.' ctid64:'.$metric->hook_ctid);
+
+      $ANDTEMPLATE = [
+        ['hook',$metric->hook],
+        ['ctid','>=',$metric->hook_ctid],
+        ['ctid','<=',$metric->ctid_last],
+        //['t','<=',$metric->day->format('Y-m-d').' 23:59:59'],
+      ];
+      //Count all rows where hookaction = 3 (install) OR 34 (install and uninstall)
+      $AND = $ANDTEMPLATE;
+      $AND[] = ['hookaction',[3,34]];
+      $countInstalls = BHookTransaction::repo_count($AND);
+      unset($AND);
+
+      //Count all rows where hookaction = 4 (uninstalled)
+      $AND2 = $ANDTEMPLATE;
+      $AND2[] = ['hookaction',4];
+      $countUninstalls = BHookTransaction::repo_count($AND2);
+      unset($AND2);
 
       //note: if hook was destroyed and then created in same ledger, we might have extra count above
       //sample ledger of this is on xahau testnet: 1471305
 
       $numActive = $countInstalls - $countUninstalls;
-      /*if($numActive < 0) { //hook version breakpoint detected (in same LI)
-        $numActive = $metric->num_active_installs;
-        $metric->num_active_installs = $numActive;
-      }*/
+      if($numActive < 0) { //hook version breakpoint detected (in same LI)
+        throw new \Exception('ERROR in postProcessMetric: Install and uninstall diff is less than 0');
+      }
       $metric->num_active_installs = $numActive;
       $metric->is_processed = true;
       $metric->save();
       unset($count);
 
-      //Part 2 - update Hook hooks.stat_* fields - all affected hooks
-      //foreach($affectedHooks as $affectedHook) {
-      //  $HookDef = $this->_getHookModel($affectedHook,)
-      //}
+      $hookDef->stat_active_installs = $numActive;
+      //Part 2 - update Hook hooks.stat_* fields by counting daily metrics (easier for DB!)
+      $hookDef->stat_installs   = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_installs');
+      $hookDef->stat_uninstalls = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_uninstalls');
+      $hookDef->stat_exec       = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_exec');
+      
+      $hookDef->stat_exec_accepts   = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_exec_accepts');
+      $hookDef->stat_exec_rollbacks = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_exec_rollbacks');
+      $hookDef->stat_exec_other     = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_exec_other');
+      $hookDef->save();
+      
     }
   }
 
