@@ -14,24 +14,44 @@ class Tracker extends Model
    * @var array
    */
   protected $casts = [
+    'value_uint64' => 'string'
   ];
 
-  public static function getInt(string $subject, int $default = 0): int
+  public static function getUInt64(string $subject, string $default = '0'): string
   {
-    $r = self::select('value_int')->where('subject','aggrhooktx')->first();
+    $r = self::select('value_uint64')->where('subject',$subject)->first();
     if(!$r)
       return $default;
-    return $r->value_int;
+    return $r->value_uint64;
   }
 
-  public static function saveInt(string $subject, int $value_int): void
+  public static function saveUInt64(string $subject, string $value_UInt64): void
   {
     $t = self::where('subject',$subject)->first();
     if(!$t) {
       $t = new self;
       $t->subject = $subject;
     }
-    $t->value_int = $value_int;
+    $t->value_uint64 = $value_UInt64;
+    $t->save();
+  }
+
+  public static function getInt(string $subject, int $default = 0): int
+  {
+    $r = self::select('value_int')->where('subject',$subject)->first();
+    if(!$r)
+      return $default;
+    return $r->value_int;
+  }
+
+  public static function saveInt(string $subject, int $value_Int): void
+  {
+    $t = self::where('subject',$subject)->first();
+    if(!$t) {
+      $t = new self;
+      $t->subject = $subject;
+    }
+    $t->value_int = $value_Int;
     $t->save();
   }
 }

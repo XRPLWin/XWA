@@ -11,14 +11,14 @@ class HooksRepository extends Repository
    * @see https://github.com/GoogleCloudPlatform/php-docs-samples/tree/master/bigquery/api/src
    * @return ?array
    */
-  public static function fetchByHookHashAndLedgerFrom(string $hookhash, int $l_from, bool $lockforupdate = false): ?array
+  public static function fetchByHookHashAndLedgerFrom(string $hookhash, string $ctid, bool $lockforupdate = false): ?array
   {
-    return self::fetchOne('hook = """'.$hookhash.'""" and l_from = '.$l_from);
+    return self::fetchOne('hook = """'.$hookhash.'""" and ctid_from = '.bchexdec($ctid));
   }
 
   public static function fetchByHookHash(string $hookhash): array
   {
-    return self::fetchMany('hook = """'.$hookhash.'""" ORDER BY l_from desc');
+    return self::fetchMany('hook = """'.$hookhash.'""" ORDER BY ctid_from desc');
   }
 
   /**
@@ -27,7 +27,7 @@ class HooksRepository extends Repository
    */
   public static function fetchMany($where): ?array
   {
-    $query = 'SELECT hook,txid,owner,l_from,l_to,txid_last,hookon,params,namespace,stat_installs,stat_uninstalls,stat_exec,stat_exec_rollbacks,stat_exec_accepts,stat_exec_other FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where;
+    $query = 'SELECT hook,owner,ctid_from,ctid_to,hookon,params,namespace,stat_installs,stat_uninstalls,stat_exec,stat_exec_rollbacks,stat_exec_accepts,stat_exec_other FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where;
     try {
       $results = \BigQuery::runQuery(\BigQuery::query($query));
     } catch (\Throwable $e) {
@@ -47,7 +47,7 @@ class HooksRepository extends Repository
    */
   public static function fetchOne($where): ?array
   {
-    $query = 'SELECT hook,txid,owner,l_from,l_to,txid_last,hookon,params,namespace,stat_installs,stat_uninstalls,stat_exec,stat_exec_rollbacks,stat_exec_accepts,stat_exec_other FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where.' LIMIT 1';
+    $query = 'SELECT hook,owner,ctid_from,ctid_to,hookon,params,namespace,stat_installs,stat_uninstalls,stat_exec,stat_exec_rollbacks,stat_exec_accepts,stat_exec_other FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.hooks` WHERE '.$where.' LIMIT 1';
     try {
       $results = \BigQuery::runQuery(\BigQuery::query($query));
     } catch (\Throwable $e) {

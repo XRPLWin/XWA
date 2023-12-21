@@ -15,6 +15,7 @@ class MetricHook extends Model
    */
   protected $casts = [
     'day' => 'date',
-    'is_processed' => 'boolean'
+    'is_processed' => 'boolean',
+    'hook_ctid' => 'string',
   ];
 }

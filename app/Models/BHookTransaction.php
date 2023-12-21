@@ -28,9 +28,11 @@ class BHookTransaction extends B
   }
 
   public $fillable = [
-    'hook', //Primary pt1
-    'h', //Primary pt2
-    'l',
+    'hook',
+    //'h',
+    'ctid',
+    //'l',
+    //'li',
     't',
     'r',
     'txtype',
@@ -46,12 +48,15 @@ class BHookTransaction extends B
 
   protected $casts = [
     't' => 'datetime',
+    'ctid' => 'string',
   ];
 
   const BQCASTS = [
     'hook'        => 'STRING',
-    'h'           => 'STRING',
-    'l'           => 'INTEGER',
+    //'h'         => 'STRING',
+    'ctid'         => 'INTEGER', //Database: INTEGER, PHP internal: string (uint64)
+    //'l'           => 'INTEGER',
+    //'li'          => 'INTEGER',
     't'           => 'TIMESTAMP',
     'r'           => 'STRING',
     'txtype'      => 'STRING',
@@ -83,15 +88,15 @@ class BHookTransaction extends B
   /**
    * NOT USED YET ANYWHERE! but works
    */
-  public static function repo_fetch_last_by_account_action(string $hook, string $account, int $hookaction): ?BHookTransaction
+  /*public static function repo_fetch_last_by_account_action(string $hook, string $account, int $hookaction): ?BHookTransaction
   {
-    $dataset = self::getRepository()::fetch(null,['hook' => $hook, 'r' => $account,'hookaction' => $hookaction],['l','desc'],1,0);
+    $dataset = self::getRepository()::fetch(null,['hook' => $hook, 'r' => $account,'hookaction' => $hookaction],['l','desc'],1,0); //li sorting?
 
     if($dataset === null)
       return null;
 
     return self::hydrate($dataset)->first();
-  }
+  }*/
 
   /*public static function repo_find(string $hook, int $l_from, bool $lockforupdate = false): ?self
   {

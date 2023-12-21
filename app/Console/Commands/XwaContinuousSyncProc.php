@@ -421,6 +421,9 @@ class XwaContinuousSyncProc extends Command
       $meta =  $transaction->metaData;
       $h = $transaction->hash;
       $l = $transaction->ledger_index;
+      $li = $transaction->metaData->TransactionIndex;
+      $ctid = encodeCTID($transaction->ledger_index,$transaction->metaData->TransactionIndex,config('xrpl.'.config('xrpl.net').'.networkid'));
+
       $t = ripple_epoch_to_carbon((int)$transaction->date)->format('Y-m-d H:i:s.uP');
       if(isset($transaction->Account) && $transaction->Account === "") {
         $r = 'rrrrrrrrrrrrrrrrrrrrrhoLvTp'; //ACCOUNT_ZERO
@@ -434,8 +437,10 @@ class XwaContinuousSyncProc extends Command
       foreach($parser->createdHooks() as $ch) {
         $model = new BHookTransaction;
         $model->hook = $ch;
-        $model->h = $h;
-        $model->l = $l;
+        $model->ctid = bchexdec($ctid);
+        //$model->h = $h;
+        //$model->l = $l;
+        //$model->li = $li;
         $model->t = $t;
         $model->r = $r;
         $model->txtype = $txtype;
@@ -454,8 +459,10 @@ class XwaContinuousSyncProc extends Command
             
             $model = new BHookTransaction;
             $model->hook = $_hook;
-            $model->h = $h;
-            $model->l = $l;
+            $model->ctid = bchexdec($ctid);
+            //$model->h = $h;
+            //$model->l = $l;
+            //$model->li = $li;
             $model->t = $t;
             $model->r = $account;
             $model->txtype = $txtype;
@@ -470,8 +477,10 @@ class XwaContinuousSyncProc extends Command
           foreach($parser->lookup($account,'Hook','modified') as $_hook) {
             $model = new BHookTransaction;
             $model->hook = $_hook;
-            $model->h = $h;
-            $model->l = $l;
+            $model->ctid = bchexdec($ctid);
+            //$model->h = $h;
+            //$model->l = $l;
+            //$model->li = $li;
             $model->t = $t;
             $model->r = $account;
             $model->txtype = $txtype;
@@ -487,8 +496,10 @@ class XwaContinuousSyncProc extends Command
 
             $model = new BHookTransaction;
             $model->hook = $_hook;
-            $model->h = $h;
-            $model->l = $l;
+            $model->ctid = bchexdec($ctid);
+            //$model->h = $h;
+            //$model->l = $l;
+            //$model->li = $li;
             $model->t = $t;
             $model->r = $account;
             $model->txtype = $txtype;
@@ -508,31 +519,38 @@ class XwaContinuousSyncProc extends Command
             }*/
             
           }
-
-          # Handle destroys
-          foreach($parser->lookup($account,'Hook','destroyed') as $_hook) {
-            $model = new BHookTransaction;
-            $model->hook = $_hook;
-            $model->h = $h;
-            $model->l = $l;
-            $model->t = $t;
-            $model->r = $account;
-            $model->txtype = $txtype;
-            $model->tcode = $tcode;
-            $model->hookaction = 2; //destroyed
-            $model->hookresult = 0; //no execution
-            $batch->queueModelChanges($model);
-            unset($model);
-          }
+  
       }
+
+      # Handle destroys
+      foreach($parser->destroyedHooks() as $_hook) {
+        $model = new BHookTransaction;
+        $model->hook = $_hook;
+        $model->ctid = bchexdec($ctid);
+        //$model->h = $h;
+        //$model->l = $l;
+        //$model->li = $li;
+        $model->t = $t;
+        $model->r = $transaction->Account;
+        $model->txtype = $txtype;
+        $model->tcode = $tcode;
+        $model->hookaction = 2; //destroyed
+        $model->hookresult = 0; //no execution
+        $batch->queueModelChanges($model);
+        unset($model);
+      }
+
+
 
       # Handle executions
       if(isset($meta->HookExecutions)) {
         foreach($meta->HookExecutions as $he) {
           $model = new BHookTransaction;
           $model->hook = $he->HookExecution->HookHash;
-          $model->h = $h;
-          $model->l = $l;
+          $model->ctid = bchexdec($ctid);
+          //$model->h = $h;
+          //$model->l = $l;
+          //$model->li = $li;
           $model->t = $t;
           $model->r = $r;
           $model->txtype = $txtype;
@@ -556,15 +574,18 @@ class XwaContinuousSyncProc extends Command
     {
       $li = $transaction->ledger_index;
       $meta =  $transaction->metaData;
+      $ctid = encodeCTID($li,$meta->TransactionIndex,config('xrpl.'.config('xrpl.net').'.networkid'));
 
       foreach($parser->createdHooksDetailed() as $_hook => $_hookData) {
-        Cache::tags(['hook'.$_hook])->delete('dhook:'.$_hook.'_'.$li);
+        Cache::tags(['hook'.$_hook])->delete('dhook:'.$_hook.'_'.$li.'_'.$meta->TransactionIndex);
         //this will create hook in db (immediately)
         HookLoader::getOrCreate(
           $_hook,
-          $_hookData->NewFields->HookSetTxnID,
           $transaction->Account, //OK
-          $li,
+          $ctid,
+          //$_hookData->NewFields->HookSetTxnID,
+          //$li,
+          //$meta->TransactionIndex,
           isset($_hookData->NewFields->HookOn)?$_hookData->NewFields->HookOn:'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFF',
           TxHookParser::toParams($_hookData),
           isset($_hookData->NewFields->HookNamespace)?$_hookData->NewFields->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
@@ -591,35 +612,42 @@ class XwaContinuousSyncProc extends Command
 
         //Query xrpl to find ledger_index of transaction
         $pulledTransaction = $this->pullTransaction($createit_found->HookSetTxnID);
-        
         //Create TxHookParser::toParams($storedHook_params_prepared) compatible variable:
         $storedHook_params_prepared = new \stdClass();
         $storedHook_params_prepared->NewFields = $createit_found;
 
         //create it right away into database
-        Cache::tags(['hook'.$_hook])->delete('dhook:'.$_hook.'_'.$pulledTransaction->result->ledger_index);
+        Cache::tags(['hook'.$_hook])->delete('dhook:'.$_hook.'_'.$pulledTransaction->result->ledger_index.'_'.$pulledTransaction->result->meta->TransactionIndex);
         $storedHook = HookLoader::getOrCreate(
           $_hook, //OK
-          $createit_found->HookSetTxnID, //OK
+          //$createit_found->HookSetTxnID, //OK
           $pulledTransaction->result->Account, //OK
-          $pulledTransaction->result->ledger_index, //find li of $createit_found->HookSetTxnID
+          encodeCTID(
+            $pulledTransaction->result->ledger_index,
+            $pulledTransaction->result->meta->TransactionIndex,
+            config('xrpl.'.config('xrpl.net').'.networkid')
+          ),
+          //$pulledTransaction->result->ledger_index, //find li of $createit_found->HookSetTxnID
+          //$pulledTransaction->result->meta->TransactionIndex,
           isset($createit_found->HookOn)?$createit_found->HookOn:'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFF', //??
           TxHookParser::toParams($storedHook_params_prepared), //WRONG
           isset($createit_found->HookNamespace)?$createit_found->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
         );
         if($storedHook === null) {
-          throw new \Exception('Tried to flag hook '.$_hook.' (li:'.$li.') as destroyed but stored hook not found');
+          throw new \Exception('Tried to flag hook '.$_hook.' (ctid:'.$ctid.') as destroyed but stored hook not found');
         }
           
         
-        if($storedHook->l_to != 0) {
-          if($storedHook->l_to != $li) {
-            throw new \Exception('Tried to flag hook '.$_hook.' (li:'.$li.') as destroyed but hook already flagged as destroyed in different li: '.$storedHook->l_to);
+        if($storedHook->ctid_to != 0) {
+          if($storedHook->ctid_to != $ctid) {
+            throw new \Exception('Tried to flag hook '.$_hook.' (ctid:'.$ctid.') as destroyed but hook already flagged as destroyed in different ctid:'.$storedHook->l_ctid);
           }
           //else retried operation, do nothing
         } else {
-          $storedHook->l_to = $li;
-          $storedHook->txid_last = $transaction->hash;
+          $storedHook->ctid_to = bchexdec($ctid);
+          /*$storedHook->l_to = $li;
+          $storedHook->li_to = $meta->TransactionIndex;
+          $storedHook->txid_last = $transaction->hash;*/
           $storedHook->save();
         }
         //$batch->queueModelChanges($storedHook);

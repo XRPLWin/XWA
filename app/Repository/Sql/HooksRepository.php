@@ -8,16 +8,20 @@ use Illuminate\Support\Facades\DB;
 
 class HooksRepository extends Repository
 {
-  public static function fetchByHookHashAndLedgerFrom(string $hookhash, int $l_from, bool $lockforupdate = false): ?array
+  public static function fetchByHookHashAndLedgerFrom(string $hookhash, string $ctid, bool $lockforupdate = false): ?array
   {
     $r = DB::table('hooks')
       ->select([
         'hook',
-        'txid',
+        //'txid',
         'owner',
-        'l_from',
-        'l_to',
-        'txid_last',
+        'ctid_from',
+        'ctid_to',
+        //'l_from',
+        //'li_from',
+        //'l_to',
+        //'li_to',
+        //'txid_last',
         'hookon',
         'params',
         'namespace',
@@ -33,7 +37,7 @@ class HooksRepository extends Repository
         //'stat_fee_max',
       ])
       ->where('hook',$hookhash)
-      ->where('l_from',$l_from);
+      ->where('ctid_from',bchexdec($ctid));
       if($lockforupdate) {
         $r = $r->lockForUpdate()->get();
       } else {
@@ -49,11 +53,15 @@ class HooksRepository extends Repository
     $r = DB::table('hooks')
       ->select([
         'hook',
-        'txid',
+        //'txid',
         'owner',
-        'l_from',
-        'l_to',
-        'txid_last',
+        'ctid_from',
+        'ctid_to',
+        //'l_from',
+        //'li_from',
+        //'l_to',
+        //'li_to',
+        //'txid_last',
         'hookon',
         'params',
         'namespace',
@@ -69,7 +77,7 @@ class HooksRepository extends Repository
         //'stat_fee_max',
       ])
       ->where('hook',$hookhash)
-      ->orderBy('l_from','desc')
+      ->orderBy('ctid_from','desc')
       ->get();
 
       return $r->toArray();

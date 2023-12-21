@@ -21,11 +21,15 @@ return new class extends Migration
       $table->collation = 'utf8mb4_bin';
 
       $table->char('hook',64)->comment('Hook Hash');
-      $table->unsignedInteger('l_from')->comment('LedgerIndex at which this hook was created');
-      $table->unsignedInteger('l_to')->default(0)->comment('LedgerIndex at which this hook was destroyed, zero if not yet destroyed');
+      $table->unsignedBigInteger('ctid_from')->comment('CTID at which this hook was created');
+      $table->unsignedBigInteger('ctid_to')->default(0)->comment('CTID at which this hook was destroyed, zero if not yet destroyed');
+      //$table->unsignedInteger('l_from')->comment('LedgerIndex at which this hook was created');
+      //$table->unsignedSmallInteger('li_from')->comment('TransactionIndex at which this hook was created');
+      //$table->unsignedInteger('l_to')->default(0)->comment('LedgerIndex at which this hook was destroyed, zero if not yet destroyed');
+      //$table->unsignedSmallInteger('li_to')->comment('TransactionIndex at which this hook was created');
       $table->string('owner',50)->comment('Owner rAddress - account who first created a hookdef');
-      $table->char('txid',64)->comment('Transaction ID this hook was created at');
-      $table->char('txid_last',64)->nullable()->default(null)->comment('Transaction ID this hook was destroyed at, null if not destroyed yet');
+      //$table->char('txid',64)->comment('Transaction ID this hook was created at');
+      //$table->char('txid_last',64)->nullable()->default(null)->comment('Transaction ID this hook was destroyed at, null if not destroyed yet');
       $table->char('hookon',64)->comment('HookOn value when hook was created');
       $table->json('params')->comment('Initial hook parameters as defined when hook is first created');
       $table->char('namespace',64)->comment('Initial hook namespace, null namespace is filled with zeros');
@@ -40,7 +44,7 @@ return new class extends Migration
       //$table->unsignedInteger('stat_fee_min')->default(0)->comment('Minimal fee detected');
       //$table->unsignedInteger('stat_fee_max')->default(0)->comment('Maximal fee detected');
 
-      $table->primary(['hook', 'l_from']);
+      $table->primary(['hook', 'ctid_from']);
     });
   }
 

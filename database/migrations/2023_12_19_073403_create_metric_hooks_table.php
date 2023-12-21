@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('metric_hooks', function (Blueprint $table) {
             $table->id();
             $table->char('hook',64)->comment('Hook Hash');
-            $table->unsignedInteger('l')->comment('LedgerIndex at which this hook was created (hook version)');
+            //$table->unsignedInteger('l')->comment('LedgerIndex at which this hook was created (hook version)');
+            $table->unsignedBigInteger('hook_ctid')->comment('Hook creation CTID (hook version)'); //to identify hook version
             $table->date('day');
             $table->unsignedInteger('num_active_installs')->default(0)->comment('Sum of accounts which have this hook installed on this day');
             $table->unsignedInteger('num_installs')->default(0)->comment('Num installed to accounts');
@@ -25,7 +26,7 @@ return new class extends Migration
             $table->unsignedInteger('num_exec_other')->default(0)->comment('Num executions that returned other code');
             $table->boolean('is_processed')->default(false); //post-processing done or not
             #$table->timestamps();
-            $table->unique(['hook','day','l']);
+            $table->unique(['hook','hook_ctid','day']);
         });
     }
 

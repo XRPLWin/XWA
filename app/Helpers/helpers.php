@@ -271,3 +271,112 @@ if (!function_exists('stringDecimalX10000')) {
     return $r;
   }
 }
+
+/**
+ * CTID
+ * @see https://github.com/XRPLF/CTID/blob/main/ctid.php
+ */
+if (!function_exists('encodeCTID')) {
+  function encodeCTID($ledger_seq, $txn_index, $network_id)
+  {
+    if (!is_numeric($ledger_seq))
+      throw new Exception("ledger_seq must be a number.");
+    if ($ledger_seq > 0xFFFFFFF || $ledger_seq < 0)
+      throw new Exception("ledger_seq must not be greater than 268435455 or less than 0.");
+
+    if (!is_numeric($txn_index))
+      throw new Exception("txn_index must be a number.");
+    if ($txn_index > 0xFFFF || $txn_index < 0)
+      throw new Exception("txn_index must not be greater than 65535 or less than 0.");
+
+    if (!is_numeric($network_id))
+      throw new Exception("network_id must be a number.");
+    if ($network_id > 0xFFFF || $network_id < 0)
+      throw new Exception("network_id must not be greater than 65535 or less than 0.");
+
+    $ledger_part = dechex($ledger_seq);
+    $txn_part = dechex($txn_index);
+    $network_part = dechex($network_id);
+
+    if (strlen($ledger_part) < 7)
+        $ledger_part = str_repeat("0", 7 - strlen($ledger_part)) . $ledger_part;
+    if (strlen($txn_part) < 4)
+        $txn_part = str_repeat("0", 4 - strlen($txn_part)) . $txn_part;
+    if (strlen($network_part) < 4)
+        $network_part = str_repeat("0", 4 - strlen($network_part)) . $network_part;
+
+    return strtoupper("C" . $ledger_part . $txn_part . $network_part);
+  }
+}
+/*echo PHP_INT_MAX;
+$val = "18446744073709551614";
+$maxUnsign64Bit ="18446744073709551615";
+if(ctype_digit($val) AND bccomp($val,$maxUnsign64Bit) !== 1){
+  echo 'is a 64 Bit number';
+};
+exit;*/
+
+if (!function_exists('decodeCTID')) {
+  function decodeCTID($ctid)
+  {
+    if (is_string($ctid))
+    {
+      if (!ctype_xdigit($ctid))
+        throw new Exception("ctid must be a hexadecimal string");
+      if (strlen($ctid) !== 16)
+        throw new Exception("ctid must be exactly 16 nibbles and start with a C");
+    } else
+      throw new Exception("ctid must be a hexadecimal string");
+  
+    if (substr($ctid, 0, 1) !== 'C')
+      throw new Exception("ctid must be exactly 16 nibbles and start with a C");
+  
+    $ledger_seq = substr($ctid, 1, 7);
+    $txn_index = substr($ctid, 8, 4);
+    $network_id = substr($ctid, 12, 4);
+    return array(
+      "ledger_seq" => hexdec($ledger_seq),
+      "txn_index" => hexdec($txn_index),
+      "network_id" => hexdec($network_id)
+    );
+  }
+}
+if (!function_exists('bchexdec')) {
+  /**
+   * hexdec but suppported uint64 numbers
+   */
+  function bchexdec(string $hex): string
+  {
+    $dec = 0;
+    $len = strlen($hex);
+    for ($i = 1; $i <= $len; $i++) {
+      $dec = bcadd((string)$dec, bcmul(strval(hexdec($hex[$i - 1])), bcpow('16', strval($len - $i))));
+    }
+    return $dec;
+  }
+}
+if (!function_exists('bcdechex')) {
+  /**
+   * dechex but suppported uint64 numbers
+   */
+  function bcdechex(string $dec): string
+  {
+    $last = bcmod($dec, 16);
+    $remain = bcdiv(bcsub($dec, $last), 16);
+    if($remain == 0) {
+      $r = dechex($last);
+    } else {
+      $r = bcdechex($remain).dechex($last);
+    }
+    return \strtoupper($r);
+  }
+}
+//https://github.com/protocolbuffers/protobuf/pull/14552/files
+/*
+var_dump('C01673490000535A');
+$test = \bchexdec('C01673490000535A');
+var_dump($test);
+$test2 = \bcdechex($test);
+var_dump($test2);
+exit;
+*/

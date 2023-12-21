@@ -27,8 +27,10 @@ return new class extends Migration
       //$table->id();
       $table->uuid('id')->primary(); 
       $table->char('hook',64)->comment('Hook Hash (index)');
-      $table->char('h',64)->comment('Transaction hash');
-      $table->unsignedInteger('l')->comment('LedgerIndex at which transaction was executed');
+      $table->unsignedBigInteger('ctid')->comment('Transaction CTID');
+      //$table->char('h',64)->comment('Transaction hash');
+      //$table->unsignedInteger('l')->comment('LedgerIndex at which transaction was executed');
+      //$table->unsignedSmallInteger('li')->comment('TransactionIndex at which transaction was executed');
       $table->dateTimeTz('t',0)->comment('Transaction Timestamp');
       $table->string('r',50)->comment('Transaction Initiator rAddress');
       $table->string('txtype',50)->comment('Transaction type name');

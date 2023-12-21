@@ -16,6 +16,7 @@ return new class extends Migration
                 $table->engine = 'InnoDB';
             $table->id();
             $table->char('subject',10)->unique(); //10 chars string
+            $table->unsignedBigInteger('value_uint64')->default(0); //integer storage
             $table->integer('value_int')->default(0); //integer storage
             #$table->string('value_string',100); //100 char storage
         });

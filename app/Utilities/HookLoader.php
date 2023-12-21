@@ -16,25 +16,31 @@ class HookLoader
    */
   public static function getOrCreate(
     string $hook,
-    string $txid,
+    //string $txid,
     string $owner,
-    int $l_from,
+    //int $l_from,
+    //int $li_from,
+    string $ctid,
     string $hookon,
     array $params,
     string $namespace
     ): BHook
   {
-    $HookModel = self::get($hook,$l_from);
+    $HookModel = self::get($hook,$ctid);
   
     if(!$HookModel)
     {
       $HookModel = new BHook([
         'hook' => $hook,
-        'txid' => $txid,
+        //'txid' => $txid,
         'owner' => $owner, //address
-        'l_from' => $l_from,
-        'l_to' => 0, //0 = not deleted
-        'txid_last' => null,
+        'ctid_from' => \bchexdec($ctid), //uint64
+        'ctid_to' => 0,
+        //'l_from' => $l_from,
+        //'li_from' => $li_from,
+        //'l_to' => 0, //0 = not deleted
+        //'li_to' => 0, //0 - reserved to be filled when destroyed
+        //'txid_last' => null,
         'hookon' => $hookon,
         'params' => $params,
         'namespace' => $namespace,
@@ -60,26 +66,32 @@ class HookLoader
    */
   public static function getForUpdateOrCreate(
     string $hook,
-    string $txid,
+    //string $txid,
     string $owner,
-    int $l_from,
+    ///int $l_from,
+    //int $li_from,
+    string $ctid,
     string $hookon,
     array $params,
     string $namespace
   ): BHook
   {
     DB::beginTransaction();
-    $HookModel = self::get($hook,$l_from,true);
+    $HookModel = self::get($hook,$ctid,true);
     
     if(!$HookModel)
     {
       $HookModel = new BHook([
         'hook' => $hook,
-        'txid' => $txid,
+        //'txid' => $txid,
         'owner' => $owner, //address
-        'l_from' => $l_from,
-        'l_to' => 0, //0 = not deleted yet
-        'txid_last' => null,
+        'ctid_from' => \bchexdec($ctid), //uint64
+        'ctid_to' => 0,
+        //'l_from' => $l_from,
+        //'li_from' => $li_from,
+        //'l_to' => 0, //0 = not deleted yet
+        //'li_to' => 0, //0 - reserved to be filled when destroyed
+        //'txid_last' => null,
         'hookon' => $hookon,
         'params' => $params,
         'namespace' => $namespace,
@@ -99,7 +111,7 @@ class HookLoader
     }
     DB::commit();
 
-    Cache::tags(['hook'.$hook])->delete('dhook:'.$hook.'_'.$l_from);
+    Cache::tags(['hook'.$hook])->delete('dhook:'.$hook.'_'.$ctid);
 
     return $HookModel;
   }
@@ -108,15 +120,16 @@ class HookLoader
    * Gets BHook from cache or database.
    * @return ?BHook
    */
-  public static function get(string $hook, int $l_from, bool $lockforupdate = false): ?BHook
+  public static function get(string $hook, string $ctid, bool $lockforupdate = false): ?BHook
   {
     //$HookArray = Cache::get('dhook:'.$hook.'_'.$l_from);
-    $HookArray = Cache::tags(['hook'.$hook])->get('dhook:'.$hook.'_'.$l_from);
+    $HookArray = Cache::tags(['hook'.$hook])->get('dhook:'.$hook.'_'.$ctid);
+    
     if($HookArray == null) {
-      $HookModel = BHook::repo_find($hook,$l_from,$lockforupdate);
+      $HookModel = BHook::repo_find($hook,$ctid,$lockforupdate);
       if(!$HookModel)
         return null;
-      Cache::tags(['hook'.$hook])->put('dhook:'.$hook.'_'.$l_from, $HookModel->toArray(), 86400); //86400 seconds = 24 hours
+      Cache::tags(['hook'.$hook])->put('dhook:'.$hook.'_'.$ctid, $HookModel->toArray(), 86400); //86400 seconds = 24 hours
     } else {
       $HookModel = BHook::hydrate([$HookArray])->first();
     }
@@ -133,20 +146,32 @@ class HookLoader
     return $hooks;
   }
 
-  public static function getClosestByHash(string $hook, int $ledger_index): ?BHook
+  public static function getClosestByHash(string $hook, string $ctid): ?BHook
   {
+    //$ctid64 = bchexdec($ctid);
+    $ctid64BN = \Brick\Math\BigInteger::of(bchexdec($ctid));
     $hooks = self::getByHash($hook);
     $hookDef = null;
     
     foreach($hooks as $h) {
-      if($h->l_to == 0) {
+
+      $fromBN = \Brick\Math\BigInteger::of($h->ctid_from);
+      
+      if($h->ctid_to == 0) {
+
         
-        if($h->l_from <= $ledger_index) { //140531 <= 141767
+        //dd($hooks,$ctid64,$BN);
+        
+        if($fromBN->isLessThanOrEqualTo($ctid64BN)) {
+        //if($h->l_from <= $ledger_index) { //140531 <= 141767
           $hookDef = $h;
           break;
         }
       } else {
-        if($h->l_from <= $ledger_index && $h->l_to >= $ledger_index) {
+        $toBN = \Brick\Math\BigInteger::of($h->ctid_to);
+
+        if($fromBN->isLessThanOrEqualTo($ctid64BN) && $toBN->isGreaterThanOrEqualTo($ctid64BN)) {
+        //if($h->l_from <= $ledger_index && $h->l_to >= $ledger_index) {
           $hookDef = $h;
           break;
         }
@@ -155,17 +180,17 @@ class HookLoader
     return $hookDef;
   }
 
-  public static function getTransactionLastByAccountAction(string $hook, string $account, int $hookaction): ?BHookTransaction
+  /*public static function getTransactionLastByAccountAction(string $hook, string $account, int $hookaction): ?BHookTransaction
   {
     return BHookTransaction::repo_fetch_last_by_account_action($hook,$account,$hookaction);
-  }
+  }*/
 
   /**
    * Fetches transaction from hook_transactions table
    * @return Collection (or paginator?)
    */
-  public static function getTransactionsTODO(string $hook): Collection
+  /*public static function getTransactionsTODO(string $hook): Collection
   {
 
-  }
+  }*/
 }

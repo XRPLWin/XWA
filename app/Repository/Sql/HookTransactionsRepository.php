@@ -12,7 +12,7 @@ class HookTransactionsRepository extends Repository
   public static function fetch(?array $select, array $AND, array $orderBy, int $limit = 1, int $offset = 0)
   {
     if($select === null)
-      $select = ['id','hook','h','l','t','r','txtype','tcode','hookaction','hookresult'];
+      $select = ['id','hook','ctid','t','r','hookaction','txtype','hookresult','tcode'];
 
     $r = DB::table('hook_transactions')
       ->select($select)
@@ -33,15 +33,12 @@ class HookTransactionsRepository extends Repository
         } else {
           $r = $r->where($v[0],$v[1]);
         }
-        
       } else {
         throw new \Exception('Invalid AND parameters');
       }
       unset($c);
     }
-    //dd($r);
     $r = $r->get();
-
     if(!$r->count()) return null;
     return $r->toArray();
   }

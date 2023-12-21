@@ -10,6 +10,7 @@
     },
     "require": {
         "php": "^8.0.2",
+        "ext-bcmath": "*",
         "brick/math": "^0.10.2",
         "guzzlehttp/guzzle": "^7.2",
         "halaxa/json-machine": "^1.1",

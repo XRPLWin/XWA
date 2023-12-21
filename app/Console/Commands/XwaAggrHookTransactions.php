@@ -40,7 +40,7 @@ class XwaAggrHookTransactions extends Command
   /**
    * How much transactions to process per job?
    */
-  private int $_limit = 10000; //1000
+  private int $_limit = 1000; //1000
 
   public function handle()
   {
@@ -57,31 +57,33 @@ class XwaAggrHookTransactions extends Command
       $this->error('Nothing synced yet');
       return self::FAILURE;
     }
-    $last_synced_ledger_index = $synctracker->last_l;
-    $last_processed_ledger_index = Tracker::getInt('aggrhooktx',0);
-    
+    $last_synced_ctid_uint64 = bchexdec(encodeCTID($synctracker->last_l,0,config('xrpl.'.config('xrpl.net').'.networkid')));
+
+    //$last_synced_ledger_index = $synctracker->last_l;
+    //$last_processed_ledger_index = Tracker::getInt('aggrhooktx',0);
+    $last_processed_ctid_uint64 = Tracker::getUInt64('aggrhooktx',0);
+
     //$select = []; //todo and put below to first param
     //DB::connection()->enableQueryLog();
     $txs = BHookTransaction::repo_fetch(null,[
-        ['l','>',$last_processed_ledger_index], //0
-        ['l','<=',$last_synced_ledger_index] //10
-      ],['l','asc'],$this->_limit,0); //limit 1000
-    //$this->info(\json_encode(DB::getQueryLog(),JSON_PRETTY_PRINT));
-    //exit;
+        ['ctid','>',$last_processed_ctid_uint64],
+        ['ctid','<=',$last_synced_ctid_uint64]
+      ],['ctid','asc'],$this->_limit,0); //limit 1000
+    //$this->info(\json_encode(DB::getQueryLog(),JSON_PRETTY_PRINT));exit;
 
     //Reject last ledger index:
     if($txs->count()) {
-      $reject_l = $txs->last()->l; //we reject last 'l' due to possible incomplete dataset, it will be fetched next time in full
+      $reject_ctid = $txs->last()->ctid; //we reject last 'ctid' due to possible incomplete dataset, it will be fetched next time in full
 
       #DB::connection()->enableQueryLog();
       DB::beginTransaction();
       $i = 0;
       //$prevtx = null;
       foreach($txs as $tx) {
-        if($txs->count() == $this->_limit && $tx->l == $reject_l) break; //last l we do not process this batch if dataset is full
+        if($txs->count() == $this->_limit && $tx->ctid == $reject_ctid) break; //last ctid we do not process this batch if dataset is full
         $this->handleUninstalledHooks($tx);
         $this->aggrTx($tx);
-        $last_processed_ledger_index = $tx->l;
+        $last_processed_ctid_uint64 = $tx->ctid;
         //$prevtx = $tx;
         $i++;
       }
@@ -91,8 +93,8 @@ class XwaAggrHookTransactions extends Command
       foreach($this->_mem_hookmodels as $hm) {
         $hm->save();
       }
-      $this->info('Processed '.$i.' hook transactions last li: '.$last_processed_ledger_index);
-      Tracker::saveInt('aggrhooktx',$last_processed_ledger_index);
+      $this->info('Processed '.$i.' hook transactions last ctid: '.$last_processed_ctid_uint64);
+      Tracker::saveUInt64('aggrhooktx',$last_processed_ctid_uint64);
       DB::commit();
     }
     return self::SUCCESS;
@@ -114,13 +116,15 @@ class XwaAggrHookTransactions extends Command
         ['hook',$tx->hook],
         ['r',$tx->r],
         ['hookaction', [3,34]],
-        ['l','<=',$tx->l], //<= because ledger 6074486 (install and uninstall on same ledger)
+        //['l','<=',$tx->l], //<= because ledger 6074486 (install and uninstall on same ledger)
+        ['ctid','<=',$tx->ctid],
         ['tcode','tesSUCCESS']
       ], //AND
-      ['l','desc'], //sort
+      ['ctid','desc'], //sort
       1, //limit
       0 //offset
     );
+    
 
     if(!$prev->count())
       throw new \Exception('Prev hook record not found for '.$tx->hook.' acc '.$tx->r);
@@ -138,17 +142,17 @@ class XwaAggrHookTransactions extends Command
    */
   private function aggrTx(BHookTransaction $tx): void
   {
-    $hookDef = $this->_getHookModel($tx->hook,$tx->l);
+    $hookDef = $this->_getHookModel($tx->hook,$tx->ctid);
     if(!$hookDef)
-      throw new \Exception('Unable to find hook definiton in aggrTx '.$tx->hook.' li:'.$tx->l);
+      throw new \Exception('Unable to find hook definiton in aggrTx '.$tx->hook.' ctid:'.$tx->ctid);
 
-    $metric = MetricHook::where('hook',$tx->hook)->where('l',$hookDef->l_from)->whereDay('day', $tx->t)->first();
+    $metric = MetricHook::where('hook',$tx->hook)->where('hook_ctid',$hookDef->ctid_from)->whereDay('day', $tx->t)->first();
     
     if(!$metric)
     {
       $metric = new MetricHook;
       $metric->hook = $tx->hook;
-      $metric->l = $hookDef->l_from; //hook version
+      $metric->hook_ctid = $hookDef->ctid_from; //hook version
       $metric->day = $tx->t;
     }
 
@@ -181,19 +185,32 @@ class XwaAggrHookTransactions extends Command
    */
   private function postProcessMetric()
   {
-    $metrics = MetricHook::select('id','hook','l','day')->where('is_processed', false)->orderBy('id','asc')->limit(1000)->get();
+
+    //test:
+    //php artisan xwa:continuoussyncproc 1471304 1471305
+    //php artisan xwa:aggrhooktransactions
+
+    
+    $metrics = MetricHook::select('id','hook','hook_ctid','day','num_active_installs','num_installs','num_uninstalls','num_exec','num_exec_accepts','num_exec_rollbacks','num_exec_other')
+      ->where('is_processed', false)
+      ->orderBy('id','asc')
+      ->limit(1000)
+      ->get();
+    
     foreach($metrics as $metric)
     {
-      $hookDef = $this->_getHookModel($metric->hook,$metric->l);
-      if(!$hookDef)
-        throw new \Exception('Unable to find hook definiton in postProcessMetric '.$metric->hook.' li:'.$metric->l);
+      
+      //$hookDef = $this->_getHookModel($metric->hook,$metric->l);
+      //if(!$hookDef)
+      //  throw new \Exception('Unable to find hook definiton in postProcessMetric '.$metric->hook.' li:'.$metric->l);
       //Count all rows where hookaction = 3 (install) but not 34 (install and uninstall)
       $countInstalls = BHookTransaction::repo_count(
         [
           ['hook',$metric->hook],
+          ['ctid','>=',$metric->hook_ctid],
+          //['l','>=',$metric->l],
           ['hookaction',[3,34]],
           ['tcode','tesSUCCESS'],
-          ['l','>=',$metric->l],
           //todo end range l from hookDef 
           //['t','>=',$Ymd.' 00:00:00'],
           ['t','<=',$metric->day->format('Y-m-d').' 23:59:59'],
@@ -202,16 +219,23 @@ class XwaAggrHookTransactions extends Command
       $countUninstalls = BHookTransaction::repo_count(
         [
           ['hook',$metric->hook],
+          ['ctid','>=',$metric->hook_ctid],
+          //['l','>=',$metric->l],
           ['hookaction',4],
           ['tcode','tesSUCCESS'],
-          ['l','>=',$metric->l],
           //['t','>=',$Ymd.' 00:00:00'],
           ['t','<=',$metric->day->format('Y-m-d').' 23:59:59'],
         ]
       );
 
+      //note: if hook was destroyed and then created in same ledger, we might have extra count above
+      //sample ledger of this is on xahau testnet: 1471305
+
       $numActive = $countInstalls - $countUninstalls;
-      
+      /*if($numActive < 0) { //hook version breakpoint detected (in same LI)
+        $numActive = $metric->num_active_installs;
+        $metric->num_active_installs = $numActive;
+      }*/
       $metric->num_active_installs = $numActive;
       $metric->is_processed = true;
       $metric->save();
@@ -225,8 +249,28 @@ class XwaAggrHookTransactions extends Command
   }
 
 
-  private function _getHookModel($hook, $ledger_index): ?BHook
+  private function _getHookModel(string $hook, string $ctid64): ?BHook
   {
+    $ctid = bcdechex($ctid64);
+
+    $test = HookLoader::getClosestByHash($hook,$ctid);
+    //dd($ctid64,$test);
+    Cache::tags(['hook'.$hook])->flush();
+    
+    $k = $hook.'_'.$ctid;
+    if(!isset($this->_mem_hookmodels[$k])) {
+      $hm = HookLoader::get($hook,$ctid,false);
+      if(!$hm) {
+        //load closest to the provided ledger_index
+        $hm = HookLoader::getClosestByHash($hook,$ctid);
+      }
+      $this->_mem_hookmodels[$k] = $hm;
+    }
+    return $this->_mem_hookmodels[$k];
+
+
+    /*
+
     Cache::tags(['hook'.$hook])->flush();
     
     $k = $hook.'_'.$ledger_index;
@@ -239,5 +283,6 @@ class XwaAggrHookTransactions extends Command
       $this->_mem_hookmodels[$k] = $hm;
     }
     return $this->_mem_hookmodels[$k];
+    */
   }
 }
