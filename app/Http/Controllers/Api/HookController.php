@@ -9,6 +9,7 @@ use App\Utilities\HookLoader;
 use App\Models\BHook;
 use App\Models\BHookTransaction;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class HookController extends Controller
@@ -29,8 +30,15 @@ class HookController extends Controller
     //decorate results
     $r = [];
     foreach($hooks as $k => $hook) {
-      $r[$k] = $hook;
-      $r[$k]['is_active'] = $hook->is_active;
+      $rArr = $hook->toArray();
+      $rArr['ctid_from'] = bcdechex($rArr['ctid_from']);
+      $rArr['is_active'] = $hook->is_active;
+      if($rArr['ctid_to'] != '0')
+        $rArr['ctid_to'] = bcdechex($rArr['ctid_to']);
+      else
+      $rArr['ctid_to'] = null;
+      $r[] = $rArr;
+      unset($rArr);
     }
     return response()->json($r)
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
@@ -65,10 +73,12 @@ class HookController extends Controller
 
     $validator = Validator::make([
       'page' => $page,
-      //owner
-      //has_params
+      'owner' => $request->input('owner'),
+      'has_params' => $request->input('has_params'),
     ], [
-      'page' => 'required|int'
+      'page' => 'required|int',
+      'owner' => ['nullable',new \App\Rules\XRPAddress],
+      'has_params' => 'nullable|boolean'
     ]);
 
     if($validator->fails())
@@ -93,10 +103,19 @@ class HookController extends Controller
         break;
     }
 
-    //todo other filters here
-
-
-
+    # Owner
+    if($request->input('owner')) {
+      $AND[] = ['owner',$request->input('owner')];
+    }
+    # Has params
+    $param_has_params = $request->input('has_params');
+    if($param_has_params !== null) {
+      if($param_has_params == true) {
+        $AND[] = [DB::raw('json_length(params)'),'!=',0];
+      } else {
+        $AND[] = [DB::raw('json_length(params)'),'=',0];
+      }
+    }
 
     # Order
     switch($order) {
@@ -144,15 +163,25 @@ class HookController extends Controller
 
     $r = [];
     $i = 0;
-    foreach($hooks as $tx) {
+    foreach($hooks as $h) {
       $i++;
       if($i == $limit+1) break; //remove last row (+1) from resultset
-      $rArr = $tx->toArray();
+      $rArr = $h->toArray();
+
+      $rArr['ctid_from'] = bcdechex($rArr['ctid_from']);
+      $rArr['is_active'] = $h->is_active;
+      if($rArr['ctid_to'] != '0')
+        $rArr['ctid_to'] = bcdechex($rArr['ctid_to']);
+      else
+        $rArr['ctid_to'] = null;
       $r[] = $rArr;
       unset($rArr);
     }
 
     $pages = (int)\ceil($num_results / $limit);
+    if($pages < 1) $pages = 1;
+    if($page > $pages)
+      abort(404);
     
     return response()->json([
       'success' => true,
@@ -265,6 +294,9 @@ class HookController extends Controller
     }
 
     $pages = (int)\ceil($num_results / $limit);
+    if($pages < 1) $pages = 1;
+    if($page > $pages)
+      abort(404);
 
     return response()->json([
       'success' => true,
@@ -365,6 +397,9 @@ class HookController extends Controller
     }
 
     $pages = (int)\ceil($num_results / $limit);
+    if($pages < 1) $pages = 1;
+    if($page > $pages)
+      abort(404);
     
     return response()->json([
       'success' => true,
