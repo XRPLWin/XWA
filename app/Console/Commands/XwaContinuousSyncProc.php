@@ -634,13 +634,13 @@ class XwaContinuousSyncProc extends Command
           isset($createit_found->HookNamespace)?$createit_found->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
         );
         if($storedHook === null) {
-          throw new \Exception('Tried to flag hook '.$_hook.' (ctid:'.$ctid.') as destroyed but stored hook not found');
+          throw new \Exception('Tried to flag hook '.$_hook.' (ctid:'.$ctid.'; ctid64'.bchexdec($ctid).') as destroyed but stored hook not found');
         }
           
         
         if($storedHook->ctid_to != 0) {
-          if($storedHook->ctid_to != $ctid) {
-            throw new \Exception('Tried to flag hook '.$_hook.' (ctid:'.$ctid.') as destroyed but hook already flagged as destroyed in different ctid:'.$storedHook->ctid_to);
+          if($storedHook->ctid_to != bchexdec($ctid)) {
+            throw new \Exception('Tried to flag hook '.$_hook.' (ctid:'.$ctid.'; ctid64:'.bchexdec($ctid).') as destroyed but hook already flagged as destroyed in different ctid64:'.$storedHook->ctid_to);
           }
           //else retried operation, do nothing
         } else {
