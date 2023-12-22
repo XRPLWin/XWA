@@ -122,7 +122,7 @@ class BHook extends B
 
   public function getIsActiveAttribute()
   {
-    return $this->l_to === 0;
+    return $this->ctid_to == "0";
   }
 
 }

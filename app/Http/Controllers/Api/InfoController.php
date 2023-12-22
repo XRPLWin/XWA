@@ -38,7 +38,7 @@ class InfoController extends Controller
       ],
       [
         'action' => 'Search and filter account transactions and events (todo add missing type to pattern below)',
-        'route' => '/v1/account/search/{address}?from=DD-MM-YYYY&to=DD-MM-YYYY[&dir=in|out][&st=Int32][&dt=Int32][&cp=rCounterpartyAccount]',
+        'route' => '/v1/account/search/{address}?from=YYYY-MM-DD&to=YYYY-MM-DD[&dir=in|out][&st=Int32][&dt=Int32][&cp=rCounterpartyAccount]',
         'method' => 'GET'
       ],
       [
@@ -53,6 +53,12 @@ class InfoController extends Controller
         'method' => 'GET',
         'example' => config('app.url').'/v1/oracle/USD',
       ],
+      /*[
+        'action' => 'Get specific hook information',
+        'route' => '/v1/hooks/active',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77',
+      ],*/
       [
         'action' => 'Get specific hook information',
         'route' => '/v1/hook/{hookhash}',
@@ -60,10 +66,16 @@ class InfoController extends Controller
         'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77',
       ],
       [
-        'action' => 'Get recent transactions affected by a hook',
+        'action' => 'Get transactions affected by a hook',
         'route' => '/v1/hook/{hookhash}/transactions?[params=TODO]',
         'method' => 'GET',
         'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77/transactions',
+      ],
+      [
+        'action' => 'Get daily hook metrics',
+        'route' => '/v1/hook/{hookhash}/metrics/{from}/{to}',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77/metrics/2023-10-20/2023-11-20',
       ],
 
     ];
