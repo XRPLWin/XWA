@@ -640,7 +640,7 @@ class XwaContinuousSyncProc extends Command
         
         if($storedHook->ctid_to != 0) {
           if($storedHook->ctid_to != $ctid) {
-            throw new \Exception('Tried to flag hook '.$_hook.' (ctid:'.$ctid.') as destroyed but hook already flagged as destroyed in different ctid:'.$storedHook->l_ctid);
+            throw new \Exception('Tried to flag hook '.$_hook.' (ctid:'.$ctid.') as destroyed but hook already flagged as destroyed in different ctid:'.$storedHook->ctid_to);
           }
           //else retried operation, do nothing
         } else {
