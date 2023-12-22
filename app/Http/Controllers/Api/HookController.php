@@ -6,8 +6,9 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\MetricHook;
 use App\Utilities\HookLoader;
-use Illuminate\Support\Facades\Validator;
+use App\Models\BHook;
 use App\Models\BHookTransaction;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
 class HookController extends Controller
@@ -32,6 +33,136 @@ class HookController extends Controller
       $r[$k]['is_active'] = $hook->is_active;
     }
     return response()->json($r)
+      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
+    ;
+  }
+
+  /**
+   * List of all hooks
+   * @param string $filter all|active|inactive
+   * @param string $order created|activeinstalls|installs|uninstalls|executions|accepts|rollbacks|other
+   * @param string $direction asc|desc
+   * @param Request $request - [owner? => (string)rAccount, has_params? = (boolean)BOOL]
+   */
+  public function hooks(string $filter, string $order, string $direction, Request $request)
+  {
+    $ttl = 300; //5 mins todo if hook version is completed long cache time
+    $httpttl = 300; //5 mins todo if hook version is completed long cache time
+
+    $allowed_filters = ['all','active','inactive'];
+    $allowed_orders = ['created','activeinstalls','installs','uninstalls','executions','accepts','rollbacks','other'];
+    if(!in_array($filter,$allowed_filters))
+      abort(422, 'Input filter parameter is invalid');
+
+    if(!in_array($order,$allowed_orders))
+      abort(422, 'Input order parameter is invalid');
+
+    $limit = 200;
+    $page = (int)$request->input('page');
+    if(!$page) $page = 1;
+    $hasMorePages = false;
+
+    $validator = Validator::make([
+      'page' => $page,
+      //owner
+      //has_params
+    ], [
+      'page' => 'required|int'
+    ]);
+
+    if($validator->fails())
+      abort(422, 'Input parameters are invalid');
+
+    $offset = 0;
+    if($page > 1)
+      $offset = $limit * ($page - 1);
+
+    
+    $AND = [];
+    $ORDER = 'ctid_from'; //created (default)
+
+    
+    # Filter
+    switch($filter) {
+      case 'active':
+        $AND[] = ['ctid_to','0'];
+        break;
+      case 'inactive':
+        $AND[] = ['ctid_to','!=','0'];
+        break;
+    }
+
+    //todo other filters here
+
+
+
+
+    # Order
+    switch($order) {
+      case 'created':
+        $ORDER = 'ctid_from';
+        break;
+      case 'activeinstalls':
+        $ORDER = 'stat_active_installs';
+        break;
+      case 'installs':
+        $ORDER = 'stat_installs';
+        break;
+      case 'uninstalls':
+        $ORDER = 'stat_uninstalls';
+        break;
+      case 'executions':
+        $ORDER = 'stat_exec';
+        break;
+      case 'accepts':
+        $ORDER = 'stat_exec_accepts';
+        break;
+      case 'rollbacks':
+        $ORDER = 'stat_exec_rollbacks';
+        break;
+      case 'other':
+        $ORDER = 'stat_exec_other';
+        break;
+    }
+
+    $direction = $direction == 'desc' ? 'desc':'asc';
+
+    # The Query:
+    $hooks = BHook::repo_fetch(null,$AND,[$ORDER,$direction],($limit+1),$offset);
+    if($page == 1) {
+      $num_results = $hooks->count();
+      if($num_results == $limit+1) {
+        //has more pages, do count
+        $num_results = BHook::repo_count($AND);
+      }
+    } else {
+      $num_results = BHook::repo_count($AND);
+    }
+
+    if($hooks->count() == $limit+1) $hasMorePages = true;
+
+    $r = [];
+    $i = 0;
+    foreach($hooks as $tx) {
+      $i++;
+      if($i == $limit+1) break; //remove last row (+1) from resultset
+      $rArr = $tx->toArray();
+      $r[] = $rArr;
+      unset($rArr);
+    }
+
+    $pages = (int)\ceil($num_results / $limit);
+    
+    return response()->json([
+      'success' => true,
+      'page' => $page,
+      'pages' => $pages,
+      'more' => $hasMorePages,
+      'total' => $num_results,
+      //'info' => '',
+      'data' => $r,
+    ])
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
     ;
@@ -133,10 +264,7 @@ class HookController extends Controller
       //$r[] = $m->toArray();
     }
 
-    $pages = 1;
-    if($hasMorePages) {
-      $pages = (int)\ceil($num_results / $limit);
-    }
+    $pages = (int)\ceil($num_results / $limit);
 
     return response()->json([
       'success' => true,
@@ -236,10 +364,7 @@ class HookController extends Controller
       unset($rArr);
     }
 
-    $pages = 1;
-    if($hasMorePages) {
-      $pages = (int)\ceil($num_results / $limit);
-    }
+    $pages = (int)\ceil($num_results / $limit);
     
     return response()->json([
       'success' => true,

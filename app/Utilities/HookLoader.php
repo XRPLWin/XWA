@@ -140,11 +140,11 @@ class HookLoader
 
   /**
    * Gets BHook from cache or database.
-   * @return ?BHook
+   * @return Collection
    */
-  public static function getByHash(string $hook): Collection
+  public static function getByHash(string $hookhash): Collection
   {
-    $hooks = BHook::repo_fetch($hook);
+    $hooks = BHook::repo_fetch(null,[['hook', $hookhash]],['ctid_from','desc'],1000,0);
     return $hooks;
   }
 

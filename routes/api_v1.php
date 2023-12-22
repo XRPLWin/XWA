@@ -28,6 +28,7 @@ Route::get('/account/search/{address}', [App\Http\Controllers\Api\AccountControl
 //});
 
 Route::get('/oracle/USD', [App\Http\Controllers\Api\OracleController::class, 'usd'])->name('oracle.usd');
+Route::get('/hooks/{filter}/{order}/{direction}', [App\Http\Controllers\Api\HookController::class, 'hooks'])->name('hooks');
 Route::get('/hook/{hookhash}', [App\Http\Controllers\Api\HookController::class, 'hook'])->name('hook');
 Route::get('/hook/{hookhash}/{hookctid}/transactions', [App\Http\Controllers\Api\HookController::class, 'hook_transactions'])->name('hook.transactions');
 Route::get('/hook/{hookhash}/{hookctid}/metrics/{from}/{to}', [App\Http\Controllers\Api\HookController::class, 'hook_metrics'])->name('hook.metrics');

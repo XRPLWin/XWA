@@ -53,6 +53,13 @@ class InfoController extends Controller
         'method' => 'GET',
         'example' => config('app.url').'/v1/oracle/USD',
       ],
+      
+      [
+        'action' => 'Get list of hooks',
+        'route' => '/v1/hooks/{filter}/{order}/{direction}',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/hooks/all/created/desc',
+      ],
       /*[
         'action' => 'Get specific hook information',
         'route' => '/v1/hooks/active',

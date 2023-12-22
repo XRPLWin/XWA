@@ -16,11 +16,6 @@ class HooksRepository extends Repository
     return self::fetchOne('hook = """'.$hookhash.'""" and ctid_from = '.bchexdec($ctid));
   }
 
-  public static function fetchByHookHash(string $hookhash): array
-  {
-    return self::fetchMany('hook = """'.$hookhash.'""" ORDER BY ctid_from desc');
-  }
-
   /**
    * Fetches many records from database.
    * @return ?array
@@ -60,6 +55,16 @@ class HooksRepository extends Repository
       break;
     }
     return $r;
+  }
+
+  public static function fetch(?array $select, array $AND, array $orderBy, int $limit = 1, int $offset = 0)
+  {
+    throw new \Exception('Not implemented');
+  }
+
+  public static function count(array $AND)
+  {
+    throw new \Exception('Not implemented');
   }
 
   /**

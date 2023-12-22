@@ -80,43 +80,8 @@ class BHookTransaction extends B
     return self::hydrate($data);
   }
 
-  public static function repo_count(array $AND)
+  public static function repo_count(array $AND): int
   {
     return self::getRepository()::count($AND);
   }
-
-  /**
-   * NOT USED YET ANYWHERE! but works
-   */
-  /*public static function repo_fetch_last_by_account_action(string $hook, string $account, int $hookaction): ?BHookTransaction
-  {
-    $dataset = self::getRepository()::fetch(null,['hook' => $hook, 'r' => $account,'hookaction' => $hookaction],['l','desc'],1,0); //li sorting?
-
-    if($dataset === null)
-      return null;
-
-    return self::hydrate($dataset)->first();
-  }*/
-
-  /*public static function repo_find(string $hook, int $l_from, bool $lockforupdate = false): ?self
-  {
-    $data = self::getRepository()::fetchByHookHashAndLedgerFrom($hook,$l_from,$lockforupdate);
-    
-    if($data === null)
-      return null;
-
-    return self::hydrate([$data])->first();
-  }
-
-  public static function repo_fetch(string $hook): Collection
-  {
-    $data = self::getRepository()::fetchByHookHash($hook);
-    return self::hydrate($data);
-  }
-
-  public function getIsActiveAttribute()
-  {
-    return $this->l_to === 0;
-  }*/
-
 }

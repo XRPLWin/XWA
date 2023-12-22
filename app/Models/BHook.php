@@ -114,10 +114,25 @@ class BHook extends B
     return self::hydrate([$data])->first();
   }
 
-  public static function repo_fetch(string $hook): Collection
+  /*public static function repo_fetch(string $hook): Collection
   {
     $data = self::getRepository()::fetchByHookHash($hook);
     return self::hydrate($data);
+  }*/
+
+  public static function repo_fetch(?array $select, array $AND, array $orderBy, int $limit = 1, int $offset = 0): Collection
+  {
+    $data = self::getRepository()::fetch($select,$AND,$orderBy,$limit,$offset);
+
+    if($data === null)
+      return collect();
+
+    return self::hydrate($data);
+  }
+
+  public static function repo_count(array $AND): int
+  {
+    return self::getRepository()::count($AND);
   }
 
   public function getIsActiveAttribute()
