@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MetricHook;
 use App\Utilities\HookLoader;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
+use App\Models\BHookTransaction;
 use Carbon\Carbon;
 
 class HookController extends Controller
@@ -42,24 +42,29 @@ class HookController extends Controller
    * @param string $hook - hook hash
    * @param string $from - Y-m-d
    * @param string $to   - Y-m-d
+   * @test http://xlanalyzer.test/v1/hook/ACD3E29170EB82FFF9F31A067566CD15F3A328F873F34A5D9644519C33D55EB7/C00468D10000535A/metrics/2023-02-01/2023-11-20
    */
-  public function hook_metrics(string $hookhash, string $from, string $to, Request $request)
+  public function hook_metrics(string $hookhash, string $hookctid, string $from, string $to, Request $request)
   {
     $ttl = 600; //10 mins
     $httpttl = 600; //10 mins
 
-    $limit = 3; //1000
+    $limit = 1000; //1000
     $page = (int)$request->input('page');
     if(!$page) $page = 1;
     $hasMorePages = false;
 
+    //dd(bcdechex($hookctid));
+
     $validator = Validator::make([
       'hookhash' => $hookhash,
+      'hookctid' => $hookctid,
       'from' => $from,
       'to' => $to,
       'page' => $page,
     ], [
       'hookhash' => [new \App\Rules\Hook],
+      'hookctid' => [new \App\Rules\CTID],
       'from' => 'required|date_format:Y-m-d',
       'to' => 'required|date_format:Y-m-d',
       'page' => 'required|int'
@@ -70,6 +75,7 @@ class HookController extends Controller
 
     $from = Carbon::createFromFormat('Y-m-d', $from);
     $to = Carbon::createFromFormat('Y-m-d', $to);
+    $hookctid64 = bchexdec($hookctid);
 
     if(!$from->isBefore($to))
       abort(422, 'To date can not be before From date');
@@ -84,6 +90,8 @@ class HookController extends Controller
     # The Query:
     $metrics = MetricHook::where('hook',$hookhash)
       ->whereDate('day','>=',$from)->whereDate('day','<=',$to)
+      ->where('hook_ctid',$hookctid64)
+      ->where('is_processed',true)
       ->limit($limit+1)
       ->offset($offset)
       ->orderBy('day','asc')
@@ -95,11 +103,15 @@ class HookController extends Controller
         //has more pages, do count
         $num_results = MetricHook::where('hook',$hookhash)
           ->whereDate('day','>=',$from)->whereDate('day','<=',$to)
+          ->where('hook_ctid',$hookctid64)
+          ->where('is_processed',true)
           ->count();
       }
     } else {
       $num_results = MetricHook::where('hook',$hookhash)
           ->whereDate('day','>=',$from)->whereDate('day','<=',$to)
+          ->where('hook_ctid',$hookctid64)
+          ->where('is_processed',true)
           ->count();
     }
 
@@ -110,7 +122,15 @@ class HookController extends Controller
     foreach($metrics as $m) {
       $i++;
       if($i == $limit+1) break; //remove last row (+1) from resultset
-      $r[] = $m->toArray();
+      $rArr = $m->toArray();
+      unset($rArr['id']);
+      unset($rArr['hook']);
+      unset($rArr['hook_ctid']);
+      unset($rArr['ctid_last']);
+      unset($rArr['is_processed']);
+      $rArr['day'] = $m->day->format('Y-m-d');
+      $r[] = $rArr;
+      //$r[] = $m->toArray();
     }
 
     $pages = 1;
@@ -125,6 +145,8 @@ class HookController extends Controller
       'more' => $hasMorePages,
       'total' => $num_results,
       //'info' => '',
+      'hook' => $hookhash,
+      'hook_ctid' => $hookctid,
       'data' => $r,
     ])
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
@@ -132,19 +154,106 @@ class HookController extends Controller
     ;
   }
 
-  public function hook_transactions(string $hookhash)
+  /**
+   * Get list of hook transactions by hook specific version
+   * @param string $hookhash - Hook Hash
+   * @param string $hookctid - Hook ctid when it was created (version selector)
+   * @test http://xlanalyzer.test/v1/hook/012FD32EDF56C26C0C8919E432E15A5F242CC1B31AF814D464891C560465613B/C01B3B0C0000535A/transactions
+   */
+  public function hook_transactions(string $hookhash, string $hookctid, Request $request)
   {
-    $validator = Validator::make(['hook' => $hookhash], ['hook' => ['string',  new \App\Rules\Hook]]);
-    if($validator->fails())
-      abort(422, 'Hook format is invalid');
-
-    abort(403,'Under construction');
-    //todo validate $hook input
-
     $ttl = 300; //5 mins todo if hook version is completed long cache time
     $httpttl = 300; //5 mins todo if hook version is completed long cache time
 
-    $searchparams = [];
-    HookLoader::getTransactions($hook,$searchparams); //todo
+    $limit = 200; //200
+    $page = (int)$request->input('page');
+    if(!$page) $page = 1;
+    $hasMorePages = false;
+
+    $validator = Validator::make([
+      'hookhash' => $hookhash,
+      'hookctid' => $hookctid,
+      'page' => $page,
+    ], [
+      'hookhash' => [new \App\Rules\Hook],
+      'hookctid' => [new \App\Rules\CTID],
+      'page' => 'required|int'
+    ]);
+
+    if($validator->fails())
+      abort(422, 'Input parameters are invalid');
+    
+    $offset = 0;
+    if($page > 1)
+      $offset = $limit * ($page - 1);
+
+
+    //dd(bchexdec($hookctid));
+    $hook = HookLoader::get($hookhash,$hookctid);
+    if(!$hook)
+      abort(404); //hook does not exist with that hash and exact ctid
+    if($hook->ctid_to != '0') {
+      //Destroyed hook, long cache
+      $ttl = 604800; //7 days
+      $httpttl = 604800; //7 days
+    }
+    //dd($hook,$hook->ctid_to,$ttl);
+
+    $AND = [
+      ['hook',$hookhash],
+      ['ctid','>=',$hook->ctid_from],
+    ];
+
+    if($hook->ctid_to != '0') {
+      $AND[] = ['ctid','<=',$hook->ctid_to];
+    }
+
+    # The Query:
+    $txs = BHookTransaction::repo_fetch(null,$AND,['ctid','asc'],($limit+1),$offset);
+
+    if($page == 1) {
+      $num_results = $txs->count();
+      if($num_results == $limit+1) {
+        //has more pages, do count
+        $num_results = BHookTransaction::repo_count($AND);
+      }
+    } else {
+      $num_results = BHookTransaction::repo_count($AND);
+    }
+
+    if($txs->count() == $limit+1) $hasMorePages = true;
+
+    $r = [];
+    $i = 0;
+    foreach($txs as $tx) {
+      $i++;
+      if($i == $limit+1) break; //remove last row (+1) from resultset
+      $rArr = $tx->toArray();
+      unset($rArr['id']);
+      unset($rArr['hook']);
+      $rArr['ctid'] = bcdechex($rArr['ctid']);
+      $r[] = $rArr;
+      unset($rArr);
+    }
+
+    $pages = 1;
+    if($hasMorePages) {
+      $pages = (int)\ceil($num_results / $limit);
+    }
+    
+    return response()->json([
+      'success' => true,
+      'page' => $page,
+      'pages' => $pages,
+      'more' => $hasMorePages,
+      'total' => $num_results,
+      //'info' => '',
+      'hook' => $hook->hook,
+      'hook_ctid' => bchexdec($hook->ctid_from),
+      'data' => $r,
+    ])
+      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
+    ;
   }
 }
