@@ -93,6 +93,7 @@ class XwaAggrHookTransactions extends Command
         $hm->save();
       }
       $this->info('Processed '.$i.' hook transactions last ctid: '.$last_processed_ctid_uint64);
+      $this->info('CTID info: '.\json_encode(decodeCTID(bcdechex($last_processed_ctid_uint64))));
       Tracker::saveUInt64('aggrhooktx',$last_processed_ctid_uint64);
       DB::commit();
     }
