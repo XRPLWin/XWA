@@ -44,6 +44,8 @@ class XwaAggrHookTransactions extends Command
 
   public function handle()
   {
+    //DB::beginTransaction();$this->postProcessMetric();exit;
+
     if(config('xwa.sync_type') != 'continuous') {
       $this->info('Continous sync is not enabled, this feature in unavailable');
       return Command::SUCCESS;
@@ -143,20 +145,24 @@ class XwaAggrHookTransactions extends Command
    */
   private function aggrTx(BHookTransaction $tx): void
   {
-    //$this->info($tx->hook.'-'.$tx->ctid);
     $hookDef = $this->_getHookModel($tx->hook,$tx->ctid);
     if(!$hookDef)
       throw new \Exception('Unable to find hook definiton in aggrTx '.$tx->hook.' ctid:'.$tx->ctid);
 
-    //$this->info($hookDef->ctid_from.' ('.$tx->ctid.')');
-    $metric = MetricHook::where('hook',$tx->hook)->where('hook_ctid',$hookDef->ctid_from)->whereDay('day', $tx->t)->first();
-    
+    $metric = MetricHook::where('hook',$tx->hook)->where('hook_ctid',$hookDef->ctid_from)->whereDate('day', $tx->t)->first(); //2023-02-06
+  
     if(!$metric)
     {
       $metric = new MetricHook;
       $metric->hook = $tx->hook;
       $metric->hook_ctid = $hookDef->ctid_from; //hook version
       $metric->day = $tx->t;
+      $metric->num_installs = 0;
+      $metric->num_uninstalls = 0;
+      $metric->num_exec = 0;
+      $metric->num_exec_accepts = 0;
+      $metric->num_exec_rollbacks = 0;
+      $metric->num_exec_other = 0;
     }
 
     $metric->ctid_last = $tx->ctid;
@@ -196,9 +202,9 @@ class XwaAggrHookTransactions extends Command
     //php artisan xwa:aggrhooktransactions
 
     
-    $metrics = MetricHook::select('id','hook','hook_ctid','ctid_last','day','num_active_installs','num_installs','num_uninstalls','num_exec','num_exec_accepts','num_exec_rollbacks','num_exec_other')
+    $metrics = MetricHook::select('id','hook','hook_ctid','ctid_last','day','num_active_installs','num_installs','num_uninstalls','num_exec','num_exec_accepts','num_exec_rollbacks','num_exec_other','is_processed')
       ->where('is_processed', false)
-      ->orderBy('hook_ctid','asc')
+      ->orderBy('ctid_last','asc')
       ->limit(($this->_limit+1))
       ->get();
     foreach($metrics as $metric)
@@ -210,9 +216,9 @@ class XwaAggrHookTransactions extends Command
       $ANDTEMPLATE = [
         ['hook',$metric->hook],
         ['ctid','>=',$metric->hook_ctid],
-        ['ctid','<=',$metric->ctid_last],
-        //['t','<=',$metric->day->format('Y-m-d').' 23:59:59'],
+        ['ctid','<=',$metric->ctid_last]
       ];
+
       //Count all rows where hookaction = 3 (install) OR 34 (install and uninstall)
       $AND = $ANDTEMPLATE;
       $AND[] = ['hookaction',[3,34]];
@@ -235,20 +241,30 @@ class XwaAggrHookTransactions extends Command
       $metric->num_active_installs = $numActive;
       $metric->is_processed = true;
       $metric->save();
-      unset($count);
+
 
       $hookDef->stat_active_installs = $numActive;
       //Part 2 - update Hook hooks.stat_* fields by counting daily metrics (easier for DB!)
-      $hookDef->stat_installs   = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_installs');
-      $hookDef->stat_uninstalls = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_uninstalls');
-      $hookDef->stat_exec       = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_exec');
+      $hookDef->stat_installs   = (int)MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->where('ctid_last','<=',$metric->ctid_last)->sum('num_installs');
+      $hookDef->stat_uninstalls = (int)MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->where('ctid_last','<=',$metric->ctid_last)->sum('num_uninstalls');
+      $hookDef->stat_exec       = (int)MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->where('ctid_last','<=',$metric->ctid_last)->sum('num_exec');
       
-      $hookDef->stat_exec_accepts   = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_exec_accepts');
-      $hookDef->stat_exec_rollbacks = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_exec_rollbacks');
-      $hookDef->stat_exec_other     = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_exec_other');
+      $hookDef->stat_exec_accepts   = (int)MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->where('ctid_last','<=',$metric->ctid_last)->sum('num_exec_accepts');
+      $hookDef->stat_exec_rollbacks = (int)MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->where('ctid_last','<=',$metric->ctid_last)->sum('num_exec_rollbacks');
+      $hookDef->stat_exec_other     = (int)MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->where('ctid_last','<=',$metric->ctid_last)->sum('num_exec_other');
 
       if(($hookDef->stat_installs - $hookDef->stat_uninstalls) != $hookDef->stat_active_installs) {
-        throw new \Exception('Sanity check ERROR in postProcessMetric: Something does not add up');
+     
+        /*dd(
+          $hookDef,
+          $metric,
+          MetricHook::select('num_installs')->where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->where('ctid_last','<=',$metric->ctid_last)->get()->pluck('num_installs')->toArray(),
+          $hookDef->stat_installs,'c'.$countInstalls,
+          MetricHook::select('num_uninstalls')->where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->where('ctid_last','<=',$metric->ctid_last)->get()->pluck('num_uninstalls')->toArray(),
+          $hookDef->stat_uninstalls,'c'.$countUninstalls,
+          $numActive
+        );*/
+        throw new \Exception('Sanity check ERROR in postProcessMetric: Something does not add up in '.$hookDef->hook.' '.$hookDef->ctid_from);
       }
 
       $hookDef->save();
