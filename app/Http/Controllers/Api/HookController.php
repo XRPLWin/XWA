@@ -169,11 +169,17 @@ class HookController extends Controller
       $rArr = $h->toArray();
 
       $rArr['ctid_from'] = bcdechex($rArr['ctid_from']);
+      
       $rArr['is_active'] = $h->is_active;
-      if($rArr['ctid_to'] != '0')
+      $rArr['li_from'] = decodeCTID($rArr['ctid_from'])['ledger_index'];
+      $rArr['li_to'] = null;
+      if($rArr['ctid_to'] != '0') {
         $rArr['ctid_to'] = bcdechex($rArr['ctid_to']);
+        $rArr['li_to'] = decodeCTID($rArr['ctid_to'])['ledger_index'];
+      }
       else
         $rArr['ctid_to'] = null;
+      
       $r[] = $rArr;
       unset($rArr);
     }
