@@ -198,16 +198,15 @@ class XwaAggrHookTransactions extends Command
     
     $metrics = MetricHook::select('id','hook','hook_ctid','ctid_last','day','num_active_installs','num_installs','num_uninstalls','num_exec','num_exec_accepts','num_exec_rollbacks','num_exec_other')
       ->where('is_processed', false)
-      ->orderBy('id','asc')
+      ->orderBy('hook_ctid','asc')
       ->limit(($this->_limit+1))
       ->get();
     foreach($metrics as $metric)
     {
-      
       $hookDef = $this->_getHookModel($metric->hook,$metric->hook_ctid);
       if(!$hookDef)
         throw new \Exception('Unable to find hook definiton in postProcessMetric '.$metric->hook.' ctid64:'.$metric->hook_ctid);
-
+      
       $ANDTEMPLATE = [
         ['hook',$metric->hook],
         ['ctid','>=',$metric->hook_ctid],
@@ -225,13 +224,13 @@ class XwaAggrHookTransactions extends Command
       $AND2[] = ['hookaction',4];
       $countUninstalls = BHookTransaction::repo_count($AND2);
       unset($AND2);
-
+      
       //note: if hook was destroyed and then created in same ledger, we might have extra count above
       //sample ledger of this is on xahau testnet: 1471305
 
       $numActive = $countInstalls - $countUninstalls;
       if($numActive < 0) { //hook version breakpoint detected (in same LI)
-        throw new \Exception('ERROR in postProcessMetric: Install and uninstall diff is less than 0');
+        throw new \Exception('Sanity check ERROR in postProcessMetric: Install and uninstall diff is less than 0');
       }
       $metric->num_active_installs = $numActive;
       $metric->is_processed = true;
@@ -247,6 +246,11 @@ class XwaAggrHookTransactions extends Command
       $hookDef->stat_exec_accepts   = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_exec_accepts');
       $hookDef->stat_exec_rollbacks = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_exec_rollbacks');
       $hookDef->stat_exec_other     = MetricHook::where('hook',$metric->hook)->where('hook_ctid',$metric->hook_ctid)->sum('num_exec_other');
+
+      if(($hookDef->stat_installs - $hookDef->stat_uninstalls) != $hookDef->stat_active_installs) {
+        throw new \Exception('Sanity check ERROR in postProcessMetric: Something does not add up');
+      }
+
       $hookDef->save();
       
     }
@@ -257,7 +261,7 @@ class XwaAggrHookTransactions extends Command
   {
     $ctid = bcdechex($ctid64);
 
-    $test = HookLoader::getClosestByHash($hook,$ctid);
+    //$test = HookLoader::getClosestByHash($hook,$ctid);
     //dd($ctid64,$test);
     Cache::tags(['hook'.$hook])->flush();
     
