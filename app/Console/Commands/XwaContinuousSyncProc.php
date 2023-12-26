@@ -555,7 +555,7 @@ class XwaContinuousSyncProc extends Command
           $model->r = $r;
           $model->txtype = $txtype;
           $model->tcode = $tcode;
-          $model->hookaction = 0;
+          $model->hookaction = 0; //executed
           $model->hookresult = (int)$he->HookExecution->HookResult;
           $batch->queueModelChanges($model);
           unset($model);
