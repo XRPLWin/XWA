@@ -20,7 +20,7 @@ class HookController extends Controller
    */
   public function hook(string $hookhash)
   {
-    $validator = Validator::make(['hook' => $hookhash], ['hook' => ['string',  new \App\Rules\Hook]]);
+    $validator = Validator::make(['hook' => $hookhash], ['hook' => ['string',  new \App\Rules\Hook, 'alpha_num:ascii']]);
     if($validator->fails())
       abort(422, 'Hook format is invalid');
 
@@ -74,10 +74,12 @@ class HookController extends Controller
     $validator = Validator::make([
       'page' => $page,
       'owner' => $request->input('owner'),
+      'hook' => $request->input('hook'),
       'has_params' => $request->input('has_params'),
     ], [
       'page' => 'required|int',
-      'owner' => ['nullable',new \App\Rules\XRPAddress],
+      'owner' => ['nullable',new \App\Rules\XRPAddress, 'alpha_num:ascii'],
+      'hook' => ['nullable',new \App\Rules\Hook, 'alpha_num:ascii'],
       'has_params' => 'nullable|boolean'
     ]);
 
@@ -107,6 +109,11 @@ class HookController extends Controller
     if($request->input('owner')) {
       $AND[] = ['owner',$request->input('owner')];
     }
+    # Hook
+    if($request->input('hook')) {
+      $AND[] = ['hook',$request->input('hook')];
+    }
+    
     # Has params
     $param_has_params = $request->input('has_params');
     if($param_has_params !== null) {
@@ -229,8 +236,8 @@ class HookController extends Controller
       'to' => $to,
       'page' => $page,
     ], [
-      'hookhash' => [new \App\Rules\Hook],
-      'hookctid' => [new \App\Rules\CTID],
+      'hookhash' => [new \App\Rules\Hook, 'alpha_num:ascii'],
+      'hookctid' => [new \App\Rules\CTID, 'alpha_num:ascii'],
       'from' => 'required|date_format:Y-m-d',
       'to' => 'required|date_format:Y-m-d',
       'page' => 'required|int'
@@ -341,8 +348,8 @@ class HookController extends Controller
       'hookctid' => $hookctid,
       'page' => $page,
     ], [
-      'hookhash' => [new \App\Rules\Hook],
-      'hookctid' => [new \App\Rules\CTID],
+      'hookhash' => [new \App\Rules\Hook, 'alpha_num:ascii'],
+      'hookctid' => [new \App\Rules\CTID, 'alpha_num:ascii'],
       'page' => 'required|int'
     ]);
 
