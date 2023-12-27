@@ -352,12 +352,14 @@ class HookController extends Controller
       'page' => $page,
       'account' => $request->input('account'),
       'type' => $request->input('type'),
+      'hookaction' => $request->input('hookaction'),
     ], [
       'hookhash' => [new \App\Rules\Hook, 'alpha_num:ascii'],
       'hookctid' => [new \App\Rules\CTID, 'alpha_num:ascii'],
       'page' => 'required|int',
       'account' => ['nullable',new \App\Rules\XRPAddress, 'alpha_num:ascii'],
-      'type' => 'nullable|string|alpha_num:ascii'
+      'type' => 'nullable|string|alpha_num:ascii',
+      'hookaction' => 'nullable|int'
     ]);
 
     if($validator->fails())
@@ -398,9 +400,18 @@ class HookController extends Controller
       $AND[] = ['txtype',$request->input('type')];
     }
 
+    # Hookaction
+    if($request->input('hookaction') !== null) {
+      $_tmp = (int)$request->input('hookaction');
+      if($_tmp == 3 || $_tmp == 34)
+        $AND[] = ['hookaction',['3','34']];
+      else
+        $AND[] = ['hookaction',(string)$_tmp];
+    }
+    
     # The Query:
     $txs = BHookTransaction::repo_fetch(null,$AND,['ctid',$direction],($limit+1),$offset);
-
+    //dd($txs);
     if($page == 1) {
       $num_results = $txs->count();
       if($num_results == $limit+1) {
@@ -415,6 +426,7 @@ class HookController extends Controller
 
     $r = [];
     $i = 0;
+    
     foreach($txs as $tx) {
       $i++;
       if($i == $limit+1) break; //remove last row (+1) from resultset

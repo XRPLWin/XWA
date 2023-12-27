@@ -19,7 +19,7 @@ class HookTransactionsRepository extends Repository
       ->orderBy($orderBy[0],$orderBy[1])
       ->limit($limit)
       ->offset($offset);
-    
+      
     //AND conditions:
     foreach($AND as $v) {
       $c = count($v);
