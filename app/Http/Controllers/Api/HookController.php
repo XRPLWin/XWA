@@ -351,11 +351,13 @@ class HookController extends Controller
       'hookctid' => $hookctid,
       'page' => $page,
       'account' => $request->input('account'),
+      'type' => $request->input('type'),
     ], [
       'hookhash' => [new \App\Rules\Hook, 'alpha_num:ascii'],
       'hookctid' => [new \App\Rules\CTID, 'alpha_num:ascii'],
       'page' => 'required|int',
       'account' => ['nullable',new \App\Rules\XRPAddress, 'alpha_num:ascii'],
+      'type' => 'nullable|string|alpha_num:ascii'
     ]);
 
     if($validator->fails())
@@ -389,6 +391,11 @@ class HookController extends Controller
     # Account
     if($request->input('account')) {
       $AND[] = ['r',$request->input('account')];
+    }
+
+    # Type
+    if($request->input('type')) {
+      $AND[] = ['txtype',$request->input('type')];
     }
 
     # The Query:
