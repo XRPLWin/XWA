@@ -74,9 +74,15 @@ class InfoController extends Controller
       ],
       [
         'action' => 'Get transactions affected by a hook',
-        'route' => '/v1/hook/{hookhash}/{hookctid}/transactions/{order}/{direction}?[params=TODO]',
+        'route' => '/v1/hook/{hookhash}/{hookctid}/transactions/{order}/{direction}?[page=Int32][&account=rAddress][&type=String][&hookaction=0-5]',
         'method' => 'GET',
         'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77/C00468D10000535A/transactions/created/desc', //todo gov hook sample
+      ],
+      [
+        'action' => 'Get hook currently active accounts',
+        'route' => '/v1/hook/{hookhash}/{hookctid}/active-accounts/{order}/{direction}?[page=Int32][&account=rAddress]',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77/C00468D10000535A/active-accounts/installed/desc', //todo gov hook sample
       ],
       [
         'action' => 'Get daily hook metrics (UTC dates)',

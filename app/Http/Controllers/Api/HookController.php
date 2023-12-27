@@ -53,7 +53,7 @@ class HookController extends Controller
    * @param string $direction asc|desc
    * @param Request $request - [owner? => (string)rAccount, has_params? = (boolean)BOOL]
    */
-  public function hooks(string $filter, string $order, string $direction, Request $request)
+  public function hooks(Request $request, string $filter, string $order, string $direction)
   {
     $ttl = 300; //5 mins todo if hook version is completed long cache time
     $httpttl = 300; //5 mins todo if hook version is completed long cache time
@@ -217,7 +217,7 @@ class HookController extends Controller
    * @param string $to   - Y-m-d
    * @test http://xlanalyzer.test/v1/hook/ACD3E29170EB82FFF9F31A067566CD15F3A328F873F34A5D9644519C33D55EB7/C00468D10000535A/metrics/2023-02-01/2023-11-20
    */
-  public function hook_metrics(string $hookhash, string $hookctid, string $from, string $to, Request $request)
+  public function hook_metrics(Request $request, string $hookhash, string $hookctid, string $from, string $to) 
   {
     $ttl = 600; //10 mins
     $httpttl = 600; //10 mins
@@ -327,13 +327,117 @@ class HookController extends Controller
     ;
   }
 
+
+  public function hook_active_accounts(Request $request, string $hookhash, string $hookctid, string $direction)
+  {
+    $ttl = 300; //5 mins todo if hook version is completed long cache time
+    $httpttl = 300; //5 mins todo if hook version is completed long cache time
+    $limit = 200; //200
+    $page = (int)$request->input('page');
+    if(!$page) $page = 1;
+    $hasMorePages = false;
+
+    $validator = Validator::make([
+      'hookhash' => $hookhash,
+      'hookctid' => $hookctid,
+      'page' => $page,
+      'account' => $request->input('account'),
+    ], [
+      'hookhash' => [new \App\Rules\Hook, 'alpha_num:ascii'],
+      'hookctid' => [new \App\Rules\CTID, 'alpha_num:ascii'],
+      'page' => 'required|int',
+      'account' => ['nullable',new \App\Rules\XRPAddress, 'alpha_num:ascii'],
+    ]);
+
+    if($validator->fails())
+      abort(422, 'Input parameters are invalid');
+
+    $offset = 0;
+    if($page > 1)
+      $offset = $limit * ($page - 1);
+
+    $hook = HookLoader::get($hookhash,$hookctid);
+    if(!$hook)
+      abort(404); //hook does not exist with that hash and exact ctid
+    if($hook->ctid_to != '0') {
+      //Destroyed hook, long cache
+      $ttl = 604800; //7 days
+      $httpttl = 604800; //7 days
+    }
+
+    $AND = [
+      ['hook',$hookhash],
+      ['ctid','>=',$hook->ctid_from],
+      ['hookaction', '3']
+    ];
+
+    if($hook->ctid_to != '0') {
+      $AND[] = ['ctid','<=',$hook->ctid_to];
+    }
+
+    # Owner
+    if($request->input('account')) {
+      $AND[] = ['r',$request->input('account')];
+    }
+
+    $direction = $direction == 'desc' ? 'desc':'asc';
+
+    $txs = BHookTransaction::repo_fetch(['ctid','t','r'],$AND,['ctid',$direction],($limit+1),$offset);
+
+    if($page == 1) {
+      $num_results = $txs->count();
+      if($num_results == $limit+1) {
+        //has more pages, do count
+        $num_results = BHookTransaction::repo_count($AND);
+      }
+    } else {
+      $num_results = BHookTransaction::repo_count($AND);
+    }
+
+    if($txs->count() == $limit+1) $hasMorePages = true;
+
+    $r = [];
+    $i = 0;
+    
+    foreach($txs as $tx) {
+      $i++;
+      if($i == $limit+1) break; //remove last row (+1) from resultset
+      $r[] = [
+        'ctid' => bcdechex($tx->ctid),
+        'r' => $tx->r,
+        't' => $tx->t
+      ];
+    }
+
+    $pages = (int)\ceil($num_results / $limit);
+    if($pages < 1) $pages = 1;
+    if($page > $pages)
+      abort(404);
+
+    return response()->json([
+      'success' => true,
+      'page' => $page,
+      'pages' => $pages,
+      'more' => $hasMorePages,
+      'total' => $num_results,
+      //'info' => '',
+      'hook' => $hook->hook,
+      'hook_ctid' => bchexdec($hook->ctid_from),
+      'data' => $r,
+    ])
+      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
+    ;
+
+  }
+
   /**
    * Get list of hook transactions by hook specific version
    * @param string $hookhash - Hook Hash
    * @param string $hookctid - Hook ctid when it was created (version selector)
    * @test http://xlanalyzer.test/v1/hook/012FD32EDF56C26C0C8919E432E15A5F242CC1B31AF814D464891C560465613B/C01B3B0C0000535A/transactions/created/desc
    */
-  public function hook_transactions(string $hookhash, string $hookctid, string $order, string $direction, Request $request)
+  public function hook_transactions(Request $request, string $hookhash, string $hookctid, string $order, string $direction)
   {
     $ttl = 300; //5 mins todo if hook version is completed long cache time
     $httpttl = 300; //5 mins todo if hook version is completed long cache time
@@ -408,7 +512,7 @@ class HookController extends Controller
       else
         $AND[] = ['hookaction',(string)$_tmp];
     }
-    
+
     # The Query:
     $txs = BHookTransaction::repo_fetch(null,$AND,['ctid',$direction],($limit+1),$offset);
     //dd($txs);
