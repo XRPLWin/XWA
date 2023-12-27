@@ -331,9 +331,9 @@ class HookController extends Controller
    * Get list of hook transactions by hook specific version
    * @param string $hookhash - Hook Hash
    * @param string $hookctid - Hook ctid when it was created (version selector)
-   * @test http://xlanalyzer.test/v1/hook/012FD32EDF56C26C0C8919E432E15A5F242CC1B31AF814D464891C560465613B/C01B3B0C0000535A/transactions
+   * @test http://xlanalyzer.test/v1/hook/012FD32EDF56C26C0C8919E432E15A5F242CC1B31AF814D464891C560465613B/C01B3B0C0000535A/transactions/created/desc
    */
-  public function hook_transactions(string $hookhash, string $hookctid, Request $request)
+  public function hook_transactions(string $hookhash, string $hookctid, string $order, string $direction, Request $request)
   {
     $ttl = 300; //5 mins todo if hook version is completed long cache time
     $httpttl = 300; //5 mins todo if hook version is completed long cache time
@@ -343,14 +343,19 @@ class HookController extends Controller
     if(!$page) $page = 1;
     $hasMorePages = false;
 
+    $order = 'created'; //reserved (not used yet)
+    $direction = $direction == 'desc' ? 'desc':'asc';
+
     $validator = Validator::make([
       'hookhash' => $hookhash,
       'hookctid' => $hookctid,
       'page' => $page,
+      'account' => $request->input('account'),
     ], [
       'hookhash' => [new \App\Rules\Hook, 'alpha_num:ascii'],
       'hookctid' => [new \App\Rules\CTID, 'alpha_num:ascii'],
-      'page' => 'required|int'
+      'page' => 'required|int',
+      'account' => ['nullable',new \App\Rules\XRPAddress, 'alpha_num:ascii'],
     ]);
 
     if($validator->fails())
@@ -381,8 +386,13 @@ class HookController extends Controller
       $AND[] = ['ctid','<=',$hook->ctid_to];
     }
 
+    # Account
+    if($request->input('account')) {
+      $AND[] = ['r',$request->input('account')];
+    }
+
     # The Query:
-    $txs = BHookTransaction::repo_fetch(null,$AND,['ctid','asc'],($limit+1),$offset);
+    $txs = BHookTransaction::repo_fetch(null,$AND,['ctid',$direction],($limit+1),$offset);
 
     if($page == 1) {
       $num_results = $txs->count();

@@ -43,7 +43,7 @@ class BHookTransaction extends B
     // Find accounts with active hooks hookaction=3
     // Find accounts who used hook in the past but not anymore: hookaction=34
     'hookaction',
-    'hookresult',
+    'hookresult', //0 => 'UNSET', 1 => 'WASM_ERROR',2 => 'ROLLBACK',3 => 'ACCEPT'
   ];
 
   protected $casts = [

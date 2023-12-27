@@ -74,15 +74,15 @@ class InfoController extends Controller
       ],
       [
         'action' => 'Get transactions affected by a hook',
-        'route' => '/v1/hook/{hookhash}/{hookctid}/transactions?[params=TODO]',
+        'route' => '/v1/hook/{hookhash}/{hookctid}/transactions/{order}/{direction}?[params=TODO]',
         'method' => 'GET',
-        'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77/C00468D10000535A/transactions', //todo gov hook
+        'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77/C00468D10000535A/transactions/created/desc', //todo gov hook sample
       ],
       [
-        'action' => 'Get daily hook metrics',
+        'action' => 'Get daily hook metrics (UTC dates)',
         'route' => '/v1/hook/{hookhash}/{hookctid}/metrics/{from}/{to}',
         'method' => 'GET',
-        'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77/C00468D10000535A/metrics/2023-10-20/2023-11-20', //todo gov hook
+        'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77/C00468D10000535A/metrics/2023-10-20/2023-11-20', //todo gov hook sample
       ],
 
     ];

@@ -438,9 +438,6 @@ class XwaContinuousSyncProc extends Command
         $model = new BHookTransaction;
         $model->hook = $ch;
         $model->ctid = bchexdec($ctid);
-        //$model->h = $h;
-        //$model->l = $l;
-        //$model->li = $li;
         $model->t = $t;
         $model->r = $r;
         $model->txtype = $txtype;
@@ -460,9 +457,6 @@ class XwaContinuousSyncProc extends Command
             $model = new BHookTransaction;
             $model->hook = $_hook;
             $model->ctid = bchexdec($ctid);
-            //$model->h = $h;
-            //$model->l = $l;
-            //$model->li = $li;
             $model->t = $t;
             $model->r = $account;
             $model->txtype = $txtype;
@@ -478,9 +472,6 @@ class XwaContinuousSyncProc extends Command
             $model = new BHookTransaction;
             $model->hook = $_hook;
             $model->ctid = bchexdec($ctid);
-            //$model->h = $h;
-            //$model->l = $l;
-            //$model->li = $li;
             $model->t = $t;
             $model->r = $account;
             $model->txtype = $txtype;
@@ -497,9 +488,6 @@ class XwaContinuousSyncProc extends Command
             $model = new BHookTransaction;
             $model->hook = $_hook;
             $model->ctid = bchexdec($ctid);
-            //$model->h = $h;
-            //$model->l = $l;
-            //$model->li = $li;
             $model->t = $t;
             $model->r = $account;
             $model->txtype = $txtype;
@@ -508,16 +496,6 @@ class XwaContinuousSyncProc extends Command
             $model->hookresult = 0; //no execution
             $batch->queueModelChanges($model);
             unset($model);
-
-            //Check if exists if it does update hookaction to: 34 - we wont do this here, but in seperate aggregator job
-            /*$modelInstalled = HookLoader::getTransactionLastByAccountAction($_hook,$account,3);
-            
-            if($modelInstalled) {
-              $modelInstalled->hookaction = 34;
-              $batch->queueModelChanges($modelInstalled);
-              unset($modelInstalled);
-            }*/
-            
           }
   
       }
@@ -527,9 +505,6 @@ class XwaContinuousSyncProc extends Command
         $model = new BHookTransaction;
         $model->hook = $_hook;
         $model->ctid = bchexdec($ctid);
-        //$model->h = $h;
-        //$model->l = $l;
-        //$model->li = $li;
         $model->t = $t;
         $model->r = $transaction->Account;
         $model->txtype = $txtype;
@@ -548,15 +523,13 @@ class XwaContinuousSyncProc extends Command
           $model = new BHookTransaction;
           $model->hook = $he->HookExecution->HookHash;
           $model->ctid = bchexdec($ctid);
-          //$model->h = $h;
-          //$model->l = $l;
-          //$model->li = $li;
           $model->t = $t;
           $model->r = $r;
           $model->txtype = $txtype;
           $model->tcode = $tcode;
           $model->hookaction = 0; //executed
           $model->hookresult = (int)$he->HookExecution->HookResult;
+          //todo save result string
           $batch->queueModelChanges($model);
           unset($model);
         }
