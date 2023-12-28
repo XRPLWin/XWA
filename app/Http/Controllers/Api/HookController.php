@@ -10,7 +10,9 @@ use App\Models\BHook;
 use App\Models\BHookTransaction;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 
 class HookController extends Controller
 {
@@ -222,7 +224,6 @@ class HookController extends Controller
     $ttl = 600; //10 mins
     $httpttl = 600; //10 mins
 
-    $limit = 1000; //1000
     $page = (int)$request->input('page');
     if(!$page) $page = 1;
     $hasMorePages = false;
@@ -244,83 +245,94 @@ class HookController extends Controller
     ]);
   
     if($validator->fails())
-      abort(422, 'Input parameters are invalid');
+      return response()->json(['success' => false, 'error_code' => 1, 'errors' => ['Input parameters are invalid']],422);
 
     $from = Carbon::createFromFormat('Y-m-d', $from);
     $to = Carbon::createFromFormat('Y-m-d', $to);
     $hookctid64 = bchexdec($hookctid);
 
     if(!$from->isBefore($to))
-      abort(422, 'To date can not be before From date');
+      return response()->json(['success' => false, 'error_code' => 2, 'errors' => ['To date can not be before From date']],422);
     
     if($from->isFuture() || $to->isFuture())
-      abort(422, 'From and To needs to be current date or past');
+      return response()->json(['success' => false, 'error_code' => 3, 'errors' => ['From and To needs to be current date or past date']],422);
 
-    $offset = 0;
-    if($page > 1)
-      $offset = $limit * ($page - 1);
+    if($from->diffInDays($to) > 365)
+      return response()->json(['success' => false, 'error_code' => 4, 'errors' => ['Date range too large (> 365 days)']],422);
 
+    if(!$from->isToday() && !$to->isToday()) {
+      $ttl = 604800; //7 days
+      $httpttl = 604800; //7 days
+    }
+    //if(($from->isToday() || $to->isToday()) && Cache::get('job_xwaunlreports_sync_running'))
+    //  abort(425,'Too early (resync job is running)');
+    $select = ['day','num_active_installs','num_installs','num_uninstalls','num_exec','num_exec_accepts','num_exec_rollbacks','num_exec_other'];
     # The Query:
     $metrics = MetricHook::where('hook',$hookhash)
+      ->select($select)
       ->whereDate('day','>=',$from)->whereDate('day','<=',$to)
       ->where('hook_ctid',$hookctid64)
       ->where('is_processed',true)
-      ->limit($limit+1)
-      ->offset($offset)
       ->orderBy('day','asc')
+      ->limit(365) //1 year max
       ->get();
+      //->groupBy('day');
 
-    if($page == 1) {
-      $num_results = $metrics->count();
-      if($num_results == $limit+1) {
-        //has more pages, do count
-        $num_results = MetricHook::where('hook',$hookhash)
-          ->whereDate('day','>=',$from)->whereDate('day','<=',$to)
-          ->where('hook_ctid',$hookctid64)
-          ->where('is_processed',true)
-          ->count();
-      }
-    } else {
-      $num_results = MetricHook::where('hook',$hookhash)
-          ->whereDate('day','>=',$from)->whereDate('day','<=',$to)
-          ->where('hook_ctid',$hookctid64)
-          ->where('is_processed',true)
-          ->count();
-    }
+   
+    $days = CarbonPeriod::create($from,$to);
 
-    if($metrics->count() == $limit+1) $hasMorePages = true;
-
-    $r = [];
+    $aggr = [];
     $i = 0;
-    foreach($metrics as $m) {
+    //$prevMetric = null;
+    foreach($days as $day) {
+      $ymd = $day->format('Y-m-d');
+      //$aggr[$ymd] = [];
+      $metric = $metrics->where('day',$ymd.' 00:00:00')->first();
+      if($metric === null && $i == 0) {
+        //no starting day metric, load first previous value, this is required so chart is fully filled
+        $metric = MetricHook::where('hook',$hookhash)
+          ->select($select)
+          ->whereDate('day','<',$from)
+          ->where('hook_ctid',$hookctid64)
+          ->where('is_processed',true)
+          ->orderBy('day','desc')
+          ->first();
+        if($metric === null) {
+          //No initial metric found, fake it with zero values
+          $metric = new MetricHook;
+          $metric->day = $ymd;
+          $metric->num_active_installs = 0;
+        }
+        
+        $metric->num_installs = 0;
+        $metric->num_uninstalls = 0;
+        $metric->num_exec = 0;
+        $metric->num_exec_accepts = 0;
+        $metric->num_exec_rollbacks = 0;
+        $metric->num_exec_other = 0;
+      }
+      
+      if($metric === null) {
+        //Use prev metric
+        $aggr[$ymd] = $aggr[$day->addDays(-1)->format('Y-m-d')];
+        $aggr[$ymd]['num_installs'] = 0;
+        $aggr[$ymd]['num_uninstalls'] = 0;
+        $aggr[$ymd]['num_exec'] = 0;
+        $aggr[$ymd]['num_exec_accepts'] = 0;
+        $aggr[$ymd]['num_exec_rollbacks'] = 0;
+        $aggr[$ymd]['num_exec_other'] = 0;
+      } else {
+        $aggr[$ymd] = $metric->toArray();
+        $aggr[$ymd]['day'] = $metric->day->format('Y-m-d');
+      }
       $i++;
-      if($i == $limit+1) break; //remove last row (+1) from resultset
-      $rArr = $m->toArray();
-      unset($rArr['id']);
-      unset($rArr['hook']);
-      unset($rArr['hook_ctid']);
-      unset($rArr['ctid_last']);
-      unset($rArr['is_processed']);
-      $rArr['day'] = $m->day->format('Y-m-d');
-      $r[] = $rArr;
-      //$r[] = $m->toArray();
     }
-
-    $pages = (int)\ceil($num_results / $limit);
-    if($pages < 1) $pages = 1;
-    if($page > $pages)
-      abort(404);
 
     return response()->json([
       'success' => true,
-      'page' => $page,
-      'pages' => $pages,
-      'more' => $hasMorePages,
-      'total' => $num_results,
-      //'info' => '',
       'hook' => $hookhash,
       'hook_ctid' => $hookctid,
-      'data' => $r,
+      'data' => \array_values($aggr),
     ])
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
