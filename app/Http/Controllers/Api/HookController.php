@@ -323,8 +323,8 @@ class HookController extends Controller
         $aggr[$ymd]['num_exec_other'] = 0;
       } else {
         $aggr[$ymd] = $metric->toArray();
-        $aggr[$ymd]['day'] = $metric->day->format('Y-m-d');
       }
+      $aggr[$ymd]['day'] = $ymd; //normalize
       $i++;
     }
 
