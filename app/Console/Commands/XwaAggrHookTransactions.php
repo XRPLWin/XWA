@@ -40,7 +40,7 @@ class XwaAggrHookTransactions extends Command
   /**
    * How much transactions to process per job?
    */
-  private int $_limit = 5000; //1000
+  private int $_limit = 5000; //5000
 
   public function handle()
   {
@@ -118,7 +118,7 @@ class XwaAggrHookTransactions extends Command
       [
         ['hook',$tx->hook],
         ['r',$tx->r],
-        ['hookaction', [3,34]],
+        ['hookaction', ['3','34']],
         //['l','<=',$tx->l], //<= because ledger 6074486 (install and uninstall on same ledger)
         ['ctid','<=',$tx->ctid],
         //['tcode',['tesSUCCESS']]
@@ -221,13 +221,13 @@ class XwaAggrHookTransactions extends Command
 
       //Count all rows where hookaction = 3 (install) OR 34 (install and uninstall)
       $AND = $ANDTEMPLATE;
-      $AND[] = ['hookaction',[3,34]];
+      $AND[] = ['hookaction',['3','34']];
       $countInstalls = BHookTransaction::repo_count($AND);
       unset($AND);
 
       //Count all rows where hookaction = 4 (uninstalled)
       $AND2 = $ANDTEMPLATE;
-      $AND2[] = ['hookaction',4];
+      $AND2[] = ['hookaction','4'];
       $countUninstalls = BHookTransaction::repo_count($AND2);
       unset($AND2);
       
