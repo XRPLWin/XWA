@@ -44,6 +44,7 @@ class BHookTransaction extends B
     // Find accounts who used hook in the past but not anymore: hookaction=34
     'hookaction',
     'hookresult', //0 => 'UNSET', 1 => 'WASM_ERROR',2 => 'ROLLBACK',3 => 'ACCEPT'
+    'hookreturnstring', //only filled on executed else empty ""
   ];
 
   protected $casts = [
@@ -63,6 +64,7 @@ class BHookTransaction extends B
     'tcode'       => 'STRING',
     'hookaction'  => 'INTEGER',
     'hookresult'  => 'INTEGER',
+    'hookreturnstring'  => 'STRING',
   ];
 
   protected function bqPrimaryKeyCondition(): string

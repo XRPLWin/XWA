@@ -21,6 +21,7 @@ use App\Models\Synctracker;
 #use App\Models\BHook;
 use XRPLWin\XRPLHookParser\TxHookParser;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class XwaContinuousSyncProc extends Command
 {
@@ -444,6 +445,7 @@ class XwaContinuousSyncProc extends Command
         $model->tcode = $tcode;
         $model->hookaction = 1; //created
         $model->hookresult = 0; //no execution
+        $model->hookreturnstring = '';
         $batch->queueModelChanges($model);
         unset($model);
       }
@@ -463,6 +465,7 @@ class XwaContinuousSyncProc extends Command
             $model->tcode = $tcode;
             $model->hookaction = 3; //installed (can be many accounts, we store only one row)
             $model->hookresult = 0; //no execution
+            $model->hookreturnstring = '';
             $batch->queueModelChanges($model);
             unset($model);
           }
@@ -478,6 +481,7 @@ class XwaContinuousSyncProc extends Command
             $model->tcode = $tcode;
             $model->hookaction = 5; //modified
             $model->hookresult = 0; //no execution
+            $model->hookreturnstring = '';
             $batch->queueModelChanges($model);
             unset($model);
           }
@@ -494,6 +498,7 @@ class XwaContinuousSyncProc extends Command
             $model->tcode = $tcode;
             $model->hookaction = 4; //uninstalled
             $model->hookresult = 0; //no execution
+            $model->hookreturnstring = '';
             $batch->queueModelChanges($model);
             unset($model);
           }
@@ -511,6 +516,7 @@ class XwaContinuousSyncProc extends Command
         $model->tcode = $tcode;
         $model->hookaction = 2; //destroyed
         $model->hookresult = 0; //no execution
+        $model->hookreturnstring = '';
         $batch->queueModelChanges($model);
         unset($model);
       }
@@ -529,6 +535,10 @@ class XwaContinuousSyncProc extends Command
           $model->tcode = $tcode;
           $model->hookaction = 0; //executed
           $model->hookresult = (int)$he->HookExecution->HookResult;
+          $hookreturnstring = isset($he->HookExecution->HookReturnString) ? \hex2bin($he->HookExecution->HookReturnString) : '';
+          //truncate to max 248 characters, ellipsis (...) added automatically if truncated
+          $hookreturnstring = Str::limit($hookreturnstring,248,' (...)');
+          $model->hookreturnstring = $hookreturnstring;
           //todo save result string
           $batch->queueModelChanges($model);
           unset($model);

@@ -37,6 +37,7 @@ return new class extends Migration
       $table->string('tcode',100)->comment('TransactionResult from meta');
       $table->unsignedTinyInteger('hookaction')->comment('Hook action code'); //install,uninstall etc..
       $table->unsignedTinyInteger('hookresult')->default(0)->comment('HookResult code if hook was executed');
+      $table->string('hookreturnstring',255)->comment('HookResult string if hook was executed'); //decoded human readable string or empty, truncated to 255 characters
       #$table->timestamps();
       //$table->primary(['hook', 'h']);
       $table->index(['hook']);

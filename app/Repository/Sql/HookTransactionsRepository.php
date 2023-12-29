@@ -12,7 +12,7 @@ class HookTransactionsRepository extends Repository
   public static function fetch(?array $select, array $AND, array $orderBy, int $limit = 1, int $offset = 0)
   {
     if($select === null)
-      $select = ['id','hook','ctid','t','r','hookaction','txtype','hookresult','tcode'];
+      $select = ['id','hook','ctid','t','r','txtype','tcode','hookaction','hookresult','hookreturnstring'];
 
     $r = DB::table('hook_transactions')
       ->select($select)
