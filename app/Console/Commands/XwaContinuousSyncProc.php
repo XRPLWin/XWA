@@ -537,7 +537,7 @@ class XwaContinuousSyncProc extends Command
           $model->hookresult = (int)$he->HookExecution->HookResult;
           $hookreturnstring = isset($he->HookExecution->HookReturnString) ? \hex2bin($he->HookExecution->HookReturnString) : '';
           //truncate to max 248 characters, ellipsis (...) added automatically if truncated
-          $hookreturnstring = Str::limit($hookreturnstring,248,' (...)');
+          $hookreturnstring = Str::limit(Str::ascii($hookreturnstring),248,' (...)');
           $model->hookreturnstring = $hookreturnstring;
           //todo save result string
           $batch->queueModelChanges($model);
