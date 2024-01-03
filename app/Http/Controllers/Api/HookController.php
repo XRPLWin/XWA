@@ -26,7 +26,7 @@ class HookController extends Controller
     if($validator->fails())
       abort(422, 'Hook format is invalid');
 
-    $ttl = 604800; //7 days - this should be purged
+    $ttl = 600; //604800 - 7 days - this should be purged
     $httpttl = 600; //10 mins
     $hooks = HookLoader::getByHash($hookhash);
     //decorate results
