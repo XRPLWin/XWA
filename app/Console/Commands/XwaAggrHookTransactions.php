@@ -239,7 +239,8 @@ class XwaAggrHookTransactions extends Command
         throw new \Exception('Sanity check ERROR in postProcessMetric: Install and uninstall diff is less than 0');
       }
       $metric->num_active_installs = $numActive;
-      $metric->is_processed = true;
+      if(!$metric->day->isToday())
+        $metric->is_processed = true;
       $metric->save();
 
 
