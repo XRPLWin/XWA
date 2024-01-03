@@ -70,12 +70,16 @@ if (!function_exists('transactions_db_name')) {
 if (!function_exists('transactions_shard_period')) {
   /**
    * Returns array of strings (suffixes) for transactions_db_name() generation.
+   * @param int $initialUnixTimestamp - UNIX timestamp from which to start else start from genesis
    * @return array
    */
-  function transactions_shard_period(): array
+  function transactions_shard_period(?int $initialUnixTimestamp = null): array
   {
     if(config('xwa.database_engine') == 'sql') {
-      $startdate = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
+      if($initialUnixTimestamp === null)
+        $startdate = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
+      else
+        $startdate = \Carbon\Carbon::createFromTimestamp($initialUnixTimestamp);
       $period = \Carbon\CarbonPeriod::create($startdate, '1 month', now()->addMonth());
       $r = [];
       foreach($period as $m) {

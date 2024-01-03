@@ -100,7 +100,7 @@ class BAccount extends B
     $r = Cache::get($cache_key);
 
     if($r === null) {
-
+      
       $collection = self::getRepository()::getFirstTransactionAllInfo($this->address);
       
       /*$results = self::getRepository()::query(

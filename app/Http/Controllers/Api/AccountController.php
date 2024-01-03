@@ -131,7 +131,6 @@ class AccountController extends Controller
       $acct = AccountLoader::getOrCreate($address);
     else
       $acct = AccountLoader::get($address);
-      
     if($acct) {
       $firstTxInfo = $acct->getFirstTransactionAllInfo();
       //dd($firstTxInfo);
