@@ -272,7 +272,7 @@ class HookController extends Controller
       ->select($select)
       ->whereDate('day','>=',$from)->whereDate('day','<=',$to)
       ->where('hook_ctid',$hookctid64)
-      ->where('is_processed',true)
+      //->where('is_processed',true)
       ->orderBy('day','asc')
       ->limit(365) //1 year max
       ->get();
@@ -294,7 +294,7 @@ class HookController extends Controller
           ->select($select)
           ->whereDate('day','<',$from)
           ->where('hook_ctid',$hookctid64)
-          ->where('is_processed',true)
+          //->where('is_processed',true)
           ->orderBy('day','desc')
           ->first();
         if($metric === null) {
