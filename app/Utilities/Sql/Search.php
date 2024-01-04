@@ -112,7 +112,7 @@ class Search extends \App\Utilities\Base\Search
     }
       
     
-    if(!$typesIsAll) {
+    /*if(!$typesIsAll) {
       //only specific types are requested
       $_txtypesrangeisvalid = false;
       $c2 = $c1;
@@ -133,7 +133,7 @@ class Search extends \App\Utilities\Base\Search
           'data' => []
         ];
       } 
-    }
+    }*/
     unset($c1);
     unset($c2);
 
