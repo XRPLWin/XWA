@@ -242,7 +242,9 @@ class Search extends \App\Utilities\Base\Search
     # Add all conditions
     $SQL .= $mapper->generateConditionsSQL();
     # Limit and offset, always get +1 result to see if there are more pages
-    $SQL .= ' ORDER BY t ASC LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
+    //$SQL .= ' ORDER BY t ASC LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
+    $SQL .= ' ORDER BY l ASC LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset();
+    
     //dd($mapper,$limit,$SQL);
     //dump(' LIMIT '.($limit+1).' OFFSET '.$mapper->getOffset());
 

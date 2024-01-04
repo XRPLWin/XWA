@@ -85,7 +85,7 @@ class Search extends \App\Utilities\Base\Search
       'first' => $acct->getFirstTransactionTime(),
       'first_per_types' => [],
     ];
-    
+
     if($firstTxInfo['first'] === null) {
       /*return [
         'page' => 0,
@@ -235,8 +235,9 @@ class Search extends \App\Utilities\Base\Search
     $SQL = $mapper->generateConditionsSQL($SQL);
 
     # Limit and offset, always get +1 result to see if there are more pages
-    $SQL->orderBy('t','ASC')->limit(($limit+1))->offset($mapper->getOffset());
-
+    //$SQL->orderBy('t','ASC')->limit(($limit+1))->offset($mapper->getOffset());
+    $SQL->orderBy('l','ASC')->limit(($limit+1))->offset($mapper->getOffset());
+    
     // Test start
     //DB::enableQueryLog(); // Enable query log
     //$testresult = $SQL->get();
