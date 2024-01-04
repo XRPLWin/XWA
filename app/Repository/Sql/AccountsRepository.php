@@ -39,6 +39,7 @@ class AccountsRepository extends Repository
   {
     $initialData = self::AccountsRepositoryFetchLedgerFirstTransactionAllInfoInitial($address);
     $collection = [];
+    //$initialData = null; //test
 
     //search for first info in all sharded databases:
     if(\is_array($initialData)) {
@@ -47,9 +48,28 @@ class AccountsRepository extends Repository
     }
     else
       $shards = transactions_shard_period();
- 
+
+    $TYPES = \array_keys(config('xwa.transaction_types'));
+    $TYPES_USED = \array_keys($collection);
+    $TYPES = \array_diff($TYPES,$TYPES_USED);
+    
     foreach($shards as $ym) {
-      $results = DB::table(transactions_db_name($ym))->select('xwatype',DB::raw('MIN(`t`) as t'))
+      foreach($TYPES as $_type) {
+        //echo $ym.' '.$_type.'<br>';
+        if(!isset($collection[$_type])) {
+          $row = DB::table(transactions_db_name($ym))->select('t')
+            ->where('address',$address)
+            ->where('xwatype',$_type)
+            ->orderBy('l','asc')
+            ->first();
+
+          if($row) $collection[$_type] = Carbon::parse($row->t)->format('U');
+        }
+      }
+      
+      $TYPES_USED = \array_keys($collection);
+      $TYPES = \array_diff($TYPES,$TYPES_USED);
+      /*$results = DB::table(transactions_db_name($ym))->select('xwatype',DB::raw('MIN(`t`) as t'))
         ->where('address',$address)
         ->orderBy('t','asc')
         ->groupBy('xwatype')
@@ -58,8 +78,9 @@ class AccountsRepository extends Repository
       foreach($results as $row) {
         if(!isset($collection[$row->xwatype]))
           $collection[$row->xwatype] = Carbon::parse($row->t)->format('U');
-      }
+      }*/
     }
+    //exit;
     return $collection;
 
 
