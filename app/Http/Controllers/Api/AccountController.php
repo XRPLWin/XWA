@@ -132,9 +132,13 @@ class AccountController extends Controller
     else
       $acct = AccountLoader::get($address);
     if($acct) {
-      $firstTxInfo = $acct->getFirstTransactionAllInfo();
+      $firstTxTime = $acct->getFirstTransactionTime();
+      $offset = $firstTxTime ? $firstTxTime:ripple_epoch_to_epoch(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
+      
+      //dd($offset,$firstTxTime);
+      //$firstTxInfo = $acct->getFirstTransactionAllInfo();
       //dd($firstTxInfo);
-      $offset = $firstTxInfo['first'] ? $firstTxInfo['first']:ripple_epoch_to_epoch(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
+      //$offset = $firstTxInfo['first'] ? $firstTxInfo['first']:ripple_epoch_to_epoch(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
       $r['progress_total'] = $r['progress_total'] - $offset;
       
       if(config('xwa.sync_type') == 'account') { //account
@@ -254,7 +258,7 @@ class AccountController extends Controller
       'sync_queued' => false, //bool
       'synced_info' => [
         'first' => null, //time of first transaciton
-        'first_per_types' => [],   //times of first transaction per types
+        //'first_per_types' => [],   //times of first transaction per types - deprecated
       ],
       'type' => 'normal', // normal|issuer|exchange - we have this info in summary (todo)
       'deleted' => false
@@ -274,7 +278,8 @@ class AccountController extends Controller
     }
     
     if($acct) {
-      $r['synced_info'] = $acct->getFirstTransactionAllInfo();
+      $r['synced_info']['first'] = $acct->getFirstTransactionTime();
+      //$r['synced_info'] = $acct->getFirstTransactionAllInfo();
       
 
       $account_data = app(XRPLWinApiClient::class)->api('account_info')

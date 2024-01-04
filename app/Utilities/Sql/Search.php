@@ -80,7 +80,12 @@ class Search extends \App\Utilities\Base\Search
     $mapper->addCondition('txTypes',$txTypes);
 
     # Check if current requested start date is equal or larger than first available txtype
-    $firstTxInfo = $acct->getFirstTransactionAllInfo();
+    //$firstTxInfo = $acct->getFirstTransactionAllInfo();
+    $firstTxInfo = [
+      'first' => $acct->getFirstTransactionTime(),
+      'first_per_types' => [],
+    ];
+    
     if($firstTxInfo['first'] === null) {
       /*return [
         'page' => 0,

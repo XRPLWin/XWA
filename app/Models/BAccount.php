@@ -83,19 +83,41 @@ class BAccount extends B
     return self::hydrate([$data])->first();
   }
 
+  /**
+   * @deprecated
+   */
   public static function insert(array $values): bool //todo rename to repo_insert
   {
     return AccountsRepository::insert($values);
   }
 
   /**
+   * Gets first available transaction (its timestamp) of account
+   * @return ?int
+   * @throws \Throwable on invalid rest ledger query or timeout
+   * @cached
+   */
+  public function getFirstTransactionTime(): ?int
+  {
+    $cache_key = 'daccount_fti:'.$this->address;
+    $r = Cache::get($cache_key);
+    if($r === null) {
+      $r = self::getRepository()::getFirstTransactionTime($this->address);
+      Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
+    }
+    return $r;
+  }
+
+  /**
    * Cached
-   * Syntax: SELECT xwatype,t FROM `TABLE` WHERE TRUE QUALIFY ROW_NUMBER() OVER (PARTITION BY xwatype ORDER BY t ASC) = 1
    * @return [ 'first' => UNIXTIMESTAMP, 'first_per_types' => [ <DTransaction::TYPE> =>  UNIXTIMESTAMP, ... ] ]
+   * @deprecated
    */
   public function getFirstTransactionAllInfo(): array
   {
-    $cache_key = 'daccount_fti:'.$this->address;
+    throw new \Exception('BAccount::getFirstTransactionAllInfo is deprecated');
+
+    /*$cache_key = 'daccount_fti:'.$this->address;
     
     $r = Cache::get($cache_key);
 
@@ -103,10 +125,6 @@ class BAccount extends B
       
       $collection = self::getRepository()::getFirstTransactionAllInfo($this->address);
       
-      /*$results = self::getRepository()::query(
-        'SELECT xwatype,t FROM `'.config('bigquery.project_id').'.'.config('bigquery.xwa_dataset').'.transactions` WHERE TRUE QUALIFY ROW_NUMBER() OVER (PARTITION BY xwatype ORDER BY t ASC) = 1'
-      );*/
-
       $typeList = config('xwa.transaction_types');
       $timestamp_tracker = null;
 
@@ -130,7 +148,7 @@ class BAccount extends B
       }
       Cache::put( $cache_key, $r, 2629743); //2629743 seconds = 1 month
     }
-    return $r;
+    return $r;*/
   }
 
   /**

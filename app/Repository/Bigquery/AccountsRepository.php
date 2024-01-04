@@ -16,6 +16,9 @@ class AccountsRepository extends Repository
     return self::fetchOne('address = """'.$address.'"""');
   }
 
+  /**
+   * @deprecated
+   */
   public static function getFirstTransactionAllInfo(string $address): array
   {
     //TODO check query, dodan address
@@ -28,6 +31,15 @@ class AccountsRepository extends Repository
       $collection[$row['xwatype']] = (int)$row['t']->get()->format('U');
     }
     return $collection;
+  }
+
+  /**
+   * @return ?int UNIX TIMESTAMP
+   * @throws \Throwable
+   */
+  static function getFirstTransactionTime(string $address): ?int
+  {
+    return \App\Repository\Sql\AccountsRepository::getFirstTransactionTime($address);
   }
 
   /**

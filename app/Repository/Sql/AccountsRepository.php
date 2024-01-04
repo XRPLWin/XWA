@@ -35,6 +35,9 @@ class AccountsRepository extends Repository
       return (array)$r->first();
   }
 
+  /**
+   * @deprecated
+   */
   public static function getFirstTransactionAllInfo(string $address): array
   {
     $initialData = self::AccountsRepositoryFetchLedgerFirstTransactionAllInfoInitial($address);
@@ -99,6 +102,42 @@ class AccountsRepository extends Repository
   }
 
   /**
+   * @return ?int UNIX TIMESTAMP
+   * @throws \Throwable
+   */
+  static function getFirstTransactionTime(string $address): ?int
+  {
+    $XRPLClient = app(\XRPLWin\XRPL\Client::class);
+    $account_tx = $XRPLClient->api('account_tx')
+      ->params([
+        'account' => $address,
+        //'ledger_index' => 'current',
+        'ledger_index_min' => -1, //earliest available
+        'ledger_index_max' => -1, //latest available
+        'binary' => false,
+        'forward' => true,
+        'limit' => 1, //1
+      ]);
+
+    try {
+      $account_tx->send();
+    } catch (\XRPLWin\XRPL\Exceptions\XWException $e) {
+      throw $e;
+    }
+
+    if(!$account_tx->isSuccess()) {
+      throw new \Exception('non success response in getFirstTransactionTime for '.$address);
+    }
+
+    $txs = $account_tx->finalResult();
+
+    foreach($txs as $tx) {
+      return ripple_epoch_to_carbon((int)$tx->tx->date)->format('U');
+    }
+    return null;
+  }
+
+  /**
    * AccountsRepositoryFetchLedgerFirstTransactionAllInfoInitial
    * Fetches first batch (max 400) account transactions, parses them and collects
    * first types, those are initial values for getFirstTransactionAllInfo() method.
@@ -106,6 +145,7 @@ class AccountsRepository extends Repository
    * This mehod is faster than checking ALL sharded tables.
    * If ledger transaction fails do nothing just skip to standard full shard scan.
    * @return ?array
+   * @deprecated
    */
   protected static function AccountsRepositoryFetchLedgerFirstTransactionAllInfoInitial(string $address): ?array
   {
@@ -145,7 +185,7 @@ class AccountsRepository extends Repository
       } catch (\Throwable $e) {
         throw $e;
       }
-      $parsedData = $parser->toBArray();
+      //$parsedData = $parser->toBArray();
 
       if($parser->getPersist() === false) continue;
 
@@ -161,6 +201,7 @@ class AccountsRepository extends Repository
         $TYPE = \App\Models\BTransactionActivation::TYPE;
         if(!isset($r[$TYPE])) {
           $r[$TYPE] = ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('U');
+          break;
         }
       }
     }
