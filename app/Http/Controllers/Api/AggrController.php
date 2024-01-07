@@ -83,7 +83,7 @@ class AggrController extends Controller
 
     # TopFeeTx
     if($TopFee = $aggrs->where('subject','TopFee')->first()) {
-      $r['TopFeeTx'] = ['hash' => $TopFee->identifier, 'fee' => $TopFee->value_uint64];
+      $r['TopFeeTx'] = ['hash' => $TopFee->context, 'fee' => $TopFee->value_uint64];
       unset($TopFee);
     }
 

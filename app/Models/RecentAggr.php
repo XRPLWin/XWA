@@ -27,7 +27,7 @@ class RecentAggr extends Model
     'day' => 'date',
   ];
 
-  public function changePrimaryKey(array $key): self
+  /*public function changePrimaryKey(array $key): self
   {
     $this->primaryKey = $key;
     return $this;
@@ -55,49 +55,5 @@ class RecentAggr extends Model
       'vv' => $value,
       'vc' => $context,
     ]);
-  }
-
-  /*public static function getUInt64(string $subject, string $identifier, Carbon $day, string $default = '0'): string
-  {
-    $r = self::select('value_uint64')->where('subject',$subject)
-      ->where('identifier',$identifier)
-      ->where('day',$day)
-      ->first();
-    if(!$r)
-      return $default;
-    return $r->value_uint64;
-  }
-
-  public static function saveUInt64(string $subject, string $identifier, Carbon $day, string $value_UInt64): void
-  {
-    $t = self::where('subject',$subject)
-      ->where('identifier',$identifier)
-      ->where('day',$day)
-      ->first();
-    if(!$t) {
-      $t = new self;
-      $t->subject = $subject;
-      $t->identifier = $identifier;
-      $t->day = $day;
-    }
-    $t->value_uint64 = $value_UInt64;
-    $t->save();
-  }
-
-  public static function UInt64Increment(string $subject, string $identifier, Carbon $day, int $increment = 1): void
-  {
-    $t = self::where('subject',$subject)
-      ->where('identifier',$identifier)
-      ->where('day',$day)
-      ->first();
-    if(!$t) {
-      $t = new self;
-      $t->subject = $subject;
-      $t->identifier = $identifier;
-      $t->day = $day;
-      $t->value_uint64 = 0;
-      $t->save();
-    }
-    $t->increment('value_uint64',$increment);
   }*/
 }
