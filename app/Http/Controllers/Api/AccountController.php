@@ -149,7 +149,7 @@ class AccountController extends Controller
         
         $r['synced'] = true;
 
-        if(!$acct->isSynced(10,$referenceTime)) {
+        if(!$acct->isSynced(20,$referenceTime)) {
           $ttl = 5; //5 seconds for latest
           $queuedJob = DB::table('jobs')->select('id','queue','started_at')->where('qtype_data',$acct->address)->first();
 
@@ -178,7 +178,7 @@ class AccountController extends Controller
         //$r['progress_total'] = $r['progress_total'] - $offset;
         $r['synced'] = true;
 
-        if(!$acct->isSynced(10,$referenceTime)) {
+        if(!$acct->isSynced(20,$referenceTime)) {
           $ttl = 5; //5 seconds for latest
           $r['synced'] = false;
           $r['queued'] = true;
