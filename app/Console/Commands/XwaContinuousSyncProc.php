@@ -420,7 +420,8 @@ class XwaContinuousSyncProc extends Command
     private function processRecentggr(\stdClass $tx): void
     {
       $t = ripple_epoch_to_carbon((int)$tx->date);
-      if(!($t->isToday() || $t->isYesterday())) return;
+      //if(!($t->isToday() || $t->isYesterday())) return;
+      if(!$t->isToday()) return;
 
       $type = $tx->TransactionType;
       $isSuccess = $tx->metaData->TransactionResult == 'tesSUCCESS';
@@ -473,10 +474,11 @@ class XwaContinuousSyncProc extends Command
             $new_value_uint64 = BigInteger::of($tx->Amount);
             if($new_value_uint64->isGreaterThan($value_uint64)) {
               $FoundTopPayment->value_uint64 = $tx->Amount;
+              $FoundTopPayment->context = $tx->hash;
               $FoundTopPayment->save();
             }
           } else {
-            RecentAggr::setTo('TopPayment',$tx->Account,$t,$tx->Amount,'');
+            RecentAggr::setTo('TopPayment',$tx->Account,$t,$tx->Amount,$tx->hash);
           }
           unset($TopPayments);
 

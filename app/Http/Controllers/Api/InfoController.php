@@ -42,6 +42,12 @@ class InfoController extends Controller
         'method' => 'GET'
       ],
       [
+        'action' => 'Recent aggragated information',
+        'route' => '/v1/aggr/recent',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/aggr/recent',
+      ],
+      [
         'action' => 'Get currency exchange rate',
         'route' => '/v1/currency_rates/{from}/{to}/{amount?}',
         'method' => 'GET',

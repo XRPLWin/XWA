@@ -18,7 +18,7 @@ class XwaCleanup extends Command
      *
      * @var string
      */
-    protected $description = 'Cleans up logs';
+    protected $description = 'Cleans up logs database and other, runs once per day';
 
     /**
      * Execute the console command.
@@ -28,6 +28,11 @@ class XwaCleanup extends Command
     public function handle()
     {
         //Todo remove logs
+
+        //Todo remove old data from recent_aggrs table
+
+        //Todo remove old .json cache of account information from disk
+        
         return Command::SUCCESS;
     }
 }

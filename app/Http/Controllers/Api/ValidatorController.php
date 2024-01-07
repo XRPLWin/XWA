@@ -61,6 +61,6 @@ class ValidatorController extends Controller
       'version' => $raw->version,
       'data' => \array_values($validators)
     ])->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
-      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));;
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
   }
 }
