@@ -308,7 +308,7 @@ class XwaContinuousSyncProc extends Command
         $batch->queueModelChanges($a);
       }
 
-      $recentAggrBatch = new RecentAggrBatcher;
+      /*$recentAggrBatch = new RecentAggrBatcher;
       $recentAggrBatch->begin();
       foreach($txs as $transaction) {
         # Handle aggragations
@@ -316,7 +316,7 @@ class XwaContinuousSyncProc extends Command
         # Handle aggregations end
       }
       $recentAggrBatch->execute();
-      $this->log('- Aggr DONE');
+      $this->log('- Aggr DONE');*/
 
 
       /*DB::beginTransaction();
