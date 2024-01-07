@@ -426,7 +426,7 @@ class RecentAggrBatcher
       foreach($collection as $m) {
         if($m->subject == 'TopPayment') continue;
         if($m->subject == 'TopNFTSale') continue;
-        echo 'Saving model: '.$m->subject.' '.$m->identifier.PHP_EOL;
+        //echo 'Saving model: '.$m->subject.' '.$m->identifier.PHP_EOL;
         $m->save();
       }
     }
