@@ -107,3 +107,6 @@ https://bithomp.com/explorer/rHwtsaA1X4mzVCEqcvEvk59uRLhVos9xnZ
 
  Thu Mar 01 2018 04:36:11 ( 36,908,569 )  is ledger when excrowfinish handling is fixed, potentially escrowfinish txs before that ledgers are wrong.
  Tue Aug 28 2018 08:47:31 GMT+0200 ( 41,115,569  ) is ledger when PaymentChannelFund fixed bug when recieving accounts has isin = false (now isin = true)
+
+# AGGREGATIONS - RECENTS
+

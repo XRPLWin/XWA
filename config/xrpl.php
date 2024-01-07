@@ -42,6 +42,7 @@ return [
     'server_wss' => 'xrplcluster.com',
     //'server_wss_syncer' => ['ws://185.239.60.22:20400','ws://185.239.60.22:20400'],
     'server_wss_syncer' => ['ws://185.239.60.22:20400'],
+    //'server_wss_syncer' => ['wss://xrplcluster.com'],
     //'server_wss_syncer' => ['wss://s2.ripple.com'],
     'networkid' => 0,
     //enable or disable unlreport

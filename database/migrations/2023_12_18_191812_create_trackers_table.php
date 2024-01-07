@@ -12,8 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('trackers', function (Blueprint $table) {
-            if(config('xwa.database_engine_userocksdb'))
-                $table->engine = 'InnoDB';
+            $table->engine = 'InnoDB';
             $table->id();
             $table->char('subject',10)->unique(); //10 chars string
             $table->unsignedBigInteger('value_uint64')->default(0); //integer storage

@@ -12,6 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('metric_hooks', function (Blueprint $table) {
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_bin';
+
             $table->id();
             $table->char('hook',64)->comment('Hook Hash');
             //$table->unsignedInteger('l')->comment('LedgerIndex at which this hook was created (hook version)');

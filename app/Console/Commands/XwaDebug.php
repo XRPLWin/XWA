@@ -35,6 +35,18 @@ class XwaDebug extends Command
             dd($acct,$firstTxInfo);
             return Command::SUCCESS;
         }
+
+
+        if($method == 'NFTSaleTx') {
+
+            $transaction = file_get_contents(__DIR__.'/../fixtures/'.$param.'.json');
+            $transaction = \json_decode($transaction);
+
+            $NFTSale = new \App\Utilities\Nft\NftSaleTx($transaction->result,$transaction->result->meta);
+
+            dd($NFTSale,$NFTSale->getSeller());
+            return Command::SUCCESS;
+        }
         
     }
 }
