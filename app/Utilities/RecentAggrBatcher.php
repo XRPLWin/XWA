@@ -37,18 +37,38 @@ class RecentAggrBatcher
     return $this->collections[$day->format('Y-m-d')];
   }
 
+  private function insert(Collection $models, string $subject, string $identifier, Carbon $day, int $value, string $context)
+  {
+    $m = new RecentAggr;
+    $m->subject = $subject;
+    $m->identifier = $identifier;
+    $m->day = $day->startOfDay();
+    $m->value_uint64 = (string)$value;
+    $m->context = $context;
+    $models->push($m);
+  }
+
   private function setTo(Collection $models, string $subject, string $identifier, Carbon $day, int $value, string $context)
   {
     if($m = $models->where('subject',$subject)->where('identifier',$identifier)->first()) {
       $m->value_uint64 = (string)$value;
+      $m->context = $context;
     } else {
-      $m = new RecentAggr;
+      $this->insert(
+        $models,
+        $subject,
+        $identifier,
+        $day,
+        $value,
+        $context
+      );
+      /*$m = new RecentAggr;
       $m->subject = $subject;
       $m->identifier = $identifier;
       $m->value_uint64 = (string)$value;
       $m->day = $day->startOfDay();
       $m->context = $context;
-      $models->push($m);
+      $models->push($m);*/
     }
   }
 
@@ -120,9 +140,8 @@ class RecentAggrBatcher
             $FoundTopPayment->context = $tx->hash;
           }
         } else {
-          $this->setTo($models,'TopPayment',$tx->Account,$t,$tx->Amount,$tx->hash);
+          $this->insert($models,'TopPayment',$tx->Account,$t,$tx->Amount,$tx->hash);
         }
-        //echo 'A'.rand(1,9).PHP_EOL;
       }
     }
 
@@ -143,10 +162,21 @@ class RecentAggrBatcher
     //Sum fee for day - eg burned native currency
     $this->incrementInt($models,'FeeSum','',$t,$tx->Fee);
 
-    //Issuer trustline adds
+    //Issuer trustline adds (skips trustline modifications)
     if($type == 'TrustSet' && $isSuccess) {
-      if($tx->LimitAmount->value != '0')
-        $this->incrementInt($models,'TLAdds',$tx->LimitAmount->issuer.':'.$tx->LimitAmount->currency,$t,1);
+      if($tx->LimitAmount->value != '0') {
+        //if ripple state object was created then this is new trustline addition:
+        if(isset($tx->metaData->AffectedNodes)) {
+          foreach($tx->metaData->AffectedNodes as $AffectedNode) {
+            if(isset($AffectedNode->CreatedNode)) {
+              if(isset($AffectedNode->CreatedNode->LedgerEntryType) && $AffectedNode->CreatedNode->LedgerEntryType == 'RippleState') {
+                $this->incrementInt($models,'TLAdds',$tx->LimitAmount->issuer.':'.$tx->LimitAmount->currency,$t,1);
+                break;
+              }
+            }
+          }
+        }
+      }
     }
 
     //NFT tokens minted
