@@ -282,10 +282,6 @@ class RecentAggrBatcher
       }
     }
 
-    //Cleanup
-    //TODO
-
-
     DB::commit();
   }
 }
