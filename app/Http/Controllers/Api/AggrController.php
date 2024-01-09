@@ -30,7 +30,9 @@ class AggrController extends Controller
       'FeeSum' => 0,
       'TopFeeTx' => ['hash' => null, 'fee' => 0],
       'TrustlineAddCounts' => [],
+      'TrustlineRemoveCounts' => [],
       'NFTMintedCount' => 0,
+      'NFTBurnedCount' => 0,
       'NFTMintedByAccountCounts' => [],
       'NFTSalesBySeller' => [],
       'NFTSalesByBroker' => [],
@@ -96,10 +98,25 @@ class AggrController extends Controller
       $r['TrustlineAddCounts'][] = ['issuer' => $ex[0], 'currency' => $ex[1], 'count' => (int)$v->value_uint64];
     }
 
+    # TrustlineRemoveCounts (stop after 50)
+    $i = 0;
+    foreach($aggrs->where('subject','TLRemoves') as $v) {
+      $i++;
+      if($i > 50) break;
+      $ex = \explode(':',$v->identifier);
+      $r['TrustlineRemoveCounts'][] = ['issuer' => $ex[0], 'currency' => $ex[1], 'count' => (int)$v->value_uint64];
+    }
+
     # NFTMintedCount
     if($NFTMints = $aggrs->where('subject','NFTMints')->first()) {
       $r['NFTMintedCount'] = (int)$NFTMints->value_uint64;
       unset($NFTMints);
+    }
+
+    # NFTBurnedCount
+    if($NFTBurns = $aggrs->where('subject','NFTBurns')->first()) {
+      $r['NFTBurnedCount'] = (int)$NFTBurns->value_uint64;
+      unset($NFTBurns);
     }
 
     # NFTMintedByAccountCounts
