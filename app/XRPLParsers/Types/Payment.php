@@ -37,6 +37,7 @@ final class Payment extends XRPLParserBase
       }
     } else {
       //set this as balance change if ref account is issuer of traded currency
+      //DeliverMax?
       if(isset($this->tx->Amount->issuer) && $this->tx->Amount->issuer == $this->reference_address)
         $this->transaction_type_class = 'Payment_BalanceChange';
     }
