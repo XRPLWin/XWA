@@ -542,7 +542,6 @@ class HookController extends Controller
 
     $r = [];
     $i = 0;
-    
     foreach($txs as $tx) {
       $i++;
       if($i == $limit+1) break; //remove last row (+1) from resultset
@@ -568,6 +567,34 @@ class HookController extends Controller
       //'info' => '',
       'hook' => $hook->hook,
       'hook_ctid' => bchexdec($hook->ctid_from),
+      'data' => $r,
+    ])
+      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
+    ;
+  }
+  
+  public function hook_transactions_recent()
+  {
+    $ttl = 180;
+    $httpttl = 180;
+
+    $txs = BHookTransaction::repo_fetch(null,[],['ctid','desc'],20,0);
+
+    $r = [];
+    $i = 0;
+    foreach($txs as $tx) {
+      $i++;
+      $rArr = $tx->toArray();
+      unset($rArr['id']);
+      unset($rArr['hook']);
+      $rArr['ctid'] = bcdechex($rArr['ctid']);
+      $r[] = $rArr;
+      unset($rArr);
+    }
+
+    return response()->json([
+      'success' => true,
       'data' => $r,
     ])
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)

@@ -96,6 +96,12 @@ class InfoController extends Controller
         'method' => 'GET',
         'example' => config('app.url').'/v1/hook/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77/C00468D10000535A/metrics/2023-10-20/2023-11-20', //todo gov hook sample
       ],
+      [
+        'action' => 'Newest 20 transactions involving hooks',
+        'route' => '/v1/hook-transactions/recent',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/hook-transactions/recent',
+      ],
 
     ];
     $endpoints[] = [
