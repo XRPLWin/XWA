@@ -97,6 +97,13 @@ class Account
     $r = $this->template();
     $name_processed = false;
 
+    //Avatar check start:
+    //Check if there is known genesis avatar included in this project
+    if(\is_file(resource_path('static/avatars/'.$this->address.'.webp'))) {
+      $r['avatar'] = route('static.avatar_serve',['address' => $this->address]);
+    }
+    //Avatar check end
+
     if($this->address == 'rrrrrrrrrrrrrrrrrrrrrhoLvTp') {
       $r['name'] = 'ACCOUNT_ZERO';
       $this->data = $r;
@@ -133,12 +140,7 @@ class Account
       $name_processed = true;
     }
 
-    //Avatar check start:
-    //Check if there is known genesis avatar included in this project
-    if(\is_file(resource_path('static/avatars/'.$this->address.'.webp'))) {
-      $r['avatar'] = route('static.avatar_serve',['address' => $this->address]);
-    }
-    //Avatar check end
+    
     
     $result = null;
     $fails = [
