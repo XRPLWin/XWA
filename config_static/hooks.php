@@ -30,7 +30,7 @@ return [
   ],
 
   'C820233A5F9D204907EAF43E6CD57D6D60DAA7DAFE3D2F8741CFAE9D873DA910' => [
-    'title' => 'Evernode Registry Hook',
+    'title' => 'Evernode Governor Hook',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
   ],
 
