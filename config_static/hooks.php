@@ -6,27 +6,27 @@ return [
   //XAHAU specific
   '610F33B8EBF7EC795F822A454FB852156AEFE50BE0CB8326338A81CD74801864' => [
     'title' => 'Xahau Governance Reward Hook',
-    'image' => null,
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/610F33B8EBF7EC795F822A454FB852156AEFE50BE0CB8326338A81CD74801864.webp',
   ],
   '5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77' => [
     'title' => 'Xahau Governance Game Hook',
-    'image' => null,
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77.webp',
   ],
 
 
   //Evernode specific
   '998EECBC04313E634A6AE7D0C10F28027BE502073D241AC867BC1ECB4DC03006' => [
     'title' => 'Evernode Airdrop Distributor',
-    'image' => null,
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rhMboq72S1sLBBxv4PS6ezwJLbgfSJFG4b.webp',
   ],
   '5BAF3AD0CE10466E753348E04E65EE17DC797E898105F1913BF90EE46F349BB1' => [
     'title' => 'Evernode Hearbeat Hook',
-    'image' => null,
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
   ],
 
   '6CDDD0CF3275DBBD5A3EE83049829E578BA23DB97D0D1C0C7759ED2A812FED22' => [
     'title' => 'Evernode Registry Hook',
-    'image' => null,
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
   ],
 
   //Other
