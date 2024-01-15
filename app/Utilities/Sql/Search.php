@@ -276,7 +276,8 @@ class Search extends \App\Utilities\Base\Search
   protected function _runCount(BaseMapper $mapper, array $dateRanges): int
   {
     $cache_key = 'searchcount:'.$this->_generateSearchIndentifier($mapper);
-    $count = Cache::get($cache_key);
+    //$count = Cache::get($cache_key); //ne valja kad je trenutan dan, iskljuci todo
+    $count = null;
     if($count === null) {
 
       # Count Start
