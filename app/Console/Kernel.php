@@ -30,7 +30,7 @@ class Kernel extends ConsoleKernel
       ->runInBackground(); 
 
     $schedule->command('xwa:startsyncer')
-      ->withoutOverlapping(21) //lock expires every 21 min (adjust times in commands also)
+      ->withoutOverlapping(11) //lock expires every 21 min (adjust times in commands also)
       //->everyMinute()
       ->everyThirtySeconds() //Laravel 10 only
       ->onOneServer()
