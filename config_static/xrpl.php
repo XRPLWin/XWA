@@ -188,6 +188,7 @@ return [
   ],
 
   'known_xahau' => [
+    'rEvernodee8dJLaFsujS6q1EiXvZYmHXr8' => 'Evernode Issuer',
     'rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg' => 'Evernode Governor Hook',
     'rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto' => 'Evernode Heartbeat Hook',
     'rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH' => 'Evernode Registry Hook',
