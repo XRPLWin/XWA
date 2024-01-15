@@ -34,6 +34,8 @@ Route::get('/hook/{hookhash}/{hookctid}/transactions/{order}/{direction}', [App\
 Route::get('/hook/{hookhash}/{hookctid}/active-accounts/installed/{direction}', [App\Http\Controllers\Api\HookController::class, 'hook_active_accounts'])->name('hook.active_accounts');
 Route::get('/hook/{hookhash}/{hookctid}/metrics/{from}/{to}', [App\Http\Controllers\Api\HookController::class, 'hook_metrics'])->name('hook.metrics');
 Route::get('/hook-transactions/recent', [App\Http\Controllers\Api\HookController::class, 'hook_transactions_recent'])->name('hook.transactions_recent');
+Route::get('/hookname/{hookhash}', [App\Http\Controllers\Api\HookController::class, 'hook_name'])->name('hook.name');
+
 
 Route::get('/validators/dunl', [App\Http\Controllers\Api\ValidatorController::class, 'dunl'])->name('validators.dunl');
 Route::get('/unlreport/{from}/{to?}', [App\Http\Controllers\Api\UnlReportController::class, 'report'])->name('unlreport.report');

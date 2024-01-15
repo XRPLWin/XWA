@@ -601,4 +601,31 @@ class HookController extends Controller
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
     ;
   }
+
+  public function hook_name(string $hookhash)
+  {
+    $ttl = 259200;     //3 days
+    $httpttl = 259200; //3 days
+
+    $validator = Validator::make([
+      'hookhash' => $hookhash
+    ], [
+      'hookhash' => [new \App\Rules\Hook, 'alpha_num:ascii'],
+    ]);
+
+    if($validator->fails())
+      abort(422, 'Hook has has invalid format');
+
+    $info = config_static('hooks.'.$hookhash);
+    //dd($info);
+
+    return response()->json([
+      't' => $info['title'],
+      'i' => $info['image'],
+    ])
+      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
+    ;
+
+  }
 }
