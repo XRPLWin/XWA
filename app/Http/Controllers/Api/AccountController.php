@@ -76,8 +76,8 @@ class AccountController extends Controller
     
     //if end date is today we will set low ttl, since new data can come in at any time
     if($request->input('to') == \date('Y-m-d')) {
-      $ttl = 300; //5 mins
-      $httpttl = 300; //5 mins
+      $ttl = 60; //1 min
+      $httpttl = 60; //1 min
     }
       
 
