@@ -155,7 +155,7 @@ class AggrController extends Controller
       'updated' => $now,
       'data' => $r
     ])
-      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl.', must-revalidate')
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
     ;
   }
