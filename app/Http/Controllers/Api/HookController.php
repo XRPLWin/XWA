@@ -616,13 +616,19 @@ class HookController extends Controller
     if($validator->fails())
       abort(422, 'Hook has has invalid format');
 
+    $r = [
+      't' => null,
+      'i' => null,
+    ];
+
     $info = config_static('hooks.'.$hookhash);
     //dd($info);
+    if($info) {
+      $r['t'] = $info['title'];
+      $r['i'] = $info['image'];
+    }
 
-    return response()->json([
-      't' => $info['title'],
-      'i' => $info['image'],
-    ])
+    return response()->json($r)
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
     ;
