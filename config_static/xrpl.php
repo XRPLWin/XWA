@@ -145,6 +145,10 @@ return [
     'rhxbkK9jGqPVLZSWPvCEmmf15xHBfJfCEy' => 'GENESIS',
   ],
 
+  'known_mainnet' => [
+    //
+  ],
+
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
     # GENESIS ACCOUNTS (https://xahauexplorer.com/api/v2/genesis) for Xahau
     'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh' => 'GENESIS HOOK', //Genesis hook installed here
@@ -182,5 +186,11 @@ return [
       'rHMtqVuvEESUhPrsgb8tSa5ghjyoQySfVC' => 'xSPECTAR',
       'rJFxdrd1BuMeJshRAZBuHP3hex9DjH1nnr' => 'Eminence',
   ],
+
+  'known_xahau' => [
+    'rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg' => 'Evernode Governor Hook',
+    'rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto' => 'Evernode Heartbeat Hook',
+    'rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH' => 'Evernode Registry Hook',
+  ]
 
 ];

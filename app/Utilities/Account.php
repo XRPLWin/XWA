@@ -118,11 +118,18 @@ class Account
       return;
     }
 
-    //Check if is genesis
+    //Check if is genesis (genesis flag + name)
     $genesis_name = config_static('xrpl.genesis_'.config('xrpl.net').'.'.$this->address);
     if($genesis_name !== null) {
       $r['genesis'] = true;
       $r['name'] = $genesis_name;
+      $name_processed = true;
+    }
+
+    //Check if is known (name only)
+    $known_name = config_static('xrpl.known_'.config('xrpl.net').'.'.$this->address);
+    if($known_name !== null) {
+      $r['name'] = $known_name;
       $name_processed = true;
     }
 
