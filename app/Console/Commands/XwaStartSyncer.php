@@ -32,7 +32,7 @@ class XwaStartSyncer extends Command
   protected int $proc_timeout = 600; //1200s  - must be same as in XwaContinuousSyncProc and kernel lock wait timeout
 
   protected int $numberOfProcess = 1; //16 - overriden from config
-  protected int $ledgersPerProcess = 20; //1000
+  protected int $ledgersPerProcess = 50; //1000
   
   /**
    * Execute the console command.
