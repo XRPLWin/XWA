@@ -29,6 +29,11 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
   ],
 
+  'C820233A5F9D204907EAF43E6CD57D6D60DAA7DAFE3D2F8741CFAE9D873DA910' => [
+    'title' => 'Evernode Registry Hook',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
+  ],
+
   //Other
   '4512D7BABEF201C779E76B2FEECB0D655E088426B5769F0C6796A1E97FD82D91' => [
     'title' => 'Demo AMM Hook',
