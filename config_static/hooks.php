@@ -20,7 +20,7 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rhMboq72S1sLBBxv4PS6ezwJLbgfSJFG4b.webp',
   ],
   '5BAF3AD0CE10466E753348E04E65EE17DC797E898105F1913BF90EE46F349BB1' => [
-    'title' => 'Evernode Hearbeat Hook',
+    'title' => 'Evernode Heartbeat Hook',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
   ],
 
