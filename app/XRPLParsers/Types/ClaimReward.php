@@ -28,14 +28,14 @@ private array $acceptedParsedTypes = ['SET','UNKNOWN','REGULARKEYSIGNER'];
     if($this->reference_address == $this->tx->Account)
       $this->data['In'] = true;
 
-    $this->transaction_type_class = 'ClaimReward_OptIn';
+    $this->transaction_type_class = 'ClaimReward';
     if(isset($this->tx->Flags) && $this->tx->Flags == 1) {
       $this->transaction_type_class = 'ClaimReward_OptOut';
     } else {
       if(isset($this->tx->Issuer) && $this->tx->Issuer) {
         //SPECIAL CASE: we store Issuer in 'i' field, to be searchable (may not be needed)
         //$this->data['Amount'] = '0';
-        $this->data['Issuer'] =  $this->tx->Issuer;
+        $this->data['Issuer'] = $this->tx->Issuer;
         //$this->data['Currency'] = 'XRP';
       }
     }
@@ -50,9 +50,9 @@ private array $acceptedParsedTypes = ['SET','UNKNOWN','REGULARKEYSIGNER'];
       }
     }
 
-    if(isset($this->data['Amount'])) {
+    /*if(isset($this->data['Amount'])) {
       $this->transaction_type_class = 'ClaimReward_Claim';
-    }
+    }*/
 
   }
 
