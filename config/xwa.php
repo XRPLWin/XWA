@@ -38,8 +38,14 @@ $r = [
   */
   'sync_type' => env('XWA_SYNC_TYPE', 'account'),
   'sync_type_continuous' => [
+    
     //Number of parallel processes that will be spawned
-    'processes' => env('XWA_SYNC_TYPE_CONTINUOUS_PROCESSES', 4),                    
+    'processes' => env('XWA_SYNC_TYPE_CONTINUOUS_PROCESSES', 4),
+
+    //How much ledgers to process before global commit and process end
+    //Set this value to 50 when system is in sync, 1000 when system is behind
+    //Warning: Do not change this value when there are unfinished processes! (check table synctrackers)
+    'ledgersperprocess' => env('XWA_SYNC_TYPE_CONTINUOUS_LEDGERSPERPROCESS', 50),
   ],
 
   /*
