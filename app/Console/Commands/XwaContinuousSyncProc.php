@@ -13,7 +13,7 @@ use App\Repository\Base\BatchInterface;
 use App\Repository\Sql\Batch as SqlBatch;
 use App\Repository\Bigquery\Batch as BigqueryBatch;
 use App\XRPLParsers\Parser;
-use App\XRPLParsers\XRPLParserBase;
+#use App\XRPLParsers\XRPLParserBase;
 use App\Models\BAccount;
 use App\Models\BHook;
 use App\Models\BHookTransaction;
@@ -24,6 +24,7 @@ use XRPLWin\XRPLHookParser\TxHookParser;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Utilities\RecentAggrBatcher;
+use Illuminate\Support\Facades\DB;
 
 class XwaContinuousSyncProc extends Command
 {
@@ -308,32 +309,25 @@ class XwaContinuousSyncProc extends Command
         $batch->queueModelChanges($a);
       }
 
-      $recentAggrBatch = new RecentAggrBatcher;
-      $recentAggrBatch->begin();
-      foreach($txs as $transaction) {
-        # Handle aggragations
-        $recentAggrBatch->addTx($transaction);
-        # Handle aggregations end
-      }
-      $recentAggrBatch->execute();
-      $this->log('- Aggr DONE');
-
-
-      /*DB::beginTransaction();
+      DB::beginTransaction();
       try {
+        $recentAggrBatch = new RecentAggrBatcher;
+        $recentAggrBatch->begin();
         foreach($txs as $transaction) {
           # Handle aggragations
-          $this->processRecentggr($transaction);
+          $recentAggrBatch->addTx($transaction);
           # Handle aggregations end
         }
+        $recentAggrBatch->execute();
+        $this->log('- Aggr DONE');
+
+        $processed_rows = $batch->execute();
+        
       } catch (\Throwable $e) {
         DB::rollBack();
-        throw $e; //do not throw on production, skip this its not that important
+        throw $e;
       }
       DB::commit();
-      $this->log('- Aggr DONE');*/
-
-      $processed_rows = $batch->execute();
 
       $this->log('- DONE (processed '.$processed_rows.' rows)');
       return $last_ledger_date;
