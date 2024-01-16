@@ -44,11 +44,24 @@ final class URITokenCreateSellOffer extends XRPLParserBase
     }
     
     # Balance changes from eventList (primary/secondary, both, one, or none)
+    # THIS RETURNS NO DATA PER SPECIFICATION OF URITokenCreateSellOffer TYPE!
     if(isset($this->data['eventList']['primary'])) {
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
         $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
         $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
+      }
+    }
+
+    # Amount is the offer asking price or null on a2
+    if(isset($this->tx->Amount)) {
+      if(\is_string($this->tx->Amount)) {
+        $this->data['Amount2'] = $this->tx->Amount; //NATIVE
+      } else {
+        //IOU
+        $this->data['Amount2'] = $this->tx->Amount->value;
+        $this->data['Issuer2'] = $this->tx->Amount->issuer;
+        $this->data['Currency2'] = $this->tx->Amount->currency;
       }
     }
 
@@ -76,12 +89,18 @@ final class URITokenCreateSellOffer extends XRPLParserBase
 
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];
+    if(\array_key_exists('Amount2', $this->data))
+      $r['a2'] = $this->data['Amount2'];
     
     if(\array_key_exists('Issuer', $this->data))
       $r['i'] = $this->data['Issuer'];
+    if(\array_key_exists('Issuer2', $this->data))
+      $r['i2'] = $this->data['Issuer2'];
 
     if(\array_key_exists('Currency', $this->data))
       $r['c'] = $this->data['Currency'];
+    if(\array_key_exists('Currency2', $this->data))
+      $r['c2'] = $this->data['Currency2'];
 
     if(\array_key_exists('Fee', $this->data))
       $r['fee'] = $this->data['Fee'];
