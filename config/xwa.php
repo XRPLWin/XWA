@@ -6,7 +6,7 @@
 $r = [
 
   # Sync this version with composer.json
-  'version' => '0.2.1',
+  'version' => '0.2.2',
 
   /*
   |--------------------------------------------------------------------------
@@ -38,7 +38,7 @@ $r = [
   */
   'sync_type' => env('XWA_SYNC_TYPE', 'account'),
   'sync_type_continuous' => [
-    
+
     //Number of parallel processes that will be spawned
     'processes' => env('XWA_SYNC_TYPE_CONTINUOUS_PROCESSES', 4),
 
