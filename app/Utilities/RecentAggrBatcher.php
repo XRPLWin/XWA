@@ -131,8 +131,9 @@ class RecentAggrBatcher
 
     //Most significant payments in native currency (10)
     if($type == 'Payment' && $isSuccess) {
-      if(\is_string($tx->Amount)) {
-        $new_value_uint64 = BigInteger::of($tx->Amount);
+      $Amount = isset($tx->metaData->delivered_amount) ? $tx->metaData->delivered_amount : $tx->Amount;
+      if(\is_string($Amount)) {
+        $new_value_uint64 = BigInteger::of($Amount);
         if($new_value_uint64->isGreaterThan(100000000)) { //do not record below 100 XRP transfers (performance reasons)
           if($FoundTopPayment = $models->where('subject','TopPayment')->where('identifier',$tx->Account)->first()) {
             $value_uint64 = BigInteger::of($FoundTopPayment->value_uint64);
@@ -142,7 +143,7 @@ class RecentAggrBatcher
               $FoundTopPayment->context = $tx->hash;
             }
           } else {
-            $this->insert($models,'TopPayment',$tx->Account,$t,$tx->Amount,$tx->hash);
+            $this->insert($models,'TopPayment',$tx->Account,$t,$Amount,$tx->hash);
           }
           //echo 'DO '.rand(1,9999).PHP_EOL;
         }
