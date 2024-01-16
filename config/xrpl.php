@@ -28,6 +28,7 @@ return [
     'feature_unlreport_first_flag_ledger_close_time' => env('XRPL_NET_FEATURE_UNLREPORT_FIRST_FLAG_LEDGER_CLOSE_TIME', 0),
     'unl_vl' => env('XRPL_NET_UNL_VL', 'http://vl.test'),
     'api_xrpscan' => env('XRPL_NET_API_XRPSCAN', null),
+    'api_tokens' => null,
   ],
 
   'mainnet' => [
@@ -51,6 +52,7 @@ return [
     'feature_unlreport_first_flag_ledger_close_time' => 0,
     'unl_vl' => 'https://vl.xrplf.org',
     'api_xrpscan' => 'https://api.xrpscan.com',
+    'api_tokens' => 'https://api.xrpldata.com/api/v1/tokens',
   ],
 
   'testnet' => [
@@ -71,6 +73,7 @@ return [
     'feature_unlreport_first_flag_ledger_close_time' => 0,
     'unl_vl' => 'https://vl.altnet.rippletest.net',
     'api_xrpscan' => 'https://api.xrpscan.com',
+    'api_tokens' => null,
   ],
 
   'xahautest' => [
@@ -91,6 +94,7 @@ return [
     'feature_unlreport_first_flag_ledger_close_time' => 748958191, //ripple epoch
     'unl_vl' => 'https://vl.test.xahauexplorer.com',
     'api_xrpscan' => 'https://api.xahscan.com',
+    'api_tokens' => null,
   ],
 
   'xahau' => [
@@ -111,12 +115,9 @@ return [
     'feature_unlreport_first_flag_ledger_close_time' => 751985211, //ripple epoch
     'unl_vl' => 'https://vl.xahau.org',
     'api_xrpscan' => 'https://api.xahscan.com',
+    'api_tokens' => 'https://api.xahaudata.com/api/v1/tokens',
   ],
-
 
   //https://xrpl.org/basic-data-types.html#specifying-time
   'ripple_epoch' => 946684800,
-
-  //'token_source' => 'https://api.xrpldata.com/api/v1/tokens',
-
 ];

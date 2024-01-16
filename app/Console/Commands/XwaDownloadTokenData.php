@@ -8,6 +8,7 @@ use File;
 use JsonMachine\Items;
 use App\Models\Token;
 use App\Models\Issuer;
+use Illuminate\Support\Facades\DB;
 
 #use GuzzleHttp\Subscriber\Oauth\Oauth1;
 
@@ -34,6 +35,10 @@ class XwaDownloadTokenData extends Command
      */
     public function handle()
     {
+      $ds = config('xrpl.'.config('xrpl.net').'.api_tokens');
+      if($ds === null)
+        return Command::FAILURE;
+      
       $this->_download();
       $path = Storage::disk('local')->path('import/tokens/tokens.json');
 
@@ -44,7 +49,9 @@ class XwaDownloadTokenData extends Command
 
       //Truncate tables: tokens, issuers
       Token::query()->truncate();
-      Issuer::query()->truncate();
+      //Issuer::query()->truncate();
+      Issuer::query()->delete();
+      DB::unprepared('ALTER TABLE issuers AUTO_INCREMENT = 1');
       $this->info('Tables truncated');
 
       //extract tokens to local database for faster info fetching
@@ -97,12 +104,13 @@ class XwaDownloadTokenData extends Command
 
     private function _download()
     {
+      $ds = config('xrpl.'.config('xrpl.net').'.api_tokens');
       $client = new \GuzzleHttp\Client();
       $path = Storage::disk('local')->path('import/tokens');
       if (!is_dir($path))
          File::makeDirectory($path, 0775, true);
 
-      $client->request('GET', 'https://api.xrpldata.com/api/v1/tokens', ['sink' => $path.'/tokens.json']); //will overwrite existing json
+      $client->request('GET', $ds, ['sink' => $path.'/tokens.json']); //will overwrite existing json
 
     }
 
