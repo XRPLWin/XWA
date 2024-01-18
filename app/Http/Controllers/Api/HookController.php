@@ -604,8 +604,8 @@ class HookController extends Controller
 
   public function hook_name(string $hookhash)
   {
-    $ttl = 259200;     //3 days
-    $httpttl = 259200; //3 days
+    $ttl = 3600;     //1hr
+    $httpttl = 1800; //30 min
 
     $validator = Validator::make([
       'hookhash' => $hookhash
