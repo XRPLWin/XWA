@@ -20,7 +20,12 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rhMboq72S1sLBBxv4PS6ezwJLbgfSJFG4b.webp',
   ],
   '5BAF3AD0CE10466E753348E04E65EE17DC797E898105F1913BF90EE46F349BB1' => [
-    'title' => 'Evernode Heartbeat Hook',
+    'title' => 'Evernode Heartbeat Hook v1',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
+  ],
+
+  'E2F03697C83603E6E1185F77688216AF537383B7CBB367122AA0EBB4EE2B803E' => [
+    'title' => 'Evernode Heartbeat Hook v2',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
   ],
 
