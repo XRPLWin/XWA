@@ -120,9 +120,13 @@ abstract class Search
       unset($params['txTypes']);
       \ksort($_txTypes);
     }
-
+    
     foreach($params as $k => $v) {
-      $indentity .= $k.'='.$v.':';
+      if(\is_array($v)) {
+        $indentity .= $k.'='.\implode(',',$v).':';
+      } else {
+        $indentity .= $k.'='.$v.':';
+      }
     }
     if(isset($_txTypes)) {
       foreach($_txTypes as $k => $v) {
