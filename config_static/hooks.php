@@ -32,6 +32,7 @@ return [
   '6CDDD0CF3275DBBD5A3EE83049829E578BA23DB97D0D1C0C7759ED2A812FED22' => [
     'title' => 'Evernode Registry Hook',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/blob/main/evernode-registry-hook/src/registry.c' //todo display
   ],
 
   'C820233A5F9D204907EAF43E6CD57D6D60DAA7DAFE3D2F8741CFAE9D873DA910' => [
