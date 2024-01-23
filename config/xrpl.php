@@ -107,7 +107,8 @@ return [
     'rippled_fullhistory_server_uri' => 'https://xahau.network',
     //websocket domain (example: 'xahau.network')
     'server_wss' => 'xahau.network',
-    'server_wss_syncer' => ['wss://xahau.network'],
+    //'server_wss_syncer' => ['wss://xahau.network'],
+    'server_wss_syncer' => ['wss://xahau.network/explorer/xrplwin'],
     'networkid' => 21337,
     //enable or disable unlreport
     'feature_unlreport' => true,
