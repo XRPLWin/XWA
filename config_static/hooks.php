@@ -29,6 +29,11 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
   ],
 
+  'C6ECD5DDE11B1D03DA1DA66D48556B954AB4BAF307EB8182DB5579BB9F712DB3' => [
+    'title' => 'Evernode Heartbeat Hook v3',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
+  ],
+
   '6CDDD0CF3275DBBD5A3EE83049829E578BA23DB97D0D1C0C7759ED2A812FED22' => [
     'title' => 'Evernode Registry Hook',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
