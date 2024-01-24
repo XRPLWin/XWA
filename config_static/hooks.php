@@ -35,7 +35,13 @@ return [
   ],
 
   '6CDDD0CF3275DBBD5A3EE83049829E578BA23DB97D0D1C0C7759ED2A812FED22' => [
-    'title' => 'Evernode Registry Hook',
+    'title' => 'Evernode Registry Hook v1',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/blob/main/evernode-registry-hook/src/registry.c' //todo display
+  ],
+
+  'BFF584887A6EE876B49548CB79CA2C5A282ACFEF4B9B5B8FE4EE96A10D73DAAC' => [
+    'title' => 'Evernode Registry Hook v2',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/blob/main/evernode-registry-hook/src/registry.c' //todo display
   ],
