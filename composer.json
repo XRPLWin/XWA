@@ -9,7 +9,7 @@
       "url" : "https://github.com/XRPLWin/XWA/issues"
     },
     "require": {
-        "php": "^8.0.2",
+        "php": "^8.2.4",
         "ext-bcmath": "*",
         "brick/math": "^0.10.2",
         "guzzlehttp/guzzle": "^7.2",

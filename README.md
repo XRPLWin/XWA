@@ -4,7 +4,7 @@ XRP Ledger Analyzer (WORK IN PROGRESS)
 
 ## Requirements
 
-- PHP 8.1.x, 8.2.x
+- PHP ^8.2.4
 - swoole (PECL)
 - Nginx
 - Supervisor (too keep swoole workers up)
