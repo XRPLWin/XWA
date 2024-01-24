@@ -47,7 +47,12 @@ return [
   ],
 
   'C820233A5F9D204907EAF43E6CD57D6D60DAA7DAFE3D2F8741CFAE9D873DA910' => [
-    'title' => 'Evernode Governor Hook',
+    'title' => 'Evernode Governor Hook v1',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
+  ],
+
+  'ECA20A1C94A6A8C97E4A114BC8C755BBDC887B0161C8E30246955CFAA34D6A0B' => [
+    'title' => 'Evernode Governor Hook v2',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
   ],
 
