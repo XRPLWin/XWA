@@ -92,7 +92,7 @@ class RecentAggrBatcher
   public function addTx(\stdClass $tx)
   {
     $t = ripple_epoch_to_carbon((int)$tx->date);
-    //if(!$t->isToday()) return;
+    if(!$t->isToday()) return;
 
     $models = $this->getCollection($t);
 
