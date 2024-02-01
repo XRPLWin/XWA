@@ -46,6 +46,12 @@ return [
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/blob/main/evernode-registry-hook/src/registry.c' //todo display
   ],
 
+  'FB7159503D2F6572B539B65994028B1E945871A5BCC7BB2ECDF63CE34ECB2945' => [
+    'title' => 'Evernode Registry Hook v3',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/blob/main/evernode-registry-hook/src/registry.c' //todo display
+  ],
+
   'C820233A5F9D204907EAF43E6CD57D6D60DAA7DAFE3D2F8741CFAE9D873DA910' => [
     'title' => 'Evernode Governor Hook v1',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
@@ -53,6 +59,11 @@ return [
 
   'ECA20A1C94A6A8C97E4A114BC8C755BBDC887B0161C8E30246955CFAA34D6A0B' => [
     'title' => 'Evernode Governor Hook v2',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
+  ],
+
+  '4A17BB25F88CFCEB03565BAF99B9D687683C4C523F7F1D76251EDAE0F0F2D169' => [
+    'title' => 'Evernode Governor Hook v3',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
   ],
 
