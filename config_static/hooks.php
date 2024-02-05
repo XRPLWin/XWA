@@ -67,6 +67,35 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
   ],
 
+  //Evernode community
+  '800F279C5CE89D913CE7A1036D2585277840B0A28D474B405ECD341AD47400C9' => [
+    'title' => 'Evernode Rewards Forwarder',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/',
+  ],
+
+  '18E58870D38C8216D5B9179BC55E530DF6BB60DB7AC57A8985C85814DEC594FA' => [
+    'title' => 'Evernode Rewards Redirect',
+    'image' => null,
+  ],
+  '412E9084606862E7F8F6808098D4030FB98A4A22621C35FD67C1791A09F2A4DE' => [
+    'title' => 'Evernode Rewards Redirect',
+    'image' => null,
+  ],
+  'D3FBEE1F72A31ABA34F67C2B65AC96A7603BC4D19BF12502A02A847DB884650A' => [
+    'title' => 'Evernode Rewards Redirect',
+    'image' => null,
+  ],
+  '017FE7A5D7E2E98F96D7D9E7C8530A6065016FC2BB4E3B242A781F1BB4C8C1EE' => [
+    'title' => 'Evernode Rewards Redirect',
+    'image' => null,
+  ],
+  'EE287AFAF4E7BE1B93A06632F6E06580ACE4A2D8CB6B7CAD65EE1EE9657F3149' => [
+    'title' => 'Evernode Rewards Redirect',
+    'image' => null,
+  ],
+  
+
   //Other
   '4512D7BABEF201C779E76B2FEECB0D655E088426B5769F0C6796A1E97FD82D91' => [
     'title' => 'Demo AMM Hook',
