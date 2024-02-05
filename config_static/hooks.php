@@ -73,6 +73,11 @@ return [
     'image' => null,
     'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/',
   ],
+  '7839AC4D669F7560AEA6C5ACA1D28CDBB050CD24C126DE18D398A63791A95893' => [
+    'title' => 'Evernode Rewards Forwarder',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/',
+  ],
 
   '18E58870D38C8216D5B9179BC55E530DF6BB60DB7AC57A8985C85814DEC594FA' => [
     'title' => 'Evernode Rewards Redirect',
