@@ -72,6 +72,12 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
   ],
 
+  'F6555895B65EAAF5F7947D923CA4BEE2CE2D1DBBE7ECB30CC0477598EC490A39' => [
+    'title' => 'Evernode Price Oracle',
+    'source' => 'https://github.com/Transia-RnD/evernode-oracle',
+    'image' => 'https://secure.gravatar.com/avatar/1cc150400e735fc2bee2ed5e0f86619e',
+  ],
+
   //Evernode community
   '800F279C5CE89D913CE7A1036D2585277840B0A28D474B405ECD341AD47400C9' => [
     'title' => 'Evernode Rewards Forwarder',
