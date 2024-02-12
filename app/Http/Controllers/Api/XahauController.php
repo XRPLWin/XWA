@@ -4,25 +4,22 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
-#use Illuminate\Http\Request;
+use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Utilities\Ledger;
+use Brick\Math\BigDecimal;
 
 class XahauController extends Controller
 {
   /**
    * Get list of transactions of type 36 (Import)
    */
-  public function import(string $from, ?string $to = null)
+  public function import(Request $request, string $from, string $to)
   {
     ini_set('memory_limit', '256M');
 
-    
-
-    //dd($result);
     $from = Carbon::createFromFormat('Y-m-d', $from)->startOfDay()->timezone('UTC');
-    if($to !== null)
-      $to = Carbon::createFromFormat('Y-m-d', $to)->startOfDay()->timezone('UTC');
+    $to = Carbon::createFromFormat('Y-m-d', $to)->startOfDay()->timezone('UTC');
 
     if($from->gt($to)) {
       return response()->json(['success' => false, 'error_code' => 1, 'errors' => ['Requested from date larger than to date']],422);
@@ -34,6 +31,10 @@ class XahauController extends Controller
 
     if($from->diffInDays($to) > 31) {
       return response()->json(['success' => false, 'error_code' => 3, 'errors' => ['Date range too large (> 31 days)']],422);
+    }
+
+    if($from->format('Ym') != $to->format('Ym')) {
+      return response()->json(['success' => false, 'error_code' => 4, 'errors' => ['Dates must be within same month']],422);
     }
 
     if(!$to->isToday()) {
@@ -53,25 +54,29 @@ class XahauController extends Controller
 
     $li_start = Ledger::getFromDate($from);
     $li_end = Ledger::getFromDate($to);
+    
 
-    $results = DB::table(transactions_db_name('202401'))
-      ->select('address','l','h','t','a')
-      ->where('l','>',$li_start)
-      ->where('l','<=',$li_end)
+    $results = DB::table(transactions_db_name($from->format('Ym')))
+      ->select('address','h','t','fee','a as mint_xah','a2 as burn_xrp')
+      ->where('l','>=',$li_start)
+      ->where('l','<',$li_end)
       ->where('xwatype',36)
       ->where('isin',true)
       ->whereNotNull('a')
+      ->whereNotNull('a2')
       ->orderBy('l','asc')
-      ->limit(100)
+      ->limit(10000)
       ->get();
 
-    $r = [];
     foreach($results as $result) {
-      dd($result);
+      $result->bonus_xah = 0;
+      if($result->fee == 0) {
+        //Bonus awarded for first tx
+        $result->bonus_xah = (string)BigDecimal::of($result->mint_xah)->minus($result->burn_xrp);
+      }
     }
     
-
-    return response()->json(['success' => true,'data' => $result])
+    return response()->json(['success' => true,'data' => $results])
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
     ;
