@@ -3,6 +3,7 @@
 namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
+use Brick\Math\BigDecimal;
 
 final class Import extends XRPLParserBase
 {
@@ -40,6 +41,15 @@ final class Import extends XRPLParserBase
         $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
       }
     }
+
+    # Balance (Amount2) is actually burned XRP amount on XRPL extracted from blob field
+    if($this->data['In'] && isset($this->tx->Blob)) {
+      $_blob = \json_decode(\hex2bin($this->tx->Blob));
+      $codec = new \XRPL_PHP\Core\RippleBinaryCodec\BinaryCodec;
+      $_blob_transaction = $codec->decode($_blob->transaction->blob);
+      $_total_burnedXRP = $_blob_transaction['Fee'];
+      $this->data['Amount2'] = (string)BigDecimal::of($_total_burnedXRP)->exactlyDividedBy(1000000);
+    }
   }
 
   /**
@@ -63,6 +73,8 @@ final class Import extends XRPLParserBase
 
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];
+    if(\array_key_exists('Amount2', $this->data))
+      $r['a2'] = $this->data['Amount2'];
     
     if(\array_key_exists('Issuer', $this->data))
       $r['i'] = $this->data['Issuer'];
