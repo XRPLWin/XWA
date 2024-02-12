@@ -212,7 +212,7 @@ return new class extends Migration
   {
     $startdate = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
     $enddate = now()->addYears(2);
-    return CarbonPeriod::create($startdate, '1 month', $enddate);
+    return CarbonPeriod::create($startdate, '30 days', $enddate);
   }
 
   /**
@@ -223,7 +223,9 @@ return new class extends Migration
     if(config('xwa.database_engine') != 'sql')
       return;
     $period = $this->period();
+
     foreach($period as $m) {
+      dump($m->format('Ym'));
       Schema::create(transactions_db_name($m->format('Ym')), function (Blueprint $table) {
         if(config('xwa.database_engine_userocksdb'))
           $table->engine = 'ROCKSDB';

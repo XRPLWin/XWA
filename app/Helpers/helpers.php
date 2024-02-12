@@ -80,7 +80,7 @@ if (!function_exists('transactions_shard_period')) {
         $startdate = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
       else
         $startdate = \Carbon\Carbon::createFromTimestamp($initialUnixTimestamp);
-      $period = \Carbon\CarbonPeriod::create($startdate, '1 month', now()->addMonth());
+      $period = \Carbon\CarbonPeriod::create($startdate, '30 days', now()->addMonth());
       $r = [];
       foreach($period as $m) {
         $r[] = $m->format('Ym');

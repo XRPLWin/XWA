@@ -27,7 +27,7 @@ Route::get('/account/search/{address}', [App\Http\Controllers\Api\AccountControl
   Route::get('/currency_rates/{from}/{to}/{amount?}', [App\Http\Controllers\Api\BookController::class, 'currency_rates'])->name('currency_rates');
 //});
 
-Route::get('/xahau/import/{from}/{to}', [App\Http\Controllers\Api\XahauController::class, 'import'])->name('xahau.import');
+Route::get('/xahau/import/{from}/{to}/aggr', [App\Http\Controllers\Api\XahauController::class, 'import_aggr'])->name('xahau.import_aggr');
 
 Route::get('/oracle/USD', [App\Http\Controllers\Api\OracleController::class, 'usd'])->name('oracle.usd');
 Route::get('/hooks/{filter}/{order}/{direction}', [App\Http\Controllers\Api\HookController::class, 'hooks'])->name('hooks');
