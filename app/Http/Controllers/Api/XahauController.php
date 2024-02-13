@@ -169,7 +169,7 @@ class XahauController extends Controller
   /**
    * Get list of transactions of type 36 (Import)
    */
-  public function import(Request $request, string $from, string $to)
+  /*public function import(Request $request, string $from, string $to)
   {
     ini_set('memory_limit', '256M');
 
@@ -236,5 +236,5 @@ class XahauController extends Controller
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
     ;
 
-  }
+  }*/
 }
