@@ -225,7 +225,6 @@ return new class extends Migration
     $period = $this->period();
 
     foreach($period as $m) {
-      dump($m->format('Ym'));
       Schema::create(transactions_db_name($m->format('Ym')), function (Blueprint $table) {
         if(config('xwa.database_engine_userocksdb'))
           $table->engine = 'ROCKSDB';
