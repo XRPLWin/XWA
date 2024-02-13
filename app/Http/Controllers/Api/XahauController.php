@@ -53,6 +53,17 @@ class XahauController extends Controller
       $httpttl = 60; //1 min
     }
 
+    $minTime = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
+    
+    if($minTime->gte($from)) {
+     
+      if($from->format('Y-m-d') == $minTime->format('Y-m-d')) {
+        $from = $minTime->startOfDay(); //same year and month, adjust to min starting date
+      } else {
+        return response()->json(['success' => false, 'error_code' => 5, 'errors' => ['Requested date out of ledger range']],422);
+      }
+    }
+
     
     $days = CarbonPeriod::create($from,$to);
 

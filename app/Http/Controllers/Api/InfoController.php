@@ -139,10 +139,16 @@ class InfoController extends Controller
         'action' => 'Get aggregated Validator reports (per day)',
         'route' => '/v1/validators/unl/{validator}/reports/daily/{from}/{to}',
         'method' => 'GET',
-        'example' => config('app.url').'/v1/validators/unl/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69/reports/daily/2023-10-01/2023-10-03',
+        'example' => config('app.url').'/v1/validators/unl/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69/reports/daily/2024-10-01/2024-10-03',
+      ];
+
+      $endpoints[] = [
+        'action' => 'Get aggregated B2M reports (per day)',
+        'route' => '/v1/xahau/import/{from}/{to}/aggr',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/xahau/import/2023-01-01/2023-01-05/aggr',
       ];
     }
-
 
     if(config('xwa.sync_type') == 'account') {
       $endpoints[] = [
