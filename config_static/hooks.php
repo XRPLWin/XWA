@@ -126,6 +126,11 @@ return [
     'title' => 'Evernode Rewards Redirect',
     'image' => null,
   ],
+  'F77C439916E3FE5C8119743BA897E08BC687D661F992DE9EDDA80E4A1A47EEAA' => [
+    'title' => 'Evernode Redirect',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/blob/master/redirect.c'
+  ],
   
 
   //Other
