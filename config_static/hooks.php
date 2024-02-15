@@ -128,7 +128,7 @@ return [
   ],
   'F77C439916E3FE5C8119743BA897E08BC687D661F992DE9EDDA80E4A1A47EEAA' => [
     'title' => 'Evernode Redirect',
-    'image' => null,
+    'image' => 'https://xwa-xahau.xrplwin.com/res/img/misc/hook_F77C439916E3FE5C8119743BA897E08BC687D661F992DE9EDDA80E4A1A47EEAA.webp',
     'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/blob/master/redirect.c'
   ],
   
