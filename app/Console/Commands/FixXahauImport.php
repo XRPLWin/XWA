@@ -65,8 +65,8 @@ class FixXahauImport extends Command
       $parsedData = $parser->toBArray();
       if($parser->getPersist() === false)
         return;
-
       DB::table(transactions_db_name($this->Ym))
+        ->where('address',$row->address)
         ->where('xwatype',36)
         ->where('h',$row->h)
         ->where('isin',true)
