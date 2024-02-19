@@ -32,7 +32,7 @@ class XahauController extends Controller
       return response()->json(['success' => false, 'error_code' => 2, 'errors' => ['Requested dates can not be in future']],422);
     }
 
-    if($from->diffInDays($to) > 31) {
+    if($from->diffInDays($to) > 31) { //31
       return response()->json(['success' => false, 'error_code' => 3, 'errors' => ['Date range too large (> 31 days)']],422);
     }
 
@@ -82,7 +82,7 @@ class XahauController extends Controller
         }
       }
       
-      $aggr['t'] = $day;
+      $aggr['t'] = $day->format('Y-m-d');
       $r[] = $aggr;
     }
 
