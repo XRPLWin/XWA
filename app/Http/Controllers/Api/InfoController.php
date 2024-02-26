@@ -146,7 +146,7 @@ class InfoController extends Controller
         'action' => 'Get aggregated B2M reports (per day)',
         'route' => '/v1/xahau/import/{from}/{to}/aggr',
         'method' => 'GET',
-        'example' => config('app.url').'/v1/xahau/import/2023-01-01/2023-01-05/aggr',
+        'example' => config('app.url').'/v1/xahau/import/2024-01-01/2024-01-05/aggr',
       ];
     }
 

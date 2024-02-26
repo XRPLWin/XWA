@@ -104,7 +104,7 @@ class XahauController extends Controller
     }
     
     $results = DB::table(transactions_db_name($day->format('Ym')))
-      ->select('fee','a as mint_xah','a2 as burn_xrp')
+      ->select('h','fee','a as mint_xah','a2 as burn_xrp')
       ->where('l','>=',$li_start);
     if($li_end !== null)
       $results = $results->where('l','<',$li_end);
@@ -116,9 +116,12 @@ class XahauController extends Controller
       //->limit(10000)
       ->get();
     $data = [
+      'num_txs' => $results->count(),
       'xah_minted' => BigDecimal::zero(),
       'xah_bonus' => BigDecimal::zero(),
-      'xrp_burned' => BigDecimal::zero()
+      'xrp_burned' => BigDecimal::zero(),
+      'max_burn_amount' => BigDecimal::zero(),
+      'max_burn_tx' => null
     ];
 
     foreach($results as $result) {
@@ -131,11 +134,20 @@ class XahauController extends Controller
       //SUM:
       $data['xah_minted'] = $data['xah_minted']->plus($result->mint_xah);
       $data['xrp_burned'] = $data['xrp_burned']->plus($result->burn_xrp);
+      //Max burn
+      $_tmp_burn_xrp = BigDecimal::of($result->burn_xrp);
+      if($_tmp_burn_xrp->isGreaterThan($data['max_burn_amount'])) {
+        $data['max_burn_amount'] = $_tmp_burn_xrp;
+        $data['max_burn_tx'] = $result->h;
+      }
     }
     return [
+      'num_txs' => (string)$data['num_txs'],
       'xah_minted' => (string)$data['xah_minted'],
       'xrp_burned' => (string)$data['xrp_burned'],
       'xah_bonus' => (string)$data['xah_bonus'],
+      'max_burn_amount' => (string)$data['max_burn_amount'],
+      'max_burn_tx' => $data['max_burn_tx'],
     ];
   }
 
