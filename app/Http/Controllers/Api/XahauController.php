@@ -144,7 +144,8 @@ class XahauController extends Controller
       }
     }
     return [
-      'num_txs' => (string)$data['num_txs'],
+      'num_txs' => $data['num_txs'],
+      'num_txs_bonus' => $data['num_txs_bonus'],
       'xah_minted' => (string)$data['xah_minted'],
       'xrp_burned' => (string)$data['xrp_burned'],
       'xah_bonus' => (string)$data['xah_bonus'],
