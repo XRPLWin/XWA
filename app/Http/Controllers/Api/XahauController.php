@@ -116,12 +116,13 @@ class XahauController extends Controller
       //->limit(10000)
       ->get();
     $data = [
-      'num_txs' => $results->count(),
-      'xah_minted' => BigDecimal::zero(),
-      'xah_bonus' => BigDecimal::zero(),
-      'xrp_burned' => BigDecimal::zero(),
-      'max_burn_amount' => BigDecimal::zero(),
-      'max_burn_tx' => null
+      'num_txs' => $results->count(), //total number of transactions
+      'num_txs_bonus' => 0, //number of transactions that yielded with bonus (first transaction reward)
+      'xah_minted' => BigDecimal::zero(), //total xah minted (transfer + bonus)
+      'xah_bonus' => BigDecimal::zero(), //total bonus awarded
+      'xrp_burned' => BigDecimal::zero(), //total burned xrp
+      'max_burn_amount' => BigDecimal::zero(), //maximum burned transaction amount
+      'max_burn_tx' => null //transaction hash related to max_burn_amount
     ];
 
     foreach($results as $result) {
@@ -130,6 +131,7 @@ class XahauController extends Controller
         //Bonus awarded for first tx
         $result->bonus_xah = (string)BigDecimal::of($result->mint_xah)->minus($result->burn_xrp);
         $data['xah_bonus'] = $data['xah_bonus']->plus($result->bonus_xah);
+        $data['num_txs_bonus']++;
       }
       //SUM:
       $data['xah_minted'] = $data['xah_minted']->plus($result->mint_xah);
