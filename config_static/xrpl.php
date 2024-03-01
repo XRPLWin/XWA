@@ -146,7 +146,7 @@ return [
   ],
 
   'known_mainnet' => [
-    //
+    'rpQwfZuqKAWWLLvXmSMWotWKbfrB68THm5' => 'xMagnetic',
   ],
 
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
@@ -194,6 +194,10 @@ return [
     'rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH' => 'Evernode Registry',
     'rhMboq72S1sLBBxv4PS6ezwJLbgfSJFG4b' => 'Evernode Claimer',
     'rPNFrWbZG7mPenXAEBjAkPezE5N6NKy4W' => 'Evernode Labs',
+
+    'rE7EjcVNHjE6JdpCoDdCXjfMoKExNiKkKi' => 'Xahau Bet',
+
+    'rpQwfZuqKAWWLLvXmSMWotWKbfrB68THm5' => 'xMagnetic',
   ]
 
 ];

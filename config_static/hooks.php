@@ -82,34 +82,84 @@ return [
   '800F279C5CE89D913CE7A1036D2585277840B0A28D474B405ECD341AD47400C9' => [
     'title' => 'Evernode Rewards Forwarder',
     'image' => null,
-    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/',
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
   ],
   '7839AC4D669F7560AEA6C5ACA1D28CDBB050CD24C126DE18D398A63791A95893' => [
-    'title' => 'Evernode Rewards Forwarder',
+    'title' => 'Evernode Rewards Forwarder (grosdarz.fr)',
     'image' => null,
-    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/',
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
   ],
   '0A0F42000EB040423A7D2439D8D60B9DC6A834792ACFDAFCEC1EEB5ACFB0C70D' => [
-    'title' => 'Evernode Rewards Forwarder',
+    'title' => 'Evernode Rewards Forwarder (lauryles59.ovh)',
     'image' => null,
-    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/',
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
   ],
   '701997A6F5961BFDA02B6726A6B5038462F7EE488BECFF79919458CFC8FECE53' => [
-    'title' => 'Evernode Rewards Forwarder',
+    'title' => 'Evernode Rewards Forwarder (evernodeau.com)',
     'image' => null,
-    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/',
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
   ],
   '5ACA29000DB42C666B8FC0BDCB271530E46A5FE0EB864BA456C95F74B026C11B' => [
+    'title' => 'Evernode Rewards Forwarder (evergalaxy.net)',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
+  ],
+  '2E8C0D9DEE2D331E58F8BA8813D0D39A99A08F634362D656AAC4F85715FF2872' => [
+    'title' => 'Evernode Rewards Forwarder (crispynode.online, hstgr.cloud)',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
+  ],
+  '9340272017CDA0DDEF8AB36A05588902406ED556170CD51F90F56505C8ED3C71' => [
+    'title' => 'Evernode Rewards Forwarder 1 (evernode.eu)',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
+  ],
+  '86657CC837B4CE78D0C1EDED4814E71E5EA63578BC7D5A15BBF2B169DE403BFA' => [
+    'title' => 'Evernode Rewards Forwarder (spaceveg.space)',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
+  ],
+  '1967221DC2033BF07FEB151654D6FB0ACA3691B818BA22CE81C5EDD79A9445F8' => [
     'title' => 'Evernode Rewards Forwarder',
     'image' => null,
-    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/',
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
   ],
-  
-
-  '18E58870D38C8216D5B9179BC55E530DF6BB60DB7AC57A8985C85814DEC594FA' => [
-    'title' => 'Evernode Rewards Redirect',
+  'AEBAF4E786F46E75876920851F55C7A5FBB6FE7FBFE6B463EAA9B9EBA893040E' => [
+    'title' => 'Evernode Rewards Forwarder (rndblck.io)',
     'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
   ],
+  '7FA3C1A059B977B82527FBFDFDBA657B9BBC6C722BBB8B6DD3D576336442FC00' => [
+    'title' => 'Evernode Rewards Forwarder 2 (evernode.eu)',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
+  ],
+  'A97957B08793B8D29FA13E5581BFA60285D43C04F615868C380EAC6A622EBDB0' => [
+    'title' => 'Evernode Rewards Forwarder (vps.ovh.net)',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
+  ],
+  '58D72B4AD05F994927862D20F85F97768C9002ABC1A716AA04F6235CE44C1E9D' => [
+    'title' => 'Evernode Rewards Forwarder (grosdarz.fr)',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
+  ],
+  'CF4BAD11E576A163EE95A3601B89455AA1943488B552B42E4FD4C2BB2392A4E7' => [
+    'title' => 'Evernode Rewards Forwarder (1ever589node.site)',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
+  ],
+  'D342CEE50C855C5B2EC40CD4CEC58939858327751E67CDE6E3ADB0C0F8A090FC' => [
+    'title' => 'Evernode Rewards Forwarder (vps.ovh.net)',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
+  ],
+  '3C60075C2F38C485632B3D25603830C9C7F4737A86F404F353D705407ED24445' => [
+    'title' => 'Evernode Rewards Forwarder (guilastro.xyz)',
+    'image' => null,
+    'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/tree/9b00016a880abdbfe85eb7a76e4e2aefa45b1b5b',
+  ],
+
   '412E9084606862E7F8F6808098D4030FB98A4A22621C35FD67C1791A09F2A4DE' => [
     'title' => 'Evernode Rewards Redirect',
     'image' => null,
@@ -119,7 +169,7 @@ return [
     'image' => null,
   ],
   '017FE7A5D7E2E98F96D7D9E7C8530A6065016FC2BB4E3B242A781F1BB4C8C1EE' => [
-    'title' => 'Evernode Rewards Redirect',
+    'title' => 'Evernode Rewards Redirect (grosdarz.fr)',
     'image' => null,
   ],
   'EE287AFAF4E7BE1B93A06632F6E06580ACE4A2D8CB6B7CAD65EE1EE9657F3149' => [
@@ -131,6 +181,32 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/res/img/misc/hook_F77C439916E3FE5C8119743BA897E08BC687D661F992DE9EDDA80E4A1A47EEAA.webp',
     'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/blob/master/redirect.c'
   ],
+
+  //Xahau Bet - Lottery hook combo by XRPL-Labs
+  /*'2378A5711989FA84E7F0A810545A684C04FACFED022CB29E7B7DA48E422893CB' => [
+    'title' => 'Xahau Bet - Lottery Router',
+    'principal' => 'XRPL-Labs',
+    'web' => null,
+    'image' => null,
+  ],
+  'B65311953CEA1781F5D05C3236A3655A9D79F2FE898EBF831739A0CA10017626' => [
+    'title' => 'Xahau Bet - Lottery Starter',
+    'principal' => 'XRPL-Labs',
+    'web' => null,
+    'image' => null,
+  ],
+  '7A16488EBCDB2C16E2A733FF4FF524FDE1CFDB293CF352801C41CFE1A8B0231B' => [
+    'title' => 'Xahau Bet - Lottery Engine',
+    'principal' => 'XRPL-Labs',
+    'web' => null,
+    'image' => null,
+  ],
+  'AE95FA0ABAD97CAF0A3722D78DD960289CA0295ABC4F4D283A70635C1B20616F' => [
+    'title' => 'Xahau Bet - Lottery Finisher',
+    'principal' => 'XRPL-Labs',
+    'web' => null,
+    'image' => null,
+  ],*/
   
 
   //Other
