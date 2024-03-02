@@ -73,7 +73,13 @@ return [
   ],
 
   'F6555895B65EAAF5F7947D923CA4BEE2CE2D1DBBE7ECB30CC0477598EC490A39' => [
-    'title' => 'Evernode Price Oracle',
+    'title' => 'Evernode Price Oracle v1',
+    'source' => 'https://github.com/Transia-RnD/evernode-oracle',
+    'image' => 'https://secure.gravatar.com/avatar/1cc150400e735fc2bee2ed5e0f86619e',
+  ],
+
+  '0C581C5A109523E5E0238FF09296CFA5ED2FD3F7A111B5B9C0B143A50079F0A6' => [
+    'title' => 'Evernode Price Oracle v2',
     'source' => 'https://github.com/Transia-RnD/evernode-oracle',
     'image' => 'https://secure.gravatar.com/avatar/1cc150400e735fc2bee2ed5e0f86619e',
   ],
