@@ -191,7 +191,7 @@ return [
     'image' => null,
   ],
   '017FE7A5D7E2E98F96D7D9E7C8530A6065016FC2BB4E3B242A781F1BB4C8C1EE' => [
-    'title' => 'Evernode Rewards Redirect (grosdarz.fr)',
+    'title' => 'Krazes hook',
     'image' => null,
   ],
   'EE287AFAF4E7BE1B93A06632F6E06580ACE4A2D8CB6B7CAD65EE1EE9657F3149' => [
