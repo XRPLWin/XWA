@@ -257,6 +257,7 @@ class XwaContinuousSyncProc extends Command
 
         # Handle hooks
         $hook_parser = new TxHookParser($transaction);
+        
         $this->processHooks($hook_parser,$transaction);
         $this->processHooksTransaction($hook_parser,$transaction,$batch);
         # Handle hooks end
@@ -459,12 +460,12 @@ class XwaContinuousSyncProc extends Command
         unset($model);
       }
       unset($ch);
-
+      
       foreach($parser->accounts() as $account) { //loop all affected accounts by hook(s)
           //ACCOUNT+HOOK combo
           # Handle installations
           foreach($parser->lookup($account,'Hook','installed') as $_hook) {
-            
+            $_hook = $_hook[0];
             $model = new BHookTransaction;
             $model->hook = $_hook;
             $model->ctid = bchexdec($ctid);
@@ -481,6 +482,7 @@ class XwaContinuousSyncProc extends Command
 
           # Handle modifications
           foreach($parser->lookup($account,'Hook','modified') as $_hook) {
+            $_hook = $_hook[0];
             $model = new BHookTransaction;
             $model->hook = $_hook;
             $model->ctid = bchexdec($ctid);
@@ -497,7 +499,7 @@ class XwaContinuousSyncProc extends Command
 
           # Handle uninstallations (todo modify installation and update hookaction, do not store this below)
           foreach($parser->lookup($account,'Hook','uninstalled') as $_hook) {
-
+            $_hook = $_hook[0];
             $model = new BHookTransaction;
             $model->hook = $_hook;
             $model->ctid = bchexdec($ctid);
@@ -513,7 +515,6 @@ class XwaContinuousSyncProc extends Command
           }
   
       }
-
       # Handle destroys
       foreach($parser->destroyedHooks() as $_hook) {
         $model = new BHookTransaction;

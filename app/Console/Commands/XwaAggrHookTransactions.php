@@ -44,6 +44,7 @@ class XwaAggrHookTransactions extends Command
 
   public function handle()
   {
+    //dd(bchexdec(encodeCTID(11333315,0,config('xrpl.'.config('xrpl.net').'.networkid'))));
     //DB::beginTransaction();$this->postProcessMetric();exit;
 
     if(config('xwa.sync_type') != 'continuous') {
@@ -118,7 +119,8 @@ class XwaAggrHookTransactions extends Command
       [
         ['hook',$tx->hook],
         ['r',$tx->r],
-        ['hookaction', ['3','34']],
+        //['hookaction', ['3','34']], //not working when there is few same-hook uninstalls/installs on same acc
+        ['hookaction', 3],
         //['l','<=',$tx->l], //<= because ledger 6074486 (install and uninstall on same ledger)
         ['ctid','<=',$tx->ctid],
         //['tcode',['tesSUCCESS']]
@@ -129,10 +131,11 @@ class XwaAggrHookTransactions extends Command
     );
     
 
-    if(!$prev->count())
+    if(!$prev->count()) {
       throw new \Exception('Prev hook record not found for '.$tx->hook.' acc '.$tx->r);
-    $prev = $prev->first();
+    }
 
+    $prev = $prev->first();
     $prev->hookaction = 34;
     $prev->save();
   }

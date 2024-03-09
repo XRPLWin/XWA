@@ -22,7 +22,7 @@
         "thiagoprz/eloquent-composite-key": "^1.0",
         "xrplwin/unlreportreader": "^1.0",
         "xrplwin/xrpl": "^1.0",
-        "xrplwin/xrpl-hookparser": "^1.1",
+        "xrplwin/xrpl-hookparser": "^2.0",
         "xrplwin/xrpl-ledgertime": "^1.0",
         "xrplwin/xrpl-nfttxmutationparser": "^1.0",
         "xrplwin/xrpl-orderbook-reader": "^1.0",
