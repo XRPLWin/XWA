@@ -360,3 +360,15 @@ $test2 = \bcdechex($test);
 var_dump($test2);
 exit;
 */
+
+if (!function_exists('toMonthPeriod')) {
+  /**
+   * dechex but suppported uint64 numbers
+   */
+  function toMonthPeriod(\Carbon\Carbon $from, \Carbon\Carbon $to): \Carbon\CarbonPeriod
+  {
+    $from2 = clone $from;
+    $from2->firstOfMonth();
+    return $from2->toPeriod($to, 1, 'month')->settings(['monthOverflow' => false]);
+  }
+}

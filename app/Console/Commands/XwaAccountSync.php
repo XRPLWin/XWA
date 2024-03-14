@@ -162,7 +162,8 @@ class XwaAccountSync extends Command
       if($ledger_index_min != 0 && config('xwa.database_engine') == 'sql') {
         //find last tx in sharded db, back from today to genesis (first one found is it)
         $period_startdate = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
-        $period = \Carbon\CarbonPeriod::create($period_startdate, '30 days', now());
+        //$period = \Carbon\CarbonPeriod::create($period_startdate, '30 days', now());
+        $period = toMonthPeriod($period_startdate,now());
         $period_array = [];
         foreach($period as $m) {
           $period_array[] = $m->format('Ym');
