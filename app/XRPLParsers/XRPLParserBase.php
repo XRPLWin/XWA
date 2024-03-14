@@ -193,6 +193,7 @@ abstract class XRPLParserBase implements XRPLParserInterface
 
     $this->data['eventList'] = $this->parsedData['eventList'];
     $this->data['balanceChanges'] = $this->parsedData['self']['balanceChanges'];
+    $this->data['balanceChangesExclFee'] = $this->parsedData['self']['balanceChangesExclFee'];
     $this->data['txcontext'] = $this->parsedData['type'];
   }
 

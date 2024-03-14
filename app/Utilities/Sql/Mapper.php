@@ -92,6 +92,11 @@ class Mapper extends BaseMapper
               ->whereNull('i2')
               ->whereNull('c2');
           });
+          $q->orWhere(function($q3){
+            $q3->whereNotNull('a3')
+              ->whereNull('i3')
+              ->whereNull('c3');
+          });
         });
         //$SQL .= ' AND ( (a IS NOT NULL AND i IS NULL AND c IS NULL) OR (a2 IS NOT NULL AND i2 IS NULL AND c2 IS NULL) )';
       } else {
@@ -105,6 +110,11 @@ class Mapper extends BaseMapper
             $q2->whereNotNull('a2')
               ->where('i2',$issuerAndToken['issuer'])
               ->where('c2',$issuerAndToken['currency']);
+          });
+          $q->orWhere(function($q3) use ($issuerAndToken) {
+            $q3->whereNotNull('a3')
+              ->where('i3',$issuerAndToken['issuer'])
+              ->where('c3',$issuerAndToken['currency']);
           });
         });
         //$SQL .= ' AND ( (a IS NOT NULL AND i = """'.$issuerAndToken['issuer'].'""" AND c = """'.$issuerAndToken['currency'].'""") OR (a2 IS NOT NULL AND i2 = """'.$issuerAndToken['issuer'].'""" AND c2 = """'.$issuerAndToken['currency'].'""") )';

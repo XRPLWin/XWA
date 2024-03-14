@@ -265,12 +265,11 @@ class XwaContinuousSyncProc extends Command
         if($transaction->metaData->TransactionResult != 'tesSUCCESS')
           continue; //do not log failed transactions
 
-        if($transaction->TransactionType == 'Remit') {
+        //if($transaction->TransactionType == 'Remit') {
           //https://github.com/XRPLF/XRPL-Standards/discussions/156
-          //TODO MULTIPLE XWA rows for this!
           //For now skipped
-          continue;
-        }
+        //  continue;
+        //}
         $last_ledger_date = $transaction->date;
         $type = $transaction->TransactionType;
         $method = 'processTransaction_'.$type;
@@ -384,6 +383,10 @@ class XwaContinuousSyncProc extends Command
             't' => ripple_epoch_to_carbon((int)$parser->getDataField('Date'))->format('Y-m-d H:i:s.uP'),
             'r' => $activatedAddress,
             'isin' => true,
+            'ax' => [],
+            'ix' => [],
+            'cx' => [],
+            'nfts' => [],
             'offers' => [],
             'nftoffers' => [],
             'hooks' => [],

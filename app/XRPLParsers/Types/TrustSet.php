@@ -40,6 +40,10 @@ final class TrustSet extends XRPLParserBase
       'r' => $this->data['Issuer'], //counterparty =
       'i' => $this->data['Issuer'], //= issuer
       'h' => $this->data['hash'],
+      'ax' => [],
+      'ix' => [],
+      'cx' => [],
+      'nfts' => [],
       'offers' => [],
       'nftoffers' => [],
       'hooks' => $this->data['hooks'],

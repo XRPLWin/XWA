@@ -123,6 +123,44 @@ return new class extends Migration
         'mode' => 'NULLABLE',
         'description' => 'Currency (secondary)'
       ],
+      //used for AMM LP tokens and possible in Remit
+      [
+        'name' => 'a3',
+        'type' => 'STRING',
+        'mode' => 'NULLABLE',
+        'description' => 'Amount (tertiary)'
+      ],
+      [
+        'name' => 'i3',
+        'type' => 'STRING',
+        'mode' => 'NULLABLE',
+        'description' => 'Issuer (tertiary)'
+      ],
+      [
+        'name' => 'c3',
+        'type' => 'STRING',
+        'mode' => 'NULLABLE',
+        'description' => 'Currency (tertiary)'
+      ],
+      //Used for remit
+      [
+        'name' => 'ax',
+        'type' => 'STRING',
+        'mode' => 'REPEATED',
+        'description' => 'List of additional amounts - 4th... (possible in Remit)'
+      ],
+      [
+        'name' => 'ix',
+        'type' => 'STRING',
+        'mode' => 'REPEATED',
+        'description' => 'List of additional issuers - 4th... (possible in Remit)'
+      ],
+      [
+        'name' => 'cx',
+        'type' => 'STRING',
+        'mode' => 'REPEATED',
+        'description' => 'List of additional currencies - 4th... (possible in Remit)'
+      ],
       [
         'name' => 'offers',
         'type' => 'STRING',
@@ -133,7 +171,13 @@ return new class extends Migration
         'name' => 'nft',
         'type' => 'STRING',
         'mode' => 'NULLABLE',
-        'description' => 'NFTokenID'
+        'description' => 'NFTokenID or URITokenID'
+      ],
+      [
+        'name' => 'nfts',
+        'type' => 'STRING',
+        'mode' => 'REPEATED',
+        'description' => 'List of URITokens (sfURITokenIDs) included in Remit transaction'
       ],
       [
         'name' => 'nftoffers',
@@ -254,8 +298,18 @@ return new class extends Migration
         $table->string('a2',194)->nullable()->default(null)->comment('Amount (secondary)');
         $table->string('i2',50)->nullable()->default(null)->comment('Issuer (secondary)');
         $table->string('c2',40)->nullable()->default(null)->comment('Currency (secondary)');
+        //used for AMM LP tokens and possible in Remit
+        $table->string('a3',194)->nullable()->default(null)->comment('Amount (tertiary)'); //new
+        $table->string('i3',50)->nullable()->default(null)->comment('Issuer (tertiary)'); //new
+        $table->string('c3',40)->nullable()->default(null)->comment('Currency (tertiary)'); //new
+        //Used for remit
+        $table->json('ax')->comment('List of additional amounts - 4th... (possible in Remit)'); //new
+        $table->json('ix')->comment('List of additional issuers - 4th... (possible in Remit)'); //new
+        $table->json('cx')->comment('List of additional currencies - 4th... (possible in Remit)'); //new
+        
         $table->json('offers')->comment('List of offers that are affected in specific transaction in format: rAccount:sequence');
-        $table->string('nft',64)->nullable()->default(null)->comment('NFTokenID');
+        $table->string('nft',64)->nullable()->default(null)->comment('NFTokenID or URITokenID');
+        $table->json('nfts')->comment('List of URITokens (sfURITokenIDs) included in Remit transaction'); //new
         $table->json('nftoffers')->comment('List of NFTOfferIDs that are affected in specific transaction');
         $table->string('pc',64)->nullable()->default(null)->comment('Payment channel');
         $table->json('hooks')->comment('List of executed hook hashes');
