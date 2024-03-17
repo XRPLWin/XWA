@@ -69,7 +69,7 @@ final class DepositPreauth extends XRPLParserBase
       'ax' => [],
       'ix' => [],
       'cx' => [],
-      'ntfs' => [],
+      'nfts' => [],
       'offers' => [],
       'nftoffers' => [],
       'hooks' => $this->data['hooks'],

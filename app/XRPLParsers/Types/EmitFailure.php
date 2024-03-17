@@ -81,7 +81,7 @@ final class EmitFailure extends XRPLParserBase
       'ax' => [],
       'ix' => [],
       'cx' => [],
-      'ntfs' => [],
+      'nfts' => [],
       'offers' => [],
       'nftoffers' => [],
       'hooks' => $this->data['hooks'],

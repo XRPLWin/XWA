@@ -82,7 +82,7 @@ final class CheckCash extends XRPLParserBase
       'ax' => [],
       'ix' => [],
       'cx' => [],
-      'ntfs' => [],
+      'nfts' => [],
       'offers' => [],
       'nftoffers' => [],
       'hooks' => $this->data['hooks'],

@@ -58,7 +58,7 @@ final class CheckCancel extends XRPLParserBase
       'ax' => [],
       'ix' => [],
       'cx' => [],
-      'ntfs' => [],
+      'nfts' => [],
       'offers' => [],
       'nftoffers' => [],
       'hooks' => $this->data['hooks'],
