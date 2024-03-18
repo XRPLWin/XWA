@@ -40,7 +40,7 @@ class XwaAggrHookTransactions extends Command
   /**
    * How much transactions to process per job?
    */
-  private int $_limit = 5000; //5000
+  private int $_limit = 55000; //5000
 
   public function handle()
   {
