@@ -60,18 +60,41 @@ return [
     'genesis_ledger_close_time' => env('XRPL_GENESIS_LEDGER_CLOSE_TIME', 750124142),
     
     //for connection via php GuzzleHttp (reporting server)
-    'rippled_server_uri' => 'https://s.altnet.rippletest.net:51234',
+    #'rippled_server_uri' => 'https://s.altnet.rippletest.net:51234',
+    'rippled_server_uri' => 'https://testnet.xrpl-labs.com',
     //for connection via php GuzzleHttp (full history server)
-    'rippled_fullhistory_server_uri' => 'https://s.altnet.rippletest.net:51234',
+    #'rippled_fullhistory_server_uri' => 'https://s.altnet.rippletest.net:51234',
+    'rippled_fullhistory_server_uri' => 'https://testnet.xrpl-labs.com',
     //websocket domain (example: 'xrplcluster.com')
-    'server_wss' => 's.altnet.rippletest.net',
-    'server_wss_syncer' => ['wss://s.altnet.rippletest.net'],
+    'server_wss' => 'testnet.xrpl-labs.com',
+    'server_wss_syncer' => ['wss://testnet.xrpl-labs.com'],
     'networkid' => 1,
     //enable or disable unlreport
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
     'feature_unlreport_first_flag_ledger_close_time' => 0,
     'unl_vl' => 'https://vl.altnet.rippletest.net',
+    'api_xrpscan' => 'https://api.xrpscan.com',
+    'api_tokens' => null,
+  ],
+
+  'devnet' => [
+    'genesis_ledger'            => env('XRPL_GENESIS_LEDGER', 4240000),
+    'genesis_ledger_close_time' => env('XRPL_GENESIS_LEDGER_CLOSE_TIME', 761280743),
+    
+    //for connection via php GuzzleHttp (reporting server)
+    'rippled_server_uri' => 'https://s.devnet.rippletest.net:51234',
+    //for connection via php GuzzleHttp (full history server)
+    'rippled_fullhistory_server_uri' => 'https://s.devnet.rippletest.net:51234',
+    //websocket domain (example: 'xrplcluster.com')
+    'server_wss' => 's.devnet.rippletest.net:51233',
+    'server_wss_syncer' => ['wss://s.devnet.rippletest.net:51233'],
+    'networkid' => 2,
+    //enable or disable unlreport
+    'feature_unlreport' => false,
+    'feature_unlreport_first_flag_ledger' => 0,
+    'feature_unlreport_first_flag_ledger_close_time' => 0,
+    'unl_vl' => 'https://vl.devnet.rippletest.net',
     'api_xrpscan' => 'https://api.xrpscan.com',
     'api_tokens' => null,
   ],
