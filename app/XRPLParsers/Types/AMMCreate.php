@@ -82,12 +82,19 @@ final class AMMCreate extends XRPLParserBase
         //Check if is amount1
         if($Amount1Identification == $_bc_Identification) {
           //It is amount1
+          if($amount1 !== null) 
+            throw new \Exception('Duplicate amount1 detected in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
           $amount1 = $_bc;
         } else if($Amount2Identification == $_bc_Identification) {
           //It is amount1
+          if($amount2 !== null) 
+            throw new \Exception('Duplicate amount2 detected in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
           $amount2 = $_bc;
         } else {
           //It is LT
+          if($amountLT !== null) 
+            throw new \Exception('Duplicate LT detected in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      
           $amountLT = $_bc;
         }
       }
