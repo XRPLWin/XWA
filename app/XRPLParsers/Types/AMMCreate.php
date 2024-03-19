@@ -112,9 +112,9 @@ final class AMMCreate extends XRPLParserBase
 
       //Set Amount 3
       $this->data['Amount3'] = $amountLT['value'];
-      $this->data['Issuer3'] = $amountLT['counterparty'];
-      //$this->data['Currency3'] = $amountLT['currency'];
-      $this->data['Currency3'] = $AMM_ACCOUNT; //LP token issuer is always AMM account
+      //$this->data['Issuer3'] = $amountLT['counterparty'];
+      $this->data['Issuer3'] = $AMM_ACCOUNT;//LP token issuer is always AMM account
+      $this->data['Currency3'] = $amountLT['currency'];
 
     }
     
