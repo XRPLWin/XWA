@@ -3,13 +3,13 @@
 namespace App\Models;
 
 /**
- * Transaction model of type AMMCreate.
- * PK: rAcct-51 SK: <INT> (Ledger index)
+ * Transaction model of type AMMDeposit.
+ * PK: rAcct-52 SK: <INT> (Ledger index)
  */
-class BTransactionAMMCreate extends BTransaction
+class BTransactionAMMDeposit extends BTransaction
 {
-  const TYPE = 51;
-  const TYPENAME = 'AMMCreate';
+  const TYPE = 52;
+  const TYPENAME = 'AMMDeposit';
 
   public function toFinalArray(): array
   {
