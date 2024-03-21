@@ -14,7 +14,8 @@ SET session rocksdb_bulk_load=0;
 SET session rocksdb_bulk_load_allow_unsorted=0;
 ```
 
-Depending of table size and server capacity this can take between 1 minute to few hours. Alter table copies to temp table then renames and drops existing.
+Depending of table size and server capacity this can take between 1 minute to few hours. Alter table copies to temp table then renames and drops existing.  
+20m rows: 1200sec; 74m rows = 5300sec
 
 Update 16 03 2024:  
 ```SQL
