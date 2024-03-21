@@ -3,13 +3,13 @@
 namespace App\Models;
 
 /**
- * Transaction model of type AMMBid.
- * PK: rAcct-54 SK: <INT> (Ledger index)
+ * Transaction model of type AMMVote.
+ * PK: rAcct-55 SK: <INT> (Ledger index)
  */
-class BTransactionAMMBid extends BTransaction
+class BTransactionAMMVote extends BTransaction
 {
-  const TYPE = 54;
-  const TYPENAME = 'AMMBid';
+  const TYPE = 55;
+  const TYPENAME = 'AMMVote';
 
   public function toFinalArray(): array
   {
