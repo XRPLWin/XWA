@@ -5,11 +5,11 @@ namespace App\XRPLParsers\Types;
 use App\XRPLParsers\XRPLParserBase;
 use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
 
-final class AMMCreate extends XRPLParserBase
+final class AMMWithdraw extends XRPLParserBase
 {
   private array $acceptedParsedTypes = ['REGULARKEYSIGNER','SENT','SET','UNKNOWN'];
   /**
-   * Parses AMMCreate type fields and maps them to $this->data
+   * Parses AMMWithdraw type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
    * @return void
    */
@@ -17,7 +17,7 @@ final class AMMCreate extends XRPLParserBase
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on AMMWithdraw with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     //Default:
     $this->data['Counterparty'] = $this->tx->Account;
@@ -33,7 +33,7 @@ final class AMMCreate extends XRPLParserBase
       }
     }
     if($AMM_ACCOUNT === false) {
-      throw new \Exception('Unable to find AMM_ACCOUNT in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      throw new \Exception('Unable to find AMM_ACCOUNT in AMMWithdraw with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     }
     # Counterparty
     // If initiator, counterparty is generated amm account
@@ -42,10 +42,10 @@ final class AMMCreate extends XRPLParserBase
     if($this->reference_address == $this->tx->Account) {
       //Counterparty is AMM Account
       $this->data['Counterparty'] = $AMM_ACCOUNT;
-      $this->data['In'] = false;
+      $this->data['In'] = true;
     } else if ($this->reference_address == $AMM_ACCOUNT) {
       $this->data['Counterparty'] = $this->tx->Account;
-      $this->data['In'] = true;
+      $this->data['In'] = false;
     } else {
       $this->data['In'] = false;
       $this->persist = false;
@@ -53,7 +53,7 @@ final class AMMCreate extends XRPLParserBase
 
   
     if((!isset($this->data['eventList']['primary']) || !isset($this->data['eventList']['secondary'])) && $this->persist) {
-      throw new \Exception('Expecting primary and secondary events on AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      throw new \Exception('Expecting primary and secondary events on AMMWithdraw with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     }
 
     # Source and destination tags
@@ -65,46 +65,28 @@ final class AMMCreate extends XRPLParserBase
     }
 
     $BC = $this->data['balanceChangesExclFee'];
-
-    $Amount1Identification = \is_string($this->tx->Amount) ? 'XRP':$this->tx->Amount->currency.'.'.$this->tx->Amount->issuer;
-    $Amount2Identification = \is_string($this->tx->Amount2) ? 'XRP':$this->tx->Amount2->currency.'.'.$this->tx->Amount2->issuer;
-    $amount1 = null;
-    $amount2 = null;
-    $amountLT = null;
-    //3 balance changes for AMM account or sender
+    $amount1 = null;  //required
+    $amount2 = null;  //optional (optional in single asset witdraw)
+    $amountLT = null; //required
     if($this->reference_address == $this->tx->Account || $this->reference_address == $AMM_ACCOUNT) {
-      //Amm creator (sender)
       foreach($BC as $_bc) {
-        $_bc_Identification = $_bc['currency'];
-        if(count($_bc) == 3)
-          $_bc_Identification .= '.'.$_bc['counterparty'];
-        
-        //Check if is amount1
-        if($Amount1Identification == $_bc_Identification) {
-          //It is amount1
-          if($amount1 !== null) 
-            throw new \Exception('Duplicate amount1 detected in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-          $amount1 = $_bc;
-        } else if($Amount2Identification == $_bc_Identification) {
-          //It is amount1
-          if($amount2 !== null) 
-            throw new \Exception('Duplicate amount2 detected in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-          $amount2 = $_bc;
-        } else {
-          //It is LT
-          if($amountLT !== null) 
-            throw new \Exception('Duplicate LT detected in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-      
-          //check if its really LT
-          if(!\str_starts_with($_bc['currency'],'03'))
-            throw new \Exception('Non LT detected in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-          
+        if(\str_starts_with($_bc['currency'],'03')) {
+          //LT
           $amountLT = $_bc;
+        } else {
+          //Its Amount 1 or Amount 2
+          if($amount1 === null) {
+            $amount1 = $_bc;
+          } else {
+            $amount2 = $_bc;
+          }
         }
       }
+      //echo '<hr>';
+      //dd($BC,$amount1,$amount2,$amountLT);
 
-      if($amount1 === false || $amount2 === false || $amountLT == false) {
-        throw new \Exception('Expecting all 3 currencies for AMM account in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      if($amount1 === false || $amountLT == false) {
+        throw new \Exception('Expecting atleast 1 amount and LT for AMM account in AMMWithdraw with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
 
       //Set Amount 1
@@ -115,21 +97,20 @@ final class AMMCreate extends XRPLParserBase
       }
 
       //Set Amount 2
-      $this->data['Amount2'] = $amount2['value'];
-      if($amount2['currency'] !== 'XRP') {
-        $this->data['Issuer2'] = $amount2['counterparty'];
-        $this->data['Currency2'] = $amount2['currency'];
+      if($amount2 !== null) {
+        $this->data['Amount2'] = $amount2['value'];
+        if($amount2['currency'] !== 'XRP') {
+          $this->data['Issuer2'] = $amount2['counterparty'];
+          $this->data['Currency2'] = $amount2['currency'];
+        }
       }
-
+      
       //Set Amount 3
       $this->data['Amount3'] = $amountLT['value'];
       //$this->data['Issuer3'] = $amountLT['counterparty'];
       $this->data['Issuer3'] = $AMM_ACCOUNT;//LP token issuer is always AMM account
       $this->data['Currency3'] = $amountLT['currency'];
-
     }
-    
-    
   }
 
 
