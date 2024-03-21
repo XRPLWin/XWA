@@ -11,7 +11,7 @@ SHOW CREATE TABLE ...
 ```
 
 ```SQL
-CREATE TABLE `transactions202403` (
+CREATE TABLE `transactionsX` (
   `address` varchar(50) COLLATE utf8mb4_bin NOT NULL COMMENT 'rAddress',
   `l` int unsigned NOT NULL COMMENT 'LedgerIndex',
   `li` smallint unsigned NOT NULL COMMENT 'TransactionIndex',
@@ -65,8 +65,8 @@ Update 16 03 2024:
 SET session sql_log_bin=0;
 -- SET session rocksdb_bulk_load_allow_unsorted=1;
 SET session rocksdb_bulk_load=1;
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+SET session FOREIGN_KEY_CHECKS=0;
+SET session unique_checks=0;
 ALTER TABLE `transactionsX` 
 ADD COLUMN `a3` varchar(194) NULL COMMENT 'Amount (tertiary)' AFTER `c2`,
 ADD COLUMN `i3` varchar(50) NULL COMMENT 'Issuer (tertiary)' AFTER `a3`,
@@ -75,7 +75,8 @@ ADD COLUMN `ax` json NOT NULL DEFAULT (JSON_ARRAY()) COMMENT 'List of additional
 ADD COLUMN `ix` json NOT NULL DEFAULT (JSON_ARRAY()) COMMENT 'List of additional issuers - 4th... (possible in Remit)' AFTER `ax`,
 ADD COLUMN `cx` json NOT NULL DEFAULT (JSON_ARRAY()) COMMENT 'List of additional currencies - 4th... (possible in Remit)' AFTER `ix`,
 ADD COLUMN `nfts` json NOT NULL DEFAULT (JSON_ARRAY()) COMMENT 'List of URITokens (sfURITokenIDs) included in Remit transaction' AFTER `nft`;
-SET FOREIGN_KEY_CHECKS = 1;
+SET session unique_checks=1;
+SET session FOREIGN_KEY_CHECKS=1;
 SET session rocksdb_bulk_load=0;
 -- SET session rocksdb_bulk_load_allow_unsorted=0;
 ```
