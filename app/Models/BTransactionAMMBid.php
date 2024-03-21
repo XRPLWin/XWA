@@ -3,13 +3,13 @@
 namespace App\Models;
 
 /**
- * Transaction model of type AMMWithdraw.
+ * Transaction model of type AMMBid.
  * PK: rAcct-53 SK: <INT> (Ledger index)
  */
-class BTransactionAMMWithdraw extends BTransaction
+class BTransactionAMMBid extends BTransaction
 {
-  const TYPE = 53;
-  const TYPENAME = 'AMMWithdraw';
+  const TYPE = 54;
+  const TYPENAME = 'AMMBid';
 
   public function toFinalArray(): array
   {
