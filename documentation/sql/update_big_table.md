@@ -63,7 +63,6 @@ Depending of table size and server capacity this can take between 1 minute to fe
 Update 16 03 2024:  
 ```SQL
 SET session sql_log_bin=0;
--- SET session rocksdb_bulk_load_allow_unsorted=1;
 SET session rocksdb_bulk_load=1;
 SET session FOREIGN_KEY_CHECKS=0;
 SET session unique_checks=0;
@@ -78,5 +77,42 @@ ADD COLUMN `nfts` json NOT NULL DEFAULT (JSON_ARRAY()) COMMENT 'List of URIToken
 SET session unique_checks=1;
 SET session FOREIGN_KEY_CHECKS=1;
 SET session rocksdb_bulk_load=0;
--- SET session rocksdb_bulk_load_allow_unsorted=0;
+SET session sql_log_bin=1;
+```
+
+Bulk data import (full table)
+```SQL
+SET session sql_log_bin=0;
+SET session rocksdb_bulk_load=1;
+-- SET session rocksdb_commit_in_the_middle=1;
+SET session FOREIGN_KEY_CHECKS=0;
+SET session unique_checks=0;
+
+-- insert into ...
+
+SET session unique_checks=1;
+SET session FOREIGN_KEY_CHECKS=1;
+-- SET session rocksdb_commit_in_the_middle=0;
+SET session rocksdb_bulk_load=0;
+SET session sql_log_bin=1;
+```
+
+Bulk data import from file (recommended):  
+- Important: Table must be freshly created due to clean index sequences, otherwise commit command `SET session rocksdb_bulk_load=0;` will fail
+- Copy .sql with INSERT statemants to the server
+- login to mysql `mysql -u importer -pPASS`
+
+```SQL
+use xwaxrpl2;
+SET session sql_log_bin=0;
+SET session rocksdb_bulk_load=1;
+SET session FOREIGN_KEY_CHECKS=0;
+SET session unique_checks=0;
+START TRANSACTION;
+source /_sql/test.sql
+COMMIT;
+SET session unique_checks=1;
+SET session FOREIGN_KEY_CHECKS=1;
+SET session rocksdb_bulk_load=0;
+SET session sql_log_bin=1;
 ```
