@@ -4,6 +4,7 @@ namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
 use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
+use Brick\Math\BigDecimal;
 
 final class AMMBid extends XRPLParserBase
 {
@@ -59,25 +60,60 @@ final class AMMBid extends XRPLParserBase
     $this->data['DestinationTag'] = isset($this->tx->DestinationTag) ? $this->tx->DestinationTag:null;
     $this->data['SourceTag'] = isset($this->tx->SourceTag) ? $this->tx->SourceTag:null;
 
+
+    $BC = $this->data['balanceChangesExclFee'];
+    $BC = \array_values($BC);
+
+    if(count($BC) && !$this->persist) {
+      //this is not initiator nor amm account this is bid winner or accont who got LP tokens
+      $this->data['In'] = true;
+      $this->persist = true;
+    }
+    
     if(!$this->persist) {
       return;
     }
 
-    $BC = $this->data['balanceChangesExclFee'];
-    $BC = \array_values($BC);
     $amountLT = null; //required
-    if($this->reference_address == $this->tx->Account || $this->reference_address == $AMM_ACCOUNT) {
+    if($this->reference_address != $AMM_ACCOUNT) {
 
       if(count($BC) != 1) {
         throw new \Exception('Expecting 1 balance change (excl fee) on AMMBid with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
       $amountLT = $BC[0];
+
+      if(!\str_starts_with($amountLT['currency'],'03')) {
+        throw new \Exception('Unexpected non-LP balance change for AMM account on AMMBid with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      }
       
       //Set Amount 3
       $this->data['Amount3'] = $amountLT['value'];
       //$this->data['Issuer3'] = $amountLT['counterparty'];
       $this->data['Issuer3'] = $AMM_ACCOUNT;//LP token issuer is always AMM account
       $this->data['Currency3'] = $amountLT['currency'];
+
+    } elseif($this->reference_address == $AMM_ACCOUNT) { //60A2E1053DA19AE34BA0435962610D7672DE09A71A5BD5E169878063C923FB74
+
+      //AMM acoount has IN LP tokens and some out LP tokens, we store diff to Amount3/Issuer3/Currency3
+      $LPSUM = BigDecimal::of(0);
+      $LPSUM_exists = false;
+      foreach($BC as $b) {
+        if(count($b) != 3) {
+          throw new \Exception('Unexpected XRP balance change for AMM account on AMMBid with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+        }
+        if(!\str_starts_with($b['currency'],'03')) {
+          throw new \Exception('Unexpected non-LP balance change for AMM account on AMMBid with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+        }
+        $LPSUM_exists = true;
+        $LPSUM = $LPSUM->plus($b['value']);
+        $this->data['Currency3'] = $b['currency'];
+      }
+      if(!$LPSUM_exists) {
+        throw new \Exception('Unexisting LP balance change for AMM account on AMMBid with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      }
+      //Set Amount 3
+      $this->data['Amount3'] = (string)$LPSUM;
+      $this->data['Issuer3'] = $AMM_ACCOUNT;//LP token issuer is always AMM account
     }
   }
 
