@@ -35,15 +35,19 @@ final class AMMVote extends XRPLParserBase
       }
     }
     if($AMM_ACCOUNT === false) {
-      throw new \Exception('Unable to find AMM_ACCOUNT in AMMVote with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+
+      //this can happen if user voted for same % as was before, and this vote did not change any metadata
+      //there for amm account is not present in metadata and we can not extract it
+      //we allow persist of this row due to fee spent
+      //throw new \Exception('Unable to find AMM_ACCOUNT in AMMVote with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     }
     # Counterparty
     // If initiator, counterparty is generated amm account
     // If AMM account, counterpary is initiator
     // Everything else discarded
     if($this->reference_address == $this->tx->Account) {
-      //Counterparty is AMM Account
-      $this->data['Counterparty'] = $AMM_ACCOUNT;
+      //Counterparty is AMM Account or if AMM account not affected (unindetifiable) - self
+      $this->data['Counterparty'] = $AMM_ACCOUNT ? $AMM_ACCOUNT:$this->tx->Account;
       $this->data['In'] = false;
     } else if ($this->reference_address == $AMM_ACCOUNT) {
       $this->data['Counterparty'] = $this->tx->Account;
