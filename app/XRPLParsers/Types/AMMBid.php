@@ -64,6 +64,7 @@ final class AMMBid extends XRPLParserBase
     }
 
     $BC = $this->data['balanceChangesExclFee'];
+    $BC = \array_values($BC);
     $amountLT = null; //required
     if($this->reference_address == $this->tx->Account || $this->reference_address == $AMM_ACCOUNT) {
 
