@@ -51,9 +51,10 @@ final class AMMWithdraw extends XRPLParserBase
       $this->persist = false;
     }
 
-  
-    if((!isset($this->data['eventList']['primary']) || !isset($this->data['eventList']['secondary'])) && $this->persist) {
-      throw new \Exception('Expecting primary and secondary events on AMMWithdraw with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+    if((!isset($this->data['eventList']['primary']) && !isset($this->data['eventList']['secondary'])) && $this->persist) {
+      //see 5081780FC987CDC875B01C9B16AA71FF4CD585B11E0FF03F6554C6C5046B4E17 (0xrp withdraw)
+      // - finally nothing witdrawed and LP token returned
+      throw new \Exception('Expecting at least primary and/or secondary events on AMMWithdraw with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
     }
 
     # Source and destination tags
@@ -86,15 +87,18 @@ final class AMMWithdraw extends XRPLParserBase
       //dd($BC,$amount1,$amount2,$amountLT);
 
       if($amount1 === false || $amountLT == false) {
-        throw new \Exception('Expecting atleast 1 amount and LT for AMM account in AMMWithdraw with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+        throw new \Exception('Expecting up to two amounts and LT for AMM account in AMMWithdraw with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
 
       //Set Amount 1
-      $this->data['Amount'] = $amount1['value'];
-      if($amount1['currency'] !== 'XRP') {
-        $this->data['Issuer'] = $amount1['counterparty'];
-        $this->data['Currency'] = $amount1['currency'];
+      if($amount1 !== null) {
+        $this->data['Amount'] = $amount1['value'];
+        if($amount1['currency'] !== 'XRP') {
+          $this->data['Issuer'] = $amount1['counterparty'];
+          $this->data['Currency'] = $amount1['currency'];
+        }
       }
+      
 
       //Set Amount 2
       if($amount2 !== null) {
