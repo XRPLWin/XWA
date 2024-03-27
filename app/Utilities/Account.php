@@ -303,6 +303,7 @@ class Account
     }
 
     # AMM information
+   
     $amminfo = null;
     try {
       $amminfo = $this->getXummAMMInfo();
@@ -311,25 +312,27 @@ class Account
       //throw $e;
       $fails['xumm_amm_info'] = true;
     }
+    
     if($amminfo !== null) {
-      $r['amm'] = $amminfo;
+      $r['amm'] = $amminfo['amm'];
+      //override title
+      $r['name'] = $amminfo['name'];
     }
 
-
+    
     $this->data = $r;
     //if nothing failed, save to disk else output with small http cache
     if($fails['xrpscan_account_info'] == false && $fails['xumm_account_info'] == false && $fails['xumm_amm_info'] == false) {
       //nothing failed, save to disk
       $this->is_completefetch = true;
     }
-   
   }
 
   /**
    * Get amm information from public xumm endpoint
-   * @return null|false|string - false - not amm, string - is amm eg XRP/USD
+   * @return ?array - null - not amm, array [name,amm]
    */
-  private function getXummAMMInfo(): false|string
+  private function getXummAMMInfo(): ?array
   {
     $client = new \GuzzleHttp\Client();
     $response = $client->request('GET', 'https://xumm.app/api/v1/platform/amm-meta/'.$this->address, [
@@ -338,6 +341,7 @@ class Account
         'accept' => 'application/json',
       ],
     ]);
+    
     $status_code = $response->getStatusCode();
     
     if($status_code == 429)
@@ -346,12 +350,28 @@ class Account
     if($status_code != 200)
       throw new \Exception('Service down');
     
-    $r = \json_decode($response->getBody(),true);
+    $data = \json_decode($response->getBody(),true);
+    if(!isset($data['ammAccount']))
+      return null;
+    if(!$data['ammAccount'])
+      return null;
 
-    if(isset($r['ammName']['short'])) {
-      return $r['ammName']['short']; //sample where is not decoded rsUrtBeJDT167EctjEKZrZKczyekTy9vNo (/v1/account/summary/rsUrtBeJDT167EctjEKZrZKczyekTy9vNo)
-    }
-    return false;
+    $r = [
+      'amm' => null, //eg XRP/USD
+      'name' => null, //eg AMM XRP/USD Pool
+    ];
+    if(count($data['pair']) != 2)
+      throw new \Exception('Xumm amm meta response returned unexpected pair value');
+
+    $c1 = $data['pair'][0];
+    $c2 = $data['pair'][1];
+
+    $c1_currency = xrp_currency_to_symbol($c1['currency'],$c1['currency']);
+    $c2_currency = xrp_currency_to_symbol($c2['currency'],$c2['currency']);
+    $r['amm'] = $c1_currency.'/'.$c2_currency;
+    $r['name'] = 'AMM '.$r['amm'].' Pool';
+
+    return $r;
   }
 
   /**
