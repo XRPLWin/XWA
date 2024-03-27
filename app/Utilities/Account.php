@@ -93,7 +93,6 @@ class Account
       $this->do_store = false;
       return;
     }
-
     $r = $this->template();
     $name_processed = false;
 
@@ -146,6 +145,7 @@ class Account
     $fails = [
       'xrpscan_account_info' => false,
       'xumm_account_info' => false,
+      'xumm_amm_info' => false,
     ];
 
     # Get ledger data
@@ -216,8 +216,10 @@ class Account
         $xrpscan_account_info = $this->xrpscan_account_info();
       } catch (\Exception $e) {
         //try again later
+        //throw $e;
         $fails['xrpscan_account_info'] = true;
       }
+
       if($xrpscan_account_info) {
         if($result === null) {
           //this is unexisting account, check if it is deleted by checking parentName
@@ -300,13 +302,56 @@ class Account
       }
     }
 
+    # AMM information
+    $amminfo = null;
+    try {
+      $amminfo = $this->getXummAMMInfo();
+    } catch (\Exception $e) {
+      //try again later
+      //throw $e;
+      $fails['xumm_amm_info'] = true;
+    }
+    if($amminfo !== null) {
+      $r['amm'] = $amminfo;
+    }
+
+
     $this->data = $r;
     //if nothing failed, save to disk else output with small http cache
-    if($fails['xrpscan_account_info'] == false && $fails['xumm_account_info'] == false) {
+    if($fails['xrpscan_account_info'] == false && $fails['xumm_account_info'] == false && $fails['xumm_amm_info'] == false) {
       //nothing failed, save to disk
       $this->is_completefetch = true;
     }
    
+  }
+
+  /**
+   * Get amm information from public xumm endpoint
+   * @return null|false|string - false - not amm, string - is amm eg XRP/USD
+   */
+  private function getXummAMMInfo(): false|string
+  {
+    $client = new \GuzzleHttp\Client();
+    $response = $client->request('GET', 'https://xumm.app/api/v1/platform/amm-meta/'.$this->address, [
+      'http_errors' => false,
+      'headers' => [
+        'accept' => 'application/json',
+      ],
+    ]);
+    $status_code = $response->getStatusCode();
+    
+    if($status_code == 429)
+      throw new \Exception('Rate limited');
+
+    if($status_code != 200)
+      throw new \Exception('Service down');
+    
+    $r = \json_decode($response->getBody(),true);
+
+    if(isset($r['ammName']['short'])) {
+      return $r['ammName']['short']; //sample where is not decoded rsUrtBeJDT167EctjEKZrZKczyekTy9vNo (/v1/account/summary/rsUrtBeJDT167EctjEKZrZKczyekTy9vNo)
+    }
+    return false;
   }
 
   /**
@@ -414,22 +459,22 @@ class Account
     if($api_url === null)
       return null; //disabled
 
-    //dd('https://api.xrpscan.com/api/v1/account/'.$this->address);
     $client = new \GuzzleHttp\Client();
     $response = $client->request('GET', $api_url.'/api/v1/account/'.$this->address, [
       'http_errors' => false,
       'headers' => [
         'accept' => 'application/json',
+        'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
       ],
     ]);
     $status_code = $response->getStatusCode();
     
     if($status_code == 429)
       throw new \Exception('Rate limited');
-
+    
     if($status_code != 200)
       throw new \Exception('Service down');
-    
+
     return \json_decode($response->getBody(),true);
   }
 
@@ -461,6 +506,7 @@ class Account
       'active' => false, //this might mean account was deleted or never activated
       'deleted' => false, //if true, then this account was once active (xrpscan provides this info)
       'genesis' => false,
+      'amm' => false, //false|string eg XRP/USD
       'name' => null, //try extract name from bithomp, xrpscan, etc
       'avatar' => null, //avatar url or null (use hashicon then)
       'paystring' => null, //available in xumm profile
