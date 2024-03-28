@@ -7,12 +7,13 @@ use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
 final class URITokenCancelSellOffer extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses URITokenCancelSellOffer type fields and maps them to $this->data
    * Only thing that is persisted is Initiator (Account) perspective.
    * @see https://docs.xahau.network/technical/protocol-reference/transactions/transaction-types/uritokencancelselloffer
+   * @see 463F7826125CF50C20746C0B97DC8BA934D3D51CE8A96BD5E5C04357304A3C28 (rk signer)
    * @return void
    */
   protected function parseTypeFields(): void
