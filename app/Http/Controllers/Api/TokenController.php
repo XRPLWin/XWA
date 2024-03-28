@@ -26,6 +26,11 @@ class TokenController extends Controller
     $num_issuers = $tokens->uniqueStrict('i')->count();
     $tokens = $tokens->toArray();
 
+    //format currencies
+    foreach($tokens as $k => $v) {
+      $tokens[$k]['cf'] = xrp_currency_to_symbol($v['c'],$v['c']);
+    }
+
     $ttl = 21600; //6 hours
     $httpttl = 21600; //6 hours
 
