@@ -21,7 +21,7 @@ class InfoController extends Controller
         'route' => '/v1/account/info/{address}',
         'method' => 'GET'
       ],
-      [
+      /*[
         'action' => 'Trustline info for account',
         'route' => '/v1/account/trustlines/{address}',
         'method' => 'GET'
@@ -35,11 +35,17 @@ class InfoController extends Controller
         'action' => 'Chart data spending in XRP for account',
         'route' => '/v1/account/chart/spending/{address}',
         'method' => 'GET'
-      ],
+      ],*/
       [
         'action' => 'Search and filter account transactions and events (todo add missing type to pattern below)',
         'route' => '/v1/account/search/{address}?from=YYYY-MM-DD&to=YYYY-MM-DD[&dir=in|out][&st=Int32][&dt=Int32][&cp=rCounterpartyAccount]',
         'method' => 'GET'
+      ],
+      [
+        'action' => 'All tokens list',
+        'route' => '/v1/tokens',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/tokens',
       ],
       [
         'action' => 'Recent aggragated information',

@@ -16,11 +16,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/account/info/{address}', [App\Http\Controllers\Api\AccountController::class, 'info'])/*->middleware('varnish5min')*/->name('account.info');
 Route::get('/account/summary/{address}', [App\Http\Controllers\Api\AccountController::class, 'summary'])/*->middleware('varnish5min')*/->name('account.summary'); //high traffic supported, cached
 Route::get('/account/syncinfo/{address}/{to?}', [App\Http\Controllers\Api\AccountController::class, 'syncinfo'])/*->middleware('varnish5min')*/->name('account.syncinfo');
-Route::get('/account/trustlines/{address}', [App\Http\Controllers\Api\AccountController::class, 'trustlines'])/*->middleware('varnish5min')*/->name('account.trustlines');
-Route::get('/account/issued/{address}', [App\Http\Controllers\Api\AccountController::class, 'issued'])/*->middleware('varnish5min')*/->name('account.issued');
+//Route::get('/account/trustlines/{address}', [App\Http\Controllers\Api\AccountController::class, 'trustlines'])/*->middleware('varnish5min')*/->name('account.trustlines');
+//Route::get('/account/issued/{address}', [App\Http\Controllers\Api\AccountController::class, 'issued'])/*->middleware('varnish5min')*/->name('account.issued');
 //Route::get('/account/chart/spending/{account}', [App\Http\Controllers\Api\AccountController::class, 'chart_spending'])/*->middleware('varnish5min')*/->name('account.chart.spending');
-
 Route::get('/account/search/{address}', [App\Http\Controllers\Api\AccountController::class, 'search'])/*->middleware('varnish5min')*/->name('account.search');
+Route::get('/tokens', [App\Http\Controllers\Api\TokenController::class, 'all'])/*->middleware('varnish5min')*/->name('token.all');
+
 
 #Utilities
 //Route::middleware(['varnish5min'])->group(function () {
@@ -30,6 +31,7 @@ Route::get('/account/search/{address}', [App\Http\Controllers\Api\AccountControl
 Route::get('/xahau/import/{from}/{to}/aggr', [App\Http\Controllers\Api\XahauController::class, 'import_aggr'])->name('xahau.import_aggr');
 
 Route::get('/oracle/USD', [App\Http\Controllers\Api\OracleController::class, 'usd'])->name('oracle.usd');
+
 Route::get('/hooks/{filter}/{order}/{direction}', [App\Http\Controllers\Api\HookController::class, 'hooks'])->name('hooks');
 Route::get('/hook/{hookhash}', [App\Http\Controllers\Api\HookController::class, 'hook'])->name('hook');
 Route::get('/hook/{hookhash}/{hookctid}/transactions/{order}/{direction}', [App\Http\Controllers\Api\HookController::class, 'hook_transactions'])->name('hook.transactions');

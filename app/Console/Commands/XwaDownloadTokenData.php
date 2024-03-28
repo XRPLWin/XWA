@@ -9,6 +9,7 @@ use JsonMachine\Items;
 use App\Models\Token;
 use App\Models\Issuer;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 #use GuzzleHttp\Subscriber\Oauth\Oauth1;
 
@@ -46,6 +47,8 @@ class XwaDownloadTokenData extends Command
       {
         throw new \Exception('File does not exist: '.$path);
       }
+      
+      Cache::put('job_xwadownloadtokendata_running', true, 600); //600 = 10 mins
 
       //Truncate tables: tokens, issuers
       Token::query()->truncate();
@@ -98,6 +101,7 @@ class XwaDownloadTokenData extends Command
 
       }
 
+      Cache::delete('job_xwadownloadtokendata_running');
 
       return Command::SUCCESS;
     }
