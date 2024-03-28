@@ -22,13 +22,17 @@ class TokenController extends Controller
       ->join('issuers', 'issuers.id', '=', 'tokens.issuer_id')
       ->orderBy('tokens.num_holders','desc')
       ->get()
-      ->toArray()
     ;
+    $num_issuers = $tokens->uniqueStrict('i')->count();
+    $tokens = $tokens->toArray();
+
     $ttl = 21600; //6 hours
     $httpttl = 21600; //6 hours
 
     return response()->json([
       'success' => true,
+      'total_tokens' => count($tokens),
+      'total_issuers' => $num_issuers,
       'data' => $tokens
     ])
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
