@@ -132,7 +132,6 @@ if (!function_exists('drops_to_xrp')) {
   }
 }
 
-//TODO: https://github.com/XRPLF/xrpl-dev-portal/blob/master/content/_code-samples/normalize-currency-codes/js/normalize-currency-code.js
 if (!function_exists('xrp_currency_to_symbol')) {
   /**
   * Decode HEX XRPL currency to symbol.
@@ -140,9 +139,11 @@ if (!function_exists('xrp_currency_to_symbol')) {
   * Examples: USD,EUR,534F4C4F00000000000000000000000000000000,LP 031234...
   * @return string
   */
-  function xrp_currency_to_symbol($currencycode, $malformedUtf8ReturnString = '?') : string
+  function xrp_currency_to_symbol(string $currencycode, string $malformedUtf8ReturnString = '?') : string
   {
-    if( \strlen($currencycode) == 40 )
+    return \XRPLWin\XRPL\Utilities\Util::currencyToSymbol($currencycode, $malformedUtf8ReturnString);
+
+    /*if( \strlen($currencycode) == 40 )
     {
       if(\substr($currencycode,0,2) == '03') {
         //AMM LP token, 03 + 19 bytes of sha512
@@ -154,7 +155,7 @@ if (!function_exists('xrp_currency_to_symbol')) {
         return $r;
       return $malformedUtf8ReturnString; //malformed UTF-8 string
     }
-    return $currencycode;
+    return $currencycode;*/
   }
 }
 
