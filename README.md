@@ -40,6 +40,11 @@ chmod +x reload.sh
 Character set: `utf8mb4`  
 Collation: `utf8mb4_bin`
 
+Create database:
+```SQL
+CREATE DATABASE `xwa` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_bin';
+```
+
 ## Supervisor
 
 ### Swoole worker
