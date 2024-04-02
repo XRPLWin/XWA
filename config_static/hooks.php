@@ -216,7 +216,7 @@ return [
   ],
 
   //Xahau Bet - Lottery hook combo by XRPL-Labs
-  /*'2378A5711989FA84E7F0A810545A684C04FACFED022CB29E7B7DA48E422893CB' => [
+  '2378A5711989FA84E7F0A810545A684C04FACFED022CB29E7B7DA48E422893CB' => [
     'title' => 'Xahau Bet - Lottery Router',
     'principal' => 'XRPL-Labs',
     'web' => null,
@@ -239,8 +239,7 @@ return [
     'principal' => 'XRPL-Labs',
     'web' => null,
     'image' => null,
-  ],*/
-  
+  ],
 
   //Other
   '4512D7BABEF201C779E76B2FEECB0D655E088426B5769F0C6796A1E97FD82D91' => [
