@@ -24,9 +24,15 @@ return new class extends Migration
 
         $table->string('c1',40)->comment('Amount Currency or XRP 1');
         $table->string('i1',50)->nullable()->default(null)->comment('Amount Issuer 1');
+        $table->string('a1',194)->default('')->comment('Amount'); //autosynced
         
         $table->string('c2',40)->comment('Currency or XRP 2');
         $table->string('i2',50)->nullable()->default(null)->comment('Amount Issuer 2');
+        $table->string('a2',194)->default('')->comment('Amount'); //autosynced
+
+        $table->string('lpc',40)->default('')->comment('LP Currency'); //autosynced
+        $table->string('lpi',50)->default('')->comment('LP Issuer');   //autosynced
+        $table->string('lpa',194)->default('')->comment('LP Amount');  //autosynced
 
         $table->char('pairhash',180)->comment('Normalized amounts pair hash for keeping unique data');
         
@@ -37,6 +43,7 @@ return new class extends Migration
         // Following is proactively updated:
         $table->integer('tradingfee')->default(0)->comment('AMM current trading fee');
         $table->boolean('is_active')->default(true);
+        $table->dateTimeTz('synced_at',0);
 
         //todo add additional columns
 
