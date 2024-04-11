@@ -114,8 +114,15 @@ class InfoController extends Controller
         'method' => 'GET',
         'example' => config('app.url').'/v1/hook-transactions/recent',
       ],
-
     ];
+    if(config('xrpl.'.config('xrpl.net').'.feature_amm')) {
+      $endpoints[] = [
+        'action' => 'Get active AMM Pool list',
+        'route' => '/v1/amm/pools/active',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/amm/pools/active',
+      ];
+    }
     $endpoints[] = [
       'action' => 'Get UNL Validators',
       'route' => '/v1/validators/dunl',
