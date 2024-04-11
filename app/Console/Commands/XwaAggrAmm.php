@@ -198,7 +198,7 @@ class XwaAggrAmm extends Command
   {
     $this->log('Starting ledger AMMs rolling sync');
 
-    $limit = 50; //10 amms to sync from xrpl
+    $limit = 200; //10 amms to sync from xrpl
     $staleMinutes = 30; //resync after data is 30 minutes old
 
     $XRPLClient = app(Client::class);
