@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Synctracker;
 use App\Models\Tracker;
+use App\Models\BTransactionAMMCreate;
 use XRPLWin\XRPLLedgerTime\XRPLLedgerTimeSyncer;
 use Carbon\Carbon;
 use XRPLWin\XRPL\Client;
@@ -78,7 +79,7 @@ class XwaAggrAmm extends Command
       $this->pullAmmCreatesFromXWADB($synctracker);
     else
       $this->info('Skipping pullAmmCreatesFromXWADB()');
-    
+
     $this->syncAmmsFromLedger();
   }
 
@@ -93,11 +94,12 @@ class XwaAggrAmm extends Command
     //  $last_processed_YM = $last_processed_carbon->format('Ym');
     //dd($last_processed_YM);
     $this->log('Month: '.$last_processed_YM);
+    $this->log('Starting slow query, this may take few minutes...');
 
-    //Following query will run atleast 2 mins
+    //Following query will run atleast few mins
     $txs = DB::table(transactions_db_name($last_processed_YM))
       ->select('address','l','t','h','i','c','i2','c2')
-      ->where('xwatype',51)
+      ->where('xwatype',BTransactionAMMCreate::TYPE)
       ->where('isin',true)
       ->where('l','>', $last_processed_li)
       ->orderBy('l','asc')
