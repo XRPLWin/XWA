@@ -36,8 +36,8 @@ return new class extends Migration
 
         // Following is proactively updated:
         $table->integer('tradingfee')->default(0)->comment('AMM current trading fee');
-        //$table->boolean('is_active')->default(true);
-        //todo isactive
+        $table->boolean('is_active')->default(true);
+
         //todo add additional columns
 
         $table->primary(['accountid']);
