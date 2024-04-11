@@ -75,12 +75,23 @@ class XwaAggrAmm extends Command
       return self::FAILURE;
     }
 
-    if(!$skipquery)
-      $this->pullAmmCreatesFromXWADB($synctracker);
-    else
-      $this->info('Skipping pullAmmCreatesFromXWADB()');
+    /**
+     * int $what - 0 will run query, 1,2,3 will run xrpl sync
+     * Every third run $what will be 0
+     * 0,1,2,3, 0,1,2,3...
+     */
+    $what = Tracker::getInt('aggrammwht',0);
+    $this->info('What is: '.$what);
+    //Increment $what
+    $toSaveWhat = $what+1;
+    if($toSaveWhat > 3) $toSaveWhat = 0;
+    Tracker::saveInt('aggrammwht',$toSaveWhat);
 
-    $this->syncAmmsFromLedger();
+    if(!$skipquery) {
+      if($what == 0) $this->pullAmmCreatesFromXWADB($synctracker);
+    } else $this->info('Skipping pullAmmCreatesFromXWADB()');
+
+    if($what != 0) $this->syncAmmsFromLedger();
   }
 
   private function pullAmmCreatesFromXWADB(Synctracker $synctracker)

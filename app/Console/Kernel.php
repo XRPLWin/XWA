@@ -43,8 +43,8 @@ class Kernel extends ConsoleKernel
       ->runInBackground();
 
     $schedule->command('xwa:aggramm')
-      ->withoutOverlapping(15) //lock expires every 15 mins
-      ->everyTenMinutes()
+      ->withoutOverlapping(35) //lock expires every 35 mins
+      ->everyThirtyMinutes()
       ->onOneServer()
       ->runInBackground();
 
