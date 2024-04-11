@@ -22,7 +22,8 @@ return [
     'server_wss' => env('XRPL_NET_SERVER_WSS', 'localhost:6006'),
     'server_wss_syncer' => [env('XRPL_NET_SERVER_WSS_SYNCER', 'ws://localhost:6006')],
     'networkid' => (int)env('XRPL_NET_NETWORKID', 0),
-    //enable or disable unlreport
+    //enable or disable features
+    'feature_amm' => env('XRPL_NET_FEATURE_AMM', false),
     'feature_unlreport' => env('XRPL_NET_FEATURE_UNLREPORT', false),
     'feature_unlreport_first_flag_ledger' => env('XRPL_NET_FEATURE_UNLREPORT_FIRST_FLAG_LEDGER', 512),
     'feature_unlreport_first_flag_ledger_close_time' => env('XRPL_NET_FEATURE_UNLREPORT_FIRST_FLAG_LEDGER_CLOSE_TIME', 0),
@@ -47,7 +48,8 @@ return [
     'server_wss_syncer' => ['ws://79.110.60.89:8080'],
     //'server_wss_syncer' => ['wss://s2.ripple.com'],
     'networkid' => 0,
-    //enable or disable unlreport
+    //enable or disable features
+    'feature_amm' => true,
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
     'feature_unlreport_first_flag_ledger_close_time' => 0,
@@ -70,7 +72,8 @@ return [
     'server_wss' => 'testnet.xrpl-labs.com',
     'server_wss_syncer' => ['wss://testnet.xrpl-labs.com'],
     'networkid' => 1,
-    //enable or disable unlreport
+    //enable or disable features
+    'feature_amm' => true,
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
     'feature_unlreport_first_flag_ledger_close_time' => 0,
@@ -91,7 +94,8 @@ return [
     'server_wss' => 's.devnet.rippletest.net:51233',
     'server_wss_syncer' => ['wss://s.devnet.rippletest.net:51233'],
     'networkid' => 2,
-    //enable or disable unlreport
+    //enable or disable features
+    'feature_amm' => true,
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
     'feature_unlreport_first_flag_ledger_close_time' => 0,
@@ -112,7 +116,8 @@ return [
     'server_wss' => 'xahau-test.net',
     'server_wss_syncer' => ['wss://xahau-test.net'],
     'networkid' => 21338,
-    //enable or disable unlreport
+    //enable or disable features
+    'feature_amm' => false,
     'feature_unlreport' => true,
     'feature_unlreport_first_flag_ledger' => 6869247, //6869248 is first flag
     'feature_unlreport_first_flag_ledger_close_time' => 748958191, //ripple epoch
@@ -134,7 +139,8 @@ return [
     //'server_wss_syncer' => ['wss://xahau.network'],
     'server_wss_syncer' => ['wss://xahau.network/explorer/xrplwin'],
     'networkid' => 21337,
-    //enable or disable unlreport
+    //enable or disable features
+    'feature_amm' => false,
     'feature_unlreport' => true,
     'feature_unlreport_first_flag_ledger' => 512, //512 is first flag
     'feature_unlreport_first_flag_ledger_close_time' => 751985211, //ripple epoch

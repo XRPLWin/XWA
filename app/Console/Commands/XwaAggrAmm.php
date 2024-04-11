@@ -46,7 +46,7 @@ class XwaAggrAmm extends Command
   public function handle()
   {
     if(config('xwa.sync_type') != 'continuous') {
-      $this->info('Continous sync is not enabled, this feature in unavailable');
+      $this->info('Continuous sync is not enabled, this feature in unavailable');
       return Command::SUCCESS;
     }
 
@@ -54,7 +54,12 @@ class XwaAggrAmm extends Command
       $this->info('SQL database engine is not enabled, this feature in unavailable');
       return Command::SUCCESS;
     }
-    
+
+    if(!config('xrpl.'.config('xrpl.net').'.feature_amm')) {
+      $this->info('AMM Feature is not enabled');
+      return Command::SUCCESS;
+    }
+
     set_time_limit(290); //less than 5 min max execution time, lock is 10 min, schedule is every 5 min
 
     $this->debug = config('app.debug');
