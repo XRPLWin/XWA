@@ -19,7 +19,7 @@ class XwaAggrAmm extends Command
    *
    * @var string
    */
-  protected $signature = 'xwa:aggramm';
+  protected $signature = 'xwa:aggramm {--skipquery=0}';
 
   /**
    * The console command description.
@@ -65,6 +65,8 @@ class XwaAggrAmm extends Command
     $this->debug = config('app.debug');
     $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
 
+    $skipquery = (int)$this->option('skipquery'); //int
+
     # Get ultimate last ledger_index that is synced
     $synctracker = Synctracker::select('last_lt')->where('is_completed',true)->orderBy('first_l','asc')->first();
     if(!$synctracker) {
@@ -72,20 +74,24 @@ class XwaAggrAmm extends Command
       return self::FAILURE;
     }
 
-    $this->pullAmmCreatesFromXWADB($synctracker);
+    if(!$skipquery)
+      $this->pullAmmCreatesFromXWADB($synctracker);
+    else
+      $this->info('Skipping pullAmmCreatesFromXWADB()');
+    
     $this->syncAmmsFromLedger();
   }
 
   private function pullAmmCreatesFromXWADB(Synctracker $synctracker)
   {
-    $ledgertime = new XRPLLedgerTimeSyncer(); //init syncer
-    
     $last_processed_li = Tracker::getInt('aggrammlli',config('xrpl.'.config('xrpl.net').'.genesis_ledger')); //aggr amm last ledger index
-    $last_processed_YM = Tracker::getInt('aggrammlym',0); //zero (if needs recalculation) or YM when set
-    $last_processed_carbon = $ledgertime->ledgerIndexToCarbon($last_processed_li);
-    if($last_processed_YM == 0)
-      $last_processed_YM = $last_processed_carbon->format('Ym');
-
+    $last_processed_YM = Tracker::getInt('aggrammlym',202401); //zero (if needs recalculation) or YM when set
+    
+    //$ledgertime = new XRPLLedgerTimeSyncer(); //init syncer
+    //$last_processed_carbon = $ledgertime->ledgerIndexToCarbon($last_processed_li);
+    //if($last_processed_YM == 0)
+    //  $last_processed_YM = $last_processed_carbon->format('Ym');
+    //dd($last_processed_YM);
     $this->log('Month: '.$last_processed_YM);
 
     //Following query will run atleast 2 mins
