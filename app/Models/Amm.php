@@ -18,7 +18,7 @@ class Amm extends Model
    * @var array
    */
   protected $casts = [
-    //'aa' => 'boolean',
+    't' => 'datetime',
     'synced_at' => 'datetime',
   ];
 

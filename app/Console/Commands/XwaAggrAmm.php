@@ -148,22 +148,26 @@ class XwaAggrAmm extends Command
       if($tx->i == null) {
         $pairhash[] = 'XRP';
         $amm->c1 = 'XRP';
+        $amm->c1_display = 'XRP';
         $amm->i1 = null;
       } else {
         $pairhash[] = $tx->c;
         $pairhash[] = $tx->i;
         $amm->c1 = $tx->c;
+        $amm->c1_display = xrp_currency_to_symbol($tx->c);
         $amm->i1 = $tx->i;
       }
 
       if($tx->i2 == null) {
         $pairhash[] = 'XRP';
         $amm->c2 = 'XRP';
+        $amm->c2_display = 'XRP';
         $amm->i2 = null;
       } else {
         $pairhash[] = $tx->c2;
         $pairhash[] = $tx->i2;
         $amm->c2 = $tx->c2;
+        $amm->c2_display = xrp_currency_to_symbol($tx->c2);
         $amm->i2 = $tx->i2;
       }
       \sort($pairhash,SORT_NATURAL);

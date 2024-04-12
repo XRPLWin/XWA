@@ -142,20 +142,6 @@ if (!function_exists('xrp_currency_to_symbol')) {
   function xrp_currency_to_symbol(string $currencycode, string $malformedUtf8ReturnString = '?') : string
   {
     return \XRPLWin\XRPL\Utilities\Util::currencyToSymbol($currencycode, $malformedUtf8ReturnString);
-
-    /*if( \strlen($currencycode) == 40 )
-    {
-      if(\substr($currencycode,0,2) == '03') {
-        //AMM LP token, 03 + 19 bytes of sha512
-        return 'LP '.$currencycode;
-      }
-      $r = \trim(\hex2bin($currencycode));
-      $r = preg_replace('/[\x00-\x1F\x7F]/', '', $r); //remove first 32 ascii characters and \x7F https://en.wikipedia.org/wiki/Control_character
-      if(preg_match('//u', $r)) //This will will return 0 (with no additional information) if an invalid string is given.
-        return $r;
-      return $malformedUtf8ReturnString; //malformed UTF-8 string
-    }
-    return $currencycode;*/
   }
 }
 
