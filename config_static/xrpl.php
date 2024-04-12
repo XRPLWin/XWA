@@ -147,6 +147,7 @@ return [
 
   'known_mainnet' => [
     'rpQwfZuqKAWWLLvXmSMWotWKbfrB68THm5' => 'xMagnetic',
+    'rwUYZL4Rjnno7zY8MpQQJQB6vheVKreWB1' => 'Uphold',
   ],
 
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
@@ -158,7 +159,6 @@ return [
     
     'ra7MQw7YoMjUw6thxmSGE6jpAEY3LTHxev' => 'Evernode',
     'rfMB6RCNdWSB6TJXYwCEU5HvDC2eArJp8h' => 'Digital Governance', //https://digitalgoverning.eu/
-    'r9EzMEYr5zuRasrfVKdry9JWLbw9mBe6Jg' => 'FYEO',
     
     'r4FRPZbLnyuVeGiSi1Ap6uaaPvPXYZh1XN' => 'Xahau Dev Table',
       'r47tpT8LUoymNgRWzfUq2LdkPRfo4UZSkB' => 'Xahau Dev Table - GENESIS member 1',
@@ -176,11 +176,12 @@ return [
       'r4FF5jjJMS2XqWDyTYStWrgARsj3FjaJ2J' => 'GateHub UAB',
       'rfKsmLP6sTfVGDvga6rW6XbmSFUzc3G9f3' => 'Bitrue',
     
-    'r6QZ6zfK37ZSec5hWiQDtbTxUaU2NWG3F'  => 'Xahau Auditors and Enterprise',
-      'rpuQonHVeMk1qEz9bWMhDRBDSjvLu2gU1B' => 'Xahau Auditors and Enterprise - GENESIS member 1',
-      'rHrptekd18qAGCADzK1kg2QyREiRPuVpTJ' => 'Xahau Auditors and Enterprise - GENESIS member 2',
-      'rpZuvdsDzCLxii1ag9TAyf11Wc43qg4QAG' => 'Xahau Auditors and Enterprise - GENESIS member 3',
-      'rwcL4h6ix5VrxjE6GXNq2svJjnj6H3ZJjv' => 'Xahau Auditors and Enterprise - GENESIS member 4',
+    'r6QZ6zfK37ZSec5hWiQDtbTxUaU2NWG3F'  => 'Xahau Auditor Table',
+      'r9EzMEYr5zuRasrfVKdry9JWLbw9mBe6Jg' => 'FYEO',
+      'rpuQonHVeMk1qEz9bWMhDRBDSjvLu2gU1B' => 'Geveo',
+      'rHrptekd18qAGCADzK1kg2QyREiRPuVpTJ' => 'DBL',
+      'rpZuvdsDzCLxii1ag9TAyf11Wc43qg4QAG' => 'Quantstamp',
+      'rwcL4h6ix5VrxjE6GXNq2svJjnj6H3ZJjv' => 'OSec',
 
     'rwyypATD1dQxDbdQjMvrqnsHr2cQw5rjMh' => 'Xahau Projects Table',
       'rHMtqVuvEESUhPrsgb8tSa5ghjyoQySfVC' => 'xSPECTAR',
