@@ -61,8 +61,6 @@ class XwaAggrAmm extends Command
       return Command::SUCCESS;
     }
 
-    set_time_limit(290); //less than 5 min max execution time, lock is 10 min, schedule is every 5 min
-
     $this->debug = config('app.debug');
     $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
 
