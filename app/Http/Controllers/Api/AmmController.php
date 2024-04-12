@@ -47,6 +47,7 @@ class AmmController extends Controller
     if($page > 1)
       $offset = $limit * ($page - 1);
 
+
     $ammsQueryBilder = Amm::where('is_active',true)
       ->where('lpc','!=',''); //make sure we return only synced
 
@@ -80,12 +81,13 @@ class AmmController extends Controller
       }
     }
 
-    $amms = $ammsQueryBilder
+    $ammsQueryBilderSearch = clone $ammsQueryBilder;
+
+    $amms = $ammsQueryBilderSearch
       ->select('accountid','c1','c1_display','i1','a1','c2','c2_display','i2','a2','lpc','lpi','lpa','h','t','tradingfee','synced_at')
       ->orderBy('t','desc')
       ->limit($limit+1)->offset($offset)
       ->get();
-
 
     /*$amms = Amm::select('accountid','c1','c1_display','i1','a1','c2','c2_display','i2','a2','lpc','lpi','lpa','h','t','tradingfee','synced_at')
       ->where('is_active',true)
@@ -104,8 +106,6 @@ class AmmController extends Controller
       $num_results = $ammsQueryBilder->count();
     }
 
-
-    
     if($amms->count() == $limit+1) $hasMorePages = true;
 
     $r = [];
