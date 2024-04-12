@@ -201,6 +201,8 @@ return [
     'rpQwfZuqKAWWLLvXmSMWotWKbfrB68THm5' => 'xMagnetic',
     'rDEMHZSisVkChmGZzqvrmqRBYnbiV1dZ5f' => 'Meliora ByteLabs',
     'r3qZMoq4JgbHsGKbbDHof6Pi1Y9gkstM22' => 'KrazeDegen',
+
+    'rwUYZL4Rjnno7zY8MpQQJQB6vheVKreWB1' => 'Uphold',
   ]
 
 ];
