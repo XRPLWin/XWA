@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Synctracker;
 use App\Models\Tracker;
 use App\Models\BTransactionAMMCreate;
+use Brick\Math\BigDecimal;
 use XRPLWin\XRPLLedgerTime\XRPLLedgerTimeSyncer;
 use Carbon\Carbon;
 use XRPLWin\XRPL\Client;
+use Brick\Math\BigNumber;
 
 class XwaAggrAmm extends Command
 {
@@ -65,6 +67,12 @@ class XwaAggrAmm extends Command
     $this->debug_id = \substr(\md5(rand(1,999).\time()),0,5);
 
     $skipquery = (int)$this->option('skipquery'); //int
+
+    //test start
+    //$test = Amm::where('accountid','rMEJo9H5XvTe17UoAJzj8jtKVvTRcxwngo')->first();
+    //$this->syncMarketData($test);
+    //exit;
+    //test end
 
     # Get ultimate last ledger_index that is synced
     $synctracker = Synctracker::select('last_lt')->where('is_completed',true)->orderBy('first_l','asc')->first();
@@ -272,8 +280,125 @@ class XwaAggrAmm extends Command
       $amm->lpi = $amminfo->amm->lp_token->issuer;
       $amm->lpa = $amminfo->amm->lp_token->value;
       $amm->save();
-      $this->log('Pool '.$amm->accountid.' synced');
+      $this->log('Pool '.$amm->accountid.' ledger synced');
+
+      $this->syncMarketData($amm);
+      $this->log('Pool '.$amm->accountid.' market data synced');
     }
+  }
+
+  /**
+   * Queries data API and synces additional market data.
+   * - price of traded pair
+   * - 24h change
+   * - 24h volume
+   * - 24h low and high
+   * - tvl (total value locked)
+   */
+  private function syncMarketData(Amm $amm)
+  {
+    $data_api = config('xrpl.'.config('xrpl.net').'.data_api');
+    if(!$data_api) return;
+
+    
+    try {
+      $XRPValue1 = $this->getXRPValue($amm->c1,$amm->i1,$amm->a1);
+      $XRPValue2 = $this->getXRPValue($amm->c2,$amm->i2,$amm->a2);
+    } catch(\Throwable $e) {
+      $this->log('Unable to get value for amm '.$amm->accountid.': '.$e->getMessage());
+      return;
+    }
+    $TVL = $XRPValue1->plus($XRPValue2);
+    $amm->tvl = $TVL;
+
+    //24h data: volume, high, low
+    //$data24h = $this->get24hData($amm->c1,$amm->i1,$amm->c2,$amm->i2);
+    //$amm->volume24 = $data24h['volume'];
+    //$amm->low24 = $data24h['low'];
+    //$amm->high24 = $data24h['high'];
+    
+    
+    //dd($data24h);
+
+
+
+    $amm->save();
+
+    //$endpoint = $data_api.'/v1/iou/market_data/'.$amount2.'/'.$amount1.'?interval=1h';
+    //$endpoint1 = $data_api.'/v1/iou/volume_data/'.$amount1.'?interval=1h&descending=true';
+    //$endpoint2 = $data_api.'/v1/iou/volume_data/'.$amount2.'?interval=1h&descending=true';
+
+    //dd($endpoint1,$endpoint2,(string)$XRPValue1,(string)$XRPValue2,(string)$TVL);
+  }
+  
+  /*private function get24hData(string $currency1, ?string $issuer1, string $currency2, ?string $issuer2): array
+  {
+    $amount1 = $issuer1 ? $issuer1.'_'.$currency1:$currency1;
+    $amount2 = $issuer2 ? $issuer2.'_'.$currency2:$currency2;
+
+    $data_api = config('xrpl.'.config('xrpl.net').'.data_api');
+    $endpoint = $data_api.'/v1/iou/ticker_data/'.$amount1.'/'.$amount2.'?interval=1d&only_amm=true';
+
+    //Make xrp first place (make it base)
+    if($amount1 === 'XRP') {
+      $endpoint = $data_api.'/v1/iou/ticker_data/'.$amount2.'/'.$amount1.'?interval=1d&only_amm=true';
+    }
+    $this->line($endpoint);
+    $r = $this->queryDataAPI($endpoint);
+    if(isset($r[0]->last)) {
+      return [
+        'volume' => $r[0]->base_volume,
+        'low' => $r[0]->low,
+        'high' => $r[0]->high,
+      ];
+    }
+
+    return [
+      'volume' => 0,
+      'low' => 0,
+      'high' => 0,
+    ];
+    //throw new \Exception('Unable to get 24h amm only data');
+  }*/
+
+  private function getXRPValue(string $currency, ?string $issuer, string $value): BigNumber 
+  {
+    if($issuer === null) {
+      $drops = BigDecimal::of($value); //Direct Drops
+      return $drops->exactlyDividedBy(1000000);
+    }
+    //get XRP/Currency from data api
+    $data_api = config('xrpl.'.config('xrpl.net').'.data_api');
+
+    //Try 1h
+    $endpoint = $data_api.'/v1/iou/ticker_data/'.$issuer.'_'.$currency.'/XRP?interval=1h&only_amm=false';
+    $r = $this->queryDataAPI($endpoint);
+    
+    if(isset($r[0]->last)) {
+      $xrpValueSingle = BigNumber::of($r[0]->last);
+      return $xrpValueSingle->multipliedBy($value);
+    }
+
+    //Try 1d if 1h fails
+    $endpoint = $data_api.'/v1/iou/ticker_data/'.$issuer.'_'.$currency.'/XRP?interval=1d&only_amm=false';
+    $r = $this->queryDataAPI($endpoint);
+    if(isset($r[0]->last)) {
+      $xrpValueSingle = BigNumber::of($r[0]->last);
+      return $xrpValueSingle->multipliedBy($value);
+    }
+    //dd($endpoint,$r);
+    throw new \Exception('Unable to get market data');
+  }
+
+  private function queryDataAPI(string $endpoint): array
+  {
+    $client = new \GuzzleHttp\Client(['verify' => false]);
+    $res = $client->request('GET', $endpoint);
+    if($res->getStatusCode() != 200) {
+      throw new \Exception('Non 200 response');
+    }
+    $r = \json_decode((string)$res->getBody()); //stdClass
+    return $r;
   }
 
   /**

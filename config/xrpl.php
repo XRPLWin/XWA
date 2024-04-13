@@ -29,7 +29,8 @@ return [
     'feature_unlreport_first_flag_ledger_close_time' => env('XRPL_NET_FEATURE_UNLREPORT_FIRST_FLAG_LEDGER_CLOSE_TIME', 0),
     'unl_vl' => env('XRPL_NET_UNL_VL', 'http://vl.test'),
     'api_xrpscan' => env('XRPL_NET_API_XRPSCAN', null),
-    'api_tokens' => null,
+    'api_tokens' => env('XRPL_NET_API_TOKENS', null),
+    'data_api' => env('XRPL_NET_DATA_API', null),
   ],
 
   'mainnet' => [
@@ -56,6 +57,7 @@ return [
     'unl_vl' => 'https://vl.xrplf.org',
     'api_xrpscan' => 'https://api.xrpscan.com',
     'api_tokens' => 'https://api.xrpldata.com/api/v1/tokens',
+    'data_api' => 'https://data.xrplf.org', //see https://data.xrplf.org/docs/static/index.html
   ],
 
   'testnet' => [
@@ -80,6 +82,7 @@ return [
     'unl_vl' => 'https://vl.altnet.rippletest.net',
     'api_xrpscan' => 'https://api.xrpscan.com',
     'api_tokens' => null,
+    'data_api' => null, //'https://testnet.data.xrplf.org',
   ],
 
   'devnet' => [
@@ -102,6 +105,7 @@ return [
     'unl_vl' => 'https://vl.devnet.rippletest.net',
     'api_xrpscan' => 'https://api.xrpscan.com',
     'api_tokens' => null,
+    'data_api' => null, //'https://devnet.data.xrplf.org',
   ],
 
   'xahautest' => [
@@ -124,6 +128,7 @@ return [
     'unl_vl' => 'https://vl.test.xahauexplorer.com',
     'api_xrpscan' => 'https://api.xahscan.com',
     'api_tokens' => null,
+    'data_api' => null, //'https://testnet.data.xahau.network',
   ],
 
   'xahau' => [
@@ -147,6 +152,7 @@ return [
     'unl_vl' => 'https://vl.xahau.org',
     'api_xrpscan' => 'https://api.xahscan.com',
     'api_tokens' => 'https://api.xahaudata.com/api/v1/tokens',
+    'data_api' => 'https://data.xahau.network', //see https://data.xahau.network/docs/static/index.html
   ],
 
   //https://xrpl.org/basic-data-types.html#specifying-time

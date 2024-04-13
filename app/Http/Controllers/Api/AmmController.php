@@ -84,8 +84,8 @@ class AmmController extends Controller
     $ammsQueryBilderSearch = clone $ammsQueryBilder;
 
     $amms = $ammsQueryBilderSearch
-      ->select('accountid','c1','c1_display','i1','a1','c2','c2_display','i2','a2','lpc','lpi','lpa','h','t','tradingfee','synced_at')
-      ->orderBy('t','desc')
+      ->select('accountid','c1','c1_display','i1','a1','c2','c2_display','i2','a2','lpc','lpi','lpa','tvl',/*'volume24','low24','high24',*/'h','t','tradingfee','synced_at')
+      ->orderBy('tvl','desc')
       ->limit($limit+1)->offset($offset)
       ->get();
 
