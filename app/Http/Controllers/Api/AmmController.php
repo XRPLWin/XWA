@@ -14,7 +14,7 @@ class AmmController extends Controller
   /**
    * Returns active AMM pools from amms table.
    */
-  public function pools_active(Request $request)
+  public function pools_active(Request $request, string $order = 'tvl', string $direction = 'desc')
   {
     if(!config('xrpl.'.config('xrpl.net').'.feature_amm'))
       abort(404);
@@ -22,6 +22,11 @@ class AmmController extends Controller
     $limit_default = 1000; //1000 (default)
     $ttl = 600; //20 mins
     $httpttl = 600; //20 mins
+    $allowed_orders = ['tvl','t'];
+    $direction = $direction == 'desc' ? 'desc':'asc';
+
+    if(!in_array($order,$allowed_orders))
+      abort(422, 'Input order parameter is invalid');
 
     $page = (int)$request->input('page');
     if(!$page) $page = 1;
@@ -85,7 +90,7 @@ class AmmController extends Controller
 
     $amms = $ammsQueryBilderSearch
       ->select('accountid','c1','c1_display','i1','a1','c2','c2_display','i2','a2','lpc','lpi','lpa','tvl',/*'volume24','low24','high24',*/'h','t','tradingfee','synced_at')
-      ->orderBy('tvl','desc')
+      ->orderBy($order,$direction)
       ->limit($limit+1)->offset($offset)
       ->get();
 

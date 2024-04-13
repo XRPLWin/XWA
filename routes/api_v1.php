@@ -40,7 +40,7 @@ Route::get('/hook/{hookhash}/{hookctid}/metrics/{from}/{to}', [App\Http\Controll
 Route::get('/hook-transactions/recent', [App\Http\Controllers\Api\HookController::class, 'hook_transactions_recent'])->name('hook.transactions_recent');
 Route::get('/hookname/{hookhash}', [App\Http\Controllers\Api\HookController::class, 'hook_name'])->name('hook.name');
 
-Route::get('/amm/pools/active', [App\Http\Controllers\Api\AmmController::class, 'pools_active'])->name('amm.pools_active');
+Route::get('/amm/pools/active/{order?}/{direction?}', [App\Http\Controllers\Api\AmmController::class, 'pools_active'])->name('amm.pools_active');
 
 
 Route::get('/validators/dunl', [App\Http\Controllers\Api\ValidatorController::class, 'dunl'])->name('validators.dunl');
