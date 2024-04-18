@@ -11,6 +11,7 @@ final class AMMDeposit extends XRPLParserBase
   /**
    * Parses AMMDeposit type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
+   * @see 77DBA705D3350C1DB51B68A5B2EF4662C142B58F44A3A76345DEAC01EE320918 LPTokenOut only
    * @return void
    */
   protected function parseTypeFields(): void
@@ -66,10 +67,19 @@ final class AMMDeposit extends XRPLParserBase
 
     $BC = $this->data['balanceChangesExclFee'];
 
-    $Amount1Identification = \is_string($this->tx->Amount) ? 'XRP':$this->tx->Amount->currency.'.'.$this->tx->Amount->issuer;
     $Amount2Identification = null;
-    if(isset($this->tx->Amount2))
-      $Amount2Identification = \is_string($this->tx->Amount2) ? 'XRP':$this->tx->Amount2->currency.'.'.$this->tx->Amount2->issuer;
+
+    if(!isset($this->tx->Amount) && !isset($this->tx->Amount2)) { //in case of LPTokenOut only
+      $Amount1Identification = \is_string($this->tx->Asset) ? 'XRP':$this->tx->Asset->currency.'.'.$this->tx->Asset->issuer;
+      $Amount2Identification = \is_string($this->tx->Asset2) ? 'XRP':$this->tx->Asset2->currency.'.'.$this->tx->Asset2->issuer;
+    } else {
+      if(isset($this->tx->Amount))
+      $Amount1Identification = \is_string($this->tx->Amount) ? 'XRP':$this->tx->Amount->currency.'.'.$this->tx->Amount->issuer;
+
+      if(isset($this->tx->Amount2))
+        $Amount2Identification = \is_string($this->tx->Amount2) ? 'XRP':$this->tx->Amount2->currency.'.'.$this->tx->Amount2->issuer;
+    }
+    
     $amount1 = null;
     $amount2 = null;
     $amountLT = null;
