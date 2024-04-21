@@ -12,6 +12,8 @@ final class AMMBid extends XRPLParserBase
   /**
    * Parses AMMBid type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
+   * @see A3A278DEEF3C5E06126526F948F31436BDDD96E61779E2E7A55090270017BD89 with r3sS4di5fzXEzq2XgeVNDV3Ys4wzwDVXpU - BidMax without primary event
+   *  - this is probably case when biding for reduced fee but fee is not set
    * @return void
    */
   protected function parseTypeFields(): void
@@ -52,13 +54,26 @@ final class AMMBid extends XRPLParserBase
       $this->persist = false;
     }
 
-    if(!isset($this->data['eventList']['primary']) && $this->persist) {
-      throw new \Exception('Expecting primary event on AMMBid with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-    }
-
     # Source and destination tags
     $this->data['DestinationTag'] = isset($this->tx->DestinationTag) ? $this->tx->DestinationTag:null;
     $this->data['SourceTag'] = isset($this->tx->SourceTag) ? $this->tx->SourceTag:null;
+
+
+    if(!isset($this->data['eventList']['primary']) && $this->persist) {
+      
+      if(count($this->data['balanceChangesExclFee']) == 0) {
+        //in this case there was no fee and this transaction has no effect (except paying for fee)
+        if($this->parsedData['self']['feePayer']) {
+          $this->data['In'] = false;
+          $this->persist = true;
+        } else {
+          //No balance changes whatsoever - do not persist
+          $this->persist = false;
+        }
+        return;
+      }
+      throw new \Exception('Expecting primary event on AMMBid with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+    }
 
 
     $BC = $this->data['balanceChangesExclFee'];
