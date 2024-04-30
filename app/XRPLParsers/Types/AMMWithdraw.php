@@ -11,6 +11,7 @@ final class AMMWithdraw extends XRPLParserBase
   /**
    * Parses AMMWithdraw type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
+   * @see 35F5EE63A28B4FAC5C106B147D8A89719ED7C1B3C4528BFEA3A42C0CC03361DE - 0 withdraw - unable to find amm account
    * @return void
    */
   protected function parseTypeFields(): void
