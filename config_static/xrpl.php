@@ -203,6 +203,8 @@ return [
     'r3qZMoq4JgbHsGKbbDHof6Pi1Y9gkstM22' => 'KrazeDegen',
 
     'rwUYZL4Rjnno7zY8MpQQJQB6vheVKreWB1' => 'Uphold',
+
+    'rBCuo3EdU4Yx3qBJ7uYjxcWoQiu8PiHNDD' => 'Evernode Validator'
   ]
 
 ];
