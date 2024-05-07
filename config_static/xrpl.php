@@ -173,7 +173,7 @@ return [
       'rB3egB3cm51DpFENKH2CameyQJf2fmvN72' => 'Xahau Exchange Table - GENESIS member 1',
       'rGshbE2xPc2Jw66iTAXuX5RjXmJW4ohbrY' => 'Xahau Exchange Table - GENESIS member 2',
       'r4vv7gFjtWAUxPWfj5puGNeW9U8FGSn7iu' => 'Xahau Exchange Table - GENESIS member 3',
-      'r4FF5jjJMS2XqWDyTYStWrgARsj3FjaJ2J' => 'GateHub Ltd.',
+      'r4FF5jjJMS2XqWDyTYStWrgARsj3FjaJ2J' => 'GateHub Crypto',
       'rfKsmLP6sTfVGDvga6rW6XbmSFUzc3G9f3' => 'Bitrue',
     
     'r6QZ6zfK37ZSec5hWiQDtbTxUaU2NWG3F'  => 'Xahau Auditor Table',
