@@ -150,7 +150,7 @@ class InfoController extends Controller
       ];
       $endpoints[] = [
         'action' => 'Get Validator status in latest UNLReport',
-        'route' => '/v1/validators/unl/{validator ED.. or nH..}/monitor/status',
+        'route' => '/v1/validators/unl/{validator nH..}/monitor/status',
         'method' => 'GET',
         'example' => config('app.url').'/v1/validators/unl/nHB6YCfTKQJRTB8kYDmDfJEMHaSq3NVWqFc221bLSAz2daVKbH1S/monitor/status',
       ];
