@@ -13,6 +13,7 @@ use XRPL_PHP\Core\RippleAddressCodec\AddressCodec;
 use XRPL_PHP\Core\CoreUtilities;
 use XRPL_PHP\Core\Buffer;
 use XRPLWin\XRPL\Client as XRPLWinApiClient;
+use XRPLWin\UNLReportReader\UNLReportReader;
 #use XRPL_PHP\Core\CoreUtilities;
 #use Illuminate\Http\Request;
 #use Illuminate\Support\Facades\DB;
@@ -436,6 +437,41 @@ class UnlReportController extends Controller
     ])->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
 
+  }
+
+  /**
+   * Endpoint for monitoring xahau (UNLReports) validator if it was included in latest report.
+   * This endpoint can be used to ping periodically by some external service.
+   * Checks latest unlreport ledger if this validator was included in it.
+   * @param string $validator eg nHB6YCfTKQJRTB8kYDmDfJEMHaSq3NVWqFc221bLSAz2daVKbH1S
+   * @return Response JSON
+   */
+  public function validator_monitor_status(string $validator) //nH
+  {
+    if(!config('xrpl.'.config('xrpl.net').'.feature_unlreport'))
+      abort(404);
+
+    if(!\str_starts_with($validator,'nH')) {
+      abort(404);
+    }
+
+    $codec = new AddressCodec();
+    $validator_ed = $codec->decodeNodePublic($validator)->toString(); //ED
+
+    $ledger_current = Ledger::validated();
+    $reader = new UNLReportReader(config('xrpl.'.config('xrpl.net').'.rippled_fullhistory_server_uri'));
+    $response = $reader->fetchSingle($ledger_current); //?array
+
+    $isInReport = false;
+    foreach($response['active_validators'] as $active_validator) {
+
+      if($active_validator['PublicKey'] === $validator_ed) {
+        $isInReport = true;
+        break;
+      }
+    }
+    
+    return response()->json(['status' => $isInReport?'online':'offline']);
   }
   
 }

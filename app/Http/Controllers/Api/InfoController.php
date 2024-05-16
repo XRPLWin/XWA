@@ -149,6 +149,12 @@ class InfoController extends Controller
         'example' => config('app.url').'/v1/validators/unl/ED3ABC6740983BFB13FFD9728EBCC365A2877877D368FC28990819522300C92A69',
       ];
       $endpoints[] = [
+        'action' => 'Get Validator status in latest UNLReport',
+        'route' => '/v1/validators/unl/{validator ED.. or nH..}/monitor/status',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/validators/unl/nHB6YCfTKQJRTB8kYDmDfJEMHaSq3NVWqFc221bLSAz2daVKbH1S/monitor/status',
+      ];
+      $endpoints[] = [
         'action' => 'Get aggregated Validator reports (per day)',
         'route' => '/v1/validators/unl/{validator}/reports/daily/{from}/{to}',
         'method' => 'GET',

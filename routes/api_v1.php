@@ -47,6 +47,7 @@ Route::get('/validators/dunl', [App\Http\Controllers\Api\ValidatorController::cl
 Route::get('/unlreport/{from}/{to?}', [App\Http\Controllers\Api\UnlReportController::class, 'report'])->name('unlreport.report');
 Route::get('/validators/unl', [App\Http\Controllers\Api\UnlReportController::class, 'validators'])->name('unlreport.validators');
 Route::get('/validators/unl/{validator}', [App\Http\Controllers\Api\UnlReportController::class, 'validator'])->name('unlreport.validator');
+Route::get('/validators/unl/{validator}/monitor/status', [App\Http\Controllers\Api\UnlReportController::class, 'validator_monitor_status'])->name('unlreport.validator_monitor_status');
 Route::get('/validators/unl/{validator}/reports/daily/{from}/{to}', [App\Http\Controllers\Api\UnlReportController::class, 'validator_reports_daily'])->name('unlreport.validator_reports_daily');
 
 Route::get('/aggr/recent', [App\Http\Controllers\Api\AggrController::class, 'recent'])->name('aggr.recent');
