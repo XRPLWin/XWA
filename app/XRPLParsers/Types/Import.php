@@ -7,7 +7,7 @@ use Brick\Math\BigDecimal;
 
 final class Import extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','REGULARKEYSIGNER','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses Import type fields and maps them to $this->data
@@ -39,6 +39,18 @@ final class Import extends XRPLParserBase
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
         $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
         $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
+      }
+    } else {
+      //there is no primary bc, take from first available
+      if(count($this->data['balanceChanges']) == 1) {
+        $this->data['Amount'] = $this->data['balanceChanges'][0]['value'];
+        if($this->data['balanceChanges'][0]['currency'] !== 'XRP') {
+          $this->data['Issuer'] = $this->data['balanceChanges'][0]['counterparty'];
+          $this->data['Currency'] = $this->data['balanceChanges'][0]['currency'];
+        }
+      }
+      else if(count($this->data['balanceChanges']) > 1) {
+        throw new \Exception('Unhandled multibalances on Import with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
     }
 
