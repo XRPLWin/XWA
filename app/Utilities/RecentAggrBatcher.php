@@ -7,6 +7,7 @@ use App\Models\RecentAggr;
 use Brick\Math\BigInteger;
 use App\Utilities\Nft\NftSaleTx;
 use Illuminate\Support\Collection;
+use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
 class RecentAggrBatcher
 {
@@ -187,9 +188,27 @@ class RecentAggrBatcher
     }
 
     //NFT tokens minted
-    if(($type == 'NFTokenMint' || $type == 'URITokenMint') && $isSuccess) {
-      $this->incrementInt($models,'NFTMints','',$t,1);
-      $this->incrementInt($models,'NFTMintsBy',$tx->Account,$t,1);
+    if(($type == 'NFTokenMint' || $type == 'URITokenMint' || $type == 'Remit') && $isSuccess) {
+      $_num_mints = 1;
+      if($type == 'Remit') {
+        //can be zero or one mint
+        $_num_mints = 0;
+        
+        $nftParser = new NFTTxMutationParser($tx->Account,$tx);
+        $nftParserResult = $nftParser->result();
+        if($nftParserResult['nft'] !== null)
+          $_num_mints = 1;
+        unset($nftParser);
+        unset($nftParserResult);
+      }
+
+      if($_num_mints > 0) {
+        $this->incrementInt($models,'NFTMints','',$t,$_num_mints);
+        $this->incrementInt($models,'NFTMintsBy',$tx->Account,$t,$_num_mints);
+      }
+
+      unset($_num_mints);
+      
     }
 
     //NFT tokens burned
