@@ -7,12 +7,13 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class Remit extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','RECEIVED','REGULARKEYSIGNER','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','SET','RECEIVED','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses Remit type fields and maps them to $this->data
    * The Remit transaction allows users to send multiple currencies, uritokens...
    * @see https://docs.xahau.network/technical/protocol-reference/transactions/transaction-types/remit
+   * 2449A43AE188B0B0E48EB3CBBAA7F0BBD5D08277279C6B9DE1546A1DD808C98B xahau testnet SET
    * @return void
    */
   protected function parseTypeFields(): void
