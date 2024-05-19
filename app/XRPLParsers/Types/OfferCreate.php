@@ -48,13 +48,19 @@ final class OfferCreate extends XRPLParserBase
         $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
       }
     }
+    
     if(isset($this->data['eventList']['secondary'])) {
       $this->data['Amount2'] = $this->data['eventList']['secondary']['value'];
       if($this->data['eventList']['secondary']['currency'] !== 'XRP') {
         if(is_array($this->data['eventList']['secondary']['counterparty'])) {
           //Secondary counterparty is rippled trough reference account
+         
           $this->data['Issuer2'] = $this->data['eventList']['secondary']['counterparty'][0];
-          $this->data['Currency2'] = $this->data['eventList']['secondary']['currency'][0];
+          if(is_array($this->data['eventList']['secondary']['currency'])) {
+            $this->data['Currency2'] = $this->data['eventList']['secondary']['currency'][0];
+          } else {
+            $this->data['Currency2'] = $this->data['eventList']['secondary']['currency'];
+          }
           //Counterparty is list of counterparty participants, and value is SUM of balance changes
           //throw new \Exception('Unhandled Counterparty Array for parsedtype ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].'] for perspective ['.$this->reference_address.']');
         } else {
