@@ -262,6 +262,20 @@ return [
     'image' => null,
   ],
 
+  //Voucher
+  '78753F1802C38D96286ACB9DB2E9CAA2A394ECBEBFA5D82537E61B38478DB146' => [
+    'title' => 'Gift Voucher - Creator',
+    'principal' => 'XRPL-Labs',
+    'web' => 'https://xaman.app',
+    'image' => null,
+  ],
+  '9C83ABDEC707117F29E8E8D0BD16597D33147560939749B177AD102105522708' => [
+    'title' => 'Gift Voucher - Claimer',
+    'principal' => 'XRPL-Labs',
+    'web' => 'https://xaman.app',
+    'image' => null,
+  ],
+
   //Other
   '4512D7BABEF201C779E76B2FEECB0D655E088426B5769F0C6796A1E97FD82D91' => [
     'title' => 'Demo AMM Hook',
