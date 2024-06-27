@@ -186,6 +186,7 @@ return [
     'rwyypATD1dQxDbdQjMvrqnsHr2cQw5rjMh' => 'Xahau Projects Table',
       'rHMtqVuvEESUhPrsgb8tSa5ghjyoQySfVC' => 'xSPECTAR',
       'rJFxdrd1BuMeJshRAZBuHP3hex9DjH1nnr' => 'Eminence',
+      'rKXUj6UPf9aMBVro6LQYyZoCtsDcPEy72H' => 'Cosmic Xahau',
   ],
 
   'known_xahau' => [
