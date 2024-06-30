@@ -29,6 +29,7 @@ Route::get('/tokens', [App\Http\Controllers\Api\TokenController::class, 'all'])/
 //});
 
 Route::get('/xahau/import/{from}/{to}/aggr', [App\Http\Controllers\Api\XahauController::class, 'import_aggr'])->name('xahau.import_aggr');
+Route::get('/xahau/import/{date}/txs', [App\Http\Controllers\Api\XahauController::class, 'import_day_txs'])->name('xahau.import_day_txs');
 
 Route::get('/oracle/USD', [App\Http\Controllers\Api\OracleController::class, 'usd'])->name('oracle.usd');
 

@@ -167,6 +167,13 @@ class InfoController extends Controller
         'method' => 'GET',
         'example' => config('app.url').'/v1/xahau/import/2024-01-01/2024-01-05/aggr',
       ];
+
+      $endpoints[] = [
+        'action' => 'Get list of Import transactions for specific day',
+        'route' => '/v1/xahau/import/{day}/txs',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/xahau/import/2024-01-01/txs',
+      ];
     }
 
     if(config('xwa.sync_type') == 'account') {

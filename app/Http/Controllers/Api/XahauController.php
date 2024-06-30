@@ -93,6 +93,50 @@ class XahauController extends Controller
 
   }
 
+  public function import_day_txs(string $day)
+  {
+    ini_set('memory_limit', '256M');
+    $day = Carbon::createFromFormat('Y-m-d', $day)->startOfDay()->timezone('UTC');
+
+   
+    if($day->isToday()) {
+      return response()->json(['success' => false, 'error_code' => 1, 'errors' => ['Unable to return today transactions, this day is not yet finished.']],422);
+    } else {
+      if($day->isFuture()) {
+        return response()->json(['success' => false, 'error_code' => 2, 'errors' => ['Unable to return future transactions, will have to wait for them.']],422);
+      }
+    }
+
+    $ttl = 5259487; //5 259 487 = 2 months
+    $httpttl = 172800; //172 800 = 2 days
+
+    $minTime = ripple_epoch_to_carbon(config('xrpl.'.config('xrpl.net').'.genesis_ledger_close_time'));
+
+    if($minTime->gte($day)) {
+     
+      if($day->format('Y-m-d') == $minTime->format('Y-m-d')) {
+        $day = $minTime->startOfDay(); //same year and month, adjust to min starting date
+      } else {
+        return response()->json(['success' => false, 'error_code' => 5, 'errors' => ['Requested date out of ledger range']],422);
+      }
+    }
+
+    $ymd = $day->format('Ymd');
+    $txs = $this->getTxsFromDisk($ymd);
+    
+    if($txs === null) {
+      $txs = $this->import_txs_day($day);
+      //save data to disk
+      $this->storeTxsToDisk($ymd, $txs);
+    }
+
+    return response()->json(['success' => true, 'day' => $day->format('Y-m-d'), 'data' => $txs])
+      ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+      ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
+    ;
+
+  }
+
   private function import_aggr_day(Carbon $day, bool $isToday = false): array
   {
     $li_start = Ledger::getFromDate($day);
@@ -155,6 +199,29 @@ class XahauController extends Controller
   }
 
   /**
+   * Day can not be today or future!
+   * @return array
+   */
+  private function import_txs_day(Carbon $day): array
+  {
+    $li_start = Ledger::getFromDate($day);
+    $day->addDays(1);
+    $li_end = Ledger::getFromDate($day);
+    $results = DB::table(transactions_db_name($day->format('Ym')))
+      ->select('address','h','fee','a as mint_xah','a2 as burn_xrp')
+      ->where('l','>=',$li_start)
+      ->where('l','<',$li_end)
+      ->where('xwatype',36)
+      ->where('isin',true)
+      ->whereNotNull('a')
+      ->whereNotNull('a2')
+      ->orderBy('l','asc')
+      //->limit(10000)
+      ->get();
+    return $results->toArray();
+  }
+
+  /**
    * Store aggregated data to disk (cache it)
    */
   private function storeToDisk(string $ymd, array $data): bool
@@ -170,9 +237,32 @@ class XahauController extends Controller
     return true;
   }
 
+  private function storeTxsToDisk(string $ymd, array $data): bool
+  {
+    $internalpath = 'xahauimportaggr/'.$ymd.'_txs.json';
+
+    if(Storage::disk('local')->exists($internalpath))
+        Storage::disk('local')->delete($internalpath); //update
+
+    if(!Storage::disk('local')->put($internalpath, \json_encode($data))) {
+      return false;
+    }
+    return true;
+  }
+
   private function getFromDisk(string $ymd): ?array
   {
     $internalpath = 'xahauimportaggr/'.$ymd.'.json';
+    if(Storage::disk('local')->exists($internalpath)) {
+      $data = Storage::disk('local')->get($internalpath);
+      return \json_decode($data,true);
+    }
+    return null;
+  }
+
+  private function getTxsFromDisk(string $ymd): ?array
+  {
+    $internalpath = 'xahauimportaggr/'.$ymd.'_txs.json';
     if(Storage::disk('local')->exists($internalpath)) {
       $data = Storage::disk('local')->get($internalpath);
       return \json_decode($data,true);
