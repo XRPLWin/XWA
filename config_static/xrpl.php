@@ -176,7 +176,7 @@ return [
       'r4FF5jjJMS2XqWDyTYStWrgARsj3FjaJ2J' => 'GateHub Crypto',
       'rfKsmLP6sTfVGDvga6rW6XbmSFUzc3G9f3' => 'Bitrue',
     
-    'r6QZ6zfK37ZSec5hWiQDtbTxUaU2NWG3F'  => 'Xahau Auditor & Education',//'Xahau Auditor Table',
+    'r6QZ6zfK37ZSec5hWiQDtbTxUaU2NWG3F'  => 'Xahau Security & Education',//'Xahau Auditor Table',
       'r9EzMEYr5zuRasrfVKdry9JWLbw9mBe6Jg' => 'FYEO',
       'rpuQonHVeMk1qEz9bWMhDRBDSjvLu2gU1B' => 'Geveo',
       'rHrptekd18qAGCADzK1kg2QyREiRPuVpTJ' => 'DBL',
