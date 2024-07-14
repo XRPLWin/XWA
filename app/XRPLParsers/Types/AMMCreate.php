@@ -11,6 +11,7 @@ final class AMMCreate extends XRPLParserBase
   /**
    * Parses AMMCreate type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
+   * @see A7B7F529AF0CF2483515B966B52D6F73F446C7C0D1A7B898EC77F1011FEA89D8 with raN9y9TaBT3GAbSM2nV22RXKN9enbssssB - this should be handled for other participants
    * @return void
    */
   protected function parseTypeFields(): void
@@ -49,6 +50,10 @@ final class AMMCreate extends XRPLParserBase
     } else {
       $this->data['In'] = false;
       $this->persist = false;
+
+      //if(count($this->data['balanceChangesExclFee']))
+      //  $this->persist = true;
+      
     }
 
   
@@ -78,7 +83,6 @@ final class AMMCreate extends XRPLParserBase
         $_bc_Identification = $_bc['currency'];
         if(count($_bc) == 3)
           $_bc_Identification .= '.'.$_bc['counterparty'];
-        
         //Check if is amount1
         if($Amount1Identification == $_bc_Identification) {
           //It is amount1
@@ -108,10 +112,12 @@ final class AMMCreate extends XRPLParserBase
       }
 
       //Set Amount 1
-      $this->data['Amount'] = $amount1['value'];
-      if($amount1['currency'] !== 'XRP') {
-        $this->data['Issuer'] = $amount1['counterparty'];
-        $this->data['Currency'] = $amount1['currency'];
+      if($amount1 !== null) { //can be null - see: A7B7F529AF0CF2483515B966B52D6F73F446C7C0D1A7B898EC77F1011FEA89D8
+        $this->data['Amount'] = $amount1['value'];
+        if($amount1['currency'] !== 'XRP') {
+          $this->data['Issuer'] = $amount1['counterparty'];
+          $this->data['Currency'] = $amount1['currency'];
+        }
       }
 
       //Set Amount 2
