@@ -49,8 +49,13 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
   ],
 
-  '39924D144FF831C10445D296101C5F9C2B2E9E452A4DABCF99AED17B6847BA83' => [ //latest
+  '39924D144FF831C10445D296101C5F9C2B2E9E452A4DABCF99AED17B6847BA83' => [
     'title' => 'Evernode Heartbeat Hook v6',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
+  ],
+
+  '63F740F2DCA41B8D0F5AA7C4CB5A6DEF6157AB5381FE4B2CD618D710CEDBB993' => [ //latest
+    'title' => 'Evernode Heartbeat Hook v7',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
   ],
 
@@ -59,8 +64,13 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
   ],
 
-  '783355BBA926AC3456CD2C9F5CADCFC7940C00A31332A8AF8B695E801D21D829' => [ //latest
+  '783355BBA926AC3456CD2C9F5CADCFC7940C00A31332A8AF8B695E801D21D829' => [
     'title' => 'Evernode Reputation Hook v2',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
+  ],
+
+  '399D3283343A38009ED8A3169ED63F1A06AD85C796F0A5EA5F32CBC782783BDA' => [ //latest
+    'title' => 'Evernode Reputation Hook v3',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
   ],
 
@@ -100,8 +110,14 @@ return [
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/blob/main/evernode-registry-hook/src/registry.c' //todo display
   ],
 
-  '7E0DC82309C7A4940F7F51BC170F29C0A88666AAC478C29EE295DFB68D40D6F7' => [ //latest
+  '7E0DC82309C7A4940F7F51BC170F29C0A88666AAC478C29EE295DFB68D40D6F7' => [
     'title' => 'Evernode Registry Hook v7',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/blob/main/evernode-registry-hook/src/registry.c' //todo display
+  ],
+
+  'EE5874EC57FBF6DC164DFA3498656A8D0B49B9614132FBE32BF93312ED60FA48' => [ //latest
+    'title' => 'Evernode Registry Hook v8',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/blob/main/evernode-registry-hook/src/registry.c' //todo display
   ],
@@ -131,8 +147,13 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
   ],
 
-  '21546DBFE50FA84EDB09E211715F2E4F08CA2C88479BA5F4BE0E9ADBF69596A7' => [ //latest
+  '21546DBFE50FA84EDB09E211715F2E4F08CA2C88479BA5F4BE0E9ADBF69596A7' => [
     'title' => 'Evernode Governor Hook v6',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
+  ],
+
+  'BE9B008C36FB4240B2A5AC13183432CD449F6C898754E080559BA33F146CB5B7' => [ //latest
+    'title' => 'Evernode Governor Hook v7',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
   ],
 
