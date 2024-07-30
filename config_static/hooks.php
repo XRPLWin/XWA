@@ -69,8 +69,18 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
   ],
 
-  '399D3283343A38009ED8A3169ED63F1A06AD85C796F0A5EA5F32CBC782783BDA' => [ //latest
+  '399D3283343A38009ED8A3169ED63F1A06AD85C796F0A5EA5F32CBC782783BDA' => [
     'title' => 'Evernode Reputation Hook v3',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
+  ],
+
+  '53A2B9487D0578FDDDA1EC48A54A9BF79D62AA38EFC6E606EA03E0D4067B8B82' => [
+    'title' => 'Evernode Reputation Hook v4',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
+  ],
+
+  '245E717B644631E53B6A88C957C07A2580AA51EB7CE72E0BB9F0CA3B117A285E' => [ //latest
+    'title' => 'Evernode Reputation Hook v5',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
   ],
 
