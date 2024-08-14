@@ -148,6 +148,7 @@ return [
   'known_mainnet' => [
     'rpQwfZuqKAWWLLvXmSMWotWKbfrB68THm5' => 'xMagnetic',
     'rwUYZL4Rjnno7zY8MpQQJQB6vheVKreWB1' => 'Uphold',
+    'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De' => 'Ripple RLUSD', //Real one
   ],
 
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
@@ -206,7 +207,10 @@ return [
 
     'rwUYZL4Rjnno7zY8MpQQJQB6vheVKreWB1' => 'Uphold',
 
-    'rBCuo3EdU4Yx3qBJ7uYjxcWoQiu8PiHNDD' => 'Evernode Validator'
+    'rBCuo3EdU4Yx3qBJ7uYjxcWoQiu8PiHNDD' => 'Evernode Validator',
+    'rUiWCZSrLqMTThrEgFoFJ4rSRamEus83AU' => 'Jon Nilsen Validator',
+    'r8GUGF9Nc81Mbc71GXLvebzMf2uGRGBSL'  => 'XRPLWin Validator',
+
   ]
 
 ];
