@@ -73,7 +73,6 @@ class RecentAggrBatcher
     }
   }
 
-
   private function incrementInt(Collection $models, string $subject, string $identifier, Carbon $day, int $value, string $context = '')
   {
     if($m = $models->where('subject',$subject)->where('identifier',$identifier)->first()) {
@@ -99,7 +98,7 @@ class RecentAggrBatcher
 
     $type = $tx->TransactionType;
     dump($type);
-    return;
+    //return;
     $isSuccess = $tx->metaData->TransactionResult == 'tesSUCCESS';
 
     //Tx usage (counts):
@@ -190,7 +189,7 @@ class RecentAggrBatcher
     }
 
     //NFT tokens minted
-    if(($type == 'NFTokenMint' || $type == 'URITokenMint' || $type == 'Remit') && $isSuccess) {
+    /*if(($type == 'NFTokenMint' || $type == 'URITokenMint' || $type == 'Remit') && $isSuccess) {
       $_num_mints = 1;
       if($type == 'Remit') {
         //can be zero or one mint
@@ -211,12 +210,12 @@ class RecentAggrBatcher
 
       unset($_num_mints);
       
-    }
+    }*/
 
     //NFT tokens burned
-    if(($type == 'NFTokenBurn' || $type == 'URITokenBurn') && $isSuccess) {
+    /*if(($type == 'NFTokenBurn' || $type == 'URITokenBurn') && $isSuccess) {
       $this->incrementInt($models,'NFTBurns','',$t,1);
-    }
+    }*/
 
     //NFT SALES (disabled cause its too slow)
     /*if(($type == 'NFTokenAcceptOffer' || $type == 'URITokenBuy') && $isSuccess) {
