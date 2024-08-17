@@ -94,10 +94,11 @@ class RecentAggrBatcher
   {
     $t = ripple_epoch_to_carbon((int)$tx->date);
     if(!$t->isToday()) return;
-
+    
     $models = $this->getCollection($t);
 
     $type = $tx->TransactionType;
+    //dump($type);
     $isSuccess = $tx->metaData->TransactionResult == 'tesSUCCESS';
 
     //Tx usage (counts):
@@ -216,9 +217,9 @@ class RecentAggrBatcher
       $this->incrementInt($models,'NFTBurns','',$t,1);
     }
 
-    //NFT SALES
-    if(($type == 'NFTokenAcceptOffer' || $type == 'URITokenBuy') && $isSuccess) {
-
+    //NFT SALES (disabled cause its too slow)
+    /*if(($type == 'NFTokenAcceptOffer' || $type == 'URITokenBuy') && $isSuccess) {
+      //This was too slow on xahau with hight load of 500 uritokenbuys per ledger:
       $NFTSale = new NftSaleTx($tx,$tx->metaData);
       if($NFTSaleSeller = $NFTSale->getSeller()) {
 
@@ -232,7 +233,7 @@ class RecentAggrBatcher
 
         //Top NFT sale (10) in native currency only
         $saleAmount = $NFTSaleSeller[1]; //drops
-
+        //This is too slow!
         if($FoundTopNFTSale = $models->where('subject','TopNFTSale')->where('identifier',$NFTSale->getNft())->first()) {
           $value_uint64 = BigInteger::of($FoundTopNFTSale->value_uint64);
           $new_value_uint64 = BigInteger::of($saleAmount);
@@ -246,7 +247,7 @@ class RecentAggrBatcher
         }
 
       }
-    }
+    }*/
 
     //Xahau GenesisMint
     if($type == 'GenesisMint' && $isSuccess) {

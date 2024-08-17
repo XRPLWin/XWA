@@ -142,7 +142,7 @@ return [
     //websocket domain (example: 'xahau.network')
     'server_wss' => 'xahau.network',
     //'server_wss_syncer' => ['wss://xahau.network'],
-    'server_wss_syncer' => ['wss://xahau.network/explorer/xrplwin'],
+    'server_wss_syncer' => ['wss://xahau.network/explorer/xrplwinxwa'],
     'networkid' => 21337,
     //enable or disable features
     'feature_amm' => false,
