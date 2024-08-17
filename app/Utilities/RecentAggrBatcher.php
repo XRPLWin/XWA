@@ -39,7 +39,7 @@ class RecentAggrBatcher
     /*$this->collections[$ymd] = RecentAggr::select('subject','identifier','day','value_uint64','context')
       ->whereDate('day',$day)
       ->get();*/
-    echo 'Loaded day '.$ymd.' '.count($this->collections[$ymd]).' rows'.PHP_EOL;
+    echo PHP_EOL.'Loaded day '.$ymd.' '.count($this->collections[$ymd]).' rows'.PHP_EOL;
   }
 
   private function getCollection(Carbon $day)
@@ -56,7 +56,7 @@ class RecentAggrBatcher
     $m->day = $day->startOfDay();
     $m->value_uint64 = (string)$value;
     $m->context = $context;
-    $this->collections[$day->format('Y-m-d')][] = $m;
+    $this->collections[$day->format('Y-m-d')][$m->uniqueIdentifier()] = $m;
     //$models->push($m);
   }
 
@@ -117,7 +117,7 @@ class RecentAggrBatcher
       $m->value_uint64 = (string)$value;
       $m->day = $day->startOfDay();
       $m->context = $context;
-      $this->collections[$day->format('Y-m-d')][] = $m;
+      $this->collections[$day->format('Y-m-d')][$m->uniqueIdentifier()] = $m;
     }
 
     //echo 'INC start'.PHP_EOL;
