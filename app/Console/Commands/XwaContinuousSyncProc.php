@@ -164,7 +164,7 @@ class XwaContinuousSyncProc extends Command
           'User-Agent' => 'XRPLWin XWA (v'.config('xwa.version').') instanceid: '.instanceid(),
         ],
         'persistent' => true,
-        'timeout' => 30
+        'timeout' => 30 //30
       ]);
 
       //this is max ledger we can query
@@ -182,7 +182,16 @@ class XwaContinuousSyncProc extends Command
         if($pulledTxs === null) {
           $do = false;
           $this->log('Disconnecting...');
-          $this->client->close();
+          try {
+            //Try catch because client might already timed out (xwa took too long to store transaction and ws timed out)
+            $this->client->close();
+          } catch (\WebSocket\ConnectionException $e) {
+            if($e->getMessage() == 'Empty read; connection dead?') {
+              //Connection was already closed (timed out)
+            } else {
+              throw $e; //unexpected response, throw
+            }
+          }
         } else {
           foreach($pulledTxs as $_v) {
             \array_push($transactions,$_v);
@@ -735,6 +744,7 @@ class XwaContinuousSyncProc extends Command
       $do = true;
       $i = 0;
       while($do) {
+        //$this->info('Outer While loop started');
         $curr_l = $this->ledger_index_current+$i;
         $i++;
         if($i >= $this->wsbatchlimit)
@@ -756,14 +766,28 @@ class XwaContinuousSyncProc extends Command
           'owner_funds'   => false
         ];
         //dd(\json_encode($params));
+        //$this->info('About to send text to ws client...');
         $this->client->text(\json_encode($params));
+        //$this->info('Sent');
         //$receive = $this->client->receive();
         //$response = \json_decode($receive);
         $response = null;
 
         # Mini loop to ensure rate limiting...
         while(true) {
-          $receive = $this->client->receive();
+          //$this->info('Inner While loop started');
+          $receive = null;
+          try {
+            $receive = $this->client->receive();
+          } catch (\WebSocket\ConnectionException $e) {
+            if($e->getMessage() == 'Empty read; connection dead?') {
+              //Connection was already closed (timed out) - will cooldown and retry below
+              $this->log($e->getMessage());
+            } else {
+              throw $e; //unexpected response, throw
+            }
+          }
+          //$this->info('receive executed');
           
           if($receive === null) {
             $this->client->close();
