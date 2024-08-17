@@ -62,8 +62,8 @@ class RecentAggrBatcher
 
   private function setTo(array $models, string $subject, string $identifier, Carbon $day, int $value, string $context)
   {
-    $identifier = $subject.'_'.$identifier;
-    $m = isset($models[$identifier]) ? $models[$identifier]:null;
+    $id = $subject.'_'.$identifier;
+    $m = isset($models[$id]) ? $models[$id]:null;
 
     if($m !== null) {
       $m->value_uint64 = (string)$value;
@@ -104,8 +104,8 @@ class RecentAggrBatcher
 
   private function incrementInt(array $models, string $subject, string $identifier, Carbon $day, int $value, string $context = '')
   {
-    $identifier = $subject.'_'.$identifier;
-    $m = isset($models[$identifier]) ? $models[$identifier]:null;
+    $id = $subject.'_'.$identifier;
+    $m = isset($models[$id]) ? $models[$id]:null;
 
     if($m !== null) {
       $m->value_uint64 = (string)BigInteger::of($m->value_uint64)->plus($value);
@@ -117,7 +117,7 @@ class RecentAggrBatcher
       $m->value_uint64 = (string)$value;
       $m->day = $day->startOfDay();
       $m->context = $context;
-      $this->collections[$day->format('Y-m-d')][$m->uniqueIdentifier()] = $m;
+      $this->collections[$day->format('Y-m-d')][$id] = $m;
     }
 
     //echo 'INC start'.PHP_EOL;
