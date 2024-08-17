@@ -39,7 +39,7 @@ class RecentAggrBatcher
     /*$this->collections[$ymd] = RecentAggr::select('subject','identifier','day','value_uint64','context')
       ->whereDate('day',$day)
       ->get();*/
-    echo PHP_EOL.'Loaded day '.$ymd.' '.count($this->collections[$ymd]).' rows'.PHP_EOL;
+    //echo PHP_EOL.'Loaded day '.$ymd.' '.count($this->collections[$ymd]).' rows'.PHP_EOL;
   }
 
   private function getCollection(Carbon $day)
