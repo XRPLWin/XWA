@@ -97,13 +97,13 @@ class RecentAggrBatcher
     $models = $this->getCollection($t);
 
     $type = $tx->TransactionType;
-    dump($type);
+    //dump($type);
     //return;
     $isSuccess = $tx->metaData->TransactionResult == 'tesSUCCESS';
 
     //Tx usage (counts):
     $this->incrementInt($models,'TxCount',$type,$t,1);
-    return;
+    
     if($tx->metaData->TransactionResult != 'tesSUCCESS')
       $this->incrementInt($models,'TxResult','FAILED',$t,1);
     else
