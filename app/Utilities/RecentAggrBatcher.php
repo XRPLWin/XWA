@@ -99,6 +99,7 @@ class RecentAggrBatcher
 
     $type = $tx->TransactionType;
     dump($type);
+    return;
     $isSuccess = $tx->metaData->TransactionResult == 'tesSUCCESS';
 
     //Tx usage (counts):
