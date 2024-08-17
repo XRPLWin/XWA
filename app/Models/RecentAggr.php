@@ -27,6 +27,11 @@ class RecentAggr extends Model
     'day' => 'date',
   ];
 
+  public function uniqueIdentifier():string
+  {
+    return $this->subject.'_'.$this->identifier;
+  }
+
   /*public function changePrimaryKey(array $key): self
   {
     $this->primaryKey = $key;

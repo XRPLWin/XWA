@@ -26,10 +26,20 @@ class RecentAggrBatcher
     $ymd = $day->format('Y-m-d');
     if(isset($this->collections[$ymd]))
       return;
+    $collection = RecentAggr::select('subject','identifier','day','value_uint64','context')
+    ->whereDate('day',$day)
+    ->get();
 
-    $this->collections[$ymd] = RecentAggr::select('subject','identifier','day','value_uint64','context')
+    //convert collection to keyed array:
+    $this->collections[$ymd] = [];
+    foreach($collection as $m){
+      $this->collections[$ymd][$m->uniqueIdentifier()] = $m;
+    }
+    unset($collection);
+    /*$this->collections[$ymd] = RecentAggr::select('subject','identifier','day','value_uint64','context')
       ->whereDate('day',$day)
-      ->get();
+      ->get();*/
+    echo 'Loaded day '.$ymd.' '.count($this->collections[$ymd]).' rows'.PHP_EOL;
   }
 
   private function getCollection(Carbon $day)
@@ -38,7 +48,7 @@ class RecentAggrBatcher
     return $this->collections[$day->format('Y-m-d')];
   }
 
-  private function insert(Collection $models, string $subject, string $identifier, Carbon $day, int $value, string $context)
+  private function insert(array $models, string $subject, string $identifier, Carbon $day, int $value, string $context)
   {
     $m = new RecentAggr;
     $m->subject = $subject;
@@ -46,12 +56,16 @@ class RecentAggrBatcher
     $m->day = $day->startOfDay();
     $m->value_uint64 = (string)$value;
     $m->context = $context;
-    $models->push($m);
+    $this->collections[$day->format('Y-m-d')][] = $m;
+    //$models->push($m);
   }
 
-  private function setTo(Collection $models, string $subject, string $identifier, Carbon $day, int $value, string $context)
+  private function setTo(array $models, string $subject, string $identifier, Carbon $day, int $value, string $context)
   {
-    if($m = $models->where('subject',$subject)->where('identifier',$identifier)->first()) {
+    $identifier = $subject.'_'.$identifier;
+    $m = isset($models[$identifier]) ? $models[$identifier]:null;
+
+    if($m !== null) {
       $m->value_uint64 = (string)$value;
       $m->context = $context;
     } else {
@@ -63,19 +77,51 @@ class RecentAggrBatcher
         $value,
         $context
       );
-      /*$m = new RecentAggr;
+    }
+
+    //Old below:
+    /*if($m = $models->where('subject',$subject)->where('identifier',$identifier)->first()) {
+      $m->value_uint64 = (string)$value;
+      $m->context = $context;
+    } else {
+      $this->insert(
+        $models,
+        $subject,
+        $identifier,
+        $day,
+        $value,
+        $context
+      );
+      //$m = new RecentAggr;
+      //$m->subject = $subject;
+      //$m->identifier = $identifier;
+      //$m->value_uint64 = (string)$value;
+      //$m->day = $day->startOfDay();
+      //$m->context = $context;
+      //$models->push($m);
+    }*/
+  }
+
+  private function incrementInt(array $models, string $subject, string $identifier, Carbon $day, int $value, string $context = '')
+  {
+    $identifier = $subject.'_'.$identifier;
+    $m = isset($models[$identifier]) ? $models[$identifier]:null;
+
+    if($m !== null) {
+      $m->value_uint64 = (string)BigInteger::of($m->value_uint64)->plus($value);
+      $m->context = $context;
+    } else {
+      $m = new RecentAggr;
       $m->subject = $subject;
       $m->identifier = $identifier;
       $m->value_uint64 = (string)$value;
       $m->day = $day->startOfDay();
       $m->context = $context;
-      $models->push($m);*/
+      $this->collections[$day->format('Y-m-d')][] = $m;
     }
-  }
 
-  private function incrementInt(Collection $models, string $subject, string $identifier, Carbon $day, int $value, string $context = '')
-  {
-    if($m = $models->where('subject',$subject)->where('identifier',$identifier)->first()) {
+    //echo 'INC start'.PHP_EOL;
+    /*if($m = $models->where('subject',$subject)->where('identifier',$identifier)->first()) {
       $m->value_uint64 = (string)BigInteger::of($m->value_uint64)->plus($value);
       $m->context = $context;
     } else {
@@ -86,7 +132,8 @@ class RecentAggrBatcher
       $m->day = $day->startOfDay();
       $m->context = $context;
       $models->push($m);
-    }
+    }*/
+    //echo 'INC END'.PHP_EOL;
   }
 
   public function addTx(\stdClass $tx)
@@ -137,7 +184,8 @@ class RecentAggrBatcher
       if(\is_string($Amount)) {
         $new_value_uint64 = BigInteger::of($Amount);
         if($new_value_uint64->isGreaterThan(100000000)) { //do not record below 100 XRP transfers (performance reasons)
-          if($FoundTopPayment = $models->where('subject','TopPayment')->where('identifier',$tx->Account)->first()) {
+          $FoundTopPayment = isset($models['TopPayment_'.$tx->Account])?$models['TopPayment_'.$tx->Account]:null;
+          if($FoundTopPayment) {
             $value_uint64 = BigInteger::of($FoundTopPayment->value_uint64);
             
             if($new_value_uint64->isGreaterThan($value_uint64)) {
@@ -154,7 +202,8 @@ class RecentAggrBatcher
 
     //Highest fee payed (1) (skip account deletes)
     if($type != 'AccountDelete') {
-      if($TopFee = $models->where('subject','TopFee')->first()) {
+      $TopFee = isset($models['TopFee_'])?$models['TopFee_']:null;
+      if($TopFee) {
         $value_uint64 = BigInteger::of($TopFee->value_uint64);
         $new_value_uint64 = BigInteger::of($tx->Fee);
         if($new_value_uint64->isGreaterThan($value_uint64)) {
@@ -189,7 +238,7 @@ class RecentAggrBatcher
     }
 
     //NFT tokens minted
-    /*if(($type == 'NFTokenMint' || $type == 'URITokenMint' || $type == 'Remit') && $isSuccess) {
+    if(($type == 'NFTokenMint' || $type == 'URITokenMint' || $type == 'Remit') && $isSuccess) {
       $_num_mints = 1;
       if($type == 'Remit') {
         //can be zero or one mint
@@ -210,15 +259,15 @@ class RecentAggrBatcher
 
       unset($_num_mints);
       
-    }*/
+    }
 
     //NFT tokens burned
-    /*if(($type == 'NFTokenBurn' || $type == 'URITokenBurn') && $isSuccess) {
+    if(($type == 'NFTokenBurn' || $type == 'URITokenBurn') && $isSuccess) {
       $this->incrementInt($models,'NFTBurns','',$t,1);
-    }*/
+    }
 
     //NFT SALES (disabled cause its too slow)
-    /*if(($type == 'NFTokenAcceptOffer' || $type == 'URITokenBuy') && $isSuccess) {
+    if(($type == 'NFTokenAcceptOffer' || $type == 'URITokenBuy') && $isSuccess) {
       //This was too slow on xahau with hight load of 500 uritokenbuys per ledger:
       $NFTSale = new NftSaleTx($tx,$tx->metaData);
       if($NFTSaleSeller = $NFTSale->getSeller()) {
@@ -233,8 +282,10 @@ class RecentAggrBatcher
 
         //Top NFT sale (10) in native currency only
         $saleAmount = $NFTSaleSeller[1]; //drops
-        //This is too slow!
-        if($FoundTopNFTSale = $models->where('subject','TopNFTSale')->where('identifier',$NFTSale->getNft())->first()) {
+        $_id = 'TopNFTSale_'.$NFTSale->getNft();
+        $FoundTopNFTSale = isset($models[$_id])?$models[$_id]:null;
+        unset($_id);
+        if($FoundTopNFTSale) {
           $value_uint64 = BigInteger::of($FoundTopNFTSale->value_uint64);
           $new_value_uint64 = BigInteger::of($saleAmount);
           if($new_value_uint64->isGreaterThan($value_uint64)) {
@@ -247,7 +298,7 @@ class RecentAggrBatcher
         }
 
       }
-    }*/
+    }
 
     //Xahau GenesisMint
     if($type == 'GenesisMint' && $isSuccess) {
@@ -266,8 +317,9 @@ class RecentAggrBatcher
       throw new \Exception('begin() must be called after construct');
     //save to db
     //dd($this->collections);
-    foreach($this->collections as $collection) {
-      
+    foreach($this->collections as $collectionArray) {
+
+      $collection = collect($collectionArray);
       //SORT BY VALUE
       $collection = $collection->sortByDesc('value_uint64',SORT_NUMERIC);
 
