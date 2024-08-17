@@ -49,7 +49,7 @@ class XwaContinuousSyncProc extends Command
      * 
      * @var int
      */
-    protected int $wsbatchlimit = 10; //10
+    protected int $wsbatchlimit = 1; //10 - lower value for large ledgers (eg 1 for ledger of about 1k txs)
 
     /**
      * How much transactions will be prepared before batch-insert
