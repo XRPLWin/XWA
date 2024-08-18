@@ -538,10 +538,14 @@ class HookController extends Controller
     } else {
       //$num_results = BHookTransaction::repo_count($AND); //slow
       $num_results = $limit * $page; //fake the counts due to backwards compatibility
+      if($txs->count() == $limit+1){
+        $num_results = $num_results+1;
+      } else {
+        $num_results = ($limit * ($page-1)) + $txs->count();
+      }
     }
 
     if($txs->count() == $limit+1) $hasMorePages = true;
-    
 
     $r = [];
     $i = 0;
@@ -577,10 +581,6 @@ class HookController extends Controller
     ;
   }
   
-  /**
-   * Disabled in Routes - this is slow when there is large amount of hook transactions in table.
-   * @deprecated
-   */
   public function hook_transactions_recent()
   {
     $ttl = 180;
