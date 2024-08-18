@@ -574,12 +574,16 @@ class HookController extends Controller
     ;
   }
   
+  /**
+   * Disabled in Routes - this is slow when there is large amount of hook transactions in table.
+   * @deprecated
+   */
   public function hook_transactions_recent()
   {
     $ttl = 180;
     $httpttl = 180;
 
-    $txs = BHookTransaction::repo_fetch(null,[],['ctid','desc'],20,0);
+    $txs = BHookTransaction::repo_fetch(null,[],['id','desc'],20,0); //ctid sort is slow, id (primary key) is fast
 
     $r = [];
     $i = 0;
