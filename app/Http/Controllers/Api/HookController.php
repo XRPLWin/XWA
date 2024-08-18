@@ -537,10 +537,11 @@ class HookController extends Controller
       }
     } else {
       //$num_results = BHookTransaction::repo_count($AND); //slow
-      $num_results = ($txs->count() * $page) + 1; //fake the counts due to backwards compatibility
+      $num_results = $limit * $page; //fake the counts due to backwards compatibility
     }
 
     if($txs->count() == $limit+1) $hasMorePages = true;
+    
 
     $r = [];
     $i = 0;
