@@ -526,7 +526,7 @@ class HookController extends Controller
     }
 
     # The Query:
-    $txs = BHookTransaction::repo_fetch(null,$AND,['ctid',$direction],($limit+1),$offset);
+    $txs = BHookTransaction::repo_fetch(null,$AND,['id',$direction],($limit+1),$offset); //orderby ctid is slow, id (primary key) is fast
     //dd($txs);
     if($page == 1) {
       $num_results = $txs->count();
