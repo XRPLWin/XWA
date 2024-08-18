@@ -42,6 +42,7 @@ return new class extends Migration
       //$table->primary(['hook', 'h']);
       $table->index(['hook']);
       $table->index(['hook','hookaction']);
+      $table->index(['hook','r']);
     });
   }
 
