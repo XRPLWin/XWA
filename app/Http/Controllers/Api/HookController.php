@@ -452,8 +452,8 @@ class HookController extends Controller
    */
   public function hook_transactions(Request $request, string $hookhash, string $hookctid, string $order, string $direction)
   {
-    $ttl = 300; //5 mins todo if hook version is completed long cache time
-    $httpttl = 300; //5 mins todo if hook version is completed long cache time
+    $ttl = 300; //5 mins default
+    $httpttl = 300; //5 mins default
 
     $limit = 200; //200
     $page = (int)$request->input('page');
@@ -537,7 +537,7 @@ class HookController extends Controller
       }
     } else {
       //$num_results = BHookTransaction::repo_count($AND); //slow
-      $num_results = $txs->count() * $page + 1; //fake the counts due to backwards compatibility
+      $num_results = ($txs->count() * $page) + 1; //fake the counts due to backwards compatibility
     }
 
     if($txs->count() == $limit+1) $hasMorePages = true;
