@@ -445,6 +445,7 @@ class HookController extends Controller
 
   /**
    * Get list of hook transactions by hook specific version
+   * Count is expensive (slow), disabled.
    * @param string $hookhash - Hook Hash
    * @param string $hookctid - Hook ctid when it was created (version selector)
    * @test http://xlanalyzer.test/v1/hook/012FD32EDF56C26C0C8919E432E15A5F242CC1B31AF814D464891C560465613B/C01B3B0C0000535A/transactions/created/desc
@@ -532,10 +533,11 @@ class HookController extends Controller
       $num_results = $txs->count();
       if($num_results == $limit+1) {
         //has more pages, do count
-        $num_results = BHookTransaction::repo_count($AND);
+        //$num_results = BHookTransaction::repo_count($AND); //slow
       }
     } else {
-      $num_results = BHookTransaction::repo_count($AND);
+      //$num_results = BHookTransaction::repo_count($AND); //slow
+      $num_results = $txs->count() * $page + 1; //fake the counts due to backwards compatibility
     }
 
     if($txs->count() == $limit+1) $hasMorePages = true;
