@@ -99,8 +99,13 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
   ],
 
-  'E379A9195A9B788718038F98CB84DD358CC0DAD8760C2A0BCE72A8912B033A47' => [ //latest
+  'E379A9195A9B788718038F98CB84DD358CC0DAD8760C2A0BCE72A8912B033A47' => [
     'title' => 'Evernode Reputation Hook v7',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
+  ],
+
+  '17AFCBEE5F1709A95BE9E18C0893F49D7AAF8CD14726E8BE8C83B74A65EF28BF' => [ //latest
+    'title' => 'Evernode Reputation Hook v8',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
   ],
 
@@ -353,6 +358,14 @@ return [
   '4512D7BABEF201C779E76B2FEECB0D655E088426B5769F0C6796A1E97FD82D91' => [
     'title' => 'Demo AMM Hook',
     'image' => null,
+  ],
+
+  '6CE65D856E1E38AE6DB1E864C973F1F3944898380AC769FA58560E507F961F7A' => [
+    'title' => 'Xahau Bridge Proof-Of-Concept Hook',
+    'image' => null,
+    'principal' => 'Transia-RnD',
+    'descr' => 'https://twitter.com/angell_denis/status/1826617270552191040',
+    'source' => 'https://github.com/Transia-RnD/xrpl-xahau-bridge',
   ],
 
   
