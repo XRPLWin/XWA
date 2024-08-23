@@ -22,7 +22,7 @@ Route::get('/account/syncinfo/{address}/{to?}', [App\Http\Controllers\Api\Accoun
 Route::get('/account/search/{address}', [App\Http\Controllers\Api\AccountController::class, 'search'])/*->middleware('varnish5min')*/->name('account.search');
 Route::get('/tokens', [App\Http\Controllers\Api\TokenController::class, 'all'])/*->middleware('varnish5min')*/->name('token.all');
 
-
+Route::get('/ledger_index/{ymd}/first', [App\Http\Controllers\Api\LedgerController::class, 'ledger_index_first'])->name('ledger.ledger_index_first');
 #Utilities
 //Route::middleware(['varnish5min'])->group(function () {
   Route::get('/currency_rates/{from}/{to}/{amount?}', [App\Http\Controllers\Api\BookController::class, 'currency_rates'])->name('currency_rates');

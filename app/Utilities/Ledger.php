@@ -56,6 +56,7 @@ class Ledger
    */
   public static function getFromDate(Carbon $date)
   {
+    $date = $date->startOfDay();
     if($date->isFuture()) {
       throw new \Exception('ledger getFromDate() - requested datetime is in future');
     }

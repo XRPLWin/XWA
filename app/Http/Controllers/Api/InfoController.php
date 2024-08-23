@@ -42,6 +42,12 @@ class InfoController extends Controller
         'method' => 'GET'
       ],
       [
+        'action' => 'Ledger Index By Date (first for day) - date is UTC',
+        'route' => '/v1/ledger_index/{YYYY-MM-DD}/first',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/ledger_index/'.\date('Y-m-d').'/first',
+      ],
+      [
         'action' => 'All tokens list',
         'route' => '/v1/tokens',
         'method' => 'GET',
@@ -192,8 +198,6 @@ class InfoController extends Controller
       ];
     }
     
-
-
     return response()->json([
       'version' => config('xwa.version'),
       'description' => config('app.name'),
