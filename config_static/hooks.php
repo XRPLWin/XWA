@@ -64,8 +64,23 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
   ],
 
-  '2363D363E262F28C045F1435B31B274FAB3D563513257516840F8A5E840186F8' => [ //latest
+  '2363D363E262F28C045F1435B31B274FAB3D563513257516840F8A5E840186F8' => [
     'title' => 'Evernode Heartbeat Hook v9',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
+  ],
+
+  '117D45B4620946B47F4AEEC36853480E685712CA7105A2C9203C0A679B75B911' => [
+    'title' => 'Evernode Heartbeat Hook v10',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
+  ],
+
+  '4F75DBFBE14A30B92EE677E8BC4A7D17504F56DAA1800F468B275D65149E1EE0' => [
+    'title' => 'Evernode Heartbeat Hook v11',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
+  ],
+
+  '465117F5604C648F9FCF075110C1B43A21DC67ACBA838FD40C9E02C86709F6B8' => [ //latest
+    'title' => 'Evernode Heartbeat Hook v12',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
   ],
 
