@@ -211,6 +211,7 @@ return [
     'rUiWCZSrLqMTThrEgFoFJ4rSRamEus83AU' => 'Jon Nilsen Validator',
     'r8GUGF9Nc81Mbc71GXLvebzMf2uGRGBSL'  => 'XRPLWin Validator',
     'rwWwFfACpyZgeiZMsnyuVEFNQcFhSCLepT' => 'XRPLWin Evernode Lease Bridge',
+    'rKov5Jg6uY9qWvUyzfJ2kuSA2e69BZmQSG' => 'XRPLWin Evernode Lease Bridge (testnet)',
 
   ]
 
