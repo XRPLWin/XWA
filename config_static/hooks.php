@@ -314,6 +314,11 @@ return [
     'source' => 'https://github.com/MrKnowItAlll/SetEevernodeHook/blob/master/redirect.c'
   ],
 
+  '39FBA97BD995EA96CD9D94C16A7286A4CABB3490BAB8FA2A8AAA07291145102C' => [
+    'title' => 'XRPLWin Guard',
+    'image' => null,
+  ],
+
   //Xahau Bet - Lottery hook combo by XRPL-Labs
   '2378A5711989FA84E7F0A810545A684C04FACFED022CB29E7B7DA48E422893CB' => [
     'title' => 'Xahau Bet - Lottery Router',
