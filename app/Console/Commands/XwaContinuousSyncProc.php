@@ -24,6 +24,7 @@ use XRPLWin\XRPLHookParser\TxHookParser;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Utilities\RecentAggrBatcher;
+use App\Utilities\NFTAggrBatcher;
 use Illuminate\Support\Facades\DB;
 
 class XwaContinuousSyncProc extends Command
@@ -263,11 +264,11 @@ class XwaContinuousSyncProc extends Command
       $bar = $this->output->createProgressBar(count($txs));
       $bar->start();
 
+      $mem_participants = [];
       foreach($txs as $transaction) {
 
         # Handle hooks
         $hook_parser = new TxHookParser($transaction);
-        
         $this->processHooks($hook_parser,$transaction);
         $this->processHooksTransaction($hook_parser,$transaction,$batch);
         # Handle hooks end
@@ -293,6 +294,7 @@ class XwaContinuousSyncProc extends Command
 
           if(!isset($accounts[$participant]))
             $accounts[$participant] = AccountLoader::getForUpdateOrCreate($participant);
+          $mem_participants[$transaction->hash][] = $participant; //add to memory (reused below - performance reasons)
           
           //$parsedDatas[] = $this->{$method}($accounts[$participant], $transaction, $batch);
           $parsedDatas[] = $this->processTransactions_sub($method, $accounts[$participant], $transaction, $batch, $iteration);
@@ -321,6 +323,22 @@ class XwaContinuousSyncProc extends Command
 
       DB::beginTransaction();
       try {
+
+        if(config('xwa.nftfeed_enabled')) {
+          # NFT aggregator start
+          /*$nftAggregatorBatch = new NFTAggrBatcher;
+          $nftAggregatorBatch->begin();
+          foreach($txs as $transaction) {
+            # Handle aggragations
+            $nftAggregatorBatch->addTx($transaction,$mem_participants[$transaction->hash]);
+            # Handle aggregations end
+          }
+          $nftAggregatorBatch->execute();
+          $this->log('- NFT Aggr DONE');*/
+          # NFT aggregator end
+        }
+        
+        # Recent aggregator start
         $recentAggrBatch = new RecentAggrBatcher;
         $recentAggrBatch->begin();
         foreach($txs as $transaction) {
@@ -330,7 +348,8 @@ class XwaContinuousSyncProc extends Command
         }
         $recentAggrBatch->execute();
         $this->log('- Aggr DONE');
-
+        # Recent aggregator end
+        
         $processed_rows = $batch->execute();
         
       } catch (\Throwable $e) {

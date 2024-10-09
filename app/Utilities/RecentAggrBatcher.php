@@ -268,7 +268,7 @@ class RecentAggrBatcher
 
     //NFT SALES (disabled cause its too slow)
     if(($type == 'NFTokenAcceptOffer' || $type == 'URITokenBuy') && $isSuccess) {
-      //This was too slow on xahau with hight load of 500 uritokenbuys per ledger:
+      //This was too slow on xahau with high load of 500 uritokenbuys per ledger:
       $NFTSale = new NftSaleTx($tx,$tx->metaData);
       if($NFTSaleSeller = $NFTSale->getSeller()) {
 
@@ -314,7 +314,7 @@ class RecentAggrBatcher
   public function execute()
   {
     if(!$this->isStarted)
-      throw new \Exception('begin() must be called after construct');
+      throw new \Exception('RecentAggrBatcher::begin() must be called after construct');
     //save to db
     //dd($this->collections);
     foreach($this->collections as $collectionArray) {
