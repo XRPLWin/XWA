@@ -326,7 +326,7 @@ class XwaContinuousSyncProc extends Command
 
         if(config('xwa.nftfeed_enabled')) {
           # NFT aggregator start
-          /*$nftAggregatorBatch = new NFTAggrBatcher;
+          $nftAggregatorBatch = new NFTAggrBatcher;
           $nftAggregatorBatch->begin();
           foreach($txs as $transaction) {
             # Handle aggragations
@@ -334,7 +334,7 @@ class XwaContinuousSyncProc extends Command
             # Handle aggregations end
           }
           $nftAggregatorBatch->execute();
-          $this->log('- NFT Aggr DONE');*/
+          $this->log('- NFT Aggr DONE');
           # NFT aggregator end
         }
         
