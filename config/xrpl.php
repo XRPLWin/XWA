@@ -20,7 +20,7 @@ return [
     'rippled_fullhistory_server_uri' => env('XRPL_NET_RIPPLED_FULLHISTORY_SERVER_URI', 'http://localhost:51234'),
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => env('XRPL_NET_SERVER_WSS', 'localhost:6006'),
-    'server_wss_syncer' => [env('XRPL_NET_SERVER_WSS_SYNCER', 'ws://localhost:6006')],
+    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'ws://localhost:6006')), //use "," to seperate endpoints
     'networkid' => (int)env('XRPL_NET_NETWORKID', 0),
     //enable or disable features
     'feature_amm' => env('XRPL_NET_FEATURE_AMM', false),
@@ -43,11 +43,7 @@ return [
     'rippled_fullhistory_server_uri' => 'https://xrplcluster.com',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 'xrplcluster.com',
-    //'server_wss_syncer' => ['ws://185.239.60.22:20400','ws://185.239.60.22:20400'],
-    //'server_wss_syncer' => ['ws://185.239.60.22:20400'],
-    'server_wss_syncer' => ['wss://xrplcluster.com'],
-    #'server_wss_syncer' => ['ws://79.110.60.89:8080'],
-    //'server_wss_syncer' => ['wss://s2.ripple.com'],
+    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://xrplcluster.com')),
     'networkid' => 0,
     //enable or disable features
     'feature_amm' => true,
@@ -72,7 +68,7 @@ return [
     'rippled_fullhistory_server_uri' => 'https://testnet.xrpl-labs.com',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 'testnet.xrpl-labs.com',
-    'server_wss_syncer' => ['wss://testnet.xrpl-labs.com'],
+    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://testnet.xrpl-labs.com')),
     'networkid' => 1,
     //enable or disable features
     'feature_amm' => true,
@@ -95,7 +91,7 @@ return [
     'rippled_fullhistory_server_uri' => 'https://s.devnet.rippletest.net:51234',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 's.devnet.rippletest.net:51233',
-    'server_wss_syncer' => ['wss://s.devnet.rippletest.net:51233'],
+    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://s.devnet.rippletest.net:51233')),
     'networkid' => 2,
     //enable or disable features
     'feature_amm' => true,
@@ -118,7 +114,7 @@ return [
     'rippled_fullhistory_server_uri' => 'https://xahau-test.net',
     //websocket domain (example: 'xrplcluster.com')
     'server_wss' => 'xahau-test.net',
-    'server_wss_syncer' => ['wss://xahau-test.net'],
+    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://xahau-test.net')),
     'networkid' => 21338,
     //enable or disable features
     'feature_amm' => false,
@@ -142,7 +138,7 @@ return [
     //websocket domain (example: 'xahau.network')
     'server_wss' => 'xahau.network',
     //'server_wss_syncer' => ['wss://xahau.network'],
-    'server_wss_syncer' => ['wss://xahau.network/explorer/xrplwinxwa'],
+    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://xahau.network/explorer/xrplwinxwa')),
     'networkid' => 21337,
     //enable or disable features
     'feature_amm' => false,
