@@ -39,7 +39,8 @@ $r = [
   'sync_type_continuous' => [
 
     //Number of parallel processes that will be spawned
-    'processes' => env('XWA_SYNC_TYPE_CONTINUOUS_PROCESSES', 4),
+    //Use "1" for Xahau (or hook enabled network) due to data insert ordering - single process is needed
+    'processes' => env('XWA_SYNC_TYPE_CONTINUOUS_PROCESSES', 1),
 
     //How much ledgers to process before global commit and process end
     //Set this value to 50 when system is in sync, 1000 when system is behind
