@@ -79,7 +79,7 @@ cp ./documentation/nginx/xwa_swoole.conf /opt/nginx/conf/vhosts/xwa_swoole.conf
 ```
 
 ### Full restart
-
+Make sure you stop Jobs and wait until all are finished!
 ```
 ./reload.sh
 ```
