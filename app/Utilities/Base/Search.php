@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Log;
 abstract class Search
 {
   protected string $address;
-  protected array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','offer','nft','nftoffer','types','page']; //todo add hook and pc
+  protected array $parametersWhitelist = ['from','to','dir','cp','dt','st','token','offer','nft','nftoffer','types','page', 'hook']; //todo add hook and pc
   protected bool $isExecuted = false;
   protected array $errors = [];
   protected int $last_error_code = 0; //0 - no error
