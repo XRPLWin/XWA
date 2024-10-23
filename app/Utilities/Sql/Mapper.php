@@ -136,6 +136,11 @@ class Mapper extends BaseMapper
       $queryBuilder->whereJsonContains('nftoffers',$this->conditions['nftoffer']);
     }
 
+    # (optional) Hook - in list of hooks contained in single row
+    if(isset($this->conditions['hook'])) {
+      $queryBuilder->whereJsonContains('hooks',$this->conditions['hook']);
+    }
+
     //TODO hooks and pc
 
     return $queryBuilder;

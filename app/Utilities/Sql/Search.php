@@ -177,6 +177,13 @@ class Search extends \App\Utilities\Base\Search
 
     unset($param_offer);
 
+    //Hook
+    $param_hook = $this->param('hook');
+    if($param_hook) {
+      $mapper->addCondition('hook',$param_hook);
+    }
+    unset($param_hook);
+
     //NFT
     $param_nft = $this->param('nft');
     if($param_nft) {

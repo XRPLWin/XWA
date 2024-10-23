@@ -84,6 +84,12 @@ class Mapper extends BaseMapper
       $SQL .= ' AND EXISTS(SELECT 1 FROM UNNEST(nftoffers) AS x WHERE x="""'.$this->conditions['nftoffer'].'""")';
     }
 
+
+    # (optional) Offer - in list of offers contained in single row
+    if(isset($this->conditions['hook'])) {
+      $SQL .= ' AND EXISTS(SELECT 1 FROM UNNEST(hooks) AS hok WHERE hok="""'.$this->conditions['hook'].'""")';
+    }
+
     //TODO hooks and pc
 
     return $SQL;
