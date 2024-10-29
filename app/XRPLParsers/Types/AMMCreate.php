@@ -73,6 +73,11 @@ final class AMMCreate extends XRPLParserBase
 
     $Amount1Identification = \is_string($this->tx->Amount) ? 'XRP':$this->tx->Amount->currency.'.'.$this->tx->Amount->issuer;
     $Amount2Identification = \is_string($this->tx->Amount2) ? 'XRP':$this->tx->Amount2->currency.'.'.$this->tx->Amount2->issuer;
+
+    //C17FFD27444BF5FF981539723989880C4E5B045B21EDD957DE1DC7C4A9D10144 this is tx where issuer creates own pool, then BC identification will have different issuer (cause IOU to Pool)
+    $Amount1Identification_AMM = \is_string($this->tx->Amount) ? 'XRP':$this->tx->Amount->currency.'.'.$AMM_ACCOUNT;
+    $Amount2Identification_AMM = \is_string($this->tx->Amount2) ? 'XRP':$this->tx->Amount2->currency.'.'.$AMM_ACCOUNT;
+    
     $amount1 = null;
     $amount2 = null;
     $amountLT = null;
@@ -84,21 +89,22 @@ final class AMMCreate extends XRPLParserBase
         if(count($_bc) == 3)
           $_bc_Identification .= '.'.$_bc['counterparty'];
         //Check if is amount1
-        if($Amount1Identification == $_bc_Identification) {
+        if($Amount1Identification == $_bc_Identification || $Amount1Identification_AMM == $_bc_Identification) {
           //It is amount1
           if($amount1 !== null) 
             throw new \Exception('Duplicate amount1 detected in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
           $amount1 = $_bc;
-        } else if($Amount2Identification == $_bc_Identification) {
-          //It is amount1
+        } else if($Amount2Identification == $_bc_Identification || $Amount2Identification_AMM == $_bc_Identification) {
+
+          //It is amount2
           if($amount2 !== null) 
             throw new \Exception('Duplicate amount2 detected in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
           $amount2 = $_bc;
         } else {
           //It is LT
-          if($amountLT !== null) 
+          if($amountLT !== null)
             throw new \Exception('Duplicate LT detected in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-      
+
           //check if its really LT
           if(!\str_starts_with($_bc['currency'],'03'))
             throw new \Exception('Non LT detected in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
