@@ -67,18 +67,28 @@ final class AMMDeposit extends XRPLParserBase
 
     $BC = $this->data['balanceChangesExclFee'];
 
-    $Amount2Identification = null;
+    $Amount2Identification = $Amount2Identification_AMM = null;
 
     if(!isset($this->tx->Amount) && !isset($this->tx->Amount2)) { //in case of LPTokenOut only
-      $Amount1Identification = \is_string($this->tx->Asset) ? 'XRP':$this->tx->Asset->currency.'.'.$this->tx->Asset->issuer;
-      $Amount2Identification = \is_string($this->tx->Asset2) ? 'XRP':$this->tx->Asset2->currency.'.'.$this->tx->Asset2->issuer;
+      $Amount1Identification      = \is_string($this->tx->Asset) ? 'XRP':$this->tx->Asset->currency.'.'.$this->tx->Asset->issuer;
+      $Amount1Identification_AMM  = \is_string($this->tx->Asset) ? 'XRP':$this->tx->Asset->currency.'.'.$AMM_ACCOUNT;
+      $Amount2Identification      = \is_string($this->tx->Asset2) ? 'XRP':$this->tx->Asset2->currency.'.'.$this->tx->Asset2->issuer;
+      $Amount2Identification_AMM  = \is_string($this->tx->Asset2) ? 'XRP':$this->tx->Asset2->currency.'.'.$AMM_ACCOUNT;
     } else {
-      if(isset($this->tx->Amount))
-      $Amount1Identification = \is_string($this->tx->Amount) ? 'XRP':$this->tx->Amount->currency.'.'.$this->tx->Amount->issuer;
+      if(isset($this->tx->Amount)) {
+        $Amount1Identification      = \is_string($this->tx->Amount) ? 'XRP':$this->tx->Amount->currency.'.'.$this->tx->Amount->issuer;
+        $Amount1Identification_AMM  = \is_string($this->tx->Amount) ? 'XRP':$this->tx->Amount->currency.'.'.$AMM_ACCOUNT;
+      }
+        
 
-      if(isset($this->tx->Amount2))
-        $Amount2Identification = \is_string($this->tx->Amount2) ? 'XRP':$this->tx->Amount2->currency.'.'.$this->tx->Amount2->issuer;
+      if(isset($this->tx->Amount2)) {
+        $Amount2Identification      = \is_string($this->tx->Amount2) ? 'XRP':$this->tx->Amount2->currency.'.'.$this->tx->Amount2->issuer;
+        $Amount2Identification_AMM  = \is_string($this->tx->Amount2) ? 'XRP':$this->tx->Amount2->currency.'.'.$AMM_ACCOUNT;
+      }
+        
     }
+
+    //A0BF3E5999FC90A1BBC118EEC895FE5DF1E65942168E9288CE2F1E846CC3A8EA this is tx where issuer creates own pool, then BC identification will have different issuer (cause IOU to Pool)
     
     $amount1 = null;
     $amount2 = null;
@@ -90,22 +100,22 @@ final class AMMDeposit extends XRPLParserBase
         $_bc_Identification = $_bc['currency'];
         if(count($_bc) == 3)
           $_bc_Identification .= '.'.$_bc['counterparty'];
-        
         //Check if is amount1
-        if($Amount1Identification == $_bc_Identification) {
+        if($Amount1Identification == $_bc_Identification || $Amount1Identification_AMM == $_bc_Identification) {
           //It is amount1
           if($amount1 !== null) 
             throw new \Exception('Duplicate amount1 detected in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
           $amount1 = $_bc;
-        } else if($Amount2Identification !== null && $Amount2Identification == $_bc_Identification) {
+        } else if($Amount2Identification !== null && $Amount2Identification == $_bc_Identification || $Amount2Identification_AMM !== null && $Amount2Identification_AMM == $_bc_Identification) {
           //It is amount1
           if($amount2 !== null) 
             throw new \Exception('Duplicate amount2 detected in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
           $amount2 = $_bc;
         } else {
           //It is LT
-          if($amountLT !== null) 
+          if($amountLT !== null)
             throw new \Exception('Duplicate LT detected in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+            
 
           //check if its really LT
           if(!\str_starts_with($_bc['currency'],'03'))
