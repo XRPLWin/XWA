@@ -213,6 +213,9 @@ return [
     'rwWwFfACpyZgeiZMsnyuVEFNQcFhSCLepT' => 'XRPLWin Evernode Bridge',
     'rKov5Jg6uY9qWvUyzfJ2kuSA2e69BZmQSG' => 'XRPLWin Evernode Bridge (testnet)',
 
+    'rL78zE8mMFvSkZcRxThipy9FNThWpDp4af' => 'Xahau Radio Hook Creator',
+    'rh2i1UeXCCrv4RZdkpb1ioHtuNYghhhxmU' => 'Xahau Radio',
+
   ]
 
 ];

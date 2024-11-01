@@ -379,6 +379,16 @@ return [
     'image' => null,
   ],
 
+  //Xahau Radio
+  'D93D62E0F07E501891B37240C620446901A421D00BA45D9537EF432776E0C4BA' => [
+    'title' => 'Xahau Radio',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rh2i1UeXCCrv4RZdkpb1ioHtuNYghhhxmU.webp',
+    'principal' => 'Ekiserrepé {X} & Satish',
+    'source' => 'https://github.com/technotip/HookExamples/blob/main/ReturnChange/radio.c',
+    'descr' => 'For the 1st anniversary of @XahauNetwork I wanted to bring out this small project. It\'s an online radio playing lo-fi music that accepts payments on Xahau to keep playing music.\n\nTo play a song you need to send 1 XAH. You can choose between 100 songs by typing in the memo field the desired number, if you don\'t use the memo field, a song will be chosen randomly. If you want to play 10 random songs at a time, send 10 XAH, the memo field will be ignored.\n\nThe project uses a hook designed by @Satish_nl that simulates jukeboxes.\n\nSource: https://x.com/ekiserrepe/status/1852270395614720415',
+  ],
+
+
   //Other
   '4512D7BABEF201C779E76B2FEECB0D655E088426B5769F0C6796A1E97FD82D91' => [
     'title' => 'Demo AMM Hook',
