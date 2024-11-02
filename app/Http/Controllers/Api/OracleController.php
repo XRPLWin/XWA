@@ -46,7 +46,7 @@ class OracleController extends Controller
   {
     $ttl = 60; //1 min
     $httpttl = 60; //1 min
-    $limit = 200; //200
+    $limit = 2000; //2000
     $page = (int)$request->input('page');
     if(!$page) $page = 1;
     $hasMorePages = false;
