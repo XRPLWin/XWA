@@ -149,6 +149,7 @@ return [
     'rpQwfZuqKAWWLLvXmSMWotWKbfrB68THm5' => 'xMagnetic',
     'rwUYZL4Rjnno7zY8MpQQJQB6vheVKreWB1' => 'Uphold',
     'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De' => 'Ripple RLUSD', //Real one
+    'roosteri9aGNFRXZrJNYQKVBfxHiE5abg'  => 'Rooster Oracle',
   ],
 
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
