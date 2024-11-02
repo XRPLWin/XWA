@@ -32,6 +32,7 @@ Route::get('/xahau/import/{from}/{to}/aggr', [App\Http\Controllers\Api\XahauCont
 Route::get('/xahau/import/{date}/txs', [App\Http\Controllers\Api\XahauController::class, 'import_day_txs'])->name('xahau.import_day_txs');
 
 Route::get('/oracle/USD', [App\Http\Controllers\Api\OracleController::class, 'usd'])->name('oracle.usd');
+Route::get('/oracles', [App\Http\Controllers\Api\OracleController::class, 'oracles'])->name('oracles.index');
 
 Route::get('/hooks/{filter}/{order}/{direction}', [App\Http\Controllers\Api\HookController::class, 'hooks'])->name('hooks');
 Route::get('/hook/{hookhash}', [App\Http\Controllers\Api\HookController::class, 'hook'])->name('hook');

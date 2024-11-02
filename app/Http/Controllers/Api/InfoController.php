@@ -66,10 +66,17 @@ class InfoController extends Controller
         'example' => config('app.url').'/v1/currency_rates/USD+rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq/XRP',
       ],
       [
-        'action' => 'Get XRP Price',
+        'action' => 'Get XRP Price (legacy - trustline)',
         'route' => '/v1/oracle/USD',
         'method' => 'GET',
         'example' => config('app.url').'/v1/oracle/USD',
+      ],
+      [
+        'action' => 'Get Oracles (PriceOracle amendment)',
+        'route' => '/v1/oracles?[page=Int32][&order=String(asc|desc)][&oracle=rAddress][&provider=String][&base=String(ISOorHEX)][&base=String(ISOorHEX)]',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/oracles',
+        'notes' => 'Ordered by timestamp default asc. Timestamp is time when price was updated offchain (see LastUpdateTime)'
       ],
       
       [

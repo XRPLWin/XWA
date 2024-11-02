@@ -19,7 +19,7 @@ class Oracle extends Model
    * @var array
    */
   protected $casts = [
-    't' => 'datetime',
+    'updated_at' => 'datetime',
   ];
 
   protected $fillable = [
