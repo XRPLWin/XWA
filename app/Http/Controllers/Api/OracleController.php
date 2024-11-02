@@ -60,12 +60,14 @@ class OracleController extends Controller
       'provider' => $request->input('provider'),
       'base' => $request->input('base'),
       'quote' => $request->input('quote'),
+      'onlyfreshminutes' => $request->input('onlyfreshminutes')?(int)$request->input('onlyfreshminutes'):null,
     ], [
       'page' => 'required|int',
       'oracle' => ['nullable',new \App\Rules\XRPAddress, 'alpha_num:ascii'],
       'provider' => 'nullable|string|alpha_num:ascii',
       'base' => 'nullable|string|alpha_num:ascii',
       'quote' => 'nullable|string|alpha_num:ascii',
+      'onlyfreshminutes' => 'nullable|int|min:1',
     ]);
 
     if($validator->fails())
@@ -90,6 +92,15 @@ class OracleController extends Controller
     if($request->input('quote')) {
       $oracles = $oracles->where('quote',$request->input('quote'));
     }
+
+    if($request->input('onlyfreshminutes')) {
+      $onlyfreshminutes = (int)$request->input('onlyfreshminutes');
+      if($onlyfreshminutes) {
+        $timecheck = now()->utc()->addMinutes(-$onlyfreshminutes);
+        $oracles = $oracles->where('updated_at','>=',$timecheck);
+      }
+    }
+
     $num_results = $oracles->count();
 
     $pages = (int)\ceil($num_results / $limit);
