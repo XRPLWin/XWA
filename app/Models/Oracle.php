@@ -7,15 +7,11 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 #use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
-class Oracles extends Model
+class Oracle extends Model
 {
   #use HasUuids;
-
   protected $table = 'oracles';
   public $timestamps = false;
-  //protected $primaryKey = 'ctid';
-  //public $incrementing = false;
-  //protected $keyType = 'string';
   
   /**
    * The attributes that should be cast.
@@ -23,9 +19,16 @@ class Oracles extends Model
    * @var array
    */
   protected $casts = [
-    //'ctid' => 'string',
-    //'taxon' => 'string',
-    //'t' => 'datetime',
+    't' => 'datetime',
+  ];
+
+  protected $fillable = [
+    'oracle',
+    'provider',
+    'base',
+    'quote',
+    'last_value',
+    'updated_at'
   ];
 
 }

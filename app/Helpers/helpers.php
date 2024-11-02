@@ -358,3 +358,31 @@ if (!function_exists('toMonthPeriod')) {
     return $from2->toPeriod($to, 1, 'month')->settings(['monthOverflow' => false]);
   }
 }
+
+if (!function_exists('convertScaledPrice')) {
+
+  /**
+   * Used in OracleSet (oracle ammedment)
+   * @see https://github.com/ripple/explorer/commit/33ca4f4cbc4259c7c9d0ec893662a5e9d0b49f7f#diff-7b1599e2f60cdc2d8d92c9f81496d4f0c0bc5d3f185a3d47675630022ef2b565R8
+   * @return String
+   */
+  function convertScaledPrice(string $assetPrice, int $scale): string
+  {
+    // Convert hex to decimal and initialize BigInteger
+    $scaledPriceInBigInt = \Brick\Math\BigInteger::fromBase($assetPrice, 16);
+
+    // Create divisor as a BigInteger
+    $divisor = \Brick\Math\BigInteger::of(10)->power($scale);
+
+    // Calculate integer and remainder
+    $integerPart = $scaledPriceInBigInt->dividedBy($divisor,\Brick\Math\RoundingMode::FLOOR);
+    $remainder = $scaledPriceInBigInt->mod($divisor);
+
+    // Calculate fractional part
+    $fractionalPart = $remainder->multipliedBy(\Brick\Math\BigInteger::of(10)->power($scale))->dividedBy($divisor);
+    if($fractionalPart->isGreaterThan(0)){
+      return (string)$integerPart.'.'.\str_pad((string)$fractionalPart,$scale,'0',STR_PAD_LEFT);
+    }
+    return (string)$integerPart;
+  }
+}

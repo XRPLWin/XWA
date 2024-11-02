@@ -19,6 +19,7 @@ use App\Models\BHook;
 use App\Models\BHookTransaction;
 use App\Models\BTransactionActivation;
 use App\Models\Synctracker;
+use App\Models\Oracle;
 #use App\Models\BHook;
 use XRPLWin\XRPLHookParser\TxHookParser;
 use Illuminate\Support\Facades\Cache;
@@ -282,37 +283,17 @@ class XwaContinuousSyncProc extends Command
         //  continue;
         //}
         $last_ledger_date = $transaction->date;
-        $type = $transaction->TransactionType;
-        $method = 'processTransaction_'.$type;
-        //$this->log('Inserting: '.$transaction->hash.' ('.$method.') l: '.$transaction->ledger_index.' li: '.$transaction->metaData->TransactionIndex);
-        
         $extractor = new TxParticipantExtractor($transaction,['allowSpecialAccounts' => true]);
         $participants = $extractor->result();
         $iteration = 1;
         foreach($participants as $participant) {
-          //$this->log('- '.$participant.' - '.$transaction->hash);
-
           if(!isset($accounts[$participant]))
             $accounts[$participant] = AccountLoader::getForUpdateOrCreate($participant);
           $mem_participants[$transaction->hash][] = $participant; //add to memory (reused below - performance reasons)
-          
-          //$parsedDatas[] = $this->{$method}($accounts[$participant], $transaction, $batch);
-          $parsedDatas[] = $this->processTransactions_sub($method, $accounts[$participant], $transaction, $batch, $iteration);
-
-          //update last synced ledger index to account metadata (not used in continuous syncer)
-          //$accounts[$participant]->l = $transaction->ledger_index;
-          //$accounts[$participant]->li = $transaction->metaData->TransactionIndex;
-          //$accounts[$participant]->lt = ripple_epoch_to_carbon($transaction->date)->format('Y-m-d H:i:s.uP');
-          //dd($account);
+          $parsedDatas[] = $this->processTransactions_sub($transaction->TransactionType, $accounts[$participant], $transaction, $batch, $iteration);
           $iteration++;
         }
 
-
-        //dd($transaction->_xwa_ledger_index);
-
-        //dd($parsedDatas);
-        //this is faster than call_user_func()
-        //return $this->{$method}($account, $transaction, $batch);
         $bar->advance();
       }
       $bar->finish();
@@ -330,7 +311,8 @@ class XwaContinuousSyncProc extends Command
           $nftAggregatorBatch->begin();
           foreach($txs as $transaction) {
             # Handle aggragations
-            $nftAggregatorBatch->addTx($transaction,$mem_participants[$transaction->hash]);
+            if(isset($mem_participants[$transaction->hash])) //failed tx will be skipped
+              $nftAggregatorBatch->addTx($transaction,$mem_participants[$transaction->hash]);
             # Handle aggregations end
           }
           $nftAggregatorBatch->execute();
@@ -365,7 +347,7 @@ class XwaContinuousSyncProc extends Command
     /**
      * One function to accommodate all transaction types
      */
-    private function processTransactions_sub(string $method, BAccount $account, \stdClass $transaction, BatchInterface $batch, int $iteration): array
+    private function processTransactions_sub(string $txType, BAccount $account, \stdClass $transaction, BatchInterface $batch, int $iteration): array
     {
       $is_account_changed = false;
       //$this->line($transaction->hash);
@@ -375,12 +357,34 @@ class XwaContinuousSyncProc extends Command
         /** @var \App\XRPLParsers\XRPLParserBase */
         $parser = Parser::get($transaction, $transaction->metaData, $account->address);
       } catch (\Throwable $e) {
-        $this->logError($method.' '.$transaction->hash.' '.$account->address);
+        $this->logError($txType.' '.$transaction->hash.' '.$account->address);
         throw $e;
       }
 
       # Do something once:
-      //if($iteration == 1) {}
+      if($iteration == 1) {
+        if($txType == 'OracleSet') {
+          //Store/update Oracle right away - it can be updated whenever
+          if(isset($transaction->PriceDataSeries) && \is_array($transaction->PriceDataSeries) && count($transaction->PriceDataSeries)) {
+            foreach($transaction->PriceDataSeries as $serie) {
+              $_provider = isset($transaction->Provider) ? \hex2bin($transaction->Provider):'';
+              $_scale = isset($serie->PriceData->Scale) ? $serie->PriceData->Scale:1;
+              Oracle::updateOrCreate([
+                'oracle' => $transaction->Account,
+                'provider' => $_provider,
+                'base' => $serie->PriceData->BaseAsset,
+                'quote' => $serie->PriceData->QuoteAsset
+              ],[
+                'last_value' => convertScaledPrice($serie->PriceData->AssetPrice,$_scale),
+                'updated_at' => \Carbon\Carbon::createFromTimestamp($transaction->LastUpdateTime), //int timestamp
+              ]);
+
+              unset($_provider);
+              unset($_scale);
+            }
+          }
+        }
+      }
       
       $parsedData = $parser->toBArray();
 
@@ -433,7 +437,7 @@ class XwaContinuousSyncProc extends Command
         $account->isdeleted = false; //in case it is reactivated, this will remove field on model save
       }
 
-      if($method == 'AccountDelete') {
+      if($txType == 'AccountDelete') {
         if(!$parsedData['isin']) {
           //outgoing, this is deleted account, flag account deleted
           //$this->log('');
