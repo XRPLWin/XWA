@@ -73,7 +73,7 @@ class InfoController extends Controller
       ],
       [
         'action' => 'Get Oracles (PriceOracle amendment)',
-        'route' => '/v1/oracles?[page=Int32][&order=String(asc|desc)][&oracle=rAddress][&provider=String][&base=String(ISOorHEX)][&base=String(ISOorHEX)][&onlyfreshminutes=Int32]',
+        'route' => '/v1/oracles?[page=Int32][&order=String(asc|desc)][&oracle=rAddress][&provider=String][&base=String(ISOorHEX)][&quote=String(ISOorHEX)][&onlyfreshminutes=Int32]',
         'method' => 'GET',
         'example' => config('app.url').'/v1/oracles',
         'notes' => 'Ordered by timestamp default asc. Timestamp is time when price was updated offchain (see LastUpdateTime) Use onlyfreshminutes param to limit only recently updated prices within provided minutes, eg value of 5 will return only updated prices last 5 mins.'
