@@ -390,6 +390,13 @@ return [
 
   //VPRA Pet Battles on Xahau
 
+  '2E67E67B7A9C4446403F67D8CA91716B54EE7F8FC48C15836133908616F41C10' => [
+    'title' => 'VPRA Router',
+    'image' => null,
+    'source' => 'https://github.com/Transia-RnD/vpra-hooks/tree/main/contracts',
+    //this is Denis's router hook, source of still unknown
+  ],
+
   //missing battle
 
   'AF67797FCEBEAE6DAA9C1A7E9B4D8C8B79F1AA8032EBC2D30AB82D9FEBBC5CE9' => [
