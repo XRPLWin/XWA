@@ -419,7 +419,11 @@ return [
 
   //missing race pool
 
-  //missing update
+  'DCC25F1DCE8916C25825082915A9B22E0C915B1CFB752DF77516076DA238B7A0' => [
+    'title' => 'VPRA Update V2',
+    'image' => null,
+    'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_updateV2.c',
+  ],
   
 
 
