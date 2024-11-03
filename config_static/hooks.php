@@ -394,16 +394,19 @@ return [
 
   'AF67797FCEBEAE6DAA9C1A7E9B4D8C8B79F1AA8032EBC2D30AB82D9FEBBC5CE9' => [
     'title' => 'VPRA Breed V2',
+    'image' => null,
     'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_breedV2.c',
   ],
 
   '6376E31EA396A96B35BB65689356050FE0C2EB3C0E0EC69B2045222BA8EB31CE' => [
     'title' => 'VPRA Mint V2',
+    'image' => null,
     'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_mintv2.c',
   ],
 
   '4F4D2D41E55B9D15BB24DCC0EEC62CB0B647E05774C7FCA704349C164B343B83' => [
     'title' => 'VPRA Race V2',
+    'image' => null,
     'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_raceV2.c',
   ],
 
