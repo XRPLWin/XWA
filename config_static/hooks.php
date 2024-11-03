@@ -388,6 +388,30 @@ return [
     'descr' => 'For the 1st anniversary of @XahauNetwork I wanted to bring out this small project. It\'s an online radio playing lo-fi music that accepts payments on Xahau to keep playing music.\n\nTo play a song you need to send 1 XAH. You can choose between 100 songs by typing in the memo field the desired number, if you don\'t use the memo field, a song will be chosen randomly. If you want to play 10 random songs at a time, send 10 XAH, the memo field will be ignored.\n\nThe project uses a hook designed by @Satish_nl that simulates jukeboxes.\n\nSource: https://x.com/ekiserrepe/status/1852270395614720415',
   ],
 
+  //VPRA Pet Battles on Xahau
+
+  //missing battle
+
+  'AF67797FCEBEAE6DAA9C1A7E9B4D8C8B79F1AA8032EBC2D30AB82D9FEBBC5CE9' => [
+    'title' => 'VPRA Breed V2',
+    'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_breedV2.c',
+  ],
+
+  '6376E31EA396A96B35BB65689356050FE0C2EB3C0E0EC69B2045222BA8EB31CE' => [
+    'title' => 'VPRA Mint V2',
+    'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_mintv2.c',
+  ],
+
+  '4F4D2D41E55B9D15BB24DCC0EEC62CB0B647E05774C7FCA704349C164B343B83' => [
+    'title' => 'VPRA Race V2',
+    'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_raceV2.c',
+  ],
+
+  //missing race pool
+
+  //missing update
+  
+
 
   //Other
   '4512D7BABEF201C779E76B2FEECB0D655E088426B5769F0C6796A1E97FD82D91' => [
