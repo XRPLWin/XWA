@@ -495,7 +495,7 @@ return [
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rh2i1UeXCCrv4RZdkpb1ioHtuNYghhhxmU.webp',
     'principals' => ['Ekiserrepé','Satish'],
     'source' => 'https://github.com/technotip/HookExamples/blob/main/ReturnChange/radio.c',
-    'descr' => 'For the 1st anniversary of @XahauNetwork I wanted to bring out this small project. It\'s an online radio playing lo-fi music that accepts payments on Xahau to keep playing music.\n\nTo play a song you need to send 1 XAH. You can choose between 100 songs by typing in the memo field the desired number, if you don\'t use the memo field, a song will be chosen randomly. If you want to play 10 random songs at a time, send 10 XAH, the memo field will be ignored.\n\nThe project uses a hook designed by @Satish_nl that simulates jukeboxes.\n\nSource: https://x.com/ekiserrepe/status/1852270395614720415',
+    'descr' => "For the 1st anniversary of @XahauNetwork I wanted to bring out this small project. It's an online radio playing lo-fi music that accepts payments on Xahau to keep playing music.\n\nTo play a song you need to send 1 XAH. You can choose between 100 songs by typing in the memo field the desired number, if you don't use the memo field, a song will be chosen randomly. If you want to play 10 random songs at a time, send 10 XAH, the memo field will be ignored.\n\nThe project uses a hook designed by @Satish_nl that simulates jukeboxes.\n\nSource: https://x.com/ekiserrepe/status/1852270395614720415",
   ],
 
   //VPRA Pet Battles on Xahau
