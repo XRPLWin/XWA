@@ -626,6 +626,10 @@ class HookController extends Controller
     $r = [
       't' => null,
       'i' => null,
+      's' => null, //Source
+      'principals' => null, //Author(s)
+      'descr' => null, //Description - plain text (new lines are \n)
+      'web' => null, //website url
     ];
 
     $info = config_static('hooks.'.$hookhash);
@@ -633,6 +637,10 @@ class HookController extends Controller
     if($info) {
       $r['t'] = $info['title'];
       $r['i'] = $info['image'];
+      if(isset($info['source'])) $r['s'] = $info['source'];
+      if(isset($info['principals'])) $r['principals'] = $info['principals'];
+      if(isset($info['descr'])) $r['descr'] = $info['descr'];
+      if(isset($info['web'])) $r['web'] = $info['web'];
     }
 
     return response()->json($r)
