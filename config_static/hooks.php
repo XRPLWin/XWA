@@ -8,12 +8,14 @@ return [
     'title' => 'Xahau Governance Reward Hook',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/610F33B8EBF7EC795F822A454FB852156AEFE50BE0CB8326338A81CD74801864.webp',
     'web' => 'https://docs.xahau.network/technical/balance-adjustments',
+    'descr' => "This hook allows Balance Adjustments on Xahau Network",
     'source' => 'https://github.com/Xahau/xahaud/blob/dev/hook/genesis/reward.c',
   ],
   '5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77' => [
     'title' => 'Xahau Governance Game Hook',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77.webp',
     'web' => 'https://docs.xahau.network/technical/governance-game',
+    'descr' => "The Governance Game is an innovative governance mechanism within the Xahau ecosystem to ensure a community-centric approach towards decision-making.",
     'source' => 'https://github.com/Xahau/xahaud/blob/dev/hook/genesis/govern.c',
   ],
 
@@ -21,7 +23,7 @@ return [
     'title' => 'Xahau Governance Game Hook v2',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77.webp',
     'web' => 'https://docs.xahau.network/technical/governance-game',
-    'descr' => "Fixed Governance Game Hook, vote clearing bug is fixed with this version.\n\nSee issue: https://github.com/Xahau/xahaud/issues/211",
+    'descr' => "The Governance Game is an innovative governance mechanism within the Xahau ecosystem to ensure a community-centric approach towards decision-making.\n\nFixed Governance Game Hook, vote purge bug is fixed with this version.\n\nSee issue: https://github.com/Xahau/xahaud/issues/211",
     'source' => 'https://github.com/Xahau/xahaud/blob/dev/hook/genesis/govern.c',
   ],
 
