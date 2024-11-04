@@ -417,7 +417,12 @@ return [
     'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_raceV2.c',
   ],
 
-  //missing race pool
+  
+  '6A7B23B8AF2C67113885D52CD960F5EE0C9000E2D257FB72038E704D188A1A9A' => [
+    'title' => 'VPRA Race-Pool V2',
+    'image' => null,
+    'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_race_poolV2.c',
+  ],
 
   'DCC25F1DCE8916C25825082915A9B22E0C915B1CFB752DF77516076DA238B7A0' => [
     'title' => 'VPRA Update V2',
