@@ -81,7 +81,7 @@ class XwaDownloadTokenData extends Command
           $issuerModel->social_twitter = (string)$d->data->twitter !== '' ? (string)$d->data->twitter:null;
         $issuerModel->save();
 
-        $tokens = $d->tokens;
+        //$tokens = $d->tokens;
         foreach($d->tokens as $t)
         {
           $tokenModel = new Token;
@@ -95,6 +95,7 @@ class XwaDownloadTokenData extends Command
           if(isset($t->self_assessment->information) && \is_string($t->self_assessment->information))
             $tokenModel->self_assessment_url = $t->self_assessment->information;
           $tokenModel->save();
+          //if(str_starts_with($t->currency,'01444')) dd($t);
           $this->info('  - '.xrp_currency_to_symbol($t->currency));
         }
 
