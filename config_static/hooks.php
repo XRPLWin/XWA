@@ -7,15 +7,22 @@ return [
   '610F33B8EBF7EC795F822A454FB852156AEFE50BE0CB8326338A81CD74801864' => [
     'title' => 'Xahau Governance Reward Hook',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/610F33B8EBF7EC795F822A454FB852156AEFE50BE0CB8326338A81CD74801864.webp',
+    'web' => 'https://docs.xahau.network/technical/balance-adjustments',
+    'source' => 'https://github.com/Xahau/xahaud/blob/dev/hook/genesis/reward.c',
   ],
   '5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77' => [
     'title' => 'Xahau Governance Game Hook',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77.webp',
+    'web' => 'https://docs.xahau.network/technical/governance-game',
+    'source' => 'https://github.com/Xahau/xahaud/blob/dev/hook/genesis/govern.c',
   ],
 
   'FAC0FAF928B48D7D113B95A07129E5E161AA5CCFCB4AEE0BC49B5795645CEFCD' => [
     'title' => 'Xahau Governance Game Hook v2',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77.webp',
+    'web' => 'https://docs.xahau.network/technical/governance-game',
+    'descr' => "Fixed Governance Game Hook, vote clearing bug is fixed with this version.\n\nSee issue: https://github.com/Xahau/xahaud/issues/211",
+    'source' => 'https://github.com/Xahau/xahaud/blob/dev/hook/genesis/govern.c',
   ],
 
 
