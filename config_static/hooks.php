@@ -505,6 +505,7 @@ return [
     'image' => null,
     'principals' => ['Transia-RnD'],
     'source' => 'https://github.com/Transia-RnD/vpra-hooks/tree/main/contracts',
+    'web' => 'https://vpra.app',
     //this is Denis's router hook, source of still unknown
   ],
 
@@ -515,6 +516,7 @@ return [
     'image' => null,
     'principals' => ['Transia-RnD'],
     'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_breedV2.c',
+    'web' => 'https://vpra.app',
   ],
 
   '6376E31EA396A96B35BB65689356050FE0C2EB3C0E0EC69B2045222BA8EB31CE' => [
@@ -522,6 +524,7 @@ return [
     'image' => null,
     'principals' => ['Transia-RnD'],
     'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_mintv2.c',
+    'web' => 'https://vpra.app',
   ],
 
   '4F4D2D41E55B9D15BB24DCC0EEC62CB0B647E05774C7FCA704349C164B343B83' => [
@@ -529,6 +532,7 @@ return [
     'image' => null,
     'principals' => ['Transia-RnD'],
     'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_raceV2.c',
+    'web' => 'https://vpra.app',
   ],
 
   
@@ -537,6 +541,7 @@ return [
     'image' => null,
     'principals' => ['Transia-RnD'],
     'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_race_poolV2.c',
+    'web' => 'https://vpra.app',
   ],
 
   'DCC25F1DCE8916C25825082915A9B22E0C915B1CFB752DF77516076DA238B7A0' => [
@@ -544,6 +549,7 @@ return [
     'image' => null,
     'principals' => ['Transia-RnD'],
     'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_updateV2.c',
+    'web' => 'https://vpra.app',
   ],
   
 
