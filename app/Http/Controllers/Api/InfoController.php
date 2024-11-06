@@ -72,14 +72,6 @@ class InfoController extends Controller
         'example' => config('app.url').'/v1/oracle/USD',
       ],
       [
-        'action' => 'Get Oracles (PriceOracle amendment)',
-        'route' => '/v1/oracles?[page=Int32][&order=String(asc|desc)][&oracle=rAddress][&provider=String][&base=String(ISOorHEX)][&quote=String(ISOorHEX)][&onlyfreshminutes=Int32]',
-        'method' => 'GET',
-        'example' => config('app.url').'/v1/oracles',
-        'notes' => 'Ordered by timestamp default asc. Timestamp is time when price was updated offchain (see LastUpdateTime) Use onlyfreshminutes param to limit only recently updated prices within provided minutes, eg value of 5 will return only updated prices last 5 mins.'
-      ],
-      
-      [
         'action' => 'Get list of hooks',
         'route' => '/v1/hooks/{filter}/{order}/{direction}',
         'method' => 'GET',
@@ -128,6 +120,24 @@ class InfoController extends Controller
         'example' => config('app.url').'/v1/hook-transactions/recent',
       ],
     ];
+
+    if(config('xrpl.'.config('xrpl.net').'.feature_oracle')) {
+      $endpoints[] = [
+        'action' => 'Get Oracles (PriceOracle amendment)',
+        'route' => '/v1/oracles?[page=Int32][&order=String(asc|desc)][&oracle=rAddress][&provider=String][&base=String(ISOorHEX)][&quote=String(ISOorHEX)][&onlyfreshminutes=Int32]',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/oracles',
+        'notes' => 'Ordered by timestamp default asc. Timestamp is time when price was updated offchain (see LastUpdateTime) Use onlyfreshminutes param to limit only recently updated prices within provided minutes, eg value of 5 will return only updated prices last 5 mins.'
+      ];
+      $endpoints[] = [
+        'action' => 'Get Oracles by pair (PriceOracle amendment)',
+        'route' => '/v1/oracle-pairs',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/oracle-pairs',
+        'notes' => 'Get oracles grouped by pairs. For each pair you will get list of providers.'
+      ];
+    }
+    
     if(config('xrpl.'.config('xrpl.net').'.feature_amm')) {
       $endpoints[] = [
         'action' => 'Get active AMM Pool list',

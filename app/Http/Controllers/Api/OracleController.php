@@ -41,9 +41,34 @@ class OracleController extends Controller
     ;
   }
 
+  public function oracle_pairs(Request $request)
+  {
+    abort(404);
+    if(!config('xrpl.'.config('xrpl.net').'.feature_oracle'))
+      abort(404);
+    
+    $ttl = 60; //1 min
+    $httpttl = 60; //1 min
+    $limit = 2000; //2000
+    $page = (int)$request->input('page');
+    if(!$page) $page = 1;
+    $order = 'updated_at'; //reserved (not used yet)
+    $direction = $request->input('direction');
+    $direction = $direction == 'asc' ? 'asc':'desc';
+
+    $oracles = Oracle::select('base','quote',)
+      //->orderBy($order,$direction)
+      ->groupBy(['base','quote'])
+      ->limit($limit);
+
+    dd($oracles->get()->toArray());
+  }
 
   public function oracles(Request $request)
   {
+    if(!config('xrpl.'.config('xrpl.net').'.feature_oracle'))
+      abort(404);
+
     $ttl = 60; //1 min
     $httpttl = 60; //1 min
     $limit = 2000; //2000
@@ -73,7 +98,7 @@ class OracleController extends Controller
     if($validator->fails())
       abort(422, 'Input parameters are invalid');
 
-    $oracles = Oracle::select('oracle','provider', 'documentid','base','quote','last_value','updated_at')
+    $oracles = Oracle::select('oracle','provider','documentid','base','quote','last_value','updated_at')
       ->orderBy($order,$direction)
       ->limit($limit);
 

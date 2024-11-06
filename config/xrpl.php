@@ -24,6 +24,7 @@ return [
     'networkid' => (int)env('XRPL_NET_NETWORKID', 0),
     //enable or disable features
     'feature_amm' => env('XRPL_NET_FEATURE_AMM', false),
+    'feature_oracle' => env('XRPL_NET_FEATURE_ORACLE', false),
     'feature_unlreport' => env('XRPL_NET_FEATURE_UNLREPORT', false),
     'feature_unlreport_first_flag_ledger' => env('XRPL_NET_FEATURE_UNLREPORT_FIRST_FLAG_LEDGER', 512),
     'feature_unlreport_first_flag_ledger_close_time' => env('XRPL_NET_FEATURE_UNLREPORT_FIRST_FLAG_LEDGER_CLOSE_TIME', 0),
@@ -47,6 +48,7 @@ return [
     'networkid' => 0,
     //enable or disable features
     'feature_amm' => true,
+    'feature_oracle' => true,
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
     'feature_unlreport_first_flag_ledger_close_time' => 0,
@@ -72,6 +74,7 @@ return [
     'networkid' => 1,
     //enable or disable features
     'feature_amm' => true,
+    'feature_oracle' => true,
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
     'feature_unlreport_first_flag_ledger_close_time' => 0,
@@ -95,6 +98,7 @@ return [
     'networkid' => 2,
     //enable or disable features
     'feature_amm' => true,
+    'feature_oracle' => true,
     'feature_unlreport' => false,
     'feature_unlreport_first_flag_ledger' => 0,
     'feature_unlreport_first_flag_ledger_close_time' => 0,
@@ -118,6 +122,7 @@ return [
     'networkid' => 21338,
     //enable or disable features
     'feature_amm' => false,
+    'feature_oracle' => false,
     'feature_unlreport' => true,
     'feature_unlreport_first_flag_ledger' => 6869247, //6869248 is first flag
     'feature_unlreport_first_flag_ledger_close_time' => 748958191, //ripple epoch
@@ -142,6 +147,7 @@ return [
     'networkid' => 21337,
     //enable or disable features
     'feature_amm' => false,
+    'feature_oracle' => false,
     'feature_unlreport' => true,
     'feature_unlreport_first_flag_ledger' => 512, //512 is first flag
     'feature_unlreport_first_flag_ledger_close_time' => 751985211, //ripple epoch
