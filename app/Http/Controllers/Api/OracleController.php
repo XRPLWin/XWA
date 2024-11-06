@@ -73,7 +73,7 @@ class OracleController extends Controller
     if($validator->fails())
       abort(422, 'Input parameters are invalid');
 
-    $oracles = Oracle::select('oracle','provider','base','quote','last_value','updated_at')
+    $oracles = Oracle::select('oracle','provider', 'documentid','base','quote','last_value','updated_at')
       ->orderBy($order,$direction)
       ->limit($limit);
 
@@ -118,6 +118,7 @@ class OracleController extends Controller
       $r[] = [
         'oracle' => $row->oracle,
         'provider' => $row->provider,
+        'documentid' => $row->documentid,
         'base' => $row->base,
         'quote' => $row->quote,
         'base_formatted' => xrp_currency_to_symbol($row->base),

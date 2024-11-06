@@ -375,6 +375,7 @@ class XwaContinuousSyncProc extends Command
                 'base' => $serie->PriceData->BaseAsset,
                 'quote' => $serie->PriceData->QuoteAsset
               ],[
+                'documentid' => (int)$transaction->OracleDocumentID,
                 'last_value' => convertScaledPrice($serie->PriceData->AssetPrice,$_scale),
                 'updated_at' => \Carbon\Carbon::createFromTimestamp($transaction->LastUpdateTime), //int timestamp
               ]);

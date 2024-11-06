@@ -24,6 +24,7 @@ class Oracle extends Model
 
   protected $fillable = [
     'oracle',
+    'documentid',
     'provider',
     'base',
     'quote',
