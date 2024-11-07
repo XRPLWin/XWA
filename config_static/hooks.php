@@ -131,8 +131,16 @@ return [
     'web' => 'https://evernode.org',
   ],
 
-  '4F206E93C1EA0AB857DF818F5E60A035F6661142E9D0D82EB5B9D1C524DEE512' => [ //latest
+  '4F206E93C1EA0AB857DF818F5E60A035F6661142E9D0D82EB5B9D1C524DEE512' => [
     'title' => 'Evernode Heartbeat Hook v13',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-heartbeat-hook',
+    'principals' => ['Evernode Labs Pty Ltd'],
+    'web' => 'https://evernode.org',
+  ],
+
+  'C52E991367F007E8591FEE0A03ACB7249C60A08B97FCE52E3A9F9E84ADA7D9F9' => [ //latest
+    'title' => 'Evernode Heartbeat Hook v14',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-heartbeat-hook',
     'principals' => ['Evernode Labs Pty Ltd'],
@@ -195,8 +203,16 @@ return [
     'web' => 'https://evernode.org',
   ],
 
-  '17AFCBEE5F1709A95BE9E18C0893F49D7AAF8CD14726E8BE8C83B74A65EF28BF' => [ //latest
+  '17AFCBEE5F1709A95BE9E18C0893F49D7AAF8CD14726E8BE8C83B74A65EF28BF' => [
     'title' => 'Evernode Reputation Hook v8',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-reputation-hook',
+    'principals' => ['Evernode Labs Pty Ltd'],
+    'web' => 'https://evernode.org',
+  ],
+
+  '3BD83376EC6E57BC83E81720730F8C79880E52ACA5351FA9FDE4F38247B1E3D2' => [ //latest
+    'title' => 'Evernode Reputation Hook v9',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-reputation-hook',
     'principals' => ['Evernode Labs Pty Ltd'],
@@ -267,8 +283,16 @@ return [
     'web' => 'https://evernode.org',
   ],
 
-  '27C590B1C6CBA2A550820B6AC59F2A041226CD4110ED0CEF73C3139D1102AA14' => [ //latest
+  '27C590B1C6CBA2A550820B6AC59F2A041226CD4110ED0CEF73C3139D1102AA14' => [
     'title' => 'Evernode Registry Hook v9',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/blob/main/evernode-registry-hook',
+    'principals' => ['Evernode Labs Pty Ltd'],
+    'web' => 'https://evernode.org',
+  ],
+
+  'C6B3A709812DF63AD97EED260B2E76C54FFCC5EB88448B22670E66EBC973F48C' => [ //latest
+    'title' => 'Evernode Registry Hook v10',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/blob/main/evernode-registry-hook',
     'principals' => ['Evernode Labs Pty Ltd'],
@@ -323,8 +347,16 @@ return [
     'web' => 'https://evernode.org',
   ],
 
-  'BE9B008C36FB4240B2A5AC13183432CD449F6C898754E080559BA33F146CB5B7' => [ //latest
+  'BE9B008C36FB4240B2A5AC13183432CD449F6C898754E080559BA33F146CB5B7' => [
     'title' => 'Evernode Governor Hook v7',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-governor-hook',
+    'principals' => ['Evernode Labs Pty Ltd'],
+    'web' => 'https://evernode.org',
+  ],
+
+  'EB9A3C1BFB4DC14AE47A43E527FD1B1E862E58C16AED8CDD1C7F08A3E0E20698' => [ //latest
+    'title' => 'Evernode Governor Hook v8',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-governor-hook',
     'principals' => ['Evernode Labs Pty Ltd'],
