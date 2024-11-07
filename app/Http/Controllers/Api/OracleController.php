@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use XRPLWin\XRPL\Client as XRPLWinApiClient;
 use App\Models\Oracle;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class OracleController extends Controller
 {
@@ -43,7 +44,6 @@ class OracleController extends Controller
 
   public function oracle_pairs(Request $request)
   {
-    abort(404);
     if(!config('xrpl.'.config('xrpl.net').'.feature_oracle'))
       abort(404);
     
@@ -52,16 +52,25 @@ class OracleController extends Controller
     $limit = 2000; //2000
     $page = (int)$request->input('page');
     if(!$page) $page = 1;
-    $order = 'updated_at'; //reserved (not used yet)
     $direction = $request->input('direction');
     $direction = $direction == 'asc' ? 'asc':'desc';
 
-    $oracles = Oracle::select('base','quote',)
-      //->orderBy($order,$direction)
-      ->groupBy(['base','quote'])
-      ->limit($limit);
+    $oracles = Oracle::select(
+      DB::raw('CONCAT(`base`,\'.\',`quote`) as bq'), //add new compound column instead of CONCAT?
+      DB::raw('ANY_VALUE(base) as base'),
+      DB::raw('ANY_VALUE(quote) as quote'),
 
-    dd($oracles->get()->toArray());
+      # Select sub-rows via GROUP_CONCAT (most efficient way)
+      //DB::raw('GROUP_CONCAT(DISTINCT provider ORDER BY id asc SEPARATOR \'|\' ) AS providers'),
+      DB::raw('GROUP_CONCAT(oracle ORDER BY id asc SEPARATOR \'|\' ) AS oracles'),
+      DB::raw('GROUP_CONCAT(provider ORDER BY id asc SEPARATOR \'|\' ) AS providers'),
+      DB::raw('GROUP_CONCAT(documentid ORDER BY id asc SEPARATOR \'|\' ) AS documentids')
+    )
+      ->where('quote','JPY')
+      ->groupBy('bq')
+      ->orderBy('bq',$direction);
+
+    //dd($oracles->get(),$oracles->get()->pluck('bq')->toArray());
   }
 
   public function oracles(Request $request)
