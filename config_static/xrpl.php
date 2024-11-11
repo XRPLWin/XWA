@@ -149,7 +149,14 @@ return [
     'rpQwfZuqKAWWLLvXmSMWotWKbfrB68THm5' => 'xMagnetic',
     'rwUYZL4Rjnno7zY8MpQQJQB6vheVKreWB1' => 'Uphold',
     'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De' => 'Ripple RLUSD', //Real one
-    'roosteri9aGNFRXZrJNYQKVBfxHiE5abg'  => 'Rooster Oracle',
+    'roosteri9aGNFRXZrJNYQKVBfxHiE5abg'  => 'Rooster Oracle (threexrp)',
+    'rrJPYwVRyWFcwfaNMm83QEaCexEpKnkEg'  => 'Oracle (Tequ)',
+    'raLLmoneyxGV9FzoWwRtHmb4jmkMiJxwGL' => 'AllTheMoney Oracle (threexrp)',
+    'rBEERdzDHqDyYmfw2jqzyMNBZu31yzfg6q' => 'Beer Oracle (XRPScan)',
+    //RLUSD Fakes:
+    'rLUSDfDxGQ28Dn3ZtRSTzuqfzBaacRmNm8' => 'RLUSD Scam 1',
+    'rLUSDtykL2NVz3HJe1Jqoc7dsxWFVcsmuK' => 'RLUSD Scam 2',
+    'rLUSDv9MRcCwPdBUZCGkG4u4EtdMMA1qYM' => 'RLUSD Scam 3',
   ],
 
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
