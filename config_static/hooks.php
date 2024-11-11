@@ -147,6 +147,15 @@ return [
     'web' => 'https://evernode.org',
   ],
 
+  'D0F101EC1EC870512CA9B8E67D8DDAF00E3F4AB036DAFA7F5E1C4211B44BB965' => [
+    'title' => 'Evernode Heartbeat Hook v14.1',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rHktfGUbjqzU4GsYCMc1pDjdHXb5CJamto.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-heartbeat-hook',
+    'principals' => ['Evernode Labs Pty Ltd'],
+    'web' => 'https://evernode.org',
+    'descr' => "This hook is the same as v14, it has small trivial change to create new hash so it can be voted-in in a Governance Game for demonstration purposes.",
+  ],
+
   'F3D61A99804C8A825611427E3BC9070CEA2F0E26EFB5702D984202EB10A0AFF8' => [
     'title' => 'Evernode Reputation Hook v1',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
@@ -217,6 +226,15 @@ return [
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-reputation-hook',
     'principals' => ['Evernode Labs Pty Ltd'],
     'web' => 'https://evernode.org',
+  ],
+
+  '838C6941AB5B5460AEC46A535B98A9A55A6CEBF9F5CE74F48BA58E065FBB7899' => [
+    'title' => 'Evernode Reputation Hook v9.1',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-reputation-hook',
+    'principals' => ['Evernode Labs Pty Ltd'],
+    'web' => 'https://evernode.org',
+    'descr' => "This hook is the same as v9, it has small trivial change to create new hash so it can be voted-in in a Governance Game for demonstration purposes.",
   ],
 
   '6CDDD0CF3275DBBD5A3EE83049829E578BA23DB97D0D1C0C7759ED2A812FED22' => [
@@ -299,6 +317,15 @@ return [
     'web' => 'https://evernode.org',
   ],
 
+  '2D5BDDA4A3230EA1664144C7411AB810F1BEA56A1116AC2F01E151864A7D5E2F' => [
+    'title' => 'Evernode Registry Hook v10.1',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rmv53yu8Wid6kj6AC6NvmiwSXNxRa8vTH.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/blob/main/evernode-registry-hook',
+    'principals' => ['Evernode Labs Pty Ltd'],
+    'web' => 'https://evernode.org',
+    'descr' => "This hook is the same as v10, it has small trivial change to create new hash so it can be voted-in in a Governance Game for demonstration purposes.",
+  ],
+
   'C820233A5F9D204907EAF43E6CD57D6D60DAA7DAFE3D2F8741CFAE9D873DA910' => [
     'title' => 'Evernode Governor Hook v1',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
@@ -361,6 +388,15 @@ return [
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-governor-hook',
     'principals' => ['Evernode Labs Pty Ltd'],
     'web' => 'https://evernode.org',
+  ],
+
+  'DD68B11C3176CA0DD3ED815F0147807C9865C04A42AB257EC089715E49B0EF4A' => [
+    'title' => 'Evernode Governor Hook v8.1',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-governor-hook',
+    'principals' => ['Evernode Labs Pty Ltd'],
+    'web' => 'https://evernode.org',
+    'descr' => "This hook is the same as v8, it has small trivial change to create new hash so it can be voted-in in a Governance Game for demonstration purposes.",
   ],
 
   //Evernode community
