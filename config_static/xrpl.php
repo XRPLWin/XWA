@@ -150,13 +150,20 @@ return [
     'rwUYZL4Rjnno7zY8MpQQJQB6vheVKreWB1' => 'Uphold',
     'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De' => 'Ripple RLUSD', //Real one
     'roosteri9aGNFRXZrJNYQKVBfxHiE5abg'  => 'Rooster Oracle (threexrp)',
+    'rJAjNyouLhBH2zHNV8xywHRdyAxnvoxKMQ' => 'Rooster Oracle 2 (threexrp)',
+    'raXvXrPpVaS2GuQUFPYT6KusshkvbD6ejt' => 'Rooster Oracle 3 (threexrp)',
     'rrJPYwVRyWFcwfaNMm83QEaCexEpKnkEg'  => 'Oracle (Tequ)',
     'raLLmoneyxGV9FzoWwRtHmb4jmkMiJxwGL' => 'AllTheMoney Oracle (threexrp)',
     'rBEERdzDHqDyYmfw2jqzyMNBZu31yzfg6q' => 'Beer Oracle (XRPScan)',
     //RLUSD Fakes:
     'rLUSDfDxGQ28Dn3ZtRSTzuqfzBaacRmNm8' => 'RLUSD Scam 1',
     'rLUSDtykL2NVz3HJe1Jqoc7dsxWFVcsmuK' => 'RLUSD Scam 2',
-    'rLUSDv9MRcCwPdBUZCGkG4u4EtdMMA1qYM' => 'RLUSD Scam 3',
+    'rLUSDv9MRcCwPdBUZCGkG4u4EtdMMA1qYM' => 'RLUSD Scam 4',
+    'rhGrdCU1aWyRbYBdYwtVNhNZNiNofxZn7B' => 'RLUSD Scam 5',
+    'rUxSh79gqVgJu57Uo9eXfsNmDby89ddWLD' => 'RLUSD Scam 6',
+    'rajixv99Znj35JSHQQZXxcsDZ6g1fQHawJ' => 'RLUSD Scam 7',
+    'rQpkLom6JP3oLGzsBHDDnsWEkzVNLMr49d' => 'RLUSD Scam 8',
+    'rPrP7MZv7w89pNGMu9NqX6noQAsUSh2Ncw' => 'RLUSD Scam 9',
   ],
 
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
