@@ -628,6 +628,26 @@ return [
     'source' => 'https://github.com/Transia-RnD/vpra-hooks/blob/main/contracts/pet_updateV2.c',
     'web' => 'https://vpra.app',
   ],
+
+  //TreasuryHooks (by satish)
+
+  '11B6F1534186086EF95E297F64806D8E4231865EE9871A0C438EA8A51BE20BD8' => [
+    'title' => 'Treasury Hook',
+    'image' => null,
+    'principals' => ['XRPL-Labs'],
+    'source' => 'https://github.com/Xahau/TreasuryHook',
+    'web' => 'https://xahau-treasury.xrpl-labs.com',
+    'descr' => "Voluntarily lock up the amount of XAH going out from the treasury account every set ledger interval.\n\nThe idea is to blackhole the treasury account, and the only way to withdraw funds is through the invoke transaction. Anybody can invoke the claim reward and the withdraw transactions on treasury account - after specified ledger interval.",
+  ],
+
+  'B55839E8CABBDE2501249C0F7B4BFD58FC25838AC79D6822594076804EABBE60' => [
+    'title' => 'Treasury Hook - ClaimReward Forwarder',
+    'image' => null,
+    'principals' => ['XRPL-Labs'],
+    'source' => 'https://github.com/Xahau/TreasuryHook',
+    'web' => 'https://xahau-treasury.xrpl-labs.com',
+    'descr' => "Voluntarily lock up the amount of XAH going out from the treasury account every set ledger interval.\n\nThe idea is to blackhole the treasury account, and the only way to withdraw funds is through the invoke transaction. Anybody can invoke the claim reward and the withdraw transactions on treasury account - after specified ledger interval.\n\nWith this hook the claim reward is made possible and the claimed reward will be forwarded to the destination account immediately after the claim.",
+  ],
   
 
 
