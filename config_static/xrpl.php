@@ -233,6 +233,7 @@ return [
     'rh2i1UeXCCrv4RZdkpb1ioHtuNYghhhxmU' => 'Xahau Radio',
 
     'rSMSeSmSxC2anJVyAE97mv48opb4j9YyP' => 'Treasury Hook Creator',
+    'rtreaSURYE8x95gcYH7aCDb7jmaR8axJu' => 'XRPL-Labs Treasury',
 
 
   ]
