@@ -382,7 +382,7 @@ return [
     'web' => 'https://evernode.org',
   ],
 
-  'EB9A3C1BFB4DC14AE47A43E527FD1B1E862E58C16AED8CDD1C7F08A3E0E20698' => [ //latest
+  'EB9A3C1BFB4DC14AE47A43E527FD1B1E862E58C16AED8CDD1C7F08A3E0E20698' => [
     'title' => 'Evernode Governor Hook v8',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-governor-hook',
@@ -390,8 +390,17 @@ return [
     'web' => 'https://evernode.org',
   ],
 
+  'AC81F69627F684AF861205341AB8C0B2CAD41ED0C7FBB59F1C527F9095241B58' => [ //latest
+    'title' => 'Evernode Governor Hook v9',
+    'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
+    'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/main/evernode-governor-hook',
+    'principals' => ['Evernode Labs Pty Ltd'],
+    'web' => 'https://evernode.org',
+    'descr' => "This hook changed candidate support average from 80% to 66% due to low response from Evernode Hosts, in this time period Evernode Governance voting was in testing phase to vote in new hooks, next hook is this one: DD68B11C3176CA0DD3ED815F0147807C9865C04A42AB257EC089715E49B0EF4A.",
+  ],
+
   'DD68B11C3176CA0DD3ED815F0147807C9865C04A42AB257EC089715E49B0EF4A' => [
-    'title' => 'Evernode Governor Hook v8.1',
+    'title' => 'Evernode Governor Hook v9.1',
     'image' => 'https://xwa-xahau.xrplwin.com/static/avatar/rBvKgF3jSZWdJcwSsmoJspoXLLDVLDp6jg.webp',
     'source' => 'https://github.com/EvernodeXRPL/evernode-hook/tree/proposal-v2/evernode-governor-hook',
     'principals' => ['Evernode Labs Pty Ltd'],
@@ -633,7 +642,7 @@ return [
 
   '11B6F1534186086EF95E297F64806D8E4231865EE9871A0C438EA8A51BE20BD8' => [
     'title' => 'Treasury Hook',
-    'image' => null,
+    'image' => 'https://xwa-xahau.xrplwin.com/res/img/misc/hook_11B6F1534186086EF95E297F64806D8E4231865EE9871A0C438EA8A51BE20BD8.webp',
     'principals' => ['XRPL-Labs'],
     'source' => 'https://github.com/Xahau/TreasuryHook',
     'web' => 'https://xahau-treasury.xrpl-labs.com',
@@ -642,7 +651,7 @@ return [
 
   'B55839E8CABBDE2501249C0F7B4BFD58FC25838AC79D6822594076804EABBE60' => [
     'title' => 'Treasury Hook - ClaimReward Forwarder',
-    'image' => null,
+    'image' => 'https://xwa-xahau.xrplwin.com/res/img/misc/hook_B55839E8CABBDE2501249C0F7B4BFD58FC25838AC79D6822594076804EABBE60.webp',
     'principals' => ['XRPL-Labs'],
     'source' => 'https://github.com/Xahau/TreasuryHook',
     'web' => 'https://xahau-treasury.xrpl-labs.com',

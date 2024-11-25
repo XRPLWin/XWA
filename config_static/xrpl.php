@@ -232,6 +232,9 @@ return [
     'rUhf8fLEDRDbZmJFJeboTmd75WBTtifTmo' => 'Xahau Radio Test',
     'rh2i1UeXCCrv4RZdkpb1ioHtuNYghhhxmU' => 'Xahau Radio',
 
+    'rSMSeSmSxC2anJVyAE97mv48opb4j9YyP' => 'Treasury Hook Creator',
+
+
   ]
 
 ];
