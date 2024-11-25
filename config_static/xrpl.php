@@ -148,6 +148,7 @@ return [
   'known_mainnet' => [
     'rpQwfZuqKAWWLLvXmSMWotWKbfrB68THm5' => 'xMagnetic',
     'rwUYZL4Rjnno7zY8MpQQJQB6vheVKreWB1' => 'Uphold',
+    'rnuxvorKeSLdgekWshYSzaJ3eju7vgNzJo' => 'BTCDirect',
     'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De' => 'Ripple RLUSD', //Real one
     'roosteri9aGNFRXZrJNYQKVBfxHiE5abg'  => 'Rooster Oracle (threexrp)',
     'rJAjNyouLhBH2zHNV8xywHRdyAxnvoxKMQ' => 'Rooster Oracle 2 (threexrp)',
