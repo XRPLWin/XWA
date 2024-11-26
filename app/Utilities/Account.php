@@ -178,8 +178,10 @@ class Account
       $r['flags'] = $result->Flags;
       if(isset($result->RegularKey)) {
         $r['rk'] = $result->RegularKey;
-        if($r['rk'] == 'rrrrrrrrrrrrrrrrrrrrBZbvji' || $r['rk'] == 'rrrrrrrrrrrrrrrrrrrrrhoLvTp')
-          $r['bh'] = true;
+
+          //to get blachole of account there is another query to see signers, this feature is disabled as this is wrong
+          //if($r['rk'] == 'rrrrrrrrrrrrrrrrrrrrBZbvji' || $r['rk'] == 'rrrrrrrrrrrrrrrrrrrrrhoLvTp')
+          //  $r['bh'] = true;
       }
         
       if(isset($result->Domain))
@@ -533,7 +535,7 @@ class Account
       'alert' => false, //if alert is true then this account might have engaged in some kind of scam in the past, xumm blocked field
       'kyc' => false, //from various sources, essencially xumm kyc
       'issuer' => false,
-      'bh' => false, //blackholed or not
+      //'bh' => false, //blackholed or not (deprecated)
       'xrp' => '0', //how much xrp this account holds at the time of data fetching in drops
       'flags' => 0,
       'rk' => null, //regular key (bk is calculated from this field)
