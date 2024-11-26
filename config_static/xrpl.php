@@ -214,6 +214,7 @@ return [
     'rsfTBRAbD2bYjVuXhJ2RReQXxR4K5birVW' => 'Evernode Reputation',
     'rhMboq72S1sLBBxv4PS6ezwJLbgfSJFG4b' => 'Evernode Claimer',
     'rPNFrWbZG7mPenXAEBjAkPezE5N6NKy4W' => 'Evernode Labs',
+    'rfQhDoCjcVzp14MLhSryTTsyU2VESZ5nAt' => 'Evernode Initializer',
 
     'rE7EjcVNHjE6JdpCoDdCXjfMoKExNiKkKi' => 'Xahau Bet',
 
