@@ -131,7 +131,7 @@ class InfoController extends Controller
       ];
       $endpoints[] = [
         'action' => 'Get Oracles by pair (PriceOracle amendment)',
-        'route' => '/v1/oracle-pairs?[page=Int32][&direction=String(asc|desc)][&base=String(ISOorHEX)][&quote=String(ISOorHEX)][&onlyfreshminutes=Int32]',
+        'route' => '/v1/oracle-pairs?[page=Int32][&direction=String(asc|desc)][&base=String(ISO|HEX|SearchString)][&quote=String(ISO|HEX|SearchString)][&onlyfreshminutes=Int32]',
         'method' => 'GET',
         'example' => config('app.url').'/v1/oracle-pairs',
         'notes' => 'Ordered by pair name default asc. Oracles are grouped by pairs. For each pair you will get list of providers depending of filtering parameters.'

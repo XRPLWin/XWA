@@ -46,7 +46,6 @@ class OracleController extends Controller
   {
     if(!config('xrpl.'.config('xrpl.net').'.feature_oracle'))
       abort(404);
-    
     $ttl = 60; //1 min
     $httpttl = 60; //1 min
     $limit = 500; //500
@@ -98,7 +97,7 @@ class OracleController extends Controller
         $search_base_uppercase = \str_pad(\bin2hex(\Str::upper($search_base)),40,'0',STR_PAD_RIGHT);
         $oracles = $oracles->where(function($q) use ($search_base_normal, $search_base_uppercase) {
           $q->where('base', $search_base_normal)
-            ->orWhere('base', $search_base_uppercase);
+            ->orWhere(DB::raw('UPPER(`base`)'), \Str::upper($search_base_uppercase));
         });
       } else {
         $oracles = $oracles->where(DB::raw('UPPER(`base`)'),\Str::upper($search_base));
@@ -116,7 +115,7 @@ class OracleController extends Controller
         $search_quote_uppercase = \str_pad(\bin2hex(\Str::upper($search_quote)),40,'0',STR_PAD_RIGHT);
         $oracles = $oracles->where(function($q) use ($search_quote_normal, $search_quote_uppercase) {
           $q->where('quote', $search_quote_normal)
-            ->orWhere('quote', $search_quote_uppercase);
+            ->orWhere(DB::raw('UPPER(`quote`)'), \Str::upper($search_quote_uppercase));
         });
       } else {
         $oracles = $oracles->where(DB::raw('UPPER(`quote`)'),\Str::upper($search_quote));
@@ -251,39 +250,11 @@ class OracleController extends Controller
     }
 
     if($request->input('base')) {
-      $search_base = \trim($request->input('base'));
-      if(\strlen($search_base) > 3 && \strlen($search_base) != 40) {
-        //convert "USDT" (or usdt to USDT) to hex and search by that
-        $search_base_normal = \str_pad(\bin2hex($search_base),40,'0',STR_PAD_RIGHT);
-        $search_base_uppercase = \str_pad(\bin2hex(\Str::upper($search_base)),40,'0',STR_PAD_RIGHT);
-        $oracles = $oracles->where(function($q) use ($search_base_normal, $search_base_uppercase) {
-          $q->where('base', $search_base_normal)
-            ->orWhere('base', $search_base_uppercase);
-        });
-      } else {
-        $oracles = $oracles->where(DB::raw('UPPER(`base`)'),\Str::upper($search_base));
-      }
-      unset($search_base);
-      unset($search_base_normal);
-      unset($search_base_uppercase);
+      $oracles = $oracles->where('base',$request->input('base'));
     }
 
     if($request->input('quote')) {
-      $search_quote = \trim($request->input('quote'));
-      if(\strlen($search_quote) > 3 && \strlen($search_quote) != 40) {
-        //convert "USDT" (or usdt to USDT) to hex and search by that
-        $search_quote_normal = \str_pad(\bin2hex($search_quote),40,'0',STR_PAD_RIGHT);
-        $search_quote_uppercase = \str_pad(\bin2hex(\Str::upper($search_quote)),40,'0',STR_PAD_RIGHT);
-        $oracles = $oracles->where(function($q) use ($search_quote_normal, $search_quote_uppercase) {
-          $q->where('quote', $search_quote_normal)
-            ->orWhere('quote', $search_quote_uppercase);
-        });
-      } else {
-        $oracles = $oracles->where(DB::raw('UPPER(`quote`)'),\Str::upper($search_quote));
-      }
-      unset($search_quote);
-      unset($search_quote_normal);
-      unset($search_quote_uppercase);
+      $oracles = $oracles->where('quote',$request->input('quote'));
     }
 
     if($request->input('onlyfreshminutes')) {
