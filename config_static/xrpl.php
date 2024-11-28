@@ -236,6 +236,7 @@ return [
 
     'rSMSeSmSxC2anJVyAE97mv48opb4j9YyP' => 'Treasury Hook Creator',
     'rtreaSURYE8x95gcYH7aCDb7jmaR8axJu' => 'XRPL-Labs Treasury',
+    'rBiGVAULtVEc2yMnop587w5pgiZ7EWAyUj' => 'InFTF', //locked up 250M funds xahau Treasury hook https://inftf.org/inftf-lockup.html
 
 
   ]
