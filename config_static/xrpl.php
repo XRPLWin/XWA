@@ -233,6 +233,7 @@ return [
     'rL78zE8mMFvSkZcRxThipy9FNThWpDp4af' => 'Xahau Radio Hook Creator',
     'rUhf8fLEDRDbZmJFJeboTmd75WBTtifTmo' => 'Xahau Radio Test',
     'rh2i1UeXCCrv4RZdkpb1ioHtuNYghhhxmU' => 'Xahau Radio',
+    'rUYiTLYpN8M4xLhtRD9HQZFwqZ4WaKJc89' => 'VPRA',
 
     'rSMSeSmSxC2anJVyAE97mv48opb4j9YyP' => 'Treasury Hook Creator',
     'rtreaSURYE8x95gcYH7aCDb7jmaR8axJu' => 'XRPL-Labs Treasury',
