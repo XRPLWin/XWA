@@ -153,6 +153,7 @@ class XwaContinuousSyncProc extends Command
       $ws_uris = config('xrpl.'.config('xrpl.net').'.server_wss_syncer');
       $ws_pick = rand(0,count($ws_uris)-1);
       $ws_uri = $ws_uris[$ws_pick];
+      $this->log('Using: '.$ws_uri);
       
       //$ws_uri = 'wss://s.altnet.rippletest.net';
       $context = stream_context_create();
