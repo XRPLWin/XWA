@@ -166,6 +166,7 @@ return [
     'rQpkLom6JP3oLGzsBHDDnsWEkzVNLMr49d' => 'RLUSD Scam 8',
     'rPrP7MZv7w89pNGMu9NqX6noQAsUSh2Ncw' => 'RLUSD Scam 9',
     'rhmXd7bfUYPgv4CpfCZMnrEkNkz5X6WioS' => 'RLUSD Scam 10',
+    'rGovFdpM9LHE5U6DJVR3mLcpAMAxTJffWH' => 'RLUSD Scam 11',
   ],
 
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
