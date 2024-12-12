@@ -199,6 +199,16 @@ class InfoController extends Controller
       ];
     }
 
+    if(config('xwa.nftfeed_enabled')) {
+      $endpoints[] = [
+        'action' => 'Get live feed for NFTs - recent up-to-date NFT related data feed (1 min TTL)',
+        'types' => '1 - TYPE_MINT; 2 - TYPE_SELLING; 3 - TYPE_BUYING; 4 - TYPE_SALE; 5 - TYPE_BUY; 6 - TYPE_BROKERED; 9 - TYPE_BURN',
+        'route' => '/v1/nft/feed',
+        'method' => 'GET',
+        'example' => config('app.url').'/v1/nft/feed',
+      ];
+    }
+
     if(config('xwa.sync_type') == 'account') {
       $endpoints[] = [
         'action' => 'Get account queue info',

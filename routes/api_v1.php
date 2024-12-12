@@ -54,3 +54,4 @@ Route::get('/validators/unl/{validator}/monitor/status', [App\Http\Controllers\A
 Route::get('/validators/unl/{validator}/reports/daily/{from}/{to}', [App\Http\Controllers\Api\UnlReportController::class, 'validator_reports_daily'])->name('unlreport.validator_reports_daily');
 
 Route::get('/aggr/recent', [App\Http\Controllers\Api\AggrController::class, 'recent'])->name('aggr.recent');
+Route::get('/nft/feed', [App\Http\Controllers\Api\NFTController::class, 'feed'])->name('nft.feed');
