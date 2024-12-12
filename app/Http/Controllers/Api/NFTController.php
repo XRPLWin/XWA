@@ -33,11 +33,14 @@ class NFTController extends Controller
         'bc' => $row->bc
       ];
     }
-
+    $ttl = 60;
+    $httpttl = 60;
     return response()->json([
       'success' => true,
       'updated_at' => now()->timestamp,
       'data' => $data,
-    ]);
+    ])
+    ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+    ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
   }
 }
