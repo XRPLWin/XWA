@@ -4,14 +4,14 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
-class XwaCleanup extends Command
+class XwaCleanupdaily extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'xwa:cleanup';
+    protected $signature = 'xwa:cleanupdaily';
 
     /**
      * The console command description.

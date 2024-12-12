@@ -64,13 +64,13 @@ return [
     
     //for connection via php GuzzleHttp (reporting server)
     #'rippled_server_uri' => 'https://s.altnet.rippletest.net:51234',
-    'rippled_server_uri' => 'https://testnet.xrpl-labs.com',
+    'rippled_server_uri' => 'https://s.altnet.rippletest.net:51234',
     //for connection via php GuzzleHttp (full history server)
     #'rippled_fullhistory_server_uri' => 'https://s.altnet.rippletest.net:51234',
-    'rippled_fullhistory_server_uri' => 'https://testnet.xrpl-labs.com',
+    'rippled_fullhistory_server_uri' => 'https://s.altnet.rippletest.net:51234',
     //websocket domain (example: 'xrplcluster.com')
-    'server_wss' => 'testnet.xrpl-labs.com',
-    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://testnet.xrpl-labs.com')),
+    'server_wss' => 's.altnet.rippletest.net:51233',
+    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://s.altnet.rippletest.net:51233')),
     'networkid' => 1,
     //enable or disable features
     'feature_amm' => true,
