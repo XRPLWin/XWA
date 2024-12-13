@@ -39,7 +39,8 @@ class XwaCleanuphourly extends Command
     private function cleanupNftfeeds()
     {
         $this->info('Running cleanupNftfeeds');
-        $deleteOlderThanMinutes = 360; //360 - 6 hours history we keep
+        //$deleteOlderThanMinutes = 360; //360 - 6 hours history we keep
+        $deleteOlderThanMinutes = config('xwa.nftfeed_max_days') * 24 * 60; //2 days
         $t = now()->addMinutes(-$deleteOlderThanMinutes);
         $t = $t->format('Y-m-d H:i:s.uP');
         /*$check = Nftfeed::select('t')

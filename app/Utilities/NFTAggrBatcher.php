@@ -280,7 +280,7 @@ class NFTAggrBatcher
       if($nftid)
         break;
     }
-    if($nftid) {
+    if($nftid) { 
 
       //Nftfeed::where('nft',$nftid)->limit(100)->delete(); //cleanup old notifications
 

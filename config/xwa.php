@@ -102,7 +102,7 @@ $r = [
   | 
   */
   'nftfeed_enabled' => env('XWA_NFTFEED_ENABLED',false),
-  'nftfeed_max_days' => 1000, //30 days
+  'nftfeed_max_days' => 2, //2 days
 ];
 
 //generate transaction_types
