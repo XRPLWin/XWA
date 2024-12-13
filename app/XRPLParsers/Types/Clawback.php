@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class Clawback extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','REGULARKEYSIGNER','UNKNOWN'];
   /**
    * Parses Clawback type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
