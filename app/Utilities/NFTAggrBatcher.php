@@ -55,8 +55,8 @@ class NFTAggrBatcher
     $model->ctid = bchexdec($ctid); //store ctid as INT64 (saves space)
     $model->t = $timestamp;
 
-    $BC = $this->getBalanceChanges($tx);
-    $BCResult = $BC->result(true);
+    //$BC = $this->getBalanceChanges($tx);
+    //$BCResult = $BC->result(true);
 
     #VARIABLES
     $nftcurrentowner = null;
@@ -186,6 +186,7 @@ class NFTAggrBatcher
 
     $BC = $this->getBalanceChanges($tx);
     $BCResult = $BC->result(true);
+
     #VARIABLES
     //$nftcurrentowner = null;
     $broker = null;
@@ -235,6 +236,13 @@ class NFTAggrBatcher
         $model->i = null;
         $model->a = $BCResult[$model->source]['balances'][0]['value'];
         $model->c = 'XRP';
+
+        //If $model->source is Fee Payer then deduce fee from $model->a
+        if($model->source == $tx->Account) {
+          $a = BigDecimal::of($model->a)->plus(($tx->Fee/1000000));
+          //dd($model->a,$tx->Fee,(string)$a);
+          $model->a = (string)$a;
+        }
       } else {
         $model->i = $BCResult[$model->source]['balances'][0]['counterparty'];
         $model->a = $BCResult[$model->source]['balances'][0]['value'];
@@ -330,7 +338,6 @@ class NFTAggrBatcher
 
     $ctid = encodeCTID($tx->ledger_index,$tx->metaData->TransactionIndex,config('xrpl.'.config('xrpl.net').'.networkid'));
     $t = $t->format('Y-m-d H:i:s.uP');
-
 
     $method = 'Process'.$txtype;
     $this->$method($tx, $participants, $ctid, $t);
