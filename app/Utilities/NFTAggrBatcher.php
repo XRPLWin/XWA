@@ -236,11 +236,10 @@ class NFTAggrBatcher
         $model->i = null;
         $model->a = $BCResult[$model->source]['balances'][0]['value'];
         $model->c = 'XRP';
-
+        //2D20169D6743655E794D318239C7297FF0A75E2BF3A793C93B6EB05C4245D565
         //If $model->source is Fee Payer then deduce fee from $model->a
         if($model->source == $tx->Account) {
           $a = BigDecimal::of($model->a)->plus(($tx->Fee/1000000));
-          //dd($model->a,$tx->Fee,(string)$a);
           $model->a = (string)$a;
         }
       } else {
@@ -262,6 +261,12 @@ class NFTAggrBatcher
         $model->bi = null;
         $model->ba = $BCResult[$model->broker]['balances'][0]['value'];
         $model->bc = 'XRP';
+        //B9A84D39250C92BD4DF0D4942580CB9E07CC37E48595149D55328A769110F52B
+        //If $model->broker is Fee Payer then deduce fee from $model->a
+        if($model->broker == $tx->Account) {
+          $ba = BigDecimal::of($model->ba)->plus(($tx->Fee/1000000));
+          $model->ba = (string)$ba;
+        }
       } else {
         $model->bi = $BCResult[$model->broker]['balances'][0]['counterparty'];
         $model->ba = $BCResult[$model->broker]['balances'][0]['value'];
