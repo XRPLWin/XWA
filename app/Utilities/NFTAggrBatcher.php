@@ -117,7 +117,7 @@ class NFTAggrBatcher
       }
     }
 
-    if(isset($tx->Amount)) {
+    if(isset($tx->Amount) && $tx->Amount != "0") {
       //sell offer that const something?
       if(\is_string($tx->Amount)) {
         $model->i = null;
