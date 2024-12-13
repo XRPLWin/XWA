@@ -282,7 +282,7 @@ class NFTAggrBatcher
     }
     if($nftid) {
 
-      Nftfeed::where('nft',$nftid)->limit(100)->delete(); //cleanup old notifications
+      //Nftfeed::where('nft',$nftid)->limit(100)->delete(); //cleanup old notifications
 
       $model = new Nftfeed;
       $model->ctid = bchexdec($ctid); //store ctid as INT64 (saves space)
