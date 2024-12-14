@@ -156,6 +156,8 @@ return [
     'rrJPYwVRyWFcwfaNMm83QEaCexEpKnkEg'  => 'Oracle (Tequ)',
     'raLLmoneyxGV9FzoWwRtHmb4jmkMiJxwGL' => 'AllTheMoney Oracle (threexrp)',
     'rBEERdzDHqDyYmfw2jqzyMNBZu31yzfg6q' => 'Beer Oracle (XRPScan)',
+    'rDeizxSRo6JHjKnih9ivpPkyD2EgXQvhSB' => 'XPmarket',
+    
     //RLUSD Fakes:
     'rLUSDfDxGQ28Dn3ZtRSTzuqfzBaacRmNm8' => 'RLUSD Scam 1',
     'rLUSDtykL2NVz3HJe1Jqoc7dsxWFVcsmuK' => 'RLUSD Scam 2',
