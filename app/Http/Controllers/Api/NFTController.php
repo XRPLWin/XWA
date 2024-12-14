@@ -12,7 +12,7 @@ class NFTController extends Controller
   {
     $feed = Nftfeed::select('ctid','type','t','nft','source','destination','broker','a','i','c','ba','bi','bc')
       ->orderBy('id','desc')
-      ->limit(1000)
+      ->limit(100)
       ->get();
 
     $data = [];
