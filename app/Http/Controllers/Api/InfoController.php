@@ -201,9 +201,9 @@ class InfoController extends Controller
 
     if(config('xwa.nftfeed_enabled')) {
       $endpoints[] = [
-        'action' => 'Get live feed for NFTs - recent up-to-date NFT related data feed (1 min TTL)',
+        'action' => 'Get live feed for NFTs - recent up-to-date NFT related data feed (1 min TTL) with optional filters',
         'types' => '1 - TYPE_MINT; 2 - TYPE_SELLING; 3 - TYPE_BUYING; 4 - TYPE_SALE; 5 - TYPE_BUY; 6 - TYPE_BROKERED; 9 - TYPE_BURN',
-        'route' => '/v1/nft/feed',
+        'route' => '/v1/nft/feed?[limit=Int32][&type=Int32][&addresses[]=rAddress1][&addresses[]=rAddress2]',
         'method' => 'GET',
         'example' => config('app.url').'/v1/nft/feed',
       ];
