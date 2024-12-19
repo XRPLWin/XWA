@@ -3,7 +3,9 @@
 namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
-
+/**
+ * @todo 5EA126813D68B5049BA2E9D380759E117A274A7E55FC124AC2A14C81595078F9 - ok - interasting
+ */
 final class OfferCreate extends XRPLParserBase
 {
   private array $acceptedParsedTypes = ['SET','TRADE','SENT','REGULARKEYSIGNER','UNKNOWN'];
