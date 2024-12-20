@@ -4,6 +4,7 @@ namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
 use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
+use Brick\Math\BigDecimal;
 
 final class AMMCreate extends XRPLParserBase
 {
@@ -112,9 +113,53 @@ final class AMMCreate extends XRPLParserBase
           $amountLT = $_bc;
         }
       }
+      //FALLBACK: If $amount1 is null || $amount2 is null, take amounts from transaction
+      //Note: fallbacked filled amount is not taken from perspective account - probably IOU trustline rippling
+      //See D222C1B01F895D8CF259E4598B3D25B5194C7D2A895FC1CFDA2E41398AACE344
+      if($amountLT !== false && $amountLT !== null) {
+        //Fill $amount1 and $amount2 from transaction
+        if(!\is_array($amount1)) {
+          if(\is_string($this->tx->Amount)) {
+            $Amount_BN = BigDecimal::of($this->tx->Amount)->exactlyDividedBy(1000000);
+            $amount1 = [
+              'value' => (string)$Amount_BN,
+              'currency' => 'XRP',
+            ];
+            unset($Amount_BN);
+          } else {
+            $amount1 = [
+              'value' => $this->tx->Amount->value,
+              'currency' => $this->tx->Amount->currency,
+              'counterparty' => $this->tx->Amount->issuer,
+            ];
+          }
+        }
+    
+        if(!\is_array($amount2)) {
+          if(\is_string($this->tx->Amount2)) {
+            $Amount2_BN = BigDecimal::of($this->tx->Amount2)->exactlyDividedBy(1000000);
+            $amount2 = [
+              'value' => (string)$Amount2_BN,
+              'currency' => 'XRP',
+            ];
+            unset($Amount2_BN);
+          } else {
+            $amount2 = [
+              'value' => $this->tx->Amount2->value,
+              'currency' => $this->tx->Amount2->currency,
+              'counterparty' => $this->tx->Amount2->issuer,
+            ];
+          }
+        }
+      }
+      //if($amount1 === null)
 
-      if($amount1 === false || $amount2 === false || $amountLT == false) {
-        throw new \Exception('Expecting all 3 currencies for AMM account in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      if($amount1 === false || $amount2 === false || $amountLT === false) {
+        throw new \Exception('Expecting all 3 currencies on false for AMM account in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      }
+
+      if($amount1 === null || $amount2 === null || $amountLT === null) {
+        throw new \Exception('Expecting all 3 currencies non null for AMM account in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
 
       //Set Amount 1
@@ -125,7 +170,6 @@ final class AMMCreate extends XRPLParserBase
           $this->data['Currency'] = $amount1['currency'];
         }
       }
-
       //Set Amount 2
       $this->data['Amount2'] = $amount2['value'];
       if($amount2['currency'] !== 'XRP') {
