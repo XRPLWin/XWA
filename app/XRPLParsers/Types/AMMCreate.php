@@ -152,7 +152,6 @@ final class AMMCreate extends XRPLParserBase
           }
         }
       }
-      //if($amount1 === null)
 
       if($amount1 === false || $amount2 === false || $amountLT === false) {
         throw new \Exception('Expecting all 3 currencies on false for AMM account in AMMCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');

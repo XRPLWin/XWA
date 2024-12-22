@@ -4,6 +4,7 @@ namespace App\XRPLParsers\Types;
 
 use App\XRPLParsers\XRPLParserBase;
 use XRPLWin\XRPLTxParticipantExtractor\TxParticipantExtractor;
+use Brick\Math\BigDecimal;
 
 final class AMMDeposit extends XRPLParserBase
 {
@@ -12,6 +13,7 @@ final class AMMDeposit extends XRPLParserBase
    * Parses AMMDeposit type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
    * @see 77DBA705D3350C1DB51B68A5B2EF4662C142B58F44A3A76345DEAC01EE320918 LPTokenOut only
+   * @see BD03987D0440A0C651C37A039426BCBBC37AC5B15DA85DF0B35716F76CA54FE0
    * @return void
    */
   protected function parseTypeFields(): void
@@ -125,10 +127,55 @@ final class AMMDeposit extends XRPLParserBase
         }
       }
 
+      if($amountLT !== false && $amountLT !== null) {
+        //see BD03987D0440A0C651C37A039426BCBBC37AC5B15DA85DF0B35716F76CA54FE0
+        //Fill $amount1 and $amount2 from transaction
+        if(!\is_array($amount1)) {
+          if(\is_string($this->tx->Amount)) {
+            $Amount_BN = BigDecimal::of($this->tx->Amount)->exactlyDividedBy(1000000);
+            $amount1 = [
+              'value' => (string)$Amount_BN,
+              'currency' => 'XRP',
+            ];
+            unset($Amount_BN);
+          } else {
+            $amount1 = [
+              'value' => $this->tx->Amount->value,
+              'currency' => $this->tx->Amount->currency,
+              'counterparty' => $this->tx->Amount->issuer,
+            ];
+          }
+        }
+
+        if(!\is_array($amount2)) {
+          if(\is_string($this->tx->Amount2)) {
+            $Amount2_BN = BigDecimal::of($this->tx->Amount2)->exactlyDividedBy(1000000);
+            $amount2 = [
+              'value' => (string)$Amount2_BN,
+              'currency' => 'XRP',
+            ];
+            unset($Amount2_BN);
+          } else {
+            $amount2 = [
+              'value' => $this->tx->Amount2->value,
+              'currency' => $this->tx->Amount2->currency,
+              'counterparty' => $this->tx->Amount2->issuer,
+            ];
+          }
+        }
+
+      }
+
+
       if($amount1 === false || $amount2 === false || $amountLT == false) {
         throw new \Exception('Expecting all 3 currencies for AMM account in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
 
+      if($amount1 === null || $amount2 === null || $amountLT === null) {
+        throw new \Exception('Expecting all 3 currencies non null for AMM account in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      }
+
+      
       //Set Amount 1
       $this->data['Amount'] = $amount1['value'];
       if($amount1['currency'] !== 'XRP') {
