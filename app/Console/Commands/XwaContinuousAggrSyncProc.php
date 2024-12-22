@@ -98,7 +98,7 @@ class XwaContinuousAggrSyncProc extends Command
      */
     public function handle()
     {
-      if(config('xwa.sync_mode') != 'aggregations')
+      if(config('xwa.sync_mode') != 'metrics')
         return self::FAILURE;
 
       if(config('xwa.sync_type') != 'continuous')

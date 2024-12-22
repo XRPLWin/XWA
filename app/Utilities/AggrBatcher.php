@@ -14,6 +14,7 @@ use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 use App\Models\Aggr\Aggrtxtype;
 use App\Models\Aggr\Aggrtotal;
 use App\Models\Aggr\Aggrtxresult;
+use App\Models\Aggr\Aggrobject;
 use App\Models\Aggr\Aggrtempledgerinterval;
 use XRPL_PHP\Core\CoreUtilities as XRPLPHPUtilities;
 
@@ -39,6 +40,7 @@ class AggrBatcher
 
   private array $transaction_types = [];
   private array $transaction_results = [];
+  private array $transaction_objects = []; //[ [created_num,deleted_num], ... ]
 
   
   
@@ -94,10 +96,23 @@ class AggrBatcher
     $this->transaction_types[$tx->TransactionType]++;
 
     # Transaction Results
-
-    
     if(!isset($this->transaction_results[$tx->metaData->TransactionResult])) $this->transaction_results[$tx->metaData->TransactionResult] = 0;
     $this->transaction_results[$tx->metaData->TransactionResult]++;
+
+    # Transaction Objects (created and deleted) - modified not tracked
+    foreach($tx->metaData->AffectedNodes as $n) {
+      if(isset($n->CreatedNode)) {
+        $this->transaction_objects[$n->CreatedNode->LedgerEntryType] = [0,0]; //created,deleted
+        $this->transaction_objects[$n->CreatedNode->LedgerEntryType][0]++;
+      }
+      if(isset($n->DeletedNode)) {
+        $this->transaction_objects[$n->DeletedNode->LedgerEntryType] = [0,0]; //created,deleted
+        $this->transaction_objects[$n->DeletedNode->LedgerEntryType][1]++;
+      }
+    }
+    
+    
+    //Aggrobject
 
     //dd($tx);
   }
@@ -135,7 +150,16 @@ class AggrBatcher
     }
     unset($txResult);unset($txResultCount);
 
-    //4. Add interval (current, min, max)
+    //4. Transaction Objects
+    foreach($this->transaction_objects as $objectLedgerEntryType => $objectCounts) {
+      $this->execute_createAggrobjectIfDoesNotExist($currYMD, $objectLedgerEntryType);
+      Aggrobject::where('day',$currYMD)->where('objtype',$objectLedgerEntryType)->incrementEach([
+        'created_count' => $objectCounts[0],
+        'deleted_count' => $objectCounts[1]
+      ]);
+    }
+
+    //5. Add interval (current, min, max)
     $this->execute_insertLedgerIntervalSeconds($currYMD);
     $totalInfo = $this->getTotalIntervalInfo($currYMD);
 
@@ -152,7 +176,7 @@ class AggrBatcher
     unset($totalInfo);
 
 
-    //5. Store totals & intervals (if change needed)
+    //6. Store totals & intervals (if change needed)
     $extra = [];
     if($this->max_ledger_interval_s !== null) $extra['max_ledger_interval_s'] = $this->max_ledger_interval_s;
     if($this->min_ledger_interval_s !== null) $extra['min_ledger_interval_s'] = $this->min_ledger_interval_s;
@@ -211,6 +235,9 @@ class AggrBatcher
     }
   }
 
+  /**
+   * Todo cache check
+   */
   private function execute_createAggrtxresultIfDoesNotExist(string $YMD, string $txResult): void
   {
     $check = DB::table('aggrtxresults')->where('day',$YMD)->where('txresult',$txResult)->count();
@@ -219,6 +246,19 @@ class AggrBatcher
       $model->day = $YMD;
       $model->txresult = $txResult;
       $model->total = 0;
+      $model->save();
+    }
+  }
+
+  private function execute_createAggrobjectIfDoesNotExist(string $YMD, string $LedgerEntryType): void
+  {
+    $check = DB::table('aggrobjects')->where('day',$YMD)->where('objtype',$LedgerEntryType)->count();
+    if(!$check) {
+      $model = new Aggrobject;
+      $model->day = $YMD;
+      $model->objtype = $LedgerEntryType;
+      $model->created_count = 0;
+      $model->deleted_count = 0;
       $model->save();
     }
   }
@@ -239,5 +279,6 @@ class AggrBatcher
   private function execute_closeDay(string $YMD)
   {
     //close day $YMD
+    dd('todo execute_closeDay');
   }
 }

@@ -35,10 +35,10 @@ $r = [
   | There are two sync modes:
   | 1. Transactions: Syncronizes all transactions to the database, search
   |    endpoints, tokens, hooks, oracles... xwa:startsyncer job is executed
-  | 2. Aggregations: Only aggregated data is stored to aggr* tables.
+  | 2. metrics: Only aggregated data is stored to aggr* tables.
   |    xwa:startaggrsyncer is executed
   | Default: transactions
-  | Options: transactions,aggregations
+  | Options: transactions,metrics
   */
   'sync_mode' => env('XWA_SYNC_MODE', 'transactions'),
 
