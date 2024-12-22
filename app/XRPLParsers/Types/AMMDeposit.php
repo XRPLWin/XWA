@@ -147,7 +147,7 @@ final class AMMDeposit extends XRPLParserBase
           }
         }
 
-        if(!\is_array($amount2)) {
+        if(isset($this->tx->Amount2) && !\is_array($amount2)) {
           if(\is_string($this->tx->Amount2)) {
             $Amount2_BN = BigDecimal::of($this->tx->Amount2)->exactlyDividedBy(1000000);
             $amount2 = [
@@ -171,8 +171,8 @@ final class AMMDeposit extends XRPLParserBase
         throw new \Exception('Expecting all 3 currencies for AMM account in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
 
-      if($amount1 === null || $amount2 === null || $amountLT === null) {
-        throw new \Exception('Expecting all 3 currencies non null for AMM account in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      if($amount1 === null || $amountLT === null) {
+        throw new \Exception('Expecting amount1 and amountlt currencies non null for AMM account in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
 
       
