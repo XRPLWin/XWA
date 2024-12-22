@@ -97,6 +97,9 @@ class XwaContinuousSyncProc extends Command
      */
     public function handle()
     {
+      if(config('xwa.sync_mode') != 'transactions')
+        return self::FAILURE;
+
       if(config('xwa.sync_type') != 'continuous')
         return self::FAILURE;
 

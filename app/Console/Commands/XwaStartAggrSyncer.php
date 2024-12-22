@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-#use App\Models\B;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 #use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -13,57 +12,50 @@ use Illuminate\Support\Facades\DB;
 use App\Utilities\Ledger;
 use Illuminate\Support\Facades\Cache;
 
-class XwaStartSyncer extends Command
+
+class XwaStartAggrSyncer extends Command
 {
   /**
    * The name and signature of the console command.
    *
    * @var string
    */
-  protected $signature = 'xwa:startsyncer {--emulate=0}';
+  protected $signature = 'xwa:startaggrsyncer {--emulate=0}';
 
   /**
    * The console command description.
    *
    * @var string
    */
-  protected $description = 'This will start continous syncer threads.';
+  protected $description = 'If mode is "aggregations" this syncer scans all transactions and collect aggregated data';
 
   protected int $proc_timeout = 600; //1200s  - must be same as in XwaContinuousSyncProc and kernel lock wait timeout
 
-  protected int $numberOfProcess = 1; //16 - overriden from config
-  protected int $ledgersPerProcess = 50; //1000
-  
+  protected int $numberOfProcess = 1; //1 - overriden from config
+  protected int $ledgersPerProcess = 50; //50
+
   /**
    * Execute the console command.
-   *
-   * @return int
    */
   public function handle()
   {
-    if(config('xwa.sync_mode') != 'transactions') {
-      $this->info('Sync type is not transactions, exited');
+    if(config('xwa.sync_mode') != 'aggregations') {
+      $this->info('Sync type is not aggregations, exited');
       return Command::SUCCESS;
     }
 
-    //$hm = \App\Utilities\HookLoader::getClosestByHash('5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77',500);
-
-    //dd($hm);
-    //$this->normalizeSynctrackers();return;
-    //Check if is enabled
-    if(config('xwa.sync_type') != 'continuous') {
-      $this->info('Continous sync is not enabled, exited');
-      return Command::SUCCESS;
-    }
-    
-    //Check if already running
-    $check = Cache::get('job_xwastartsyncer_sync_running');
+    $check = Cache::get('job_xwastartaggrsyncer_sync_running');
     if($check !== null) {
       $this->info('Another instance already active, exiting.');
       return Command::SUCCESS;
     }
 
     $this->numberOfProcess = (int)config('xwa.sync_type_continuous.processes');
+    if($this->numberOfProcess > 1) {
+      $this->info('Only 1 process is allowed.');
+      $this->info('Exiting');
+      return Command::SUCCESS;
+    }
     $this->ledgersPerProcess = (int)config('xwa.sync_type_continuous.ledgersperprocess');
 
     $emulate = (int)$this->option('emulate'); //int
@@ -71,7 +63,7 @@ class XwaStartSyncer extends Command
     if($emulate) {
       $this->info('Emulate enabled, no jobs will be started.');
     } else {
-      Cache::put('job_xwastartsyncer_sync_running', true, ($this->proc_timeout+60));
+      Cache::put('job_xwastartaggrsyncer_sync_running', true, ($this->proc_timeout+60));
     }
 
     $plan = $this->threadPlan();
@@ -80,9 +72,9 @@ class XwaStartSyncer extends Command
     $i = 0;
     foreach($plan as $ranges) {
       $i++;
-      $this->line('['.$i.'/'.$this->numberOfProcess.'] '.($emulate ? 'Emulating':'Starting').': php artisan xwa:continuoussyncproc '.$ranges[0].' '.$ranges[1]);
+      $this->line('['.$i.'/'.$this->numberOfProcess.'] '.($emulate ? 'Emulating':'Starting').': php artisan xwa:continuousaggrsyncproc '.$ranges[0].' '.$ranges[1]);
       if(!$emulate) {
-        $process = new Process(['php', base_path('artisan'),'xwa:continuoussyncproc',(string)$ranges[0],(string)$ranges[1]]);
+        $process = new Process(['php', base_path('artisan'),'xwa:continuousaggrsyncproc',(string)$ranges[0],(string)$ranges[1]]);
         $process->setTimeout($this->proc_timeout); //10 mins max run
         //$process->disableOutput();
         $process->start();
@@ -122,7 +114,7 @@ class XwaStartSyncer extends Command
     $this->info('Normalizing sync trackers...');
     $this->normalizeSynctrackers();
     sleep(3);
-    Cache::delete('job_xwastartsyncer_sync_running');
+    Cache::delete('job_xwastartaggrsyncer_sync_running');
     $this->info('Shutting down manager');
     return Command::SUCCESS;
   }
@@ -141,7 +133,7 @@ class XwaStartSyncer extends Command
       //dump($threadPlanItem);
 
       //Do process with starting as $min to $min + 10
-      //$this->info('['.$i.'] php artisan xwa:continuoussyncproc '.$min.' '.($min+$this->ledgersPerProcess).' max: '.$absMax);
+      //$this->info('['.$i.'] php artisan xwa:continuousaggrsyncproc '.$min.' '.($min+$this->ledgersPerProcess).' max: '.$absMax);
       if($min < $absMax) {
         //start range allowed
 

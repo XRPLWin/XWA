@@ -92,6 +92,19 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
         ],
 
+        'syncaggrjobcontinuous' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/syncaggrjobcontinuous.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
+        'syncaggrjobcontinuous_error' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/syncaggrjobcontinuous_error.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
