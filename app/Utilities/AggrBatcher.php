@@ -47,8 +47,9 @@ class AggrBatcher
   /**
    * This instance processes single ledger all transactions of single ledger.
    */
-  public function __construct(int $ledger_index, int $thisLedgerIntervalSeconds, array $thisLedgerIntervalPrevCurr)
+  public function __construct(int $ledger_index, ?int $thisLedgerIntervalSeconds, array $thisLedgerIntervalPrevCurr)
   {
+    if($thisLedgerIntervalSeconds === null) $thisLedgerIntervalSeconds = 1;
     $this->ledger_index = $ledger_index;
     $this->thisLedgerIntervalSeconds = $thisLedgerIntervalSeconds;
     $this->thisLedgerIntervalPrevCurr = $thisLedgerIntervalPrevCurr;

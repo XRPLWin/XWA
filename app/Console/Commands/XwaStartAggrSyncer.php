@@ -27,7 +27,7 @@ class XwaStartAggrSyncer extends Command
    *
    * @var string
    */
-  protected $description = 'If mode is "aggregations" this syncer scans all transactions and collect aggregated data';
+  protected $description = 'If mode is "metrics" this syncer scans all transactions and collect aggregated data';
 
   protected int $proc_timeout = 600; //1200s  - must be same as in XwaContinuousSyncProc and kernel lock wait timeout
 
@@ -39,8 +39,8 @@ class XwaStartAggrSyncer extends Command
    */
   public function handle()
   {
-    if(config('xwa.sync_mode') != 'aggregations') {
-      $this->info('Sync type is not aggregations, exited');
+    if(config('xwa.sync_mode') != 'metrics') {
+      $this->info('Sync type is not metrics, exited');
       return Command::SUCCESS;
     }
 

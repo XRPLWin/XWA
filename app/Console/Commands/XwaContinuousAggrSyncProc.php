@@ -406,9 +406,11 @@ class XwaContinuousAggrSyncProc extends Command
         }
 
         $closed = $response->result->ledger->close_time;
+        $result_ledger_interval_s = $response->result->ledger->close_time - $response->result->ledger->parent_close_time;
+        $result_ledger_interval_prev_next = [$response->result->ledger->parent_close_time,$response->result->ledger->close_time];
 
-        if(count($response->result->ledger->transactions) > 0)
-          $this->log('Pulled ledger '.$curr_l.' found '.count($response->result->ledger->transactions).' txs');
+        //if(count($response->result->ledger->transactions) > 0)
+        $this->log('Pulled ledger '.$curr_l.' found '.count($response->result->ledger->transactions).' txs');
 
         $txs_collection = collect($response->result->ledger->transactions)->sortBy('metaData.TransactionIndex');
         foreach($txs_collection as $tx) {
@@ -420,8 +422,7 @@ class XwaContinuousAggrSyncProc extends Command
           }
 
           $tx->date = $response->result->ledger->close_time;
-          $result_ledger_interval_s = $response->result->ledger->close_time - $response->result->ledger->parent_close_time;
-          $result_ledger_interval_prev_next = [$response->result->ledger->parent_close_time,$response->result->ledger->close_time];
+          
           \array_push($data,$tx);
         }
       } //end while($do)
