@@ -54,10 +54,10 @@ final class AMMDeposit extends XRPLParserBase
       $this->persist = false;
     }
 
-  
-    if((!isset($this->data['eventList']['primary']) || !isset($this->data['eventList']['secondary'])) && $this->persist) {
-      throw new \Exception('Expecting primary and secondary events on AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
-    }
+    //commented out, see A0ADA486C3373F4F03F2732F30B2866551B63A1497E4B7EB30533B66C0115C04 rG2QAnVNz4z26KB4hDfG2kJrmWxGyBEPMe (AMM ACC)
+    //if((!isset($this->data['eventList']['primary']) || !isset($this->data['eventList']['secondary'])) && $this->persist) {
+    //  throw new \Exception('Expecting primary and secondary events on AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+    //}
 
     # Source and destination tags
     $this->data['DestinationTag'] = isset($this->tx->DestinationTag) ? $this->tx->DestinationTag:null;
@@ -98,10 +98,12 @@ final class AMMDeposit extends XRPLParserBase
     //3 balance changes for AMM account or sender
     if($this->reference_address == $this->tx->Account || $this->reference_address == $AMM_ACCOUNT) {
       //Amm creator (sender)
+      
       foreach($BC as $_bc) {
         $_bc_Identification = $_bc['currency'];
         if(count($_bc) == 3)
           $_bc_Identification .= '.'.$_bc['counterparty'];
+        
         //Check if is amount1
         if($Amount1Identification == $_bc_Identification || $Amount1Identification_AMM == $_bc_Identification) {
           //It is amount1
@@ -114,11 +116,12 @@ final class AMMDeposit extends XRPLParserBase
             throw new \Exception('Duplicate amount2 detected in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
           $amount2 = $_bc;
         } else {
+          
           //It is LT
           if($amountLT !== null)
             throw new \Exception('Duplicate LT detected in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
             
-
+            
           //check if its really LT
           if(!\str_starts_with($_bc['currency'],'03'))
             throw new \Exception('Non LT detected in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
@@ -126,8 +129,9 @@ final class AMMDeposit extends XRPLParserBase
           $amountLT = $_bc;
         }
       }
-
+      
       if($amountLT !== false && $amountLT !== null) {
+        
         //see BD03987D0440A0C651C37A039426BCBBC37AC5B15DA85DF0B35716F76CA54FE0
         //Fill $amount1 and $amount2 from transaction
         if(!\is_array($amount1)) {
@@ -172,7 +176,7 @@ final class AMMDeposit extends XRPLParserBase
       }
 
       if($amount1 === null || $amountLT === null) {
-        throw new \Exception('Expecting amount1 and amountlt currencies non null for AMM account in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+        throw new \Exception('Expecting amount1 and amountLT currencies non null for AMM account in AMMDeposit with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
       }
 
       
