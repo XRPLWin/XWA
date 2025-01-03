@@ -689,6 +689,15 @@ return [
     'web' => 'https://xahau-treasury.xrpl-labs.com',
     'descr' => "Voluntarily lock up the amount of XAH going out from the treasury account every set ledger interval.\n\nThe idea is to blackhole the treasury account, and the only way to withdraw funds is through the invoke transaction. Anybody can invoke the claim reward and the withdraw transactions on treasury account - after specified ledger interval.\n\nWith this hook the claim reward is made possible and the claimed reward will be forwarded to the destination account immediately after the claim.",
   ],
+
+  'D22582E8BAF59FC682DEF490A3992CADB3CD5CCE851FB358B2DE299ABE30DB9E' => [
+    'title' => 'Ekiserrepe\'s Forwarder',
+    'image' => 'https://xwa-xahau.xrplwin.com/res/img/misc/hook_D22582E8BAF59FC682DEF490A3992CADB3CD5CCE851FB358B2DE299ABE30DB9E.webp',
+    'principals' => ['Ekiserrepe'],
+    'source' => 'https://github.com/Ekiserrepe/forwarder-hook',
+    'web' => null,
+    'descr' => "This is a small example to demonstrate the use of a working hook in Xahau. The hook is programmed in C. It is recommended for educational purposes only. The creator is not responsible for any problems it may cause.\n\nThe hook is installed on an account. Once installed, every time the account receives a payment through a Payment or URITokenBuy transaction type, it will be distributed among the accounts stored in the account namespace. If there are no accounts in the namespace, it will do nothing.",
+  ],
   
 
 
@@ -696,6 +705,7 @@ return [
   '4512D7BABEF201C779E76B2FEECB0D655E088426B5769F0C6796A1E97FD82D91' => [
     'title' => 'Demo AMM Hook',
     'image' => null,
+    'web' => null,
   ],
 
   '6CE65D856E1E38AE6DB1E864C973F1F3944898380AC769FA58560E507F961F7A' => [
@@ -704,6 +714,7 @@ return [
     'principals' => ['Transia-RnD'],
     'descr' => 'https://twitter.com/angell_denis/status/1826617270552191040',
     'source' => 'https://github.com/Transia-RnD/xrpl-xahau-bridge',
+    'web' => null,
   ],
 
   
