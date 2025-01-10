@@ -418,7 +418,7 @@ class XwaContinuousAggrSyncProc extends Command
           $tx->ledger_index = $curr_l;
 
           if(isset($tx->date)) { //this can be removed
-            dd("WARNING!!! DATE ALREDY RESERVED");
+            dd("WARNING!!! DATE ALREADY RESERVED");
           }
 
           $tx->date = $response->result->ledger->close_time;
