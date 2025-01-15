@@ -132,6 +132,30 @@ return [
     'data_api' => null, //'https://testnet.data.xahau.network',
   ],
 
+  'xahaujshookstestnet' => [
+    'genesis_ledger'            => env('XRPL_GENESIS_LEDGER', 12),
+    'genesis_ledger_close_time' => env('XRPL_GENESIS_LEDGER_CLOSE_TIME', 782816340),
+
+    //for connection via php GuzzleHttp (reporting server)
+    'rippled_server_uri' => 'https://jshooks.xahau-test.net',
+    //for connection via php GuzzleHttp (full history server)
+    'rippled_fullhistory_server_uri' => 'https://jshooks.xahau-test.net',
+    //websocket domain (example: 'xrplcluster.com')
+    'server_wss' => 'jshooks.xahau-test.net',
+    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://jshooks.xahau-test.net')),
+    'networkid' => 31338,
+    //enable or disable features
+    'feature_amm' => false,
+    'feature_oracle' => false,
+    'feature_unlreport' => true,
+    'feature_unlreport_first_flag_ledger' => 256, //256 is first flag
+    'feature_unlreport_first_flag_ledger_close_time' => 782817180, //ripple epoch
+    'unl_vl' => 'https://vl.test.xahauexplorer.com', //todo
+    'api_xrpscan' => 'https://api.xahscan.com',
+    'api_tokens' => null,
+    'data_api' => null, //'https://testnet.data.xahau.network',
+  ],
+
   'xahau' => [
     'genesis_ledger'            => env('XRPL_GENESIS_LEDGER', 3),
     'genesis_ledger_close_time' => env('XRPL_GENESIS_LEDGER_CLOSE_TIME', 751983661),
