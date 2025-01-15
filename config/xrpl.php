@@ -150,7 +150,7 @@ return [
     'feature_unlreport' => true,
     'feature_unlreport_first_flag_ledger' => 256, //256 is first flag
     'feature_unlreport_first_flag_ledger_close_time' => 782817180, //ripple epoch
-    'unl_vl' => 'https://vl.test.xahauexplorer.com', //todo
+    'unl_vl' => null, //no unl
     'api_xrpscan' => 'https://api.xahscan.com',
     'api_tokens' => null,
     'data_api' => null, //'https://testnet.data.xahau.network',

@@ -13,12 +13,23 @@ class ValidatorController extends Controller
 {
   public function dunl()
   {
-    $url = config('xrpl.'.config('xrpl.net').'.unl_vl');
-    if(!$url)
-      abort(404);
+    $ttl = 10800; //3 hours
+    $httpttl = 10800; //3 hours
 
-    $ttl = 600; //5 min, todo stavi vise, oko dan dva tri
-    $httpttl = 600; //5 min
+    $url = config('xrpl.'.config('xrpl.net').'.unl_vl');
+    if(!$url) {
+      //no unl, show empty JSON
+      return response()->json([
+        'url' => null,
+        'updated' => now(),
+        'expiration' => null,
+        'sequence' => null,
+        'public_key' => null,
+        'version' => null,
+        'data' => []
+      ])->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
+        ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl));
+    }
 
     $client = new Client();
     $response = $client->get($url);
