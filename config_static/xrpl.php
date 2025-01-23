@@ -169,6 +169,9 @@ return [
     'rPrP7MZv7w89pNGMu9NqX6noQAsUSh2Ncw' => 'RLUSD Scam 9',
     'rhmXd7bfUYPgv4CpfCZMnrEkNkz5X6WioS' => 'RLUSD Scam 10',
     'rGovFdpM9LHE5U6DJVR3mLcpAMAxTJffWH' => 'RLUSD Scam 11',
+    //Fakes 20.01.2025:
+    'rwLfiGkrpdcLnyQ5gnfXontybaMW7yFstw' => 'Scam (World Liberty Financial)', //World Liberty Financial(Public Sale)
+    'rUsttTA8cYZ2fVybuuSjhhS5WQ5nqDjQrv' => 'Scam (U.S. DEPARTMENT OF TREASURY)', //U.S. DEPARTMENT OF TREASURY
   ],
 
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
