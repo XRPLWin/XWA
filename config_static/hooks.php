@@ -703,7 +703,7 @@ return [
   //XRPLWin's voting hook
 
   '2346954D6EBA3C1CA0AFE0D9DFA164B10E985383927068BD3BE6B5194716B080' => [
-    'title' => 'SimpleVoting Hook',
+    'title' => 'Simple Voting Contract',
     'image' => 'https://xwa-xahau.xrplwin.com/res/img/misc/hook_2346954D6EBA3C1CA0AFE0D9DFA164B10E985383927068BD3BE6B5194716B080.webp',
     'principals' => ['XRPLWin'],
     //'source' => 'https://github.com/...',
