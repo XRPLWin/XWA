@@ -698,7 +698,18 @@ return [
     'web' => null,
     'descr' => "This is a small example to demonstrate the use of a working hook in Xahau. The hook is programmed in C. It is recommended for educational purposes only. The creator is not responsible for any problems it may cause.\n\nThe hook is installed on an account. Once installed, every time the account receives a payment through a Payment or URITokenBuy transaction type, it will be distributed among the accounts stored in the account namespace. If there are no accounts in the namespace, it will do nothing.",
   ],
-  
+
+
+  //XRPLWin's voting hook
+
+  '2346954D6EBA3C1CA0AFE0D9DFA164B10E985383927068BD3BE6B5194716B080' => [
+    'title' => 'SimpleVoting Hook',
+    'image' => 'https://xwa-xahau.xrplwin.com/res/img/misc/hook_2346954D6EBA3C1CA0AFE0D9DFA164B10E985383927068BD3BE6B5194716B080.webp',
+    'principals' => ['XRPLWin'],
+    //'source' => 'https://github.com/...',
+    'web' => 'https://xahau.xrplwin.com',
+    'descr' => "This Voting Contract gives voting capabilities to the account.\n\nContract account can setup candidates, then any account can vote (once) to candidate with Invoke transaction by sending desired Candidate ID.",
+  ],
 
 
   //Other
