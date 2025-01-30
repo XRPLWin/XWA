@@ -704,7 +704,7 @@ return [
   '2346954D6EBA3C1CA0AFE0D9DFA164B10E985383927068BD3BE6B5194716B080' => [
     'title' => 'Simple Voting Contract',
     'image' => 'https://xwa-xahau.xrplwin.com/res/img/misc/hook_2346954D6EBA3C1CA0AFE0D9DFA164B10E985383927068BD3BE6B5194716B080.webp',
-    'principals' => ['XRPLWin'],
+    'principals' => ['XRPLWin','Tequ'],
     'source' => 'https://github.com/XRPLWin/hook-simplevoting',
     'web' => 'https://xahau.xrplwin.com',
     'descr' => "This Voting Contract gives voting capabilities to the account.\n\nContract account can setup candidates, then any account can vote (once) to candidate with Invoke transaction by sending desired Candidate ID.",
