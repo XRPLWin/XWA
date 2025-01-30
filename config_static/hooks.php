@@ -707,7 +707,7 @@ return [
     'principals' => ['XRPLWin','Tequ'],
     'source' => 'https://github.com/XRPLWin/hook-simplevoting',
     'web' => 'https://xahau.xrplwin.com',
-    'descr' => "This Voting Contract gives voting capabilities to the account.\n\nContract account can setup candidates, then any account can vote (once) to candidate with Invoke transaction by sending desired Candidate ID.",
+    'descr' => "This Voting Contract gives capabilities to host voting session.\n\nContract account can setup candidates,any account can vote (once) for candidate with Invoke transaction by sending desired Candidate ID.",
   ],
 
 
