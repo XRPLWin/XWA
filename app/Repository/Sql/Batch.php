@@ -39,10 +39,32 @@ final class Batch implements BatchInterface
       return 0;
 
     $processed_rows = 0;
-
     DB::beginTransaction();
     foreach($this->queue as $m) {
-      $m->save();
+      $isTransactionModel = $m instanceof \App\Models\BTransaction;
+      if($isTransactionModel) {
+        //use replace into instead of insert (manually delete and recreate row)
+        try {
+          $m->save();
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+          //$m->exists = true;
+          //$m->delete(); //not working due to primary key misconfiguration in BTransaction parent model
+
+          //remove duplicate manually:
+          DB::connection($m->getConnectionName())->table($m->getTable())
+            ->where('address',$m->address)
+            ->where('l',$m->l)
+            ->where('li',$m->li)
+            ->where('xwatype',$m->xwatype)
+            ->where('r',$m->r)
+            ->delete();
+
+          //re-save
+          $m->save();
+        }
+      } else {
+        $m->save();
+      }
       $processed_rows++;
     }
     DB::commit();
