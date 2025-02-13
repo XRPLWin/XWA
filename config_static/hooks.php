@@ -710,6 +710,14 @@ return [
     'descr' => "This Voting Contract gives capabilities to host voting session.\n\nContract account can setup candidates,any account can vote (once) for candidate with Invoke transaction by sending desired Candidate ID.",
   ],
 
+  //Docproof
+  '5471643B1850CC673CCC7CEB7C4DD81B74F786F779CCBB8CCE634062BEAA4B01' => [
+    'title' => 'Xahau Docproof Contract',
+    'image' => 'https://xwa-xahau.xrplwin.com/res/img/misc/hook_5471643B1850CC673CCC7CEB7C4DD81B74F786F779CCBB8CCE634062BEAA4B01.webp',
+    'principals' => ['Xahau DocProof'],
+    'web' => 'https://xahaudocproof.com',
+    'descr' => "Streamline document workflows with secure blockchain signatures.\n\nTransform document workflows with cryptographically sealed, instantly verifiable digital signatures powered by cutting-edge blockchain technology.",
+  ],
 
   //Other
   '4512D7BABEF201C779E76B2FEECB0D655E088426B5769F0C6796A1E97FD82D91' => [

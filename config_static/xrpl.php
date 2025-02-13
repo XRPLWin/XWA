@@ -249,6 +249,9 @@ return [
     'rK2y8aaRdEFpr2GUrqs1iuTCUsWgS5mHHW' => 'InFTF',
     'rKLDcskSc7EaHDkBohxioXcASzDmWcQZNc' => 'Alloy Networks', //signer for rBiGVAULtVEc2yMnop587w5pgiZ7EWAyUj
 
+    'rNqe9wrMJM3D6hwcTtNmYTtfcjbHsHRDSg' => 'Docproof',
+    'rBzkkQP7P2Dkq9faS51Dy2SfvCZDW3yjtu' => 'Docproof (2)',
+
   ]
 
 ];
