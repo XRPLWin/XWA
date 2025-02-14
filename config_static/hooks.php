@@ -714,7 +714,8 @@ return [
   '5471643B1850CC673CCC7CEB7C4DD81B74F786F779CCBB8CCE634062BEAA4B01' => [
     'title' => 'Xahau Docproof Contract',
     'image' => 'https://xwa-xahau.xrplwin.com/res/img/misc/hook_5471643B1850CC673CCC7CEB7C4DD81B74F786F779CCBB8CCE634062BEAA4B01.webp',
-    'principals' => ['Xahau DocProof'],
+    'principals' => ['Xahau DocProof','Andrei Rosseti'],
+    'source' => 'https://github.com/rosseti/xahau-docproof',
     'web' => 'https://xahaudocproof.com',
     'descr' => "Streamline document workflows with secure blockchain signatures.\n\nTransform document workflows with cryptographically sealed, instantly verifiable digital signatures powered by cutting-edge blockchain technology.",
   ],
