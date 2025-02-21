@@ -252,6 +252,8 @@ return [
     'rNqe9wrMJM3D6hwcTtNmYTtfcjbHsHRDSg' => 'Docproof',
     'rBzkkQP7P2Dkq9faS51Dy2SfvCZDW3yjtu' => 'Docproof (2)',
 
+    'rf9gRzbTrsR9jqMUN15kDFbUmnYLM5RWDi' => 'Cooperative Bank of Oromia',
+
   ]
 
 ];

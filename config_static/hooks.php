@@ -729,6 +729,15 @@ return [
     'descr' => "Streamline document workflows with secure blockchain signatures.\n\nTransform document workflows with cryptographically sealed, instantly verifiable digital signatures powered by cutting-edge blockchain technology.",
   ],
 
+  //coopbank
+  '7B7A3B7F705D1C98A2F4E4483BF1ADA9C445EDDE766417098E96008B8C8CBE08' => [
+    'title' => 'Cooperative Bank of Oromia Contract',
+    'image' => 'https://xwa-xahau.xrplwin.com/res/img/misc/hook_7B7A3B7F705D1C98A2F4E4483BF1ADA9C445EDDE766417098E96008B8C8CBE08.webp',
+    'principals' => ['Coopbank','InFTF','GateHub'],
+    'web' => 'https://coopbankoromia.com.et/',
+    'descr' => "At Coopbank, we are proud to be a digital-first bank, trusted by over 14 million customers across Ethiopia. As pioneers in digital banking, we introduced the first fully digital financing product for MSMEs and have processed over ETB 2.5 trillion through our cutting-edge mobile banking platform empowering millions.",
+  ],
+
   //Other
   '4512D7BABEF201C779E76B2FEECB0D655E088426B5769F0C6796A1E97FD82D91' => [
     'title' => 'Demo AMM Hook',
