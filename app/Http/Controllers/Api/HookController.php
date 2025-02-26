@@ -414,12 +414,31 @@ class HookController extends Controller
     foreach($txs as $tx) {
       $i++;
       if($i == $limit+1) break; //remove last row (+1) from resultset
-      $r[] = [
-        'ctid' => bcdechex($tx->ctid),
-        'r' => $tx->r,
-        't' => $tx->t
-      ];
+
+      //due to aggregator might be slow to run this real time, make sure $r is unique by $tx->r (account) to prevent duplicates
+      //if there is duplicate, only most recent date will be added:
+
+      if(isset($r[$tx->r])) {
+        //there is already added account to active accounts output, overwrite if $tx is more recent:
+        if($tx->t->gt($r[$tx->r]['t'])) {
+          //$tx is newer version of already set $r[$tx->r], overwrite it in output
+          $r[$tx->r] = [
+            'ctid' => bcdechex($tx->ctid),
+            'r' => $tx->r,
+            't' => $tx->t
+          ];
+        }
+      } else {
+        //add new row
+        $r[$tx->r] = [
+          'ctid' => bcdechex($tx->ctid),
+          'r' => $tx->r,
+          't' => $tx->t
+        ];
+      }
     }
+
+
 
     $pages = (int)\ceil($num_results / $limit);
     if($pages < 1) $pages = 1;
@@ -435,7 +454,7 @@ class HookController extends Controller
       //'info' => '',
       'hook' => $hook->hook,
       'hook_ctid' => bchexdec($hook->ctid_from),
-      'data' => $r,
+      'data' => \array_values($r),
     ])
       ->header('Cache-Control','public, s-max-age='.$ttl.', max_age='.$httpttl)
       ->header('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + $httpttl))
