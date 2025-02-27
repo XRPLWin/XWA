@@ -7,13 +7,14 @@ use XRPLWin\XRPLNFTTxMutatationParser\NFTTxMutationParser;
 
 final class NFTokenMint extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','RECEIVED','UNKNOWN'];
 
   /**
    * Parses NFTokenMint type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
    * @see B42C7A0C9C3061463C619999942D0F25E4AE5FB051EA0D7A4EE1A924DB6DFEE8 - minted by (for self): rU2T6qNSab9N4SQZAEutwWnkzA7vUGWcfQ
    * @see D904ADB2D6DD9644B7ACC14E351536B8570F8451AAB01E946ADB47B1E381399F - minted by: rfx2mVhTZzc6bLXKeYyFKtpha2LHrkNZFT for issuer: rHeRoYtbiMSKhtXm4k7tff1PrcwYnCePR3
+   * Due to https://xrpl.org/resources/known-amendments#nftokenmintoffer RECEIVED context is possible see 3FA2530A10C03D3152EF489A309CBFAB2FA8C9F87716E00BF3D56BE08B275DC7 / rhMdnXcxPqiuiXhfkTvNTzsPF4grRbkUXi
    * @return void
    */
   protected function parseTypeFields(): void
