@@ -255,6 +255,8 @@ return [
     'rf9gRzbTrsR9jqMUN15kDFbUmnYLM5RWDi' => 'Cooperative Bank of Oromia Issuer',
     'rphyguxqDYeQs1mU2x9ydpZem2AvnwQvcP' => 'Cooperative Bank of Oromia',
 
+    'rwUAi9ErV3wqgPdPj5qJdhBegJ3SPEvG9Y' => 'Xahau Reinvest',
+
   ]
 
 ];
