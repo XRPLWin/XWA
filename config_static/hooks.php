@@ -748,6 +748,16 @@ return [
     'descr' => "Maximize Your XAH Returns Through Smart Pooling\n\nXAH Reinvest pools your XAH with other investors to maximize returns through compound interest, leveraging Xahau's native monthly rewards.",
   ],
 
+  //Ranking Hook (DinoXAHur)
+  '92323532CC4281485A4B4DB4E27A1AFE81758B29C616C90546011FB9AD445268' => [
+    'title' => 'Ranking Hook',
+    'image' => config('app.url').'/res/img/misc/hook_92323532CC4281485A4B4DB4E27A1AFE81758B29C616C90546011FB9AD445268.webp',
+    'principals' => ['Ekiserrepe'],
+    'source' => 'https://github.com/Ekiserrepe/ranking-hook',
+    'web' => 'https://ekiserrepe.com',
+    'descr' => "Ranking is a hook programmed in C for the Xahau blockchain. A hook is a series of rules that enable smart logic in Xahau, considered the smart contracts of Xahau.\n\nRanking Hook is a Hook that turns your Xahau account into a score ranking manager for games. It's a simple idea so that others can get inspired and make better versions for their needs.",
+  ],
+
   //Other
   /*'4512D7BABEF201C779E76B2FEECB0D655E088426B5769F0C6796A1E97FD82D91' => [
     'title' => 'Demo AMM Hook',

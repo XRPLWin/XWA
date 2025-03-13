@@ -256,6 +256,7 @@ return [
     'rphyguxqDYeQs1mU2x9ydpZem2AvnwQvcP' => 'Cooperative Bank of Oromia',
 
     'rwUAi9ErV3wqgPdPj5qJdhBegJ3SPEvG9Y' => 'Xahau Reinvest',
+    'r4Yau7DTPk2TizjitD6p2W2hkGhorUZzn4' => 'DinoXAHur',
 
   ]
 
