@@ -257,6 +257,7 @@ return [
 
     'rwUAi9ErV3wqgPdPj5qJdhBegJ3SPEvG9Y' => 'Xahau Reinvest',
     'r4Yau7DTPk2TizjitD6p2W2hkGhorUZzn4' => 'DinoXAHur',
+    'rXPERTpgQZKoa2jAcKK3dumUiRzgwVSaP'  => 'xpert.page',
 
   ]
 
