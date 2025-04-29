@@ -55,7 +55,7 @@ return [
     'unl_vl' => 'https://vl.xrplf.org',
     'api_xrpscan' => 'https://api.xrpscan.com',
     'api_tokens' => 'https://api.xrpldata.com/api/v1/tokens',
-    'data_api' => 'https://data.xrplf.org', //see https://data.xrplf.org/docs/static/index.html
+    'data_api' => 'https://xrpldata.inftf.org', //'https://data.xrplf.org' -> see https://xrpldata.inftf.org/docs/static/index.html
   ],
 
   'testnet' => [
