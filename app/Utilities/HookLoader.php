@@ -22,6 +22,7 @@ class HookLoader
     //int $li_from,
     string $ctid,
     string $hookon,
+    ?string $hookcanemit,
     array $params,
     string $namespace
     ): BHook
@@ -42,6 +43,7 @@ class HookLoader
         //'li_to' => 0, //0 - reserved to be filled when destroyed
         //'txid_last' => null,
         'hookon' => $hookon,
+        'hookcanemit' => $hookcanemit,
         'params' => $params,
         'namespace' => $namespace,
         //'title' => '',
@@ -73,6 +75,7 @@ class HookLoader
     //int $li_from,
     string $ctid,
     string $hookon,
+    ?string $hookcanemit,
     array $params,
     string $namespace
   ): BHook
@@ -94,6 +97,7 @@ class HookLoader
         //'li_to' => 0, //0 - reserved to be filled when destroyed
         //'txid_last' => null,
         'hookon' => $hookon,
+        'hookcanemit' => $hookcanemit,
         'params' => $params,
         'namespace' => $namespace,
         //'title' => '',

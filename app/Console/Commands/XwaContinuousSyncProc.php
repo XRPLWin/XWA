@@ -621,6 +621,7 @@ class XwaContinuousSyncProc extends Command
           //$li,
           //$meta->TransactionIndex,
           isset($_hookData->NewFields->HookOn)?$_hookData->NewFields->HookOn:'0000000000000000000000000000000000000000000000000000000000000000', //all allowed except high ttSET_HOOK
+          isset($_hookData->NewFields->HookCanEmit)?$_hookData->NewFields->HookCanEmit:null,
           TxHookParser::toParams($_hookData),
           isset($_hookData->NewFields->HookNamespace)?$_hookData->NewFields->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
         );
@@ -664,6 +665,7 @@ class XwaContinuousSyncProc extends Command
           //$pulledTransaction->result->ledger_index, //find li of $createit_found->HookSetTxnID
           //$pulledTransaction->result->meta->TransactionIndex,
           isset($createit_found->HookOn)?$createit_found->HookOn:'0000000000000000000000000000000000000000000000000000000000000000', //all allowed except high ttSET_HOOK
+          isset($createit_found->HookCanEmit)?$createit_found->HookCanEmit:null,
           TxHookParser::toParams($storedHook_params_prepared), //WRONG
           isset($createit_found->HookNamespace)?$createit_found->HookNamespace:'0000000000000000000000000000000000000000000000000000000000000000'
         );

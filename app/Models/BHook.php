@@ -37,6 +37,7 @@ class BHook extends B
     //'li_to',
     //'txid_last',
     'hookon',
+    'hookcanemit',
     'params',
     'namespace',
     //'title',
@@ -71,6 +72,7 @@ class BHook extends B
     //'li_to' => 'INTEGER',
     //'txid_last' => 'NULLABLE STRING',
     'hookon'  => 'STRING',
+    'hookcanemit'  => 'STRING',
     'params'  => 'STRING', //store json here key value one dimensional array
     'namespace' => 'STRING',
     //'title'  => 'STRING',
