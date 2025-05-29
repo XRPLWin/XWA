@@ -173,6 +173,10 @@ return [
     'rwLfiGkrpdcLnyQ5gnfXontybaMW7yFstw' => 'Scam (World Liberty Financial)',
     'rUsttTA8cYZ2fVybuuSjhhS5WQ5nqDjQrv' => 'Scam (U.S. DEPARTMENT OF TREASURY)',
     'r3bankvcxoGFN6AcV1hoBcLVrSL4F5HFWG' => 'Scam (Bank of America)',
+
+    //EUROP
+    'rMkEuRii9w9uBMQDnWV5AA43gvYZR9JxVK' => 'EURØP (Issuer)', //https://ripple.com/ripple-press/euro-stablecoin-on-xrp-ledger/ https://schuman.io/
+    'rB3y9EPnq1ZrZP3aXgfyfdXQThzdXMrLMc' => 'Braza Group USDB (Issuer)', //https://www.binance.com/en/square/post/24635691940290
   ],
 
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
