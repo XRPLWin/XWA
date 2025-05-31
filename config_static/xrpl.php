@@ -177,6 +177,8 @@ return [
     //EUROP
     'rMkEuRii9w9uBMQDnWV5AA43gvYZR9JxVK' => 'EURØP (Issuer)', //https://ripple.com/ripple-press/euro-stablecoin-on-xrp-ledger/ https://schuman.io/
     'rB3y9EPnq1ZrZP3aXgfyfdXQThzdXMrLMc' => 'Braza Group USDB (Issuer)', //https://www.binance.com/en/square/post/24635691940290
+
+    'rLMuGMFnnAgCT4vSiCLcqYxewSYDCZMc57' => 'ledger.meme', //https://x.com/Ledger_Meme/status/1928784871142400371
   ],
 
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
