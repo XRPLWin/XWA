@@ -177,6 +177,13 @@ return [
     //EUROP
     'rMkEuRii9w9uBMQDnWV5AA43gvYZR9JxVK' => 'EURØP (Issuer)', //https://ripple.com/ripple-press/euro-stablecoin-on-xrp-ledger/ https://schuman.io/
     'rB3y9EPnq1ZrZP3aXgfyfdXQThzdXMrLMc' => 'Braza Group USDB (Issuer)', //https://www.binance.com/en/square/post/24635691940290
+    //Circle USDC
+    //https://x.com/RippleXDev/status/1933149350894751795
+    //https://x.com/circle/status/1933147279244017903
+    //https://www.circle.com/blog/now-available-usdc-on-the-xrpl
+
+    'rGm7WCVp9gb4jZHWTEtGUr4dd74z2XuWhE' => 'USDC (Issuer) - Circle',
+    'rHuGNhqTG32mfmAvWA8hUyWRLV3tCSwKQt' => 'Testnet USDC (Issuer) - Circle',
 
     'rLMuGMFnnAgCT4vSiCLcqYxewSYDCZMc57' => 'ledger.meme', //https://x.com/Ledger_Meme/status/1928784871142400371
   ],
