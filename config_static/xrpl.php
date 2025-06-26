@@ -157,6 +157,7 @@ return [
     'raLLmoneyxGV9FzoWwRtHmb4jmkMiJxwGL' => 'AllTheMoney Oracle (threexrp)',
     'rBEERdzDHqDyYmfw2jqzyMNBZu31yzfg6q' => 'Beer Oracle (XRPScan)',
     'rDeizxSRo6JHjKnih9ivpPkyD2EgXQvhSB' => 'XPmarket',
+    'rfXMq3BMX2dTzJtG4pnhr49u6sHkVQXpWL' => 'XRMine',
     
     //RLUSD Fakes:
     'rLUSDfDxGQ28Dn3ZtRSTzuqfzBaacRmNm8' => 'RLUSD Scam 1',
@@ -273,6 +274,7 @@ return [
     'rwUAi9ErV3wqgPdPj5qJdhBegJ3SPEvG9Y' => 'Xahau Reinvest',
     'r4Yau7DTPk2TizjitD6p2W2hkGhorUZzn4' => 'DinoXAHur',
     'rXPERTpgQZKoa2jAcKK3dumUiRzgwVSaP'  => 'xpert.page',
+    'rfXMq3BMX2dTzJtG4pnhr49u6sHkVQXpWL' => 'Xspence',
 
   ]
 
