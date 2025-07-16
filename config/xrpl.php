@@ -109,8 +109,8 @@ return [
   ],
 
   'xahautest' => [
-    'genesis_ledger'            => env('XRPL_GENESIS_LEDGER', 3),
-    'genesis_ledger_close_time' => env('XRPL_GENESIS_LEDGER_CLOSE_TIME', 728140030),
+    'genesis_ledger'            => env('XRPL_GENESIS_LEDGER', 2),
+    'genesis_ledger_close_time' => env('XRPL_GENESIS_LEDGER_CLOSE_TIME', 805537690),
 
     //for connection via php GuzzleHttp (reporting server)
     'rippled_server_uri' => 'https://xahau-test.net',
@@ -124,8 +124,8 @@ return [
     'feature_amm' => false,
     'feature_oracle' => false,
     'feature_unlreport' => true,
-    'feature_unlreport_first_flag_ledger' => 6869247, //6869248 is first flag
-    'feature_unlreport_first_flag_ledger_close_time' => 748958191, //ripple epoch
+    'feature_unlreport_first_flag_ledger' => 511, //512 is first flag
+    'feature_unlreport_first_flag_ledger_close_time' => 805539252, //ripple epoch
     'unl_vl' => 'https://vl.test.xahauexplorer.com',
     'api_xrpscan' => 'https://api.xahscan.com',
     'api_tokens' => null,
