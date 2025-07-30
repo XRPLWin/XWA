@@ -169,7 +169,8 @@ return [
     //websocket domain (example: 'xahau.network')
     'server_wss' => 'xahau.network',
     //'server_wss_syncer' => ['wss://xahau.network'],
-    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://xahau.network/explorer/xrplwinxwa')),
+    //'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://xahau.network/explorer/xrplwinxwa')),
+    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://xahau.network')),
     'networkid' => 21337,
     //enable or disable features
     'feature_amm' => false,
