@@ -161,16 +161,16 @@ return [
     'genesis_ledger_close_time' => env('XRPL_GENESIS_LEDGER_CLOSE_TIME', 751983661),
 
     //for connection via php GuzzleHttp (reporting server)
-    //'rippled_server_uri' => 'https://xahau.network/explorer/xrplwin',
-    'rippled_server_uri' => 'https://xahau.network',
+    'rippled_server_uri' => 'https://xahau.network/explorer/xrplwin',
+    //'rippled_server_uri' => 'https://xahau.network',
     //for connection via php GuzzleHttp (full history server)
     //'rippled_fullhistory_server_uri' => 'https://xahau.network/explorer/xrplwin',
     'rippled_fullhistory_server_uri' => 'https://xahau.network',
     //websocket domain (example: 'xahau.network')
     'server_wss' => 'xahau.network',
     //'server_wss_syncer' => ['wss://xahau.network'],
-    //'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://xahau.network/explorer/xrplwinxwa')),
-    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://xahau.network')),
+    'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://xahau.network/explorer/xrplwinxwa')),
+    //'server_wss_syncer' => \explode(',',env('XRPL_NET_SERVER_WSS_SYNCER', 'wss://xahau.network')),
     'networkid' => 21337,
     //enable or disable features
     'feature_amm' => false,
