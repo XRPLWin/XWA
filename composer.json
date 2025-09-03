@@ -28,7 +28,7 @@
         "xrplwin/xrpl-nfttxmutationparser": "^1.0",
         "xrplwin/xrpl-orderbook-reader": "^1.0",
         "xrplwin/xrpl-txmutationparser": "^1.0",
-        "xrplwin/xrpl-txparticipantextractor": "^1.0.23"
+        "xrplwin/xrpl-txparticipantextractor": "^1.0.32"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
