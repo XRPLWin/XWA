@@ -22,7 +22,7 @@
         "textalk/websocket": "^1.6",
         "thiagoprz/eloquent-composite-key": "^1.0",
         "xrplwin/unlreportreader": "^1.0",
-        "xrplwin/xrpl": "1.0.19",
+        "xrplwin/xrpl": "1.0.20",
         "xrplwin/xrpl-hookparser": "^2.0",
         "xrplwin/xrpl-ledgertime": "^1.0",
         "xrplwin/xrpl-nfttxmutationparser": "^1.0",
