@@ -774,5 +774,15 @@ return [
     'web' => null,
   ],
 
+  '2ADC076DD1F97F9E155A38CC3210F7C6C1ABE8A15D707FE365A2837370AA0DCD' => [
+    'title' => 'xMerch Vendor Payout Hook',
+    'image' => null,
+    //'image' => config('app.url').'/res/img/misc/hook_2ADC076DD1F97F9E155A38CC3210F7C6C1ABE8A15D707FE365A2837370AA0DCD.webp',
+    'principals' => ['xMerch','meister','HandyAndy'],
+    'descr' => 'Instantly routes checkout payments directly to the vendor\'s wallet, removing delays and middlemen.',
+    'source' => 'https://github.com/Handy4ndy/HandyHooks/blob/main/Xmerch/xMerchCheckout.c',
+    'web' => 'https://www.xmerch.app',
+  ],
+
   
 ];
