@@ -278,6 +278,7 @@ return [
     'r4Yau7DTPk2TizjitD6p2W2hkGhorUZzn4' => 'DinoXAHur',
     'rXPERTpgQZKoa2jAcKK3dumUiRzgwVSaP'  => 'xpert.page',
     'rfXMq3BMX2dTzJtG4pnhr49u6sHkVQXpWL' => 'Xspence',
+    'rEvThuw5TQSXkpMaink2QjxniYBsXwLgNr' => 'xMerch',
 
   ]
 
