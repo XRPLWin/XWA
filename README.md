@@ -1,6 +1,7 @@
 # XRPLWinAnalyzer
 
-XRP Ledger Analyzer (WORK IN PROGRESS)
+**MAINTAINACE ONLY**  
+Indexer is in maintainace only mode. No further functionality will be added. This indexer will be replaced by new improved WinX indexer in 2026.
 
 ## Requirements
 
