@@ -188,8 +188,8 @@ return [
 
     'rLMuGMFnnAgCT4vSiCLcqYxewSYDCZMc57' => 'ledger.meme', //https://x.com/Ledger_Meme/status/1928784871142400371
 
-    'rMLNvZR9dascY5jtCfCv3whAp8HdUSZAQ' => 'Flare FAssets (1)',
-    'rfkXSaCZKTg1EZzec2rLDyrWHxRVJdtVXj'=> 'Flare FAssets (2)',
+    'rfkXSaCZKTg1EZzec2rLDyrWHxRVJdtVXj'=> 'Flare Core Vault (1)',
+    'rMLNvZR9dascY5jtCfCv3whAp8HdUSZAQ' => 'Flare Core Vault (2)',
   ],
 
   'genesis_xahau' => [ //genesis_env(XRPL_NET)
