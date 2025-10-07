@@ -460,9 +460,13 @@ class UnlReportController extends Controller
 
     $ledger_current = Ledger::validated();
     $reader = new UNLReportReader(config('xrpl.'.config('xrpl.net').'.rippled_fullhistory_server_uri'));
+    //$ledger_current = 17625087; //test 404
     $response = $reader->fetchSingle($ledger_current); //?array
-
     $isInReport = false;
+    if(!count($response['active_validators'])) {
+      //in case when there is no active_validators in UNLReport - ignore
+      abort(404);
+    }
     foreach($response['active_validators'] as $active_validator) {
 
       if($active_validator['PublicKey'] === $validator_ed) {
