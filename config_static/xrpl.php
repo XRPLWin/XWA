@@ -279,6 +279,7 @@ return [
     'rXPERTpgQZKoa2jAcKK3dumUiRzgwVSaP'  => 'xpert.page',
     'rfXMq3BMX2dTzJtG4pnhr49u6sHkVQXpWL' => 'Xspence',
     'rEvThuw5TQSXkpMaink2QjxniYBsXwLgNr' => 'xMerch',
+    'rD1CX9FwgPfCLBmH8k8qvFWxauGMWmWbct' => 'Xahau 2nd Anniversary',
 
   ]
 

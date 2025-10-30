@@ -784,5 +784,14 @@ return [
     'web' => 'https://www.xmerch.app',
   ],
 
+  '99659BDC6ECD73A94D7C72E685B9B9051D0049BC56146207979A8F71B246C9DA' => [
+    'title' => 'Xahau Birthday Card Hook',
+    'image' => config('app.url').'/res/img/misc/hook_99659BDC6ECD73A94D7C72E685B9B9051D0049BC56146207979A8F71B246C9DA.webp',
+    'principals' => ['HandyAndy'],
+    'descr' => 'Let\'s make Xahau\'s 2nd birthday unforgettable! Add your message to the on-chain birthday card in just a few fun steps.',
+    'source' => 'https://github.com/Handy4ndy/HandyHooks/tree/main/XahauBirthdayCard',
+    'web' => null,
+  ]
+
   
 ];
