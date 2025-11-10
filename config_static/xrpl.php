@@ -212,7 +212,7 @@ return [
       'r42noEGvAqfwXnDBebeEPfYVswZVe6CKPo' => 'Bithomp',
       'rWiNRBZaEHFptxtkdohBbk36UxoHVwvEa'  => 'XRPLWin',
       'raZYXq4xReKiDUb2fUKe5sxrTkbUcoUUUU' => 'offledger',
-      'rMR7pbJsVLTSEWNh7uNJPKJMfryLdwGgv9' => 'Xahau Dev Table - member 8', //lathan
+      'rMR7pbJsVLTSEWNh7uNJPKJMfryLdwGgv9' => 'Xahau Dev Table - member 9', //lathan
 
     'rHsh4MNWJKXN2YGtSf95aEzFYzMqwGiBve' => 'Xahau Exchange Table',
       'rB3egB3cm51DpFENKH2CameyQJf2fmvN72' => 'Xahau Exchange Table - GENESIS member 1',
