@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class GenesisMint extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SET','SENT','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses GenesisMint type fields and maps them to $this->data
@@ -22,6 +22,9 @@ final class GenesisMint extends XRPLParserBase
     if($parsedType == 'REGULARKEYSIGNER') {
       $this->persist = false;
     }
+
+    if($this->tx->Account == $this->reference_address) //self - ignore (see 83DAAF59AC8D21758673E40EC3746F541C1D45159E13FDCAF5A11BC13031CE40)
+      $this->persist = false;
 
     $this->data['Counterparty'] = $this->tx->Account; //always initiator even for initiator, since there are multiple counterparties
     if($this->reference_address != $this->tx->Account)
