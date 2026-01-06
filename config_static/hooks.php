@@ -14,7 +14,7 @@ return [
   '5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77' => [
     'title' => 'Xahau Governance Game Hook',
     'image' => config('app.url').'/static/avatar/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77.webp',
-    'web' => 'https://docs.xahau.network/technical/governance-game',
+    'web' => 'https://xahau.network/docs/features/governance-game/',
     'descr' => "The Governance Game is an innovative governance mechanism within the Xahau ecosystem to ensure a community-centric approach towards decision-making.",
     'source' => 'https://github.com/Xahau/xahaud/blob/dev/hook/genesis/govern.c',
   ],
@@ -22,7 +22,15 @@ return [
   'FAC0FAF928B48D7D113B95A07129E5E161AA5CCFCB4AEE0BC49B5795645CEFCD' => [
     'title' => 'Xahau Governance Game Hook v2',
     'image' => config('app.url').'/static/avatar/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77.webp',
-    'web' => 'https://docs.xahau.network/technical/governance-game',
+    'web' => 'https://xahau.network/docs/features/governance-game/',
+    'descr' => "The Governance Game is an innovative governance mechanism within the Xahau ecosystem to ensure a community-centric approach towards decision-making.\n\nFixed Governance Game Hook, vote purge bug is fixed with this version.\n\nSee issue: https://github.com/Xahau/xahaud/issues/211",
+    'source' => 'https://github.com/Xahau/xahaud/blob/dev/hook/genesis/govern.c',
+  ],
+
+  'BED26B4B3E7F2B20811B8417417F0B78216E41CF622ACACBB9DFEB6E357A4623' => [
+    'title' => 'Xahau Governance Game Hook v3',
+    'image' => config('app.url').'/static/avatar/5EDF6439C47C423EAC99C1061EE2A0CE6A24A58C8E8A66E4B3AF91D76772DC77.webp',
+    'web' => 'https://xahau.network/docs/features/governance-game/',
     'descr' => "The Governance Game is an innovative governance mechanism within the Xahau ecosystem to ensure a community-centric approach towards decision-making.\n\nFixed Governance Game Hook, vote purge bug is fixed with this version.\n\nSee issue: https://github.com/Xahau/xahaud/issues/211",
     'source' => 'https://github.com/Xahau/xahaud/blob/dev/hook/genesis/govern.c',
   ],
