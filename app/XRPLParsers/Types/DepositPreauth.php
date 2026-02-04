@@ -32,7 +32,7 @@ final class DepositPreauth extends XRPLParserBase
     if($this->tx->Account == $this->reference_address) {
       $this->data['In'] = false;
       if($this->transaction_type_class == 'DepositPreauth_Authorize') {
-        $this->data['Counterparty'] = $this->tx->Authorize??$this->tx->Account;
+        $this->data['Counterparty'] = $this->tx->Authorize??$this->tx->Account; //see 09FA4E94A7D796EACAF13D78497BE29119123C3D3F9D2F93997405D958481677 where authorize is missing
       } else {
         $this->data['Counterparty'] = $this->tx->Unauthorize;
       }
