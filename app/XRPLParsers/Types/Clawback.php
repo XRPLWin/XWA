@@ -19,16 +19,13 @@ final class Clawback extends XRPLParserBase
       throw new \Exception('Unhandled parsedType ['.$parsedType.'] on Clawback with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     # Counterparty
+    $issuerOrHolder = isset($this->tx->Amount->issuer) ? $this->tx->Amount->issuer : $this->tx->Holder;
+    //see Holder 469834E0470B0C4FA4942A1AD992C9455A75181AFF78B74E65C7A739A240CCBF (MPT)
     if($this->tx->Account == $this->reference_address) {
       //counterparty is amount->issuer
-      if(isset($this->tx->Amount->issuer)) {
-        $this->data['Counterparty'] = $this->tx->Amount->issuer;
-      } else {
-        $this->data['Counterparty'] = $this->tx->Holder; //see 469834E0470B0C4FA4942A1AD992C9455A75181AFF78B74E65C7A739A240CCBF (MPT)
-      }
-      
+      $this->data['Counterparty'] = $issuerOrHolder;
       $this->data['In'] = true;
-    } elseif($this->tx->Amount->issuer == $this->reference_address) {
+    } elseif($issuerOrHolder == $this->reference_address) {
       $this->data['Counterparty'] = $this->tx->Account;
     } else {
       $this->data['Counterparty'] = $this->tx->Account;
