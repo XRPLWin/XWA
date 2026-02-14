@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class Clawback extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SENT','REGULARKEYSIGNER','UNKNOWN'];
+  private array $acceptedParsedTypes = ['SENT','SET','REGULARKEYSIGNER','UNKNOWN'];
   /**
    * Parses Clawback type fields and maps them to $this->data
    * @see https://xrpl.org/transaction-types.html
@@ -16,12 +16,17 @@ final class Clawback extends XRPLParserBase
   {
     $parsedType = $this->data['txcontext'];
     if(!in_array($parsedType, $this->acceptedParsedTypes))
-      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on Payment with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      throw new \Exception('Unhandled parsedType ['.$parsedType.'] on Clawback with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
 
     # Counterparty
     if($this->tx->Account == $this->reference_address) {
       //counterparty is amount->issuer
-      $this->data['Counterparty'] = $this->tx->Amount->issuer;
+      if(isset($this->tx->Amount->issuer)) {
+        $this->data['Counterparty'] = $this->tx->Amount->issuer;
+      } else {
+        $this->data['Counterparty'] = $this->tx->Holder; //see 469834E0470B0C4FA4942A1AD992C9455A75181AFF78B74E65C7A739A240CCBF (MPT)
+      }
+      
       $this->data['In'] = true;
     } elseif($this->tx->Amount->issuer == $this->reference_address) {
       $this->data['Counterparty'] = $this->tx->Account;
