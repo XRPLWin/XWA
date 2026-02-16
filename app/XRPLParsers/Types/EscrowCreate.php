@@ -51,9 +51,16 @@ final class EscrowCreate extends XRPLParserBase
     if(isset($this->data['eventList']['primary'])) {
       $this->persist = true;
       $this->data['Amount'] = $this->data['eventList']['primary']['value'];
+
+      //Token Escrows support:
       if($this->data['eventList']['primary']['currency'] !== 'XRP') {
-        throw new \Exception('Unhandled non XRP value on EscrowCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+        $this->data['Issuer'] = $this->data['eventList']['primary']['counterparty'];
+        $this->data['Currency'] = $this->data['eventList']['primary']['currency'];
       }
+
+      //if($this->data['eventList']['primary']['currency'] !== 'XRP') {
+      //  throw new \Exception('Unhandled non XRP value on EscrowCreate with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']');
+      //}
     }
   }
 
@@ -82,6 +89,14 @@ final class EscrowCreate extends XRPLParserBase
 
     if(\array_key_exists('Amount', $this->data))
       $r['a'] = $this->data['Amount'];
+   
+
+    if(\array_key_exists('Issuer', $this->data))
+      $r['i'] = $this->data['Issuer'];
+   
+    if(\array_key_exists('Currency', $this->data))
+      $r['c'] = $this->data['Currency'];
+   
 
     //if XLS34 enabled:
     if(\array_key_exists('Issuer', $this->data))
