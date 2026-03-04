@@ -58,8 +58,15 @@ final class Import extends XRPLParserBase
     if($this->data['In'] && isset($this->tx->Blob)) {
       $_blob = \json_decode(\hex2bin($this->tx->Blob));
       $codec = new \XRPL_PHP\Core\RippleBinaryCodec\BinaryCodec;
-      $_blob_transaction = $codec->decode($_blob->transaction->blob);
-      $_total_burnedXRP = $_blob_transaction['Fee'];
+      try {
+        $_blob_transaction = $codec->decode($_blob->transaction->blob); //error here: 5FAEF62122D5F851B17C60C3AE211EDE734AC4E66851C2BB6E5B7D4B996746FB (xahau - regularkey) - blob is present but not decodable, maybe because of hooks? or because it's a emitted tx blob which has some different structure? need to investigate
+      } catch(\Exception $e) {
+        $_blob_transaction = null;
+        //throw new \Exception('Error decoding blob for Import with HASH ['.$this->data['hash'].'] and perspective ['.$this->reference_address.']: '.$e->getMessage());
+      }
+      $_total_burnedXRP = 0;
+      if($_blob_transaction !== null)
+        $_total_burnedXRP = $_blob_transaction['Fee'];
       $this->data['Amount2'] = (string)BigDecimal::of($_total_burnedXRP)->exactlyDividedBy(1000000);
     }
   }
