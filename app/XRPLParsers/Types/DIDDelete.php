@@ -6,7 +6,7 @@ use App\XRPLParsers\XRPLParserBase;
 
 final class DIDDelete extends XRPLParserBase
 {
-  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER'];
+  private array $acceptedParsedTypes = ['SET','REGULARKEYSIGNER','UNKNOWN'];
 
   /**
    * Parses TrustSet type fields and maps them to $this->data
