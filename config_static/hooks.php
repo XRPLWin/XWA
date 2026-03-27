@@ -799,7 +799,25 @@ return [
     'descr' => 'Let\'s make Xahau\'s 2nd birthday unforgettable! Add your message to the on-chain birthday card in just a few fun steps.',
     'source' => 'https://github.com/Handy4ndy/HandyHooks/tree/main/XahauBirthdayCard',
     'web' => null,
-  ]
+  ],
+
+  'DE221C6481B2322C2F759EB5529C4980CCCE8CA0B041A7F54C57BB7E46840B66' => [ //tip.c
+    'title' => 'Tipbot Tip Hook',
+    'image' => config('app.url').'/res/img/misc/hook_DE221C6481B2322C2F759EB5529C4980CCCE8CA0B041A7F54C57BB7E46840B66.webp',
+    'principals' => ['Richard Holland', 'XRPL-Labs'],
+    'descr' => 'Non-custodial Tip bot Hook. Supports tipping on social media platforms like X. Tip actions are monitored by tipbot oracle nodes. Nodes vote on which tips they saw, the amount, the to and from (oracle game). Hook actions tip after meeting vote quorum. Tipbot Oracle Nodes (TONs) also participate in a governance game to maintain who is a valid TON according to the Hook.',
+    'source' => 'https://github.com/RichardAH/tipbot-hooks/blob/main/tip.c',
+    'web' => 'https://github.com/RichardAH/tipbot-hooks',
+  ],
+
+  '87ADBE6D9DA5BDF95B4FB4CE018D90B3213BCA831D5B78A3AAF1D8E068C90B01' => [ //top.c
+    'title' => 'Tipbot Top-up Hook',
+    'image' => config('app.url').'/res/img/misc/hook_87ADBE6D9DA5BDF95B4FB4CE018D90B3213BCA831D5B78A3AAF1D8E068C90B01.webp',
+    'principals' => ['Richard Holland', 'XRPL-Labs'],
+    'descr' => 'Non-custodial Tip bot Hook. Withdraw-deposit (Top up hook or just Top). Allows deposit and withdrawal from the non-custodial Tipbot.',
+    'source' => 'https://github.com/RichardAH/tipbot-hooks/blob/main/top.c',
+    'web' => 'https://github.com/RichardAH/tipbot-hooks',
+  ],
 
   
 ];
