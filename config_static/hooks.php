@@ -819,5 +819,12 @@ return [
     'web' => 'https://github.com/RichardAH/tipbot-hooks',
   ],
 
-  
+  '805351CE26FB79DA00647CEFED502F7E15C2ACCCE254F11DEFEDDCE241F8E9CA' => [
+    'title' => 'Xahau ClaimReward Automation Hook',
+    'image' => config('app.url').'/res/img/misc/hook_805351CE26FB79DA00647CEFED502F7E15C2ACCCE254F11DEFEDDCE241F8E9CA.webp',
+    'principals' => ['Ekiserrepé'],
+    'descr' => 'Automated system for claiming Xahau rewards using Hooks and CronSet transactions. This project provides tools to calculate, schedule, and automate ClaimReward transactions on the Xahau network.',
+    'source' => 'https://github.com/Ekiserrepe/cron-claimreward-xahau',
+    'web' => 'https://claim.xahau.love',
+  ],
 ];
