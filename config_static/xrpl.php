@@ -284,7 +284,8 @@ return [
 
     'rDk1xiArDMjDqnrR2yWypwQAKg4mKnQYvs' => 'Quantoz (Issuer)', //https://quantoz.com/
 
-    'rJPBEwycS7YLMeS68AE7myPTT9nXEBgbrn' => 'Tipbot Public Beta',
+    'rJPBEwycS7YLMeS68AE7myPTT9nXEBgbrn' => 'Tipbot Alpha',
+    'rtipboteEEZ6JkTNvcYgUZbiYyrV2W7DQ' => 'Tipbot'
 
   ]
 
