@@ -35,6 +35,11 @@ cp reload.sh.sample reload.sh
 chmod +x reload.sh
 # edit reload.sh to change nginx cache folder if needed
 ```
+Clear accounts cache
+```
+cd storage/app/local/accounts/
+find . -maxdepth 1 -name "*.json" -type f -delete
+```
 
 ### Database (MySQL)
 
