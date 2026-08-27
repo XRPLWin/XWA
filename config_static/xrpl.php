@@ -272,6 +272,8 @@ return [
     'rNqe9wrMJM3D6hwcTtNmYTtfcjbHsHRDSg' => 'Docproof',
     'rBzkkQP7P2Dkq9faS51Dy2SfvCZDW3yjtu' => 'Docproof (2)',
 
+    'richard43NZXStHcjJi2UB8LGDQGFLKNs' => 'Richard Holland',
+
     'rf9gRzbTrsR9jqMUN15kDFbUmnYLM5RWDi' => 'Cooperative Bank of Oromia Issuer',
     'rphyguxqDYeQs1mU2x9ydpZem2AvnwQvcP' => 'Cooperative Bank of Oromia',
 
