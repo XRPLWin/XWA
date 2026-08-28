@@ -25,11 +25,11 @@ class Kernel extends ConsoleKernel
         ;
 
     //disable 28 08 2026
-    /*$schedule->command('xwa:unlreportssync')
+    $schedule->command('xwa:unlreportssync')
       ->withoutOverlapping(4) //lock expires every 4 mins, flag ledgers are approx every 12 mins
       ->everyFiveMinutes()
       ->onOneServer()
-      ->runInBackground();*/
+      ->runInBackground();
 
     $schedule->command('xwa:startsyncer')
       ->withoutOverlapping(11) //lock expires every 21 min (adjust times in commands also)
