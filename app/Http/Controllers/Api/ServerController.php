@@ -36,7 +36,7 @@ class ServerController extends Controller
   {
     if(config('xwa.sync_type') != 'continuous')
       abort(404);
-    
+    abort(403, 'Disabled for now');
     $trackers = DB::table('synctrackers')->select([
       'id',
       'first_l',
