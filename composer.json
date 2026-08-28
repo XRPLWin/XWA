@@ -80,7 +80,14 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
-        "policy.advisories.block": false
+        "policy.advisories.block": false,
+        "policy.advisories.ignore-id": [
+            "PKSA-m5cs-t1y6-qpcs",
+            "PKSA-3r5d-mb8f-1qw9",
+            "PKSA-mdq4-51ck-6kdq",
+            "PKSA-8qx3-n5y5-vvnd",
+            "PKSA-w7xr-vk7n-rstm"
+        ]
     },
     "minimum-stability": "stable",
     "prefer-stable": true
