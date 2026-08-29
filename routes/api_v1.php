@@ -43,7 +43,7 @@ Route::get('/hookname/{hookhash}', [App\Http\Controllers\Api\HookController::cla
 
 
 Route::get('/validators/dunl', [App\Http\Controllers\Api\ValidatorController::class, 'dunl'])->name('validators.dunl');
-//Route::get('/unlreport/{from}/{to?}', [App\Http\Controllers\Api\UnlReportController::class, 'report'])->name('unlreport.report');
+Route::get('/unlreport/{from}/{to?}', [App\Http\Controllers\Api\UnlReportController::class, 'report'])->name('unlreport.report');
 Route::get('/validators/unl', [App\Http\Controllers\Api\UnlReportController::class, 'validators'])->name('unlreport.validators');
 Route::get('/validators/unl/{validator}', [App\Http\Controllers\Api\UnlReportController::class, 'validator'])->name('unlreport.validator');
 Route::get('/validators/unl/{validator}/monitor/status', [App\Http\Controllers\Api\UnlReportController::class, 'validator_monitor_status'])->name('unlreport.validator_monitor_status');
