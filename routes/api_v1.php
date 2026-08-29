@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 
 #Account routes
 //Route::get('/account/info/{address}', [App\Http\Controllers\Api\AccountController::class, 'info'])/*->middleware('varnish5min')*/->name('account.info');
-Route::get('/account/summary/{address}', [App\Http\Controllers\Api\AccountController::class, 'summary'])/*->middleware('varnish5min')*/->name('account.summary'); //high traffic supported, cached
+//Route::get('/account/summary/{address}', [App\Http\Controllers\Api\AccountController::class, 'summary'])/*->middleware('varnish5min')*/->name('account.summary'); //high traffic supported, cached
 //Route::get('/account/syncinfo/{address}/{to?}', [App\Http\Controllers\Api\AccountController::class, 'syncinfo'])/*->middleware('varnish5min')*/->name('account.syncinfo');
 //Route::get('/account/search/{address}', [App\Http\Controllers\Api\AccountController::class, 'search'])/*->middleware('varnish5min')*/->name('account.search');
 Route::get('/tokens', [App\Http\Controllers\Api\TokenController::class, 'all'])/*->middleware('varnish5min')*/->name('token.all');
